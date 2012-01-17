@@ -1,0 +1,230 @@
+#!/bin/sh
+#
+###############################################################################
+##                                                                           ##
+##                                 Alice                                     ##
+##                                                                           ##
+##                    rc script to start and stop Alice                      ##
+##                                                                           ##
+##                    Copyright (C) 2012-, AdaHeads K/S                      ##
+##                                                                           ##
+##  This is free software;  you can redistribute it  and/or modify it        ##
+##  under terms of the  GNU General Public License as published  by the      ##
+##  Free Software  Foundation;  either version 3,  or (at your option) any   ##
+##  later version.  This software is distributed in the hope  that it will   ##
+##  be useful, but WITHOUT ANY WARRANTY;  without even the implied warranty  ##
+##  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU      ##
+##  General Public License for  more details.                                ##
+##  You should have  received  a copy of the GNU General  Public  License    ##
+##  distributed  with  this  software;   see  file COPYING3.  If not, go     ##
+##  to http://www.gnu.org/licenses for a complete copy of the license.       ##
+##                                                                           ##
+###############################################################################
+
+# You can use this script to start, stop, restart and check the status of a
+# Yolk application.
+#
+# NOTE:
+#   When you start a Yolk application with this script, output from the app-
+#   lication is directed to /dev/null, meaning that regular Put_Line calls are
+#   _not_ shown anywhere.
+#   This is done to avoid crashing the application if it tries to write to STDOUT
+#   while not having an actual shell.
+#   So if you need output to STDOUT, for example for debugging purposes, you'll
+#   have to start the application by calling the executable directly.
+
+###########################################################
+# Edit the following variables to match your environment. #
+###########################################################
+
+# This is merely a name. You can write anything here, but the most sane thing
+# would probably be to write the same name as given in the config.ini parameter
+# Server_Name.
+# This name is used when the rc script output informative messages about the
+# application.
+NAME_OF_APPLICATION=Alice
+
+# This is the actual filename of the Yolk application executable.
+NAME_OF_EXE_FILE=alice
+
+# Path to where the NAME_OF_EXE_FILE lives. Do _not_ write the trailing /
+PATH_TO_YOLK_EXE_DIRECTORY=/home/thomas/Ada/yolk/demo/exe
+
+##############################################################
+# Do not edit below here, unless you know what you're doing. #
+##############################################################
+
+PID=${PATH_TO_YOLK_EXE_DIRECTORY}/${NAME_OF_EXE_FILE}.pid
+
+###########
+# cleanup #
+###########
+cleanup(){
+
+    if [ -f ${PID} ]
+    then
+        echo "Cleaning up PID file ${PID}."
+        rm ${PID}
+    fi
+
+}
+
+##############
+# yolk_start #
+##############
+yolk_start() {
+
+    # Check if we're already running
+    if [ -f ${PID} ]
+    then
+        PROCESS=`cat ${PID}`
+
+        if [ -d /proc/${PROCESS} ]
+        then
+            echo "${NAME_OF_APPLICATION} is already running with PID ${PROCESS}."
+            exit 1
+        fi
+    fi
+
+    # Start the application and send it to background.
+    # NOTE:
+    #   We direct output to /dev/null. This is to avoid IO exceptions from the
+    #   application in case some part of AWS/GNATcoll produce unexpected
+    #   output on STDOUT.
+    cd ${PATH_TO_YOLK_EXE_DIRECTORY};
+    ./${NAME_OF_EXE_FILE} > /dev/null &
+
+    for i in 1 2 3 4
+    do
+        echo "."
+        sleep 0.25
+    done
+
+    if [ -f ${PID} ]
+    then
+        PROCESS=`cat ${PID}`
+
+        if [ -d /proc/${PROCESS} ]
+        then
+            echo "${NAME_OF_APPLICATION} is running with PID ${PROCESS}."
+        else
+            echo "No process is running with PID ${PROCESS}."
+            echo "Something bad has happened."
+        fi
+    else
+        echo "Cannot find PID file ${PID}."
+        echo "Starting ${NAME_OF_APPLICATION} failed."
+    fi
+
+    exit 1
+
+}
+
+#############
+# yolk_stop #
+#############
+yolk_stop() {
+
+    if [ -f ${PID} ]
+    then
+        PROCESS=`cat ${PID}`
+    else
+        echo "Cannot find PID file ${PID}."
+        echo "Is the application running?"
+        exit 1
+    fi
+
+    if [ -d /proc/${PROCESS} ]
+    then
+        echo -n "Stopping the ${NAME_OF_APPLICATION} daemon."
+
+        kill ${PROCESS}
+
+        while [ -d /proc/${PROCESS} ]
+        do
+            echo "."
+            sleep 0.25
+        done
+
+        echo "${NAME_OF_APPLICATION} stopped."
+    else
+        echo "No running process with PID ${PROCESS}"
+
+        cleanup
+    fi
+
+}
+
+################
+# yolk_restart #
+################
+yolk_restart() {
+
+    yolk_stop
+    sleep 1
+    yolk_start
+
+    exit 1
+
+}
+
+###############
+# yolk_status #
+###############
+yolk_status() {
+
+    IS_RUNNING="false"
+    echo "Process information:"
+
+    if [ -f ${PID} ]
+    then
+        PROCESS=`cat ${PID}`
+        if [ -d /proc/${PROCESS} ]
+        then
+            IS_RUNNING="true"
+        fi
+    fi
+
+    if [ ${IS_RUNNING} == "true" ]
+    then
+        echo "${NAME_OF_APPLICATION} is running with PID ${PROCESS}."
+        echo ""
+        echo "Disk I/O utilization stats:"
+        pidstat -d -p ${PROCESS}
+
+        echo ""
+        echo "CPU utilization stats:"
+        pidstat -u -I -p ${PROCESS}
+
+        echo ""
+        echo "Memory utilization stats:"
+        pidstat -r -p ${PROCESS}
+
+        echo ""
+    else
+        echo "${NAME_OF_APPLICATION} is stopped."
+    fi
+
+}
+
+###############
+# Main switch #
+###############
+case "$1" in
+'start')
+  yolk_start
+  ;;
+'stop')
+  yolk_stop
+  ;;
+'restart')
+  yolk_restart
+  ;;
+'status')
+  yolk_status
+  ;;
+*)
+  echo "usage $0 start|stop|restart|status"
+esac
+
+exit 1

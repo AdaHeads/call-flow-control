@@ -1,0 +1,14 @@
+# Do not track build objects.
+build*/*
+!build*/.gitignore
+
+# Do not track pid files and the alice executable in exe/
+exe/alice
+exe/*.pid
+
+# Do not track alice session data
+exe/session/*
+
+# Do not track emacs temporary and backup files
+\#*#
+*~

@@ -1,0 +1,19 @@
+Building Alice simply requires that you have Yolk installed on your system and
+that AWS has been compiled with LDAP support. If those two dependencies are met,
+then all you have to do is:
+
+    $ make
+
+You now have a fully functioning Alice server in the exe/ directory.
+
+You can build a debug version of Alice with:
+
+    $ make debug
+
+If you have valgrind available on your system, you can try running this version
+with:
+
+    $ valgrind -v --leak-check=full \
+                  --show-possibly-lost=no \
+                  --track-origins=yes alice
+
