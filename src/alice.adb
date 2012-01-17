@@ -42,27 +42,23 @@ procedure Alice is
    use Yolk.Process_Owner;
    use Yolk.Utilities;
 
+   Alice_Version : constant String := "0.10";
+
    Resource_Handlers : AWS.Services.Dispatchers.URI.Handler;
-   --  The various resource handlers. These are defined in the Yolk.Handlers
-   --  and My_Handlers packages.
-
    Web_Server        : AWS.Server.HTTP;
-   --  The main AWS webserver object.
-
    Web_Server_Config : constant AWS.Config.Object := Get_AWS_Configuration;
-   --  Set the AWS configuration object.
-   --  All AWS related configuration parameters can be found in the
-   --  configuration/config.ini file. They are marked with:
-   --    Used by AWS: Yes
-   --  Default values are set in the Yolk.Configuration package.
-
-   --------------------
-   --  Start_Server  --
-   --------------------
 
    procedure Start_Server;
    --  Start the AWS server. A short message is written to the Info log trace
    --  whenever the server is started.
+
+   procedure Stop_Server;
+   --  Stop the AWS server. A short message is written to the Info log trace
+   --  whenever the server is stopped.
+
+   --------------------
+   --  Start_Server  --
+   --------------------
 
    procedure Start_Server
    is
@@ -79,10 +75,6 @@ procedure Alice is
       AWS.Server.Start (Web_Server => Web_Server,
                         Dispatcher => Resource_Handlers,
                         Config     => Web_Server_Config);
-      --  Unfortunately we have to start the server BEFORE we start the logs.
-      --  If we start the logs first, then the log files aren't created in the
-      --  Log_File_Directory directory, but instead they are created in the
-      --  directory where the executable is.
 
       if Config.Get (AWS_Access_Log_Activate) then
          AWS.Server.Log.Start
@@ -104,15 +96,13 @@ procedure Alice is
              AWS.Config.Server_Name (Web_Server_Config));
       Trace (Handle  => Info,
              Message => "Yolk version " & Yolk.Version);
+      Trace (Handle  => Info,
+             Message => "Alice version " & Alice_Version);
    end Start_Server;
 
    -------------------
    --  Stop_Server  --
    -------------------
-
-   procedure Stop_Server;
-   --  Stop the AWS server. A short message is written to the Info log trace
-   --  whenever the server is stopped.
 
    procedure Stop_Server
    is

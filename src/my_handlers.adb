@@ -23,8 +23,7 @@
 
 with AWS.Dispatchers.Callback;
 with My_Configuration;
-with Request.Get_Customer;
-with Request.Get_Person;
+with Request;
 with Yolk.Not_Found;
 
 package body My_Handlers is
@@ -57,26 +56,21 @@ package body My_Handlers is
       --  content of the website is used. I personally prefer giving back 404's
       --  if unknown content is requested by a client.
 
-      -----------------------------------
-      --  General Content Dispatchers  --
-      -----------------------------------
-
-      --  These dispatchers handle the "page" content.
-      --  NOTE:
-      --    Order matters. The first handler that matches a resource handles
-      --    the request.
+      ---------------------------------------
+      --  Dispatchers for known resources  --
+      ---------------------------------------
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Get_Customer),
+         URI        => My.Config.Get (My.Handler_Get_Company),
          Action     => Create
-           (Callback => Request.Get_Customer.Generate'Access));
+           (Callback => Request.Company'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Get_Person),
+         URI        => My.Config.Get (My.Handler_Get_Persons),
          Action     => Create
-           (Callback => Request.Get_Person.Generate'Access));
+           (Callback => Request.Persons'Access));
    end Set;
 
 end My_Handlers;

@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                            Request.Get_Person                             --
+--                                LDAP_Utils                                 --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,13 +21,15 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
+with AWS.LDAP.Client;
+with GNATCOLL.JSON;
 
-package Request.Get_Person is
+package LDAP_Utils is
 
-   function Generate
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+   function To_JSON
+     (Directory    : in AWS.LDAP.Client.Directory;
+      Response_Set : in AWS.LDAP.Client.LDAP_Message)
+      return JSON_Value;
+   --  Convert a LDAP message to a JSON object.
 
-end Request.Get_Person;
+end LDAP_Utils;

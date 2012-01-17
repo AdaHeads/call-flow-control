@@ -2,11 +2,11 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                            Request.Get_Person                             --
+--                                  Data                                     --
 --                                                                           --
---                                  BODY                                     --
+--                                  SPEC                                     --
 --                                                                           --
---                     Copyright (C) 2012-, AdaHeads K/S                     --
+--                     Copyright (C) 2012-, AdaHeads K/S                      --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -21,20 +21,25 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package body Request.Get_Person is
+with AWS.LDAP.Client;
+with GNATCOLL.JSON;
+with LDAP_Connection;
+--  with My_Configuration;
 
-   ---------------
-   --  Generate --
-   ---------------
+package Data is
+private
 
-   function Generate
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data
-   is
-   begin
-      return Build_Response
-        (Status_Data => Request,
-         Content     => "{""parent"":""Linus Torvalds"", ""name"":""Linux""}");
-   end Generate;
+   --  package My renames My_Configuration;
 
-end Request.Get_Person;
+   package LDAP is new LDAP_Connection ("alpha.adaheads.com",
+                                        "cn=Directory Manager",
+                                        "D3nSort3H3st",
+                                        1389);
+
+   function To_JSON
+     (Directory    : in AWS.LDAP.Client.Directory;
+      Response_Set : in AWS.LDAP.Client.LDAP_Message)
+      return GNATCOLL.JSON.JSON_Value;
+   --  Convert a LDAP message to a JSON object.
+
+end Data;

@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                           Request.Get_Customer                            --
+--                                 Data.Get                                  --
 --                                                                           --
---                                  SPEC                                     --
+--                                  BODY                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,13 +21,57 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
+with AWS.LDAP.Client;
+with GNATCOLL.JSON;
 
-package Request.Get_Customer is
+package body Data.Get is
 
-   function Generate
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+   ---------------
+   --  Company  --
+   ---------------
 
-end Request.Get_Customer;
+   function Company
+     (ID : in String)
+      return String
+   is
+      use AWS.LDAP.Client;
+      use GNATCOLL.JSON;
+
+      A_Directory  : constant Directory := LDAP.Get_Directory;
+      Response_Set : LDAP_Message;
+   begin
+      Response_Set := Search
+        (A_Directory,
+         "dc=example,dc=com",
+         "(&(objectClass=organization)(o=" & ID & "))",
+         LDAP_Scope_Subtree,
+         Attributes ("*"));
+
+      return GNATCOLL.JSON.Write (To_JSON (A_Directory, Response_Set));
+   end Company;
+
+   ---------------
+   --  Persons  --
+   ---------------
+
+   function Persons
+     (ID : in String)
+      return String
+   is
+      use AWS.LDAP.Client;
+      use GNATCOLL.JSON;
+
+      A_Directory  : constant Directory := LDAP.Get_Directory;
+      Response_Set : LDAP_Message;
+   begin
+      Response_Set := Search
+        (A_Directory,
+         "o=" & ID & "," & "dc=example,dc=com",
+         "(objectClass=person)",
+         AWS.LDAP.Client.LDAP_Scope_Subtree,
+         Attributes ("*"));
+
+      return GNATCOLL.JSON.Write (To_JSON (A_Directory, Response_Set));
+   end Persons;
+
+end Data.Get;

@@ -66,4 +66,8 @@ project Alice is
 
       end case;
    end Compiler;
+
+   package Linker is
+      for Default_Switches ("Ada") use ("-lldap");
+   end Linker;
 end Alice;

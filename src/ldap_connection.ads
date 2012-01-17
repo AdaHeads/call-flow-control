@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                           Request.Get_Customer                            --
+--                             LDAP_Connection                               --
 --                                                                           --
---                                  BODY                                     --
+--                                  SPEC                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,20 +21,18 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package body Request.Get_Customer is
+with AWS.LDAP.Client;
 
-   ---------------
-   --  Generate --
-   ---------------
+generic
 
-   function Generate
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data
-   is
-   begin
-      return Build_Response
-        (Status_Data => Request,
-         Content     => "{""get_customer"":""hey!"", name"":""stuff""}");
-   end Generate;
+   Host     : String;
+   User_DN  : String;
+   Password : String;
+   Port     : Natural;
 
-end Request.Get_Customer;
+package LDAP_Connection is
+
+   function Get_Directory return AWS.LDAP.Client.Directory;
+   --  Return a thread specific Directory to the Host LDAP server.
+
+end LDAP_Connection;

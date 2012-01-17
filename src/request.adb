@@ -22,6 +22,7 @@
 -------------------------------------------------------------------------------
 
 with AWS.Messages;
+with Data.Get;
 
 package body Request is
 
@@ -52,5 +53,33 @@ package body Request is
                     Encoding      => Encoding,
                     Cache_Control => No_Cache);
    end Build_Response;
+
+   --------------
+   --  Company --
+   --------------
+
+   function Company
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+   begin
+      return Build_Response
+        (Status_Data => Request,
+         Content     => Data.Get.Company ("Hansen VVS"));
+   end Company;
+
+   --------------
+   --  Persons --
+   --------------
+
+   function Persons
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+   begin
+      return Build_Response
+        (Status_Data => Request,
+         Content     => Data.Get.Persons (ID => "Hansen VVS"));
+   end Persons;
 
 end Request;

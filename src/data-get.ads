@@ -2,11 +2,11 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                 Request                                   --
+--                                 Data.Get                                  --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
---                     Copyright (C) 2012-, AdaHeads K/S                     --
+--                     Copyright (C) 2012-, AdaHeads K/S                      --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -21,28 +21,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Status;
-with AWS.Response;
-with My_Configuration;
-
-package Request is
-
-   JSON_MIME_Type : constant String := "application/json";
-
-   package My renames My_Configuration;
+package Data.Get is
 
    function Company
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+     (ID : in String)
+      return String;
 
    function Persons
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+     (ID : in String)
+      return String;
 
-   function Build_Response
-     (Status_Data    : in AWS.Status.Data;
-      Content        : in String;
-      MIME_Type      : in String := JSON_MIME_Type)
-      return AWS.Response.Data;
-
-end Request;
+end Data.Get;

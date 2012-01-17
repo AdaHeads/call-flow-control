@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                 Request                                   --
+--                              LDAP_Connection                              --
 --                                                                           --
---                                  SPEC                                     --
+--                                  BODY                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,28 +21,35 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Status;
-with AWS.Response;
-with My_Configuration;
+with Ada.Task_Attributes;
 
-package Request is
+package body LDAP_Connection is
 
-   JSON_MIME_Type : constant String := "application/json";
+   package Task_Association is new Ada.Task_Attributes
+     (AWS.LDAP.Client.Directory, AWS.LDAP.Client.Null_Directory);
 
-   package My renames My_Configuration;
+   ---------------------
+   --  Get_Directory  --
+   ---------------------
 
-   function Company
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+   function Get_Directory return AWS.LDAP.Client.Directory
+   is
+      use AWS.LDAP.Client;
 
-   function Persons
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+      A_Directory : Directory;
+   begin
+      A_Directory := Task_Association.Value;
 
-   function Build_Response
-     (Status_Data    : in AWS.Status.Data;
-      Content        : in String;
-      MIME_Type      : in String := JSON_MIME_Type)
-      return AWS.Response.Data;
+      if Is_Open (A_Directory) then
+         return A_Directory;
+      else
+         A_Directory := Init (Host, Port);
+         Bind (A_Directory, User_DN, Password);
 
-end Request;
+         Task_Association.Set_Value (A_Directory);
+
+         return A_Directory;
+      end if;
+   end Get_Directory;
+
+end LDAP_Connection;

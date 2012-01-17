@@ -29,17 +29,17 @@ package My_Configuration is
 
    use Yolk.Utilities;
 
-   type Keys is (Handler_Get_Customer,
-                 Handler_Get_Person);
+   type Keys is (Handler_Get_Company,
+                 Handler_Get_Persons);
 
    type Defaults_Array is array (Keys) of
      Ada.Strings.Unbounded.Unbounded_String;
 
    Default_Values : constant Defaults_Array :=
-                      (Handler_Get_Customer
-                       => TUS ("/get_customer"),
-                       Handler_Get_Person
-                       => TUS ("/get_person"));
+                      (Handler_Get_Company
+                       => TUS ("/get/company"),
+                       Handler_Get_Persons
+                       => TUS ("/get/persons"));
 
    package Config is new Yolk.Config_File_Parser
      (Key_Type => Keys,
