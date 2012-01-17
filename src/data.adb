@@ -23,6 +23,7 @@
 
 with Ada.Strings.Unbounded;
 with AWS.LDAP.Thin;
+with Yolk.Utilities;
 
 package body Data is
 
@@ -31,33 +32,33 @@ package body Data is
    ---------------
 
    function To_JSON
-     (Directory    : in AWS.LDAP.Client.Directory;
-      Response_Set : in AWS.LDAP.Client.LDAP_Message)
+     (Directory : in AWS.LDAP.Client.Directory;
+      Message   : in AWS.LDAP.Client.LDAP_Message)
       return GNATCOLL.JSON.JSON_Value
    is
       use Ada.Strings.Unbounded;
       use AWS.LDAP.Client;
       use AWS.LDAP.Thin;
       use GNATCOLL.JSON;
+      use Yolk.Utilities;
 
-      Objects_JSON : constant JSON_Value  := Create_Object;
-      --  Objects_Arr  : JSON_Array;
-      Message      : LDAP_Message;
       BER          : aliased BER_Element;
+      LDAP_MSG     : LDAP_Message;
+      Objects_JSON : constant JSON_Value  := Create_Object;
    begin
-      Message := First_Entry (Directory, Response_Set);
+      LDAP_MSG := First_Entry (Directory, Message);
 
-      while Message /= Null_LDAP_Message loop
+      while LDAP_MSG /= Null_LDAP_Message loop
          declare
             Attrs      : Unbounded_String;
             Attrs_JSON : constant JSON_Value := Create_Object;
          begin
-            Attrs := To_Unbounded_String
-              (First_Attribute (Directory, Message, BER'Unchecked_Access));
+            Attrs := TUS
+              (First_Attribute (Directory, LDAP_MSG, BER'Unchecked_Access));
             loop
                declare
-                  RS : constant String_Set := AWS.LDAP.Client.Get_Values
-                    (Directory, Message, To_String (Attrs));
+                  RS : constant String_Set := Get_Values
+                    (Directory, LDAP_MSG, TS (Attrs));
                begin
                   --  if there is more than one attribute, convert to an array
                   if RS'Length > 1 then
@@ -66,23 +67,22 @@ package body Data is
                      begin
                         for K in RS'Range loop
                            Append (Arr => Values,
-                                   Val => Create (To_String (RS (K))));
+                                   Val => Create (TS (RS (K))));
                         end loop;
-                        Attrs_JSON.Set_Field (Field_Name => To_String (Attrs),
-                                              Field      =>  Values);
+                        Attrs_JSON.Set_Field (Field_Name => TS (Attrs),
+                                              Field      => Values);
                      end;
                   else
                      --  Otherwise, just add as a field
-                     Attrs_JSON.Set_Field (Field_Name => To_String (Attrs),
-                                           Field      =>  To_String (RS (1)));
+                     Attrs_JSON.Set_Field (Field_Name => TS (Attrs),
+                                           Field      => TS (RS (1)));
 
                   end if;
                end;
                Objects_JSON.Set_Field
-                 (Get_DN (Directory, Message), Attrs_JSON);
+                 (Get_DN (Directory, LDAP_MSG), Attrs_JSON);
                --  Next element
-               Attrs := To_Unbounded_String
-                 (Next_Attribute (Directory, Message, BER));
+               Attrs := TUS (Next_Attribute (Directory, LDAP_MSG, BER));
 
                --  Exit when no more attributes
                exit when Attrs = Null_Unbounded_String;
@@ -92,11 +92,11 @@ package body Data is
          end;
 
          --  Get the next entry
-         Message := Next_Entry (Directory, Message);
+         LDAP_MSG := Next_Entry (Directory, LDAP_MSG);
       end loop;
 
       --  Free memory
-      Free (Message);
+      Free (LDAP_MSG);
 
       return Objects_JSON;
    end To_JSON;

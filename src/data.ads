@@ -37,8 +37,8 @@ private
                                         1389);
 
    function To_JSON
-     (Directory    : in AWS.LDAP.Client.Directory;
-      Response_Set : in AWS.LDAP.Client.LDAP_Message)
+     (Directory : in AWS.LDAP.Client.Directory;
+      Message   : in AWS.LDAP.Client.LDAP_Message)
       return GNATCOLL.JSON.JSON_Value;
    --  Convert a LDAP message to a JSON object.
 

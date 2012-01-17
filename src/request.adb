@@ -32,8 +32,7 @@ package body Request is
 
    function Build_Response
      (Status_Data : in AWS.Status.Data;
-      Content     : in String;
-      MIME_Type   : in String := JSON_MIME_Type)
+      Content     : in String)
       return AWS.Response.Data
    is
       use AWS.Messages;
@@ -41,14 +40,13 @@ package body Request is
       use AWS.Status;
 
       Encoding : Content_Encoding := Identity;
-      --  Default to no encoding.
    begin
       if Is_Supported (Status_Data, GZip) then
          Encoding := GZip;
          --  GZip is supported by the client.
       end if;
 
-      return Build (Content_Type  => MIME_Type,
+      return Build (Content_Type  => JSON_MIME_Type,
                     Message_Body  => Content,
                     Encoding      => Encoding,
                     Cache_Control => No_Cache);

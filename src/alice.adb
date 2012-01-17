@@ -129,7 +129,6 @@ procedure Alice is
    end Stop_Server;
 begin
    Set_User (Username => Config.Get (Yolk_User));
-   --  Switch user.
 
    for Key in Keys'Range loop
       if TS (Default_Values (Key)) /= TS (Config.Get (Key)) then
@@ -151,12 +150,10 @@ begin
    AWS.Server.Set_Unexpected_Exception_Handler
      (Web_Server => Web_Server,
       Handler    => Yolk.Whoops.Unexpected_Exception_Handler'Access);
-   --  Set the unexpected exception handler. If your app raises an exception
-   --  and there's no handler for it, then it'll get handled by the
-   --  Yolk.Whoops.Unexpected_Exception_Handler exception handler.
+   --  Yolk.Whoops.Unexpected_Exception_Handler handles, well, unexpected
+   --  exceptions.
 
    Start_Server;
-   --  Start the server.
 
    Trace (Handle  => Info,
           Message => "Starting " &
@@ -166,12 +163,9 @@ begin
    --  We're alive! Log this fact to the Info trace.
 
    Wait;
-   --  This is the main "loop". We will wait here as long as the
-   --  Yolk.Process_Control.Controller.Check entry barrier is False.
+   --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
 
    Stop_Server;
-   --  Shutdown requested in Yolk.Process_Control.Controller, so we will
-   --  attempt to shutdown the server.
 
 exception
    when Event : others =>

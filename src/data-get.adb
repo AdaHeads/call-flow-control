@@ -37,17 +37,17 @@ package body Data.Get is
       use AWS.LDAP.Client;
       use GNATCOLL.JSON;
 
-      A_Directory  : constant Directory := LDAP.Get_Directory;
-      Response_Set : LDAP_Message;
+      A_Directory : constant Directory := LDAP.Get_Directory;
+      LDAP_MSG    : LDAP_Message;
    begin
-      Response_Set := Search
+      LDAP_MSG := Search
         (A_Directory,
          "dc=example,dc=com",
          "(&(objectClass=organization)(o=" & ID & "))",
          LDAP_Scope_Subtree,
          Attributes ("*"));
 
-      return GNATCOLL.JSON.Write (To_JSON (A_Directory, Response_Set));
+      return GNATCOLL.JSON.Write (To_JSON (A_Directory, LDAP_MSG));
    end Company;
 
    ---------------
@@ -61,17 +61,17 @@ package body Data.Get is
       use AWS.LDAP.Client;
       use GNATCOLL.JSON;
 
-      A_Directory  : constant Directory := LDAP.Get_Directory;
-      Response_Set : LDAP_Message;
+      A_Directory : constant Directory := LDAP.Get_Directory;
+      LDAP_MSG    : LDAP_Message;
    begin
-      Response_Set := Search
+      LDAP_MSG := Search
         (A_Directory,
          "o=" & ID & "," & "dc=example,dc=com",
          "(objectClass=person)",
          AWS.LDAP.Client.LDAP_Scope_Subtree,
          Attributes ("*"));
 
-      return GNATCOLL.JSON.Write (To_JSON (A_Directory, Response_Set));
+      return GNATCOLL.JSON.Write (To_JSON (A_Directory, LDAP_MSG));
    end Persons;
 
 end Data.Get;

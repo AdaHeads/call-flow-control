@@ -30,7 +30,12 @@ package My_Configuration is
    use Yolk.Utilities;
 
    type Keys is (Handler_Get_Company,
-                 Handler_Get_Persons);
+                 Handler_Get_Persons,
+                 LDAP_Base_DN,
+                 LDAP_Host,
+                 LDAP_User_DN,
+                 LDAP_Password,
+                 LDAP_Port);
 
    type Defaults_Array is array (Keys) of
      Ada.Strings.Unbounded.Unbounded_String;
@@ -39,7 +44,17 @@ package My_Configuration is
                       (Handler_Get_Company
                        => TUS ("/get/company"),
                        Handler_Get_Persons
-                       => TUS ("/get/persons"));
+                       => TUS ("/get/persons"),
+                       LDAP_Base_DN
+                       => TUS (""),
+                       LDAP_Host
+                       => TUS ("localhost"),
+                       LDAP_User_DN
+                       => TUS (""),
+                       LDAP_Password
+                       => TUS (""),
+                       LDAP_Port
+                       => TUS ("1389"));
 
    package Config is new Yolk.Config_File_Parser
      (Key_Type => Keys,
