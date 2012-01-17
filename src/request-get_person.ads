@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                  View                                     --
+--                            Request.Get_Person                             --
 --                                                                           --
---                                  BODY                                     --
+--                                  SPEC                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,36 +21,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Messages;
+with AWS.Response;
+with AWS.Status;
 
-package body View is
+package Request.Get_Person is
 
-   ----------------------
-   --  Build_Response  --
-   ----------------------
+   function Generate
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
 
-   function Build_Response
-     (Status_Data : in AWS.Status.Data;
-      Content     : in String;
-      MIME_Type   : in String := JSON_MIME_Type)
-      return AWS.Response.Data
-   is
-      use AWS.Messages;
-      use AWS.Response;
-      use AWS.Status;
-
-      Encoding : Content_Encoding := Identity;
-      --  Default to no encoding.
-   begin
-      if Is_Supported (Status_Data, GZip) then
-         Encoding := GZip;
-         --  GZip is supported by the client.
-      end if;
-
-      return Build (Content_Type  => MIME_Type,
-                    Message_Body  => Content,
-                    Encoding      => Encoding,
-                    Cache_Control => No_Cache);
-   end Build_Response;
-
-end View;
+end Request.Get_Person;

@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                            View.Get_Customer                              --
+--                                 Request                                   --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,13 +21,20 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
 with AWS.Status;
+with AWS.Response;
+with My_Configuration;
 
-package View.Get_Customer is
+package Request is
 
-   function Generate
-     (Request : in AWS.Status.Data)
+   JSON_MIME_Type : constant String := "application/json";
+
+   package My renames My_Configuration;
+
+   function Build_Response
+     (Status_Data    : in AWS.Status.Data;
+      Content        : in String;
+      MIME_Type      : in String := JSON_MIME_Type)
       return AWS.Response.Data;
 
-end View.Get_Customer;
+end Request;

@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                            View.Get_Customer                              --
+--                            Request.Get_Person                             --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -21,7 +21,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package body View.Get_Customer is
+package body Request.Get_Person is
 
    ---------------
    --  Generate --
@@ -34,7 +34,7 @@ package body View.Get_Customer is
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => "{""get_customer"":""hey!"", name"":""stuff""}");
+         Content     => "{""parent"":""Linus Torvalds"", ""name"":""Linux""}");
    end Generate;
 
-end View.Get_Customer;
+end Request.Get_Person;

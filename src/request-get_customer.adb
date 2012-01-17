@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                 Alice                                     --
+--                                  Alice                                    --
 --                                                                           --
---                             View.Get_Person                               --
+--                           Request.Get_Customer                            --
 --                                                                           --
---                                  SPEC                                     --
+--                                  BODY                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,13 +21,20 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
+package body Request.Get_Customer is
 
-package View.Get_Person is
+   ---------------
+   --  Generate --
+   ---------------
 
    function Generate
      (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+      return AWS.Response.Data
+   is
+   begin
+      return Build_Response
+        (Status_Data => Request,
+         Content     => "{""get_customer"":""hey!"", name"":""stuff""}");
+   end Generate;
 
-end View.Get_Person;
+end Request.Get_Customer;

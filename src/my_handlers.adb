@@ -23,8 +23,8 @@
 
 with AWS.Dispatchers.Callback;
 with My_Configuration;
-with View.Get_Customer;
-with View.Get_Person;
+with Request.Get_Customer;
+with Request.Get_Person;
 with Yolk.Not_Found;
 
 package body My_Handlers is
@@ -69,12 +69,14 @@ package body My_Handlers is
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => My.Config.Get (My.Handler_Get_Customer),
-         Action     => Create (Callback => View.Get_Customer.Generate'Access));
+         Action     => Create
+           (Callback => Request.Get_Customer.Generate'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => My.Config.Get (My.Handler_Get_Person),
-         Action     => Create (Callback => View.Get_Person.Generate'Access));
+         Action     => Create
+           (Callback => Request.Get_Person.Generate'Access));
    end Set;
 
 end My_Handlers;

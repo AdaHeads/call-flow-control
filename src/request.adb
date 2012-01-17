@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                             View.Get_Person                               --
+--                                 Request                                   --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -21,20 +21,36 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package body View.Get_Person is
+with AWS.Messages;
 
-   ---------------
-   --  Generate --
-   ---------------
+package body Request is
 
-   function Generate
-     (Request : in AWS.Status.Data)
+   ----------------------
+   --  Build_Response  --
+   ----------------------
+
+   function Build_Response
+     (Status_Data : in AWS.Status.Data;
+      Content     : in String;
+      MIME_Type   : in String := JSON_MIME_Type)
       return AWS.Response.Data
    is
-   begin
-      return Build_Response
-        (Status_Data => Request,
-         Content     => "{""parent"":""Linus Torvalds"", ""name"":""Linux""}");
-   end Generate;
+      use AWS.Messages;
+      use AWS.Response;
+      use AWS.Status;
 
-end View.Get_Person;
+      Encoding : Content_Encoding := Identity;
+      --  Default to no encoding.
+   begin
+      if Is_Supported (Status_Data, GZip) then
+         Encoding := GZip;
+         --  GZip is supported by the client.
+      end if;
+
+      return Build (Content_Type  => MIME_Type,
+                    Message_Body  => Content,
+                    Encoding      => Encoding,
+                    Cache_Control => No_Cache);
+   end Build_Response;
+
+end Request;
