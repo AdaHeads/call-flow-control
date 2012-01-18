@@ -67,8 +67,25 @@ package body Request is
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => Data.Get.Company (Params.Get ("company_id")));
+         Content     => Data.Get.Company (Params.Get ("o")));
    end Company;
+
+   -------------
+   --  Person --
+   -------------
+
+   function Person
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+      use AWS.Status;
+
+      Params : constant AWS.Parameters.List := Parameters (Request);
+   begin
+      return Build_Response
+        (Status_Data => Request,
+         Content     => Data.Get.Person (Params.Get ("o"), Params.Get ("cn")));
+   end Person;
 
    --------------
    --  Persons --
@@ -84,7 +101,7 @@ package body Request is
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => Data.Get.Persons (Params.Get ("company_id")));
+         Content     => Data.Get.Persons (Params.Get ("o")));
    end Persons;
 
 end Request;

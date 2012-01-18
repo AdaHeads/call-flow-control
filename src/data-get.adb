@@ -21,17 +21,24 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Exceptions;
 with AWS.LDAP.Client;
 with GNATCOLL.JSON;
 
 package body Data.Get is
+
+   function Error_Handler
+     (Event       : in Ada.Exceptions.Exception_Occurrence;
+      LDAP_Values : in String)
+      return String;
+   --  Handler exceptions raised due to bad LDAP search parameters.
 
    ---------------
    --  Company  --
    ---------------
 
    function Company
-     (ID : in String)
+     (Organization : in String)
       return String
    is
       use AWS.LDAP.Client;
@@ -40,23 +47,78 @@ package body Data.Get is
       A_Directory : constant Directory := LDAP.Get_Directory;
       LDAP_MSG    : LDAP_Message;
    begin
-
       LDAP_MSG := Search
         (A_Directory,
          My.Config.Get (LDAP_Base_DN),
-         "(&(objectClass=organization)(o=" & ID & "))",
+         "(&(objectClass=organization)(o=" & Organization & "))",
          LDAP_Scope_Subtree,
          Attributes ("*"));
 
-      return GNATCOLL.JSON.Write (To_JSON (A_Directory, LDAP_MSG));
+      return Write (To_JSON (A_Directory, LDAP_MSG));
+
+   exception
+      when Event : others =>
+         return Error_Handler
+           (Event, "o=" & Organization);
    end Company;
+
+   ---------------------
+   --  Error_Handler  --
+   ---------------------
+
+   function Error_Handler
+     (Event       : in Ada.Exceptions.Exception_Occurrence;
+      LDAP_Values : in String)
+      return String
+   is
+      use Ada.Exceptions;
+      use GNATCOLL.JSON;
+
+      JSON_Object : constant JSON_Value := Create_Object;
+   begin
+      JSON_Object.Set_Field (Field_Name => "error",
+                             Field      => Exception_Message (Event));
+      JSON_Object.Set_Field (Field_Name => "parameters",
+                             Field      => LDAP_Values);
+      return Write (JSON_Object);
+   end Error_Handler;
+
+   --------------
+   --  Person  --
+   --------------
+
+   function Person
+     (Organization : in String;
+      Common_Name  : in String)
+      return String
+   is
+      use AWS.LDAP.Client;
+      use GNATCOLL.JSON;
+
+      A_Directory : constant Directory := LDAP.Get_Directory;
+      LDAP_MSG    : LDAP_Message;
+   begin
+      LDAP_MSG := Search
+        (A_Directory,
+         "o=" & Organization & "," & My.Config.Get (LDAP_Base_DN),
+         "(&(objectclass=person)(cn=" & Common_Name & "))",
+         AWS.LDAP.Client.LDAP_Scope_Subtree,
+         Attributes ("*"));
+
+      return Write (To_JSON (A_Directory, LDAP_MSG));
+
+   exception
+      when Event : others =>
+         return Error_Handler
+           (Event, "o=" & Organization & ", cn=" & Common_Name);
+   end Person;
 
    ---------------
    --  Persons  --
    ---------------
 
    function Persons
-     (ID : in String)
+     (Organization : in String)
       return String
    is
       use AWS.LDAP.Client;
@@ -67,12 +129,17 @@ package body Data.Get is
    begin
       LDAP_MSG := Search
         (A_Directory,
-         "o=" & ID & "," & My.Config.Get (LDAP_Base_DN),
+         "o=" & Organization & "," & My.Config.Get (LDAP_Base_DN),
          "(objectClass=person)",
          AWS.LDAP.Client.LDAP_Scope_Subtree,
          Attributes ("*"));
 
-      return GNATCOLL.JSON.Write (To_JSON (A_Directory, LDAP_MSG));
+      return Write (To_JSON (A_Directory, LDAP_MSG));
+
+   exception
+      when Event : others =>
+         return Error_Handler
+           (Event, "o=" & Organization);
    end Persons;
 
 end Data.Get;

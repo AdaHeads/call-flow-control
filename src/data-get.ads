@@ -24,13 +24,19 @@
 package Data.Get is
 
    function Company
-     (ID : in String)
+     (Organization : in String)
       return String;
-   --  Return a company JSON String.
+   --  Return a company JSON String for Organization.
+
+   function Person
+     (Organization : in String;
+      Common_Name  : in String)
+      return String;
+   --  Return a person JSON String for Organization and Common Name.
 
    function Persons
-     (ID : in String)
+     (Organization : in String)
       return String;
-   --  Return a persons JSON String.
+   --  Return a persons JSON String for Organization.
 
 end Data.Get;

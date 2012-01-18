@@ -30,6 +30,7 @@ package My_Configuration is
    use Yolk.Utilities;
 
    type Keys is (Handler_Get_Company,
+                 Handler_Get_Person,
                  Handler_Get_Persons,
                  LDAP_Base_DN,
                  LDAP_Host,
@@ -43,6 +44,8 @@ package My_Configuration is
    Default_Values : constant Defaults_Array :=
                       (Handler_Get_Company
                        => TUS ("/get/company"),
+                       Handler_Get_Person
+                       => TUS ("/get/person"),
                        Handler_Get_Persons
                        => TUS ("/get/persons"),
                        LDAP_Base_DN

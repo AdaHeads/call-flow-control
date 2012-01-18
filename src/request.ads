@@ -31,12 +31,17 @@ package Request is
    function Company
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
-   --  Get the company JSON based on the id GET parameter.
+   --  Get the company JSON based on the "o" GET parameter.
+
+   function Person
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --  Get a person JSON based on the "o" and "cn" GET parameters.
 
    function Persons
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
-   --  Get the persons JSON based on the id GET parameter.
+   --  Get the persons JSON based on the "o" GET parameter.
 
    function Build_Response
      (Status_Data : in AWS.Status.Data;

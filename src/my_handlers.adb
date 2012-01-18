@@ -68,6 +68,12 @@ package body My_Handlers is
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
+         URI        => My.Config.Get (My.Handler_Get_Person),
+         Action     => Create
+           (Callback => Request.Person'Access));
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
          URI        => My.Config.Get (My.Handler_Get_Persons),
          Action     => Create
            (Callback => Request.Persons'Access));
