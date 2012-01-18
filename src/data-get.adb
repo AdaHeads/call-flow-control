@@ -40,6 +40,7 @@ package body Data.Get is
       A_Directory : constant Directory := LDAP.Get_Directory;
       LDAP_MSG    : LDAP_Message;
    begin
+
       LDAP_MSG := Search
         (A_Directory,
          My.Config.Get (LDAP_Base_DN),

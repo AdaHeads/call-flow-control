@@ -22,6 +22,7 @@
 -------------------------------------------------------------------------------
 
 with AWS.Messages;
+with AWS.Parameters;
 with Data.Get;
 
 package body Request is
@@ -60,10 +61,13 @@ package body Request is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
+      use AWS.Status;
+
+      Params : constant AWS.Parameters.List := Parameters (Request);
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => Data.Get.Company ("Hansen VVS"));
+         Content     => Data.Get.Company (Params.Get ("company_id")));
    end Company;
 
    --------------
@@ -74,10 +78,13 @@ package body Request is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
+      use AWS.Status;
+
+      Params : constant AWS.Parameters.List := Parameters (Request);
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => Data.Get.Persons (ID => "Hansen VVS"));
+         Content     => Data.Get.Persons (Params.Get ("company_id")));
    end Persons;
 
 end Request;
