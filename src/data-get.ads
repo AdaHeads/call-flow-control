@@ -26,9 +26,11 @@ package Data.Get is
    function Company
      (ID : in String)
       return String;
+   --  Return a company JSON String.
 
    function Persons
      (ID : in String)
       return String;
+   --  Return a persons JSON String.
 
 end Data.Get;

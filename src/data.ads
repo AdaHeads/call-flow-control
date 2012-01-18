@@ -24,17 +24,19 @@
 with AWS.LDAP.Client;
 with GNATCOLL.JSON;
 with LDAP_Connection;
---  with My_Configuration;
+with My_Configuration;
 
 package Data is
 private
 
-   --  package My renames My_Configuration;
+   use My_Configuration;
 
-   package LDAP is new LDAP_Connection ("alpha.adaheads.com",
-                                        "cn=Directory Manager",
-                                        "D3nSort3H3st",
-                                        1389);
+   package My renames My_Configuration;
+
+   package LDAP is new LDAP_Connection (My.Config.Get (LDAP_Host),
+                                        My.Config.Get (LDAP_User_DN),
+                                        My.Config.Get (LDAP_Password),
+                                        My.Config.Get (LDAP_Port));
 
    function To_JSON
      (Directory : in AWS.LDAP.Client.Directory;

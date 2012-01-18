@@ -42,7 +42,7 @@ package body Data.Get is
    begin
       LDAP_MSG := Search
         (A_Directory,
-         "dc=example,dc=com",
+         My.Config.Get (LDAP_Base_DN),
          "(&(objectClass=organization)(o=" & ID & "))",
          LDAP_Scope_Subtree,
          Attributes ("*"));
@@ -66,7 +66,7 @@ package body Data.Get is
    begin
       LDAP_MSG := Search
         (A_Directory,
-         "o=" & ID & "," & "dc=example,dc=com",
+         "o=" & ID & "," & My.Config.Get (LDAP_Base_DN),
          "(objectClass=person)",
          AWS.LDAP.Client.LDAP_Scope_Subtree,
          Attributes ("*"));

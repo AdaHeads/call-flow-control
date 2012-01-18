@@ -23,14 +23,10 @@
 
 with AWS.Status;
 with AWS.Response;
-with My_Configuration;
 
 package Request is
 
    JSON_MIME_Type : constant String := "application/json";
-
-   package My renames My_Configuration;
-   --  Easier to read and write.
 
    function Company
      (Request : in AWS.Status.Data)
