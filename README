@@ -4,9 +4,9 @@ Contents of this README:
     2. Dependencies
     3. The Alice protocol
 
--------------------
---  Introduction --
--------------------
+--------------------
+--  Introduction  --
+--------------------
 
 Alice converts LDAP queries to JSON, and JSON to LDAP queries, depending on
 whether a client is reading from or writing to the LDAP server.
@@ -17,88 +17,12 @@ Alice is GPLv3, see COPYING3 and COPYING.RUNTIME.
 --  Dependencies  --
 --------------------
 
-The Yolk demo application depends on one thing: Yolk.
+Alice depends on Yolk and on AWS being compiled with LDAP support.
 
-If you managed to build and install Yolk, you will most certainly be able to
-build and use the Yolk demo application.
+--------------------------
+--  The Alice Protocol  --
+--------------------------
 
-Of course you should also adjust the configuration/ files to match your own
-setup, but thats not really a dependency is it?  :o)
-
-------------------------------
---  The database demo page  --
-------------------------------
-
-For the database demo page to work, you must set these my_config.ini keys:
-
-    DB_Host
-    DB_Name
-    DB_Password
-    DB_User
-
-And obviously you must have a DB_Name database setup at the DB_Host with
-credentials matching those given in DB_User and DB_Password.
-
-You do _not_ need to create any tables in the DB_Name database.
-
----------------------------
---  The email demo page  --
----------------------------
-
-For the email demo page to work, you must set these my_config.ini keys:
-
-    SMTP_Host
-    SMTP_Port
-
-These must point to a reachable and functional SMTP server.
-
----------------------------------------
---  Using the Yolk demo application  --
----------------------------------------
-
-After having build the Yolk demo application (see INSTALL), trying it out is
-a simple matter of:
-
-    Adjust the configuration/ files according to your setup
-    $ cd exe/
-    $ ./yolk_demo
-    Using your browser, visit http://localhost:4242
-
-You can stop the server cleanly pressing CTRL+c. Or simply kill the PID found
-in the exe/yolk_demo.pid file.
-
-Instead of starting/stopping the application by calling the yolk_demo executable
-directly, you can use the tools/rc.yolk script. Using this will enable you to
-run a Yolk application like any other server-software. It is properly detached
-from the console. All you have to do is edit a few variables at the beginning of
-the script, so it fits your environment.
-
-To see the status page for the application, go to
-
-    http://localhost:4242/status
-
-and enter "admin" as username and "changemenow" as password. See config.ini for
-how to change the password for this page. Look for the Admin_Password option.
-
--------------------------------------------
---  Using the Yolk demo as a foundation  --
--------------------------------------------
-
-You can absolutely use the Yolk demo application as a foundation for your own
-applications. Just do this:
-
-    1. You probably want to rename the application from yolk_demo to something
-       else. This requires you to:
-
-         A.  Rename the main procedure in yolk_demo.adb.
-         B.  Rename the main yolk_demo.adb file.
-         C.  Adjust the project file accordingly, renaming the "for Main use" file.
-
-    2. Adjust the My_Handlers package, and create matching view packages.
-
-    3. Adjust the My_Configuration package and the my_config.ini file.
-
-    4. Get rid of all the irrelevant Yolk demo application source code.
-
-    5. Go!
-
+Talking to Alice is done through a very simple HTTP protocol. Getting data is
+done via plain GET parameters, and the data returned is always JSON. Setting
+data is done via POST parameters, and returned data is JSON.
