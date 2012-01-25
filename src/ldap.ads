@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                             LDAP_Connection                               --
+--                                  LDAP                                     --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,18 +21,63 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Calendar;
+with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Exceptions;
+with Ada.Strings.Unbounded;
 with AWS.LDAP.Client;
 
-generic
+package LDAP is
+private
 
-   Host     : String;
-   User_DN  : String;
-   Password : String;
-   Port     : Natural;
+   use Ada.Calendar;
+   use Ada.Containers;
+   use Ada.Strings.Unbounded;
 
-package LDAP_Connection is
+   type Server is
+      record
+         LDAP_Dir    : AWS.LDAP.Client.Directory;
+         Host        : Unbounded_String;
+         Password    : Unbounded_String;
+         Port        : Positive;
+         User_DN     : Unbounded_String;
+         Death_Stamp : Time;
+      end record;
 
-   function Get_Directory return AWS.LDAP.Client.Directory;
-   --  Return a thread specific Directory to the Host LDAP server.
+   package Connection_Unit_List is new Doubly_Linked_Lists (Server);
 
-end LDAP_Connection;
+   type Server_Store is
+      record
+         Initialized  : Boolean;
+         Live_List    : Connection_Unit_List.List;
+         Dead_List    : Connection_Unit_List.List;
+      end record;
+
+   Null_Store : constant Server_Store := (False,
+                                   Connection_Unit_List.Empty_List,
+                                   Connection_Unit_List.Empty_List);
+
+   function Error_Handler
+     (Event       : in Ada.Exceptions.Exception_Occurrence;
+      LDAP_Values : in String)
+      return String;
+   --  Handler exceptions raised due to bad LDAP search parameters.
+
+   function Get_Directory
+     (A_Server : in Server)
+      return AWS.LDAP.Client.Directory;
+
+   procedure Initialize_Server_Store
+     (Store : out Server_Store);
+   --  STUFF!
+
+   function Pop_Server
+     return Server;
+   --  Return a thread specific Server record.
+
+   procedure Push_Server
+     (A_Server : in out Server;
+      Is_Alive : in     Boolean := True);
+   --  STUFF!
+
+end LDAP;

@@ -26,8 +26,6 @@ with AWS.Response;
 
 package Request is
 
-   JSON_MIME_Type : constant String := "application/json";
-
    function Company
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
@@ -42,11 +40,5 @@ package Request is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
    --  Get the persons JSON based on the "o" GET parameter.
-
-   function Build_Response
-     (Status_Data : in AWS.Status.Data;
-      Content     : in String)
-      return AWS.Response.Data;
-   --  Build the response and compress it if the client supports it.
 
 end Request;

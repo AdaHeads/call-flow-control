@@ -2,11 +2,11 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                  Data                                     --
+--                                LDAP.Read                                  --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
---                     Copyright (C) 2012-, AdaHeads K/S                      --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -21,27 +21,17 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.LDAP.Client;
-with GNATCOLL.JSON;
-with LDAP_Connection;
-with My_Configuration;
+package LDAP.Read is
 
-package Data is
-private
+   use AWS.LDAP.Client;
 
-   use My_Configuration;
+   function Search
+     (Base       : in String;
+      Filter     : in String;
+      Scope      : in Scope_Type    := LDAP_Scope_Default;
+      Attrs      : in Attribute_Set := Null_Set;
+      Attrs_Only : in Boolean       := False)
+     return String;
+   --  Return an LDAP search as a JSON String.
 
-   package My renames My_Configuration;
-
-   package LDAP is new LDAP_Connection (My.Config.Get (LDAP_Host),
-                                        My.Config.Get (LDAP_User_DN),
-                                        My.Config.Get (LDAP_Password),
-                                        My.Config.Get (LDAP_Port));
-
-   function To_JSON
-     (Directory : in AWS.LDAP.Client.Directory;
-      Message   : in AWS.LDAP.Client.LDAP_Message)
-      return GNATCOLL.JSON.JSON_Value;
-   --  Convert a LDAP message to a JSON object.
-
-end Data;
+end LDAP.Read;
