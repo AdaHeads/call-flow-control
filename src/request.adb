@@ -21,20 +21,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.LDAP.Client;
 with AWS.Messages;
 with AWS.Parameters;
 with LDAP.Read;
-with My_Configuration;
 
 package body Request is
 
-   use My_Configuration;
-
-   package My renames My_Configuration;
-
-   --  JSON_MIME_Type : constant String := "application/json";
-   JSON_MIME_Type : constant String := "text/html";
+   JSON_MIME_Type : constant String := "application/json";
 
    function Build_Response
      (Status_Data : in AWS.Status.Data;
@@ -76,18 +69,13 @@ package body Request is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
-      use AWS.LDAP.Client;
       use AWS.Status;
 
       P : constant AWS.Parameters.List := Parameters (Request);
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => LDAP.Read.Search
-           (Base   => My.Config.Get (LDAP_Base_DN),
-            Filter => "(&(objectClass=organization)(o=" & P.Get ("o") & "))",
-            Scope  => LDAP_Scope_Subtree,
-            Attrs  => Attributes ("*")));
+         Content     => LDAP.Read.Search_Company (o => P.Get ("o")));
    end Company;
 
    -------------
@@ -98,18 +86,14 @@ package body Request is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
-      use AWS.LDAP.Client;
       use AWS.Status;
 
       P : constant AWS.Parameters.List := Parameters (Request);
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => LDAP.Read.Search
-           (Base   => "o=" & P.Get ("o") & "," & My.Config.Get (LDAP_Base_DN),
-            Filter => "(&(objectclass=person)(cn=" & P.Get ("cn") & "))",
-            Scope  => LDAP_Scope_Subtree,
-            Attrs  => Attributes ("*")));
+         Content     => LDAP.Read.Search_Person (o  => P.Get ("o"),
+                                                 cn => P.Get ("cn")));
    end Person;
 
    --------------
@@ -120,18 +104,13 @@ package body Request is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
-      use AWS.LDAP.Client;
       use AWS.Status;
 
       P : constant AWS.Parameters.List := Parameters (Request);
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => LDAP.Read.Search
-           (Base   => "o=" & P.Get ("o") & "," & My.Config.Get (LDAP_Base_DN),
-            Filter => "(objectClass=person)",
-            Scope  => LDAP_Scope_Subtree,
-            Attrs  => Attributes ("*")));
+         Content     => LDAP.Read.Search_Persons (o => P.Get ("o")));
    end Persons;
 
 end Request;

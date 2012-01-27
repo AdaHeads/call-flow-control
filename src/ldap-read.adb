@@ -22,8 +22,11 @@
 -------------------------------------------------------------------------------
 
 with AWS.LDAP.Thin;
+with AWS.Utils;
 with GNATCOLL.JSON;
 with Yolk.Utilities;
+
+with Interfaces.C; use Interfaces.C;
 
 package body LDAP.Read is
 
@@ -38,36 +41,123 @@ package body LDAP.Read is
    --------------
 
    function Search
-     (Base       : in String;
-      Filter     : in String;
-      Scope      : in Scope_Type    := LDAP_Scope_Default;
-      Attrs      : in Attribute_Set := Null_Set;
-      Attrs_Only : in Boolean       := False)
+     (Base_Prefix : in String := "";
+      Filter      : in String;
+      Scope       : in Scope_Type    := LDAP_Scope_Default;
+      Attrs       : in Attribute_Set := Null_Set;
+      Attrs_Only  : in Boolean       := False)
       return String
    is
       use GNATCOLL.JSON;
+      use Yolk.Utilities;
 
       A_Server : Server;
       LDAP_MSG : LDAP_Message;
    begin
-      A_Server := Pop_Server;
+      A_Server := Take_Server;
 
       LDAP_MSG := Search
-        (Get_Directory (A_Server),
-         Base,
+        (A_Server.LDAP_Dir,
+         Base_Prefix & Get_Base_DN (A_Server),
          Filter,
          Scope,
          Attrs,
          Attrs_Only);
 
-      Push_Server (A_Server);
+      Put_Server (A_Server);
 
-      return Write (To_JSON (Get_Directory (A_Server), LDAP_MSG));
+      return Write (To_JSON (A_Server.LDAP_Dir, LDAP_MSG));
 
    exception
+      when E : LDAP_Error =>
+         if Get_Error (E) < 0 then
+            Put_Server (A_Server, False);
+            --  Cannot contact LDAP server. Lets mark the server dead and put
+            --  it back.
+
+            Error_Handler
+              (E,
+               "(Search) Exception raised for host " &
+               TS (A_Server.Host) &
+               ":" & AWS.Utils.Image (A_Server.Port) &
+               " with base_dn " & Base_Prefix & Get_Base_DN (A_Server) &
+               " and filter " & Filter);
+
+            return Search (Base_Prefix,
+                           Filter,
+                           Scope,
+                           Attrs,
+                           Attrs_Only);
+         else
+            --  Other LDAP error
+            Put_Server (A_Server);
+
+            return Error_Handler
+              (E,
+               "(Search) Exception raised for host " &
+               TS (A_Server.Host) &
+               ":" & AWS.Utils.Image (A_Server.Port) &
+               " with base_dn " & Base_Prefix & Get_Base_DN (A_Server) &
+               " and filter " & Filter);
+         end if;
       when Event : others =>
-         return Error_Handler (Event, Base & Filter);
+         return Error_Handler (Event,
+                               "(Search)" &
+                               Base_Prefix &
+                               Get_Base_DN (A_Server) &
+                               Filter);
    end Search;
+
+   ----------------------
+   --  Search_Company  --
+   ----------------------
+
+   function Search_Company
+     (o : in String)
+      return String
+   is
+      Filter : constant String :=
+                 "(&(objectClass=organization)(o=" & o & "))";
+   begin
+      return Search (Filter      => Filter,
+                     Scope       => LDAP_Scope_Subtree,
+                     Attrs       => Attributes ("*"));
+   end Search_Company;
+
+   ----------------------
+   --  Search_Person  --
+   ----------------------
+
+   function Search_Person
+     (o  : in String;
+      cn : in String)
+      return String
+   is
+      Prefix : constant String := "o=" & o & ",";
+      Filter : constant String := "(&(objectclass=person)(cn=" & cn & "))";
+   begin
+      return Search (Base_Prefix => Prefix,
+                     Filter      => Filter,
+                     Scope       => LDAP_Scope_Subtree,
+                     Attrs       => Attributes ("*"));
+   end Search_Person;
+
+   ----------------------
+   --  Search_Persons  --
+   ----------------------
+
+   function Search_Persons
+     (o : in String)
+      return String
+   is
+      Prefix : constant String := "o=" & o & ",";
+      Filter : constant String := "(objectClass=person)";
+   begin
+      return Search (Base_Prefix => Prefix,
+                     Filter      => Filter,
+                     Scope       => LDAP_Scope_Subtree,
+                     Attrs       => Attributes ("*"));
+   end Search_Persons;
 
    ---------------
    --  To_JSON  --

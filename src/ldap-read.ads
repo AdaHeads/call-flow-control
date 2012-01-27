@@ -25,13 +25,33 @@ package LDAP.Read is
 
    use AWS.LDAP.Client;
 
-   function Search
-     (Base       : in String;
-      Filter     : in String;
-      Scope      : in Scope_Type    := LDAP_Scope_Default;
-      Attrs      : in Attribute_Set := Null_Set;
-      Attrs_Only : in Boolean       := False)
+   function Search_Company
+     (o : in String)
      return String;
+   --  Return an LDAP company search as a JSON String.
+   --    o : Organization
+
+   function Search
+     (Base_Prefix : in String := "";
+      Filter      : in String;
+      Scope       : in Scope_Type    := LDAP_Scope_Default;
+      Attrs       : in Attribute_Set := Null_Set;
+      Attrs_Only  : in Boolean       := False)
+      return String;
    --  Return an LDAP search as a JSON String.
+
+   function Search_Person
+     (o  : in String;
+      cn : in String)
+     return String;
+   --  Return an LDAP person search as a JSON String.
+   --    o : Organization
+   --    cn : Common Name
+
+   function Search_Persons
+     (o : in String)
+     return String;
+   --  Return an LDAP persons search as a JSON String.
+   --    o : Organization
 
 end LDAP.Read;

@@ -34,50 +34,64 @@ private
    use Ada.Containers;
    use Ada.Strings.Unbounded;
 
+   No_LDAP_Server_Available : exception;
+
    type Server is
       record
          LDAP_Dir    : AWS.LDAP.Client.Directory;
          Host        : Unbounded_String;
-         Password    : Unbounded_String;
          Port        : Positive;
+         Password    : Unbounded_String;
+         Base_DN     : Unbounded_String;
          User_DN     : Unbounded_String;
          Death_Stamp : Time;
+         Coffin_Time : Duration;
       end record;
 
-   package Connection_Unit_List is new Doubly_Linked_Lists (Server);
+   package Server_List is new Doubly_Linked_Lists (Server);
+   use Server_List;
 
    type Server_Store is
       record
          Initialized  : Boolean;
-         Live_List    : Connection_Unit_List.List;
-         Dead_List    : Connection_Unit_List.List;
+         Live_List    : List;
+         Dead_List    : List;
       end record;
 
-   Null_Store : constant Server_Store := (False,
-                                   Connection_Unit_List.Empty_List,
-                                   Connection_Unit_List.Empty_List);
+   Servers_From_JSON : List := Empty_List;
+   --  Contains Server objects generated from the JSON server file. Servers are
+   --  addded by the Initialize procedure.
+
+   Null_Store : constant Server_Store := (False, Empty_List, Empty_List);
 
    function Error_Handler
-     (Event       : in Ada.Exceptions.Exception_Occurrence;
-      LDAP_Values : in String)
+     (Event   : in Ada.Exceptions.Exception_Occurrence;
+      Message : in String)
       return String;
-   --  Handler exceptions raised due to bad LDAP search parameters.
+   --  Handles exceptions raised due to bad LDAP search parameters. Returns a
+   --  JSON String that can be sent to the client.
 
-   function Get_Directory
+   procedure Error_Handler
+     (Event   : in Ada.Exceptions.Exception_Occurrence;
+      Message : in String);
+   --  Same as the Error_Handler function, except no JSON String is made. This
+   --  simply logs the error to the Error trace.
+
+   function Get_Base_DN
      (A_Server : in Server)
-      return AWS.LDAP.Client.Directory;
+     return String;
 
    procedure Initialize_Server_Store
      (Store : out Server_Store);
    --  STUFF!
 
-   function Pop_Server
-     return Server;
-   --  Return a thread specific Server record.
-
-   procedure Push_Server
+   procedure Put_Server
      (A_Server : in out Server;
       Is_Alive : in     Boolean := True);
    --  STUFF!
+
+   function Take_Server
+     return Server;
+   --  Return a thread specific Server record.
 
 end LDAP;
