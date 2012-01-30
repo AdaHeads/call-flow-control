@@ -193,7 +193,8 @@ package body LDAP is
          Store.Dead_List.Append (A_Server);
 
          Trace (Info,
-                "(Put_Server) Host " & TS (A_Server.Host) & " returned dead.");
+                "(Put_Server) Task ID " & Image (Current_Task) &
+                " Host " & TS (A_Server.Host) & " returned dead.");
          Trace (Info,
                 "(Put_Server) Task ID " & Image (Current_Task) &
                 " Live list population: " &
