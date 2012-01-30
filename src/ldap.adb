@@ -251,7 +251,7 @@ package body LDAP is
                --  This is good if there's a huge amount of servers in the dead
                --  list, but it's a bit "meh" if there's just a few. Maybe.
                --
-               --  I can't really decide what to do with this.....
+               --  I can't really decide how to best handle this.....
 
                Trace (Info,
                       "(Take_Server) Task ID " & Image (Current_Task) &
