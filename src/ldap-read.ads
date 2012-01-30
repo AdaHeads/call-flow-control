@@ -21,9 +21,19 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Unbounded;
+with Yolk.Cache.String_Keys;
+
 package LDAP.Read is
 
    use AWS.LDAP.Client;
+   use Ada.Strings.Unbounded;
+
+   package JSON_Cache is new Yolk.Cache.String_Keys
+     (Element_Type      => Unbounded_String,
+      Cleanup_Size      => 5000,
+      Max_Element_Age   => 86400.0,
+      Reserved_Capacity => 5000);
 
    function Search_Company
      (o : in String)

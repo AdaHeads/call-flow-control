@@ -53,20 +53,41 @@ package body LDAP.Read is
 
       A_Server : Server;
       LDAP_MSG : LDAP_Message;
+      Result   : Unbounded_String := Null_Unbounded_String;
+      Valid    : Boolean := False;
    begin
       A_Server := Take_Server;
 
-      LDAP_MSG := Search
-        (A_Server.LDAP_Dir,
-         Base_Prefix & Get_Base_DN (A_Server),
-         Filter,
-         Scope,
-         Attrs,
-         Attrs_Only);
+      JSON_Cache.Read
+        (Key      => Base_Prefix &  Get_Base_DN (A_Server) & Filter,
+         Is_Valid => Valid,
+         Value    => Result);
 
-      Put_Server (A_Server);
+      if Valid then
+         Put_Server (A_Server);
+         return TS (Result);
+      else
+         LDAP_MSG := Search
+           (A_Server.LDAP_Dir,
+            Base_Prefix & Get_Base_DN (A_Server),
+            Filter,
+            Scope,
+            Attrs,
+            Attrs_Only);
 
-      return Write (To_JSON (A_Server.LDAP_Dir, LDAP_MSG));
+         Put_Server (A_Server);
+
+         declare
+            JSON_String : constant String :=
+                            Write (To_JSON (A_Server.LDAP_Dir, LDAP_MSG));
+         begin
+            JSON_Cache.Write
+              (Key   => Base_Prefix &  Get_Base_DN (A_Server) & Filter,
+               Value => TUS (JSON_String));
+
+            return JSON_String;
+         end;
+      end if;
 
    exception
       when E : LDAP_Error =>
