@@ -24,9 +24,8 @@
 with AWS.LDAP.Thin;
 with AWS.Utils;
 with GNATCOLL.JSON;
+with Interfaces.C;
 with Yolk.Utilities;
-
-with Interfaces.C; use Interfaces.C;
 
 package body LDAP.Read is
 
@@ -49,6 +48,7 @@ package body LDAP.Read is
       return String
    is
       use GNATCOLL.JSON;
+      use Interfaces.C;
       use Yolk.Utilities;
 
       A_Server : Server;
@@ -70,36 +70,39 @@ package body LDAP.Read is
 
    exception
       when E : LDAP_Error =>
-         if Get_Error (E) < 0 then
-            Put_Server (A_Server, False);
-            --  Cannot contact LDAP server. Lets mark the server dead and put
-            --  it back.
+         case Get_Error (E) is
+            when -1 =>
+               --  Cannot contact LDAP server. Lets mark the server dead and
+               --  return an error JSON string.
+               Error_Handler
+                 (E,
+                  "(Search) Exception raised for host " &
+                  TS (A_Server.Host) &
+                  ":" & AWS.Utils.Image (A_Server.Port) &
+                  " with base_dn " & Base_Prefix & Get_Base_DN (A_Server) &
+                  " and filter " & Filter);
 
-            Error_Handler
-              (E,
-               "(Search) Exception raised for host " &
-               TS (A_Server.Host) &
-               ":" & AWS.Utils.Image (A_Server.Port) &
-               " with base_dn " & Base_Prefix & Get_Base_DN (A_Server) &
-               " and filter " & Filter);
+               Put_Server (A_Server, False);
 
-            return Search (Base_Prefix,
-                           Filter,
-                           Scope,
-                           Attrs,
-                           Attrs_Only);
-         else
-            --  Other LDAP error
-            Put_Server (A_Server);
+               return Search (Base_Prefix,
+                              Filter,
+                              Scope,
+                              Attrs,
+                              Attrs_Only);
+            when AWS.LDAP.Thin.LDAP_NO_SUCH_OBJECT =>
+               Put_Server (A_Server);
+               return "{}";
+            when others =>
+               Put_Server (A_Server);
 
-            return Error_Handler
-              (E,
-               "(Search) Exception raised for host " &
-               TS (A_Server.Host) &
-               ":" & AWS.Utils.Image (A_Server.Port) &
-               " with base_dn " & Base_Prefix & Get_Base_DN (A_Server) &
-               " and filter " & Filter);
-         end if;
+               return Error_Handler
+                 (E,
+                  "(Search) Exception raised for host " &
+                  TS (A_Server.Host) &
+                  ":" & AWS.Utils.Image (A_Server.Port) &
+                  " with base_dn " & Base_Prefix & Get_Base_DN (A_Server) &
+                  " and filter " & Filter);
+         end case;
       when Event : others =>
          return Error_Handler (Event,
                                "(Search)" &
