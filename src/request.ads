@@ -41,4 +41,9 @@ package Request is
       return AWS.Response.Data;
    --  Get the persons JSON based on the "o" GET parameter.
 
+   function Queue
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --  Get the call queue JSON.
+
 end Request;

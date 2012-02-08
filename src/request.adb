@@ -24,6 +24,7 @@
 with AWS.Messages;
 with AWS.Parameters;
 with LDAP.Read;
+with Call_Queue.Get;
 
 package body Request is
 
@@ -112,5 +113,19 @@ package body Request is
         (Status_Data => Request,
          Content     => LDAP.Read.Search_Persons (o => P.Get ("o")));
    end Persons;
+
+   ------------
+   --  Queue --
+   ------------
+
+   function Queue
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+   begin
+      return Build_Response
+        (Status_Data => Request,
+         Content     => Call_Queue.Get.Waiting);
+   end Queue;
 
 end Request;

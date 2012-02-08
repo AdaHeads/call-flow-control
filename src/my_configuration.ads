@@ -32,6 +32,7 @@ package My_Configuration is
    type Keys is (Handler_Get_Company,
                  Handler_Get_Person,
                  Handler_Get_Persons,
+                 Handler_Get_Queue,
                  LDAP_JSON);
 
    type Defaults_Array is array (Keys) of
@@ -44,6 +45,8 @@ package My_Configuration is
                        => TUS ("/get/person"),
                        Handler_Get_Persons
                        => TUS ("/get/persons"),
+                       Handler_Get_Queue
+                       => TUS ("/get/queue"),
                        LDAP_JSON
                        => TUS ("configuration/ldap.json"));
 
