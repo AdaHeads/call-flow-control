@@ -169,7 +169,9 @@ begin
 
    Stop_Server;
 
-   Build_Queue_JSON_State := Down;
+   Task_State := Down;
+   --  Signal all tasks that it is time to die. There gotta be a better way
+   --  than this?
 
 exception
    when Event : others =>

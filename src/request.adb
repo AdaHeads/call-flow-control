@@ -24,7 +24,10 @@
 with AWS.Messages;
 with AWS.Parameters;
 with LDAP.Read;
-with Call_Queue.Get;
+with Call_Queue;
+
+with AWS.Utils;
+with Ada.Calendar;
 
 package body Request is
 
@@ -122,10 +125,30 @@ package body Request is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
+      use Ada.Calendar;
+      use AWS.Utils;
    begin
+      Call_Queue.Add (Id         => Random_String (10),
+                      Callee     => "88245300",
+                      Caller     => "+45 60431990",
+                      Priority   => Call_Queue.Low,
+                      Start      => Clock);
+
+      Call_Queue.Add (Id         => Random_String (10),
+                      Callee     => "33488200",
+                      Caller     => "+45 60431992",
+                      Priority   => Call_Queue.Normal,
+                      Start      => Clock + 1.0);
+
+      Call_Queue.Add (Id         => Random_String (10),
+                      Callee     => "88329100",
+                      Caller     => "60431993",
+                      Priority   => Call_Queue.High,
+                      Start      => Clock + 2.0);
+
       return Build_Response
         (Status_Data => Request,
-         Content     => Call_Queue.Get.Waiting);
+         Content     => Call_Queue.Get);
    end Queue;
 
 end Request;

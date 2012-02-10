@@ -22,38 +22,38 @@
 -------------------------------------------------------------------------------
 
 with Ada.Calendar;
-with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Strings.Unbounded;
 
 package Call_Queue is
+
+   type Call is limited private;
+   type Priority_Level is (Low, Normal, High);
+   subtype Call_Id is String (1 .. 10);
+
+   procedure Add
+     (Id         : in Call_Id;
+      Callee     : in String;
+      Caller     : in String;
+      Priority   : in Priority_Level := Normal;
+      Start      : in Ada.Calendar.Time);
+
+   procedure Remove
+     (A_Call : in Call);
+
+   function Get
+     return String;
+
 private
 
-   use Ada.Containers;
    use Ada.Strings.Unbounded;
-
-   type Id_Type is mod 2 ** 32;
-   --  This should be plenty big to avoid Id collisions in the queue.
-
-   type Importance_Level is (Low, Normal, High);
 
    type Call is
       record
-         Id         : Id_Type;
-         Caller     : Unbounded_String := Null_Unbounded_String;
-         Company    : Unbounded_String := Null_Unbounded_String;
-         Importance : Importance_Level := Normal;
-         Start      : Ada.Calendar.Time;
+         Id       : Call_Id;
+         Callee   : Unbounded_String := Null_Unbounded_String;
+         Caller   : Unbounded_String := Null_Unbounded_String;
+         Priority : Priority_Level := Normal;
+         Start    : Ada.Calendar.Time;
       end record;
-
-   package Call_Queue_List is new Doubly_Linked_Lists (Call);
-   use Call_Queue_List;
-
-   protected Waiting_Calls is
-      function Get return List;
-      procedure Set
-        (A_Call : in Call);
-   private
-      L : List;
-   end Waiting_Calls;
 
 end Call_Queue;
