@@ -25,7 +25,6 @@ with AWS.Server.Log;
 with AWS.Services.Dispatchers.URI;
 with AWS.Session;
 with My_Handlers;
-with Task_Controller;
 with Yolk.Configuration;
 with Yolk.Log;
 with Yolk.Process_Control;
@@ -37,7 +36,6 @@ procedure Alice is
 
    use Ada.Exceptions;
    use My_Handlers;
-   use Task_Controller;
    use Yolk.Configuration;
    use Yolk.Log;
    use Yolk.Process_Control;
@@ -168,10 +166,6 @@ begin
    --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
 
    Stop_Server;
-
-   Task_State := Down;
-   --  Signal all tasks that it is time to die. There gotta be a better way
-   --  than this?
 
 exception
    when Event : others =>
