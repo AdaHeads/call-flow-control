@@ -25,10 +25,10 @@ package Call_Queue is
 
    function Get
      return String;
-   --  TODO
+   --  Return the queue JSON String.
 
    function Length
      return Natural;
-   --  TODO
+   --  Return the amount of calls in the queue.
 
 end Call_Queue;

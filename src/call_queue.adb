@@ -24,12 +24,12 @@
 with Ada.Calendar;
 with Ada.Calendar.Conversions;
 with Ada.Calendar.Formatting;
-with Ada.Calendar.Time_Zones;
 with Ada.Containers.Hashed_Maps;
+with Interfaces.C;
 with Ada.Numerics.Discrete_Random;
 with Ada.Strings.Fixed;
 with Ada.Strings.Hash;
-with Ada.Strings.Maps.Constants;
+--  with Ada.Strings.Maps.Constants;
 with Ada.Strings.Unbounded;
 with AWS.Utils;
 with GNATCOLL.JSON;
@@ -54,26 +54,30 @@ package body Call_Queue is
    --  calls.
 
    subtype Call_Id is String (1 .. 10);
+   --  Unique identifier for each call in the queue. This type will
+   --  obviously depend heavily on the kind of ID used internally by
+   --  FreeSWITCH.
 
    type Call is
       record
-         Id       : Call_Id;
-         Callee   : String (1 .. 8);
-         Caller   : String (1 .. 8);
-         Priority : Priority_Level;
-         Start    : Ada.Calendar.Time;
+         Id            : Call_Id;
+         Callee        : String (1 .. 8);
+         Caller        : String (1 .. 8);
+         Priority      : Priority_Level;
+         Timestamp_UTC : Ada.Calendar.Time;
+         --  Note that the time is recorded in UTC. No timezone is given.
       end record;
-
-   --     procedure Remove
-   --       (A_Call : in Call);
 
    function Equal_Elements
      (Left, Right : in Call)
       return Boolean;
+   --  Return True if two Call elements are equal, meaning that all the
+   --  record components match.
 
    function Equal_Keys
      (Left, Right : in Call_Id)
       return Boolean;
+   --  Return True if the two Call_Id are the same.
 
    package Call_Queue_Map is new Hashed_Maps
      (Key_Type        => Call_Id,
@@ -81,6 +85,9 @@ package body Call_Queue is
       Hash            => Ada.Strings.Hash,
       Equivalent_Keys => Equal_Keys,
       "="             => Equal_Elements);
+   --  The hashed map used to hold all the calls. Note that we're not
+   --  doing any kind of sorting. This is expected to be done in the
+   --  client.
 
    use Call_Queue_Map;
 
@@ -94,8 +101,10 @@ package body Call_Queue is
       --  Add a waiting call to the call queue.
 
       procedure Build_JSON;
+      --  Build the queue JSON based on the Call records in the Queue_Map.
 
       procedure Clear;
+      --  Delete all calls from the Queue_Map.
 
       function Get
         return String;
@@ -103,18 +112,31 @@ package body Call_Queue is
 
       function Length
         return Natural;
+      --  Return the amount of Call records currently in the Queue_Map.
 
       procedure Remove
         (Id : in Call_Id);
       --  Remove a call from the queue.
    private
       JSON_Needs_Building : Boolean := True;
+      --  This is set to False whenever a Call is added or removed from the
+      --  Queue_Map.
+
       JSON_Object         : JSON_Value := JSON_Null;
+      --  This holds the current JSON_Value object from which the
+      --  JSON_String is constructed.
+
       JSON_String         : Unbounded_String := TUS ("{}");
+      --  The JSON returned in call to Get.
+
       Low_JSON_Arr        : JSON_Array := Empty_Array;
       Normal_JSON_Arr     : JSON_Array := Empty_Array;
       High_JSON_Arr       : JSON_Array := Empty_Array;
+      --  The JSON arrays containing the calls in Queue_Map according to
+      --  their priority.
+
       Queue_Map           : Map;
+      --  The queue map.
    end Queue;
 
    task FreeSWITCH_Queue_Monitor;
@@ -125,10 +147,14 @@ package body Call_Queue is
    is
       type Foo is mod 50;
       Id_Array : array (Foo) of Call_Id := (others => "          ");
+      --  Simulate up to 50 calls in the queue.
+
       C        : Foo := 0;
+      --  Basic counter variable.
 
       G : Generator;
       P : Priority_Level;
+      --  Random priority levels on the generated calls.
    begin
       Reset (G);
 
@@ -158,7 +184,9 @@ package body Call_Queue is
    end FreeSWITCH_Queue_Monitor;
 
    task Generate_JSON;
-   --  Rebuild the queue JSON.
+   --  Rebuild the queue JSON. Once every ½ second we check if a call has
+   --  been either added or removed from the queue, and that is the case,
+   --  then we re-build the queue JSON.
 
    task body Generate_JSON
    is
@@ -218,17 +246,6 @@ package body Call_Queue is
       return Queue.Length;
    end Length;
 
-   --------------
-   --  Remove  --
-   --------------
-
-   --     procedure Remove
-   --       (A_Call : in Call)
-   --     is
-   --     begin
-   --        Queue.Remove (A_Call);
-   --     end Remove;
-
    -------------
    --  Queue  --
    -------------
@@ -252,59 +269,9 @@ package body Call_Queue is
                                         Callee   => Callee,
                                         Caller   => Caller,
                                         Priority => Priority,
-                                        Start    => Start));
+                                        Timestamp_UTC => Start));
          JSON_Needs_Building := True;
       end Add;
-
-      -----------
-      --  Add  --
-      -----------
-
-      --        procedure Add
-      --          (A_Call : in Call)
-      --        is
-      --           function JSONIFY
-      --             (A_Call : in Call)
-      --              return JSON_Value;
-      --           --  Turn an A_Call record into a JSON object.
-      --
-      --           function JSONIFY
-      --             (A_Call : in Call)
-      --              return JSON_Value
-      --           is
-      --              use Ada.Calendar.Formatting;
-      --
-      --              V : constant JSON_Value := Create_Object;
-      --           begin
-      --              V.Set_Field ("id", A_Call.Id);
-      --              V.Set_Field ("callee", A_Call.Callee);
-      --              V.Set_Field ("caller", A_Call.Caller);
-      --      V.Set_Field ("priority", Priority_Level'Image (A_Call.Priority));
-      --              V.Set_Field ("start", Image (A_Call.Start));
-      --
-      --              return V;
-      --           end JSONIFY;
-      --        begin
-      --           case A_Call.Priority is
-      --              when Low =>
-      --                 --  Queue_Low.Insert (A_Call);
-      --                 Append (Arr => Low_JSON_Arr,
-      --                         Val => JSONIFY (A_Call));
-      --                 JSON_Object.Set_Field ("low", Low_JSON_Arr);
-      --              when Normal =>
-      --                 --  Queue_Normal.Insert (A_Call);
-      --                 Append (Arr => Normal_JSON_Arr,
-      --                         Val => JSONIFY (A_Call));
-      --                 JSON_Object.Set_Field ("normal", Normal_JSON_Arr);
-      --              when High =>
-      --                 --  Queue_High.Insert (A_Call);
-      --                 Append (Arr => High_JSON_Arr,
-      --                         Val => JSONIFY (A_Call));
-      --                 JSON_Object.Set_Field ("high", High_JSON_Arr);
-      --           end case;
-      --
-      --           JSON_String := TUS (Write (JSON_Object));
-      --        end Add;
 
       ------------------
       --  Build_JSON  --
@@ -314,12 +281,22 @@ package body Call_Queue is
       is
          use Ada.Calendar.Conversions;
          use Ada.Calendar.Formatting;
-         use Ada.Calendar.Time_Zones;
          use Ada.Strings.Fixed;
-         use Ada.Strings.Maps.Constants;
+         --  use Ada.Strings.Maps.Constants;
 
          procedure Go
            (Position : in Cursor);
+         --  JSON'ify each Call in the queue.
+
+         function Unix_Timestamp
+           (Date : in Time)
+            return String;
+         --  Convert and trim an Ada.Calendar.Time type to a Unix timestamp
+         --  String.
+
+         ---------
+         -- Go  --
+         ---------
 
          procedure Go
            (Position : in Cursor)
@@ -332,14 +309,14 @@ package body Call_Queue is
             Value.Set_Field ("id", A_Call.Id);
             Value.Set_Field ("callee", A_Call.Callee);
             Value.Set_Field ("caller", A_Call.Caller);
+--              Value.Set_Field
+--                ("priority",
+--                 Translate
+--                   (Priority_Level'Image (A_Call.Priority),
+--                    Lower_Case_Map));
+            Value.Set_Field ("UTC_start_date", Image (A_Call.Timestamp_UTC));
             Value.Set_Field
-              ("priority", Translate
-                 (Priority_Level'Image (A_Call.Priority),
-                  Lower_Case_Map));
-            Value.Set_Field ("start", Image
-              (Date      => A_Call.Start,
-               Time_Zone => UTC_Time_Offset (A_Call.Start)));
-            Value.Set_Field ("stamp", To_Unix_Time (A_Call.Start));
+              ("unix_timestamp", Unix_Timestamp (A_Call.Timestamp_UTC));
 
             case A_Call.Priority is
                when Low =>
@@ -353,6 +330,22 @@ package body Call_Queue is
                           Val => Value);
             end case;
          end Go;
+
+         ----------------------
+         --  Unix_Timestamp  --
+         ----------------------
+
+         function Unix_Timestamp
+           (Date : in Time)
+            return String
+         is
+            use Ada.Strings;
+            use Interfaces.C;
+         begin
+            return Fixed.Trim
+              (Source => long'Image (To_Unix_Time (Date)),
+               Side   => Left);
+         end Unix_Timestamp;
       begin
          if JSON_Needs_Building then
             JSON_Object := Create_Object;
@@ -413,7 +406,6 @@ package body Call_Queue is
       is
       begin
          Queue_Map.Exclude (Id);
-
          JSON_Needs_Building := True;
       end Remove;
    end Queue;

@@ -44,11 +44,11 @@
 # application.
 NAME_OF_APPLICATION=Alice
 
-# This is the actual filename of the Yolk application executable.
+# This is the actual filename of the application executable.
 NAME_OF_EXE_FILE=alice
 
 # Path to where the NAME_OF_EXE_FILE lives. Do _not_ write the trailing /
-PATH_TO_YOLK_EXE_DIRECTORY=/home/thomas/Ada/yolk/demo/exe
+PATH_TO_YOLK_EXE_DIRECTORY=/opt/alice
 
 ##############################################################
 # Do not edit below here, unless you know what you're doing. #
