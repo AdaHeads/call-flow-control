@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                               Call_Queue                                  --
+--                             Task_Controller                               --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,14 +21,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package Call_Queue is
+package Task_Controller is
 
-   function Get
-     return String;
-   --  TODO
+   type State is (Up, Down);
 
-   function Length
-     return Natural;
-   --  TODO
+   Task_State : State := Up;
+   pragma Atomic (Task_State);
 
-end Call_Queue;
+end Task_Controller;
