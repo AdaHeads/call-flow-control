@@ -141,7 +141,7 @@ package body LDAP.Read is
       return String
    is
       Filter : constant String :=
-                 "(&(objectClass=organization)(o=" & o & "))";
+                 "(&(objectClass=organization)(o=" & Escape (o) & "))";
    begin
       return Search (Filter      => Filter,
                      Scope       => LDAP_Scope_Subtree,
@@ -157,8 +157,9 @@ package body LDAP.Read is
       cn : in String)
       return String
    is
-      Prefix : constant String := "o=" & o & ",";
-      Filter : constant String := "(&(objectclass=person)(cn=" & cn & "))";
+      Prefix : constant String := "o=" & Escape (o, Is_DN => True) & ",";
+      Filter : constant String :=
+                 "(&(objectclass=person)(cn=" & Escape (cn) & "))";
    begin
       return Search (Base_Prefix => Prefix,
                      Filter      => Filter,
@@ -174,7 +175,7 @@ package body LDAP.Read is
      (o : in String)
       return String
    is
-      Prefix : constant String := "o=" & o & ",";
+      Prefix : constant String := "o=" & Escape (o, Is_DN => True) & ",";
       Filter : constant String := "(objectClass=person)";
    begin
       return Search (Base_Prefix => Prefix,
