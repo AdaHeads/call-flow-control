@@ -21,8 +21,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Characters.Latin_1;
 with Ada.Directories;
 with Ada.Direct_IO;
+with Ada.Strings.Maps;
 with Ada.Task_Attributes;
 with Ada.Task_Identification;
 with AWS.Utils;
@@ -33,10 +35,34 @@ with Yolk.Utilities;
 
 package body LDAP is
 
+   use Ada.Characters.Latin_1;
+   use Ada.Strings.Maps;
+
    package My renames My_Configuration;
 
    package Task_Association is new Ada.Task_Attributes
      (LDAP.Server_Store, LDAP.Null_Store);
+
+   DN_Escape_Set     : constant Character_Set := To_Set (",=+<>;\""#");
+   Filter_Escape_Set : constant Character_Set := To_Set ("*()\" & NUL);
+   --  These two sets are used by the Escape function.
+
+   type Escape_Map_Array is array (Character) of String (1 .. 3);
+   Escape_Map        : constant Escape_Map_Array :=
+                         (Comma             => "\2c",
+                          Equals_Sign       => "\3d",
+                          Plus_Sign         => "\2b",
+                          Less_Than_Sign    => "\3c",
+                          Greater_Than_Sign => "\3e",
+                          Semicolon         => "\3b",
+                          Reverse_Solidus   => "\5c",
+                          Quotation         => "\22",
+                          Number_Sign       => "\23",
+                          Asterisk          => "\2a",
+                          Left_Parenthesis  => "\28",
+                          Right_Parenthesis => "\29",
+                          NUL               => "\00",
+                          others            => "   ");
 
    procedure Initialize
      (LDAP_JSON : in String);
@@ -58,8 +84,8 @@ package body LDAP is
       use GNATCOLL.JSON;
       use Yolk.Log;
 
-      E_Name : constant String := Exception_Name (Event);
-      E_Msg  : constant String := Exception_Message (Event);
+      E_Name      : constant String := Exception_Name (Event);
+      E_Msg       : constant String := Exception_Message (Event);
       JSON_Object : constant JSON_Value := Create_Object;
    begin
       Trace (Error,
@@ -94,6 +120,37 @@ package body LDAP is
              "Task ID " & Image (Current_Task) &
              " - " & E_Name & " - " & E_Msg & " - " & Message);
    end Error_Handler;
+
+   --------------
+   --  Escape  --
+   --------------
+
+   function Escape
+     (Query : in String;
+      Is_DN : in Boolean := False)
+      return String
+   is
+      use Yolk.Utilities;
+
+      Escape_Set : Character_Set;
+      Result     : Unbounded_String := Null_Unbounded_String;
+   begin
+      if Is_DN then
+         Escape_Set := DN_Escape_Set;
+      else
+         Escape_Set := Filter_Escape_Set;
+      end if;
+
+      for k in Query'Range loop
+         if Is_In (Query (k), Escape_Set) then
+            Append (Result, Escape_Map (Query (k)));
+         else
+            Append (Result, Query (k));
+         end if;
+      end loop;
+
+      return TS (Result);
+   end Escape;
 
    -------------------
    --  Get_Base_DN  --

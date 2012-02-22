@@ -77,6 +77,28 @@ private
    --  Same as the Error_Handler function, except no JSON String is made. This
    --  simply logs the error to the Error trace.
 
+   function Escape
+     (Query : in String;
+      Is_DN : in Boolean := False)
+      return String;
+   --  Escape *()\NUL for filters:
+   --    *   -> \2a
+   --    (   -> \28
+   --    )   -> \29
+   --    \   -> \5c
+   --    NUL -> \00
+   --
+   --  Escape ,=+<>;\"# for DN's:
+   --    , -> \2c
+   --    = -> \3d
+   --    + -> \2b
+   --    < -> \3c
+   --    > -> \3e
+   --    ; -> \3b
+   --    \ -> \5c
+   --    " -> \22
+   --    # -> \23
+
    function Get_Base_DN
      (A_Server : in Server)
      return String;
