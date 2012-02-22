@@ -1,0 +1,303 @@
+%% LyX 2.0.0 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[12pt,english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{geometry}
+\geometry{verbose,tmargin=2cm,bmargin=2cm,lmargin=2cm,rmargin=2cm}
+
+\makeatletter
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Textclass specific LaTeX commands.
+\newenvironment{lyxcode}
+{\par\begin{list}{}{
+\setlength{\rightmargin}{\leftmargin}
+\setlength{\listparindent}{0pt}% needed for AMS classes
+\raggedright
+\setlength{\itemsep}{0pt}
+\setlength{\parsep}{0pt}
+\normalfont\ttfamily}%
+ \item[]}
+{\end{list}}
+
+\makeatother
+
+\usepackage{babel}
+\begin{document}
+
+\title{Alice Protocol}
+
+\maketitle
+\newpage{}
+
+\tableofcontents{}
+
+\newpage{}
+
+
+\section{Introduction}
+
+Alice acts as the connector between one or more NAME\_OF\_PRODUCT
+clients and a data store/soft PBX that is comprised of a mixture of
+LDAP/PostgreSQL servers and one ore more FreeSWITCH servers. Her main
+task is to get and set data via a HTTP/JSON based protocol. This document
+is the final authority on the protocol understood by Alice.
+
+
+\section{The Protocol}
+
+In its most basic form the protocol consists of a set of {}``get''
+and {}``set'' interfaces. You can either get some data from Alice,
+or you can tell her to set some data. 
+
+When data is requested (get) the search parameters are always given
+as a HTTP GET query string and the result is always returned as a
+JSON string. When data is added/updated/deleted (set) the parameters
+are always given as a HTTP POST request and the confirmation returned
+from Alice will always be a JSON string.
+
+In order to access any of the interfaces, a client must first authenticate
+itself. This is done using OpenID. The login interface is the only
+interface that can be accessed without prior login.
+
+All data handled by the protocol is expected to be UTF-8 encoded.
+Alice does not check whether this is in fact the case, so when implementing
+clients, be sure to verify that all data sent to Alice is in fact
+UTF-8 encoded.
+
+All interfaces should of course be prefixed with whatever server:port
+is used for a given Alice instance.
+
+
+\section{Getting Data}
+
+
+\subsection{/get/company?o={[}COMPANY{]}}
+
+This interface return all the data associated with COMPANY. If the
+given company doesn't exist in the database, then an empty JSON string
+(\{\}) is returned.
+
+Only company data is returned when calling this interface. No employee
+data is returned. Calling for example
+\begin{lyxcode}
+/get/company?o=Hansen\%20VVS
+\end{lyxcode}
+could return a JSON string similar to this:
+\begin{lyxcode}
+\{
+
+\textquotedbl{}o=Hansen~VVS,dc=example,dc=com\textquotedbl{}:~
+
+~~~~\{
+
+~~~~\textquotedbl{}l\textquotedbl{}:~\textquotedbl{}Næstved\textquotedbl{},
+
+~~~~\textquotedbl{}o\textquotedbl{}:~\textquotedbl{}Hansen~VVS\textquotedbl{},
+
+~~~~\textquotedbl{}street\textquotedbl{}:~\textquotedbl{}Slagelsevej~13\textquotedbl{},
+
+~~~~\textquotedbl{}objectClass\textquotedbl{}:
+
+~~~~~~~~{[}
+
+~~~~~~~~\textquotedbl{}top\textquotedbl{},~~~~~~~~~~~~~
+
+~~~~~~~~\textquotedbl{}organization\textquotedbl{}
+
+~~~~~~~~{]},~~~~~~~~~
+
+~~~~\textquotedbl{}telephoneNumber\textquotedbl{}:~\textquotedbl{}+45~5544~3321\textquotedbl{},
+
+~~~~\textquotedbl{}postalCode\textquotedbl{}:~\textquotedbl{}DK-4700\textquotedbl{}
+
+~~~~\}
+
+\}
+\end{lyxcode}
+TODO: Document each JSON field.
+
+
+\subsection{/get/person?o={[}COMPANY{]}\&cn={[}PERSON{]}}
+
+This interface return the data associated with PERSON employed by
+COMPANY. Calling for example
+\begin{lyxcode}
+/get/person?o=Hansen\%20VVS\&cn=Brian\%20Hansen
+\end{lyxcode}
+could return a JSON string similar to this:
+\begin{lyxcode}
+\{~~~~~
+
+\textquotedbl{}cn=Brian~Hansen,o=HansenVVS,dc=example,dc=com\textquotedbl{}:~
+
+~~~~\{~~~~~~~~~
+
+~~~~\textquotedbl{}cn\textquotedbl{}:~\textquotedbl{}Brian~Hansen\textquotedbl{},~~~~~~~~~
+
+~~~~\textquotedbl{}objectClass\textquotedbl{}:~
+
+~~~~~~~~{[}~~~~~~~~~~~~~
+
+~~~~~~~~\textquotedbl{}person\textquotedbl{},~~~~~~~~~~~~~
+
+~~~~~~~~\textquotedbl{}organizationalPerson\textquotedbl{},~~~~~~~~~~~~~
+
+~~~~~~~~\textquotedbl{}top\textquotedbl{}~~~~~~~~~
+
+~~~~~~~~{]},~~~~~~~~~
+
+~~~~\textquotedbl{}telephoneNumber\textquotedbl{}:~\textquotedbl{}+45~2266~1155\textquotedbl{},
+
+~~~~\textquotedbl{}sn\textquotedbl{}:~\textquotedbl{}Hansen\textquotedbl{},~~~~~~~~~
+
+~~~~\textquotedbl{}title\textquotedbl{}:~\textquotedbl{}Gasmester\textquotedbl{}~~~~~
+
+~~~~\}~
+
+\}
+\end{lyxcode}
+TODO: Document each JSON field.
+
+
+\subsection{/get/persons?o={[}COMPANY{]}}
+
+This interface return the persons associated with COMPANY. Calling
+for example
+\begin{lyxcode}
+/get/persons?o=Hansen\%20VVS
+\end{lyxcode}
+could return a JSON string similar to this:
+\begin{lyxcode}
+\{~~~~~
+
+\textquotedbl{}cn=Ole~Johnsen,o=Hansen~VVS,dc=example,dc=com\textquotedbl{}:~
+
+~~~~\{~~~~~~~~~
+
+~~~~\textquotedbl{}cn\textquotedbl{}:~\textquotedbl{}Ole~Kappel~Johnsen\textquotedbl{},~~~~~~~~~
+
+~~~~\textquotedbl{}objectClass\textquotedbl{}:~
+
+~~~~~~~~{[}~~~~~~~~~~~~~
+
+~~~~~~~~\textquotedbl{}person\textquotedbl{},~~~~~~~~~~~~~
+
+~~~~~~~~\textquotedbl{}organizationalPerson\textquotedbl{},~~~~~~~~~~~~~
+
+~~~~~~~~\textquotedbl{}top\textquotedbl{}~~~~~~~~~
+
+~~~~~~~~{]},~~~~~~~~~
+
+~~~~\textquotedbl{}telephoneNumber\textquotedbl{}:~\textquotedbl{}+45~55~11~66~35\textquotedbl{},~~~~~~~~~
+
+~~~~\textquotedbl{}sn\textquotedbl{}:~\textquotedbl{}Johnsen\textquotedbl{},~~~~~~~~~
+
+~~~~\textquotedbl{}title\textquotedbl{}:~\textquotedbl{}Svend\textquotedbl{}~~~~~
+
+~~~~\},
+
+\textquotedbl{}cn=Brian~Hansen,o=Hansen~VVS,dc=example,dc=com\textquotedbl{}:~
+
+~~~~\{~~~~~~~~~
+
+~~~~\textquotedbl{}cn\textquotedbl{}:~\textquotedbl{}Brian~Hansen\textquotedbl{},~~~~~~~~~
+
+~~~~\textquotedbl{}objectClass\textquotedbl{}:~
+
+~~~~~~~~{[}~~~~~~~~~~~~~
+
+~~~~~~~~\textquotedbl{}person\textquotedbl{},~~~~~~~~~~~~~
+
+~~~~~~~~\textquotedbl{}organizationalPerson\textquotedbl{},~~~~~~~~~~~~~
+
+~~~~~~~~\textquotedbl{}top\textquotedbl{}~~~~~~~~~
+
+~~~~~~~~{]},~~~~~~~~~
+
+~~~~\textquotedbl{}telephoneNumber\textquotedbl{}:~\textquotedbl{}+45~2266~1155\textquotedbl{},~~~~~~~~~
+
+~~~~\textquotedbl{}sn\textquotedbl{}:~\textquotedbl{}Hansen\textquotedbl{},~~~~~~~~~
+
+~~~~\textquotedbl{}title\textquotedbl{}:~\textquotedbl{}Gasmester\textquotedbl{}~~~~~
+
+~~~~\}~
+
+\}
+\end{lyxcode}
+TODO: Document each JSON field.
+
+
+\subsection{/get/queue}
+
+This interface return the current call queue. This is updated once
+each second, so polling the /get/queue interface more often than once
+each second is both wasteful and pointless. Calling for example:
+\begin{lyxcode}
+/get/queue
+\end{lyxcode}
+could return a JSON string like this:
+\begin{lyxcode}
+\{~~~~~
+
+\textquotedbl{}normal\textquotedbl{}:~
+
+~~~~{[}~~~~~~~~~
+
+~~~~\{~~~~~~~~~~~~~
+
+~~~~\textquotedbl{}UTC\_start\_date\textquotedbl{}:~\textquotedbl{}2012-02-22~14:23:30\textquotedbl{},
+
+~~~~\textquotedbl{}id\textquotedbl{}:~\textquotedbl{}GDhcf2VBww\textquotedbl{},~~~~~~~~~~~~~~~
+
+~~~~\textquotedbl{}unix\_timestamp\textquotedbl{}:~\textquotedbl{}1329920610\textquotedbl{},~~~~~~~~~~~~~
+
+~~~~\textquotedbl{}callee\textquotedbl{}:~\textquotedbl{}mU1Ff16h\textquotedbl{},~~~~~~~~~~~~~
+
+~~~~\textquotedbl{}caller\textquotedbl{}:~\textquotedbl{}d7sIp1kR\textquotedbl{}~~~~~~~~~
+
+~~~~\}
+
+~~~~{]},
+
+\textquotedbl{}high\textquotedbl{}:~
+
+~~~~{[}~~~~~~~~~
+
+~~~~\{~~~~~~~~~~~~~~
+
+~~~~\textquotedbl{}UTC\_start\_date\textquotedbl{}:~\textquotedbl{}2012-02-22~14:23:11\textquotedbl{},
+
+~~~~\textquotedbl{}id\textquotedbl{}:~\textquotedbl{}bRbYsMUVqx\textquotedbl{},~~~~~~~~~~~~~
+
+~~~~\textquotedbl{}unix\_timestamp\textquotedbl{}:~\textquotedbl{}1329920591\textquotedbl{},~~~~~~~~~~~~~~~~~
+
+~~~~\textquotedbl{}callee\textquotedbl{}:~\textquotedbl{}pMT3k2fb\textquotedbl{},~~~~~~~~~~~~~
+
+~~~~\textquotedbl{}caller\textquotedbl{}:~\textquotedbl{}oCgDF7ua\textquotedbl{}~~~~~~~~~
+
+~~~~\}
+
+~~~~{]},
+
+\textquotedbl{}low\textquotedbl{}:~
+
+~~~~{[}~~~~~~~~~
+
+~~~~\{~~~~~~~~~~~~~
+
+~~~~\textquotedbl{}UTC\_start\_date\textquotedbl{}:~\textquotedbl{}2012-02-22~14:23:17\textquotedbl{},~~~~~~~~~~~~~\textquotedbl{}id\textquotedbl{}:~\textquotedbl{}VV8BFqGpqG\textquotedbl{},~~~~~~~~~~~~~
+
+~~~~\textquotedbl{}unix\_timestamp\textquotedbl{}:~\textquotedbl{}1329920597\textquotedbl{},~~~~~~~~~~~~~~
+
+~~~~\textquotedbl{}callee\textquotedbl{}:~\textquotedbl{}7ar4Y1qc\textquotedbl{},~~~~~~~~~~~~~\textquotedbl{}caller\textquotedbl{}:~
+
+~~~~\textquotedbl{}ZQsRogwB\textquotedbl{}~~~~~~~~~
+
+~~~~\}
+
+~~~~{]}
+
+\}
+\end{lyxcode}
+TODO: Document each JSON field.
+\end{document}
