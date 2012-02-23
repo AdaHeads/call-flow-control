@@ -82,7 +82,7 @@ data is returned. Calling for example
 \begin{lyxcode}
 /get/company?o=Hansen\%20VVS
 \end{lyxcode}
-could return a JSON string similar to this:
+will return a JSON string similar to this:
 \begin{lyxcode}
 \{
 
@@ -124,7 +124,7 @@ COMPANY. Calling for example
 \begin{lyxcode}
 /get/person?o=Hansen\%20VVS\&cn=Brian\%20Hansen
 \end{lyxcode}
-could return a JSON string similar to this:
+will return a JSON string similar to this:
 \begin{lyxcode}
 \{~~~~~
 
@@ -166,7 +166,7 @@ for example
 \begin{lyxcode}
 /get/persons?o=Hansen\%20VVS
 \end{lyxcode}
-could return a JSON string similar to this:
+will return a JSON string similar to this:
 \begin{lyxcode}
 \{~~~~~
 
@@ -235,7 +235,7 @@ each second is both wasteful and pointless. Calling for example:
 \begin{lyxcode}
 /get/queue
 \end{lyxcode}
-could return a JSON string like this:
+will return a JSON string like this:
 \begin{lyxcode}
 \{~~~~~
 
@@ -296,6 +296,23 @@ could return a JSON string like this:
 ~~~~\}
 
 ~~~~{]}
+
+\}
+\end{lyxcode}
+TODO: Document each JSON field.
+
+
+\subsection{/get/queue?kind=length}
+
+This interface returns the length of the current call queue. Calling
+\begin{lyxcode}
+/get/queue?kind=length
+\end{lyxcode}
+will return a JSON string like this:
+\begin{lyxcode}
+\{
+
+\textquotedbl{}length\textquotedbl{}:\textquotedbl{}7\textquotedbl{}
 
 \}
 \end{lyxcode}

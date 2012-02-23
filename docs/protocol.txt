@@ -58,7 +58,7 @@ employee data is returned. Calling for example
 
 /get/company?o=Hansen%20VVS
 
-could return a JSON string similar to this:
+will return a JSON string similar to this:
 
 {
 
@@ -99,7 +99,7 @@ COMPANY. Calling for example
 
 /get/person?o=Hansen%20VVS&cn=Brian%20Hansen
 
-could return a JSON string similar to this:
+will return a JSON string similar to this:
 
 {     
 
@@ -140,7 +140,7 @@ Calling for example
 
 /get/persons?o=Hansen%20VVS
 
-could return a JSON string similar to this:
+will return a JSON string similar to this:
 
 {     
 
@@ -209,7 +209,7 @@ example:
 
 /get/queue
 
-could return a JSON string like this:
+will return a JSON string like this:
 
 {     
 
@@ -271,6 +271,23 @@ could return a JSON string like this:
     }
 
     ]
+
+}
+
+TODO: Document each JSON field.
+
+3.5 /get/queue?kind=length
+
+This interface returns the length of the current call queue. 
+Calling
+
+/get/queue?kind=length
+
+will return a JSON string like this:
+
+{
+
+"length":"7"
 
 }
 

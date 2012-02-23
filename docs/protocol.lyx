@@ -183,7 +183,7 @@ Only company data is returned when calling this interface.
 \end_layout
 
 \begin_layout Standard
-could return a JSON string similar to this:
+will return a JSON string similar to this:
 \end_layout
 
 \begin_layout LyX-Code
@@ -264,7 +264,7 @@ This interface return the data associated with PERSON employed by COMPANY.
 \end_layout
 
 \begin_layout Standard
-could return a JSON string similar to this:
+will return a JSON string similar to this:
 \end_layout
 
 \begin_layout LyX-Code
@@ -345,7 +345,7 @@ This interface return the persons associated with COMPANY.
 \end_layout
 
 \begin_layout Standard
-could return a JSON string similar to this:
+will return a JSON string similar to this:
 \end_layout
 
 \begin_layout LyX-Code
@@ -480,7 +480,7 @@ This interface return the current call queue.
 \end_layout
 
 \begin_layout Standard
-could return a JSON string like this:
+will return a JSON string like this:
 \end_layout
 
 \begin_layout LyX-Code
@@ -602,6 +602,39 @@ could return a JSON string like this:
 
 \begin_layout LyX-Code
     ]
+\end_layout
+
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout Standard
+TODO: Document each JSON field.
+\end_layout
+
+\begin_layout Subsection
+/get/queue?kind=length
+\end_layout
+
+\begin_layout Standard
+This interface returns the length of the current call queue.
+ Calling
+\end_layout
+
+\begin_layout LyX-Code
+/get/queue?kind=length
+\end_layout
+
+\begin_layout Standard
+will return a JSON string like this:
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_layout LyX-Code
+"length":"7"
 \end_layout
 
 \begin_layout LyX-Code
