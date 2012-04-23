@@ -8,8 +8,9 @@ Contents of this README:
 --  Introduction  --
 --------------------
 
-Alice converts LDAP queries to JSON, and JSON to LDAP queries, depending on
-whether a client is reading from or writing to the LDAP server.
+Alice provides the glue between a PBX such as FreeSWITCH/Asterisk, a PostgreSQL
+RDBM's and a client. She works by accepting plain HTTP commands in the shape of
+GET/POST and returning JSON objects to the client.
 
 Alice is GPLv3, see COPYING3 and COPYING.RUNTIME.
 
@@ -17,7 +18,7 @@ Alice is GPLv3, see COPYING3 and COPYING.RUNTIME.
 --  Dependencies  --
 --------------------
 
-Alice depends on Yolk and on AWS being compiled with LDAP support.
+Alice depends on Yolk, AWS and GNATColl being compiled with PostgreSQL support.
 
 --------------------------
 --  The Alice Protocol  --

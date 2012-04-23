@@ -29,26 +29,38 @@ package My_Configuration is
 
    use Yolk.Utilities;
 
-   type Keys is (Handler_Get_Company,
+   type Keys is (DB_Host,
+                 DB_Port,
+                 DB_Database,
+                 DB_User,
+                 DB_Password,
+                 Handler_Get_Company,
                  Handler_Get_Person,
                  Handler_Get_Persons,
-                 Handler_Get_Queue,
-                 LDAP_JSON);
+                 Handler_Get_Queue);
 
    type Defaults_Array is array (Keys) of
      Ada.Strings.Unbounded.Unbounded_String;
 
    Default_Values : constant Defaults_Array :=
-                      (Handler_Get_Company
+                      (DB_Host
+                       => TUS ("pg.adaheads.com"),
+                       DB_Port
+                       => TUS ("5432"),
+                       DB_Database
+                       => TUS ("testingdb"),
+                       DB_User
+                       => TUS ("postgres"),
+                       DB_Password
+                       => TUS ("D3nSort3H3st"),
+                       Handler_Get_Company
                        => TUS ("/get/company"),
                        Handler_Get_Person
                        => TUS ("/get/person"),
                        Handler_Get_Persons
                        => TUS ("/get/persons"),
                        Handler_Get_Queue
-                       => TUS ("/get/queue"),
-                       LDAP_JSON
-                       => TUS ("configuration/ldap.json"));
+                       => TUS ("/get/queue"));
 
    package Config is new Yolk.Config_File_Parser
      (Key_Type => Keys,

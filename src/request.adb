@@ -23,11 +23,7 @@
 
 with AWS.Messages;
 with AWS.Parameters;
-with LDAP.Read;
 with Call_Queue;
-
---  with AWS.Utils;
---  with Ada.Calendar;
 
 package body Request is
 
@@ -79,7 +75,7 @@ package body Request is
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => LDAP.Read.Search_Company (o => P.Get ("o")));
+         Content     => "{COMPANY org_id:" & P.Get ("org_id") & "}");
    end Company;
 
    -------------
@@ -96,8 +92,8 @@ package body Request is
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => LDAP.Read.Search_Person (o  => P.Get ("o"),
-                                                 cn => P.Get ("cn")));
+         Content     => "{PERSON org_id:" & P.Get ("org_id") &
+         ",ce_id:" & P.Get ("ce_id") & "}");
    end Person;
 
    --------------
@@ -114,7 +110,7 @@ package body Request is
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => LDAP.Read.Search_Persons (o => P.Get ("o")));
+         Content     => "{PERSONS org_id:" & P.Get ("org_id") & "}");
    end Persons;
 
    ------------
