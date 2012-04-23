@@ -21,9 +21,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+--  with Ada.Exceptions;
 with AWS.Messages;
 with AWS.Parameters;
+with AWS.URL;
 with Call_Queue;
+with Errors;
+with Storage;
 
 package body Request is
 
@@ -62,56 +66,97 @@ package body Request is
    end Build_Response;
 
    --------------
-   --  Company --
+   --  Contact --
    --------------
 
-   function Company
+   function Contact
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
       use AWS.Status;
+      use AWS.URL;
+      use Errors;
 
-      P : constant AWS.Parameters.List := Parameters (Request);
+      P      : constant AWS.Parameters.List := Parameters (Request);
+      Ce_Id  : constant String := P.Get ("ce_id");
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => "{COMPANY org_id:" & P.Get ("org_id") & "}");
-   end Company;
+         Content     => Storage.Contact (Natural'Value (Ce_Id)));
 
-   -------------
-   --  Person --
-   -------------
+   exception
+      when E : Constraint_Error =>
+         return Build_Response
+           (Status_Data => Request,
+            Content     =>
+            Exception_Handler
+              (Event   => E,
+               Message => "Bad GET parameter." &
+               " ce_id MUST be a natural integer." &
+               " URL: " & URL (URI (Request))));
+   end Contact;
 
-   function Person
+   ---------------
+   --  Contacts --
+   ---------------
+
+   function Contacts
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
       use AWS.Status;
+      use AWS.URL;
+      use Errors;
 
-      P : constant AWS.Parameters.List := Parameters (Request);
+      P      : constant AWS.Parameters.List := Parameters (Request);
+      Org_Id : constant String := P.Get ("org_id");
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => "{PERSON org_id:" & P.Get ("org_id") &
-         ",ce_id:" & P.Get ("ce_id") & "}");
-   end Person;
+         Content     => Storage.Organization (Natural'Value (Org_Id)));
 
-   --------------
-   --  Persons --
-   --------------
+   exception
+      when E : Constraint_Error =>
+         return Build_Response
+           (Status_Data => Request,
+            Content     =>
+            Exception_Handler
+              (Event   => E,
+               Message => "Bad GET parameter." &
+               " org_id MUST be a natural integer." &
+               " URL: " & URL (URI (Request))));
+   end Contacts;
 
-   function Persons
+   -------------------
+   --  Organization --
+   -------------------
+
+   function Organization
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
       use AWS.Status;
+      use AWS.URL;
+      use Errors;
 
-      P : constant AWS.Parameters.List := Parameters (Request);
+      P      : constant AWS.Parameters.List := Parameters (Request);
+      Org_Id : constant String := P.Get ("org_id");
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => "{PERSONS org_id:" & P.Get ("org_id") & "}");
-   end Persons;
+         Content     => Storage.Organization (Natural'Value (Org_Id)));
+
+   exception
+      when E : Constraint_Error =>
+         return Build_Response
+           (Status_Data => Request,
+            Content     =>
+            Exception_Handler
+              (Event   => E,
+               Message => "Bad GET parameter." &
+               " org_id MUST be a natural integer." &
+               " URL: " & URL (URI (Request))));
+   end Organization;
 
    ------------
    --  Queue --

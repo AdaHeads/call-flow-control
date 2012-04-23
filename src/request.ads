@@ -26,20 +26,20 @@ with AWS.Response;
 
 package Request is
 
-   function Company
+   function Organization
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
-   --  Get the company JSON based on the "o" GET parameter.
+   --  Get the Organization JSON based on the "org_id" GET parameter.
 
-   function Person
+   function Contact
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
-   --  Get a person JSON based on the "o" and "cn" GET parameters.
+   --  Get a Contact JSON based on the "org_id" and "ce_id" GET parameters.
 
-   function Persons
+   function Contacts
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
-   --  Get the persons JSON based on the "o" GET parameter.
+   --  Get the Contacts JSON based on the "org_id" GET parameter.
 
    function Queue
      (Request : in AWS.Status.Data)
