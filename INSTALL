@@ -1,6 +1,6 @@
 Building Alice simply requires that you have Yolk installed on your system and
-that AWS has been compiled with LDAP support. If those two dependencies are met,
-then all you have to do is:
+that GNATCOLL has been compiled with PostgreSQL support. If those two dependencies
+are met, then all you have to do is:
 
     $ make
 

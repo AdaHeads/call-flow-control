@@ -70,19 +70,19 @@ package body My_Handlers is
         (Dispatcher => RH,
          URI        => My.Config.Get (My.Handler_Get_Company),
          Action     => Create
-           (Callback => Request.Company'Access));
+           (Callback => Request.Organization'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => My.Config.Get (My.Handler_Get_Person),
          Action     => Create
-           (Callback => Request.Person'Access));
+           (Callback => Request.Contact'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => My.Config.Get (My.Handler_Get_Persons),
          Action     => Create
-           (Callback => Request.Persons'Access));
+           (Callback => Request.Contacts'Access));
    end Set;
 
 end My_Handlers;
