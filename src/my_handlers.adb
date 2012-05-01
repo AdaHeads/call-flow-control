@@ -62,27 +62,45 @@ package body My_Handlers is
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Get_Queue),
-         Action     => Create
-           (Callback => Request.Queue'Access));
-
-      AWS.Services.Dispatchers.URI.Register
-        (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Get_Company),
-         Action     => Create
-           (Callback => Request.Organization'Access));
-
-      AWS.Services.Dispatchers.URI.Register
-        (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Get_Person),
+         URI        => My.Config.Get (My.Handler_Get_Contact),
          Action     => Create
            (Callback => Request.Contact'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Get_Persons),
+         URI        => My.Config.Get (My.Handler_Get_Contact_Attributes),
+         Action     => Create
+           (Callback => Request.Contact_Attributes'Access));
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => My.Config.Get (My.Handler_Get_Contacts),
          Action     => Create
            (Callback => Request.Contacts'Access));
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => My.Config.Get (My.Handler_Get_Contacts_Attributes),
+         Action     => Create
+           (Callback => Request.Contacts_Attributes'Access));
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => My.Config.Get (My.Handler_Get_Organization),
+         Action     => Create
+           (Callback => Request.Organization'Access));
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => My.Config.Get (My.Handler_Get_Organization_Attributes),
+         Action     => Create
+           (Callback => Request.Organization_Attributes'Access));
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => My.Config.Get (My.Handler_Get_Queue),
+         Action     => Create
+           (Callback => Request.Queue'Access));
    end Set;
 
 end My_Handlers;

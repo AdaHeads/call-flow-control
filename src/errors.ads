@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                 Request                                   --
+--                                  Errors                                   --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,44 +21,20 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Status;
-with AWS.Response;
+with Ada.Exceptions;
 
-package Request is
+package Errors is
 
-   function Contact
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get a Contact JSON.
+   function Exception_Handler
+     (Event   : in Ada.Exceptions.Exception_Occurrence;
+      Message : in String)
+      return String;
+   --  Log exception messages to the Error trace and returns a JSON String
+   --  containing the exception.
 
-   function Contact_Attributes
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get a Contact_Attributes JSON.
+   procedure Exception_Handler
+     (Event   : in Ada.Exceptions.Exception_Occurrence;
+      Message : in String);
+   --  Log exception messages to the Error trace.
 
-   function Contacts
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Contacts JSON.
-
-   function Contacts_Attributes
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Contacts_Attributes JSON.
-
-   function Organization
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Organization JSON.
-
-   function Organization_Attributes
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Organization_Attributes JSON.
-
-   function Queue
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the call queue JSON.
-
-end Request;
+end Errors;

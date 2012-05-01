@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                 Request                                   --
+--                               Storage.Read                                --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,44 +21,36 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Status;
-with AWS.Response;
-
-package Request is
+package Storage.Read is
 
    function Contact
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get a Contact JSON.
+     (Ce_Id  : in Natural)
+      return String;
+   --  Return a Contact JSON string.
 
    function Contact_Attributes
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get a Contact_Attributes JSON.
+     (Ce_Id  : in Natural)
+      return String;
+   --  Return a Contact_Attributes JSON string.
 
    function Contacts
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Contacts JSON.
+     (Org_Id : in Natural)
+      return String;
+   --  Return a Contacts JSON string.
 
    function Contacts_Attributes
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Contacts_Attributes JSON.
+     (Org_Id  : in Natural)
+      return String;
+   --  Return a Contacts_Attributes JSON string.
 
    function Organization
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Organization JSON.
+     (Org_Id : in Natural)
+      return String;
+   --  Return an Organization JSON string.
 
    function Organization_Attributes
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Organization_Attributes JSON.
+     (Org_Id : in Natural)
+      return String;
+   --  Return an Organization_Attributes JSON string.
 
-   function Queue
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the call queue JSON.
-
-end Request;
+end Storage.Read;

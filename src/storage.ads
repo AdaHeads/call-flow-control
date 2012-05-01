@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                 Request                                   --
+--                                 Storage                                   --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,44 +21,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Status;
-with AWS.Response;
+package Storage is
 
-package Request is
 
-   function Contact
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get a Contact JSON.
 
-   function Contact_Attributes
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get a Contact_Attributes JSON.
-
-   function Contacts
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Contacts JSON.
-
-   function Contacts_Attributes
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Contacts_Attributes JSON.
-
-   function Organization
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Organization JSON.
-
-   function Organization_Attributes
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Organization_Attributes JSON.
-
-   function Queue
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the call queue JSON.
-
-end Request;
+end Storage;

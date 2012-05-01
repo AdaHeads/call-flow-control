@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                 Request                                   --
+--                               Storage.Read                                --
 --                                                                           --
---                                  SPEC                                     --
+--                                  BODY                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,44 +21,78 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Status;
-with AWS.Response;
+package body Storage.Read is
 
-package Request is
+   ---------------
+   --  Contact  --
+   ---------------
 
    function Contact
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get a Contact JSON.
+     (Ce_Id  : in Natural)
+      return String
+   is
+   begin
+      return "{CONTACT ce_id:" & Natural'Image (Ce_Id) & "}";
+   end Contact;
+
+   --------------------------
+   --  Contact_Attributes  --
+   --------------------------
 
    function Contact_Attributes
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get a Contact_Attributes JSON.
+     (Ce_Id  : in Natural)
+      return String
+   is
+   begin
+      return "{CONTACT_ATTRIBUTES ce_id:" & Natural'Image (Ce_Id) & "}";
+   end Contact_Attributes;
+
+   ----------------
+   --  Contacts  --
+   ----------------
 
    function Contacts
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Contacts JSON.
+     (Org_Id : in Natural)
+      return String
+   is
+   begin
+      return "{CONTACTS org_id:" & Natural'Image (Org_Id) & "}";
+   end Contacts;
+
+   ---------------------------
+   --  Contacts_Attributes  --
+   ---------------------------
 
    function Contacts_Attributes
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Contacts_Attributes JSON.
+     (Org_Id : in Natural)
+      return String
+   is
+   begin
+      return "{CONTACTS_ATTRIBUTES org_id:" & Natural'Image (Org_Id) & "}";
+   end Contacts_Attributes;
+
+   --------------------
+   --  Organization  --
+   --------------------
 
    function Organization
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Organization JSON.
+     (Org_Id : in Natural)
+      return String
+   is
+   begin
+      return "{ORGANIZATION org_id:" & Natural'Image (Org_Id) & "}";
+   end Organization;
+
+   -------------------------------
+   --  Organization_Attributes  --
+   -------------------------------
 
    function Organization_Attributes
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Organization_Attributes JSON.
+     (Org_Id : in Natural)
+      return String
+   is
+   begin
+      return "{ORGANIZATION_ATTRIBUTES org_id:" & Natural'Image (Org_Id) & "}";
+   end Organization_Attributes;
 
-   function Queue
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the call queue JSON.
-
-end Request;
+end Storage.Read;

@@ -34,9 +34,12 @@ package My_Configuration is
                  DB_Database,
                  DB_User,
                  DB_Password,
-                 Handler_Get_Company,
-                 Handler_Get_Person,
-                 Handler_Get_Persons,
+                 Handler_Get_Contact,
+                 Handler_Get_Contact_Attributes,
+                 Handler_Get_Contacts,
+                 Handler_Get_Contacts_Attributes,
+                 Handler_Get_Organization,
+                 Handler_Get_Organization_Attributes,
                  Handler_Get_Queue);
 
    type Defaults_Array is array (Keys) of
@@ -53,12 +56,18 @@ package My_Configuration is
                        => TUS ("postgres"),
                        DB_Password
                        => TUS ("D3nSort3H3st"),
-                       Handler_Get_Company
+                       Handler_Get_Contact
+                       => TUS ("/get/contact"),
+                       Handler_Get_Contact_Attributes
+                       => TUS ("/get/contact_attributes"),
+                       Handler_Get_Contacts
+                       => TUS ("/get/contacts"),
+                       Handler_Get_Contacts_Attributes
+                       => TUS ("/get/contacts_attributes"),
+                       Handler_Get_Organization
                        => TUS ("/get/company"),
-                       Handler_Get_Person
-                       => TUS ("/get/person"),
-                       Handler_Get_Persons
-                       => TUS ("/get/persons"),
+                       Handler_Get_Organization_Attributes
+                       => TUS ("/get/company_attributes"),
                        Handler_Get_Queue
                        => TUS ("/get/queue"));
 
