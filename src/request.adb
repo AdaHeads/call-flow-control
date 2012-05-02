@@ -65,9 +65,9 @@ package body Request is
                     Cache_Control => No_Cache);
    end Build_Response;
 
-   --------------
-   --  Contact --
-   --------------
+   ---------------
+   --  Contact  --
+   ---------------
 
    function Contact
      (Request : in AWS.Status.Data)
@@ -83,7 +83,7 @@ package body Request is
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => Contact (Natural'Value (Ce_Id)));
+         Content     => Contact (Positive'Value (Ce_Id)));
 
    exception
       when E : Constraint_Error =>
@@ -92,13 +92,13 @@ package body Request is
             Content     => Exception_Handler
               (Event   => E,
                Message => "Bad GET parameter." &
-               " ce_id MUST be a natural integer." &
+               " ce_id MUST be a positive integer." &
                " URL: " & URL (URI (Request))));
    end Contact;
 
-   -------------------------
-   --  Contact_Attributes --
-   -------------------------
+   --------------------------
+   --  Contact_Attributes  --
+   --------------------------
 
    function Contact_Attributes
      (Request : in AWS.Status.Data)
@@ -127,9 +127,40 @@ package body Request is
                " URL: " & URL (URI (Request))));
    end Contact_Attributes;
 
-   ---------------
-   --  Contacts --
-   ---------------
+   --------------------
+   --  Contact_Tags  --
+   --------------------
+
+   function Contact_Tags
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+      use AWS.Status;
+      use AWS.URL;
+      use Errors;
+      use Storage.Read;
+
+      P      : constant AWS.Parameters.List := Parameters (Request);
+      Ce_Id  : constant String := P.Get ("ce_id");
+   begin
+      return Build_Response
+        (Status_Data => Request,
+         Content     => Contact_Tags (Natural'Value (Ce_Id)));
+
+   exception
+      when E : Constraint_Error =>
+         return Build_Response
+           (Status_Data => Request,
+            Content     => Exception_Handler
+              (Event   => E,
+               Message => "Bad GET parameter." &
+               " ce_id MUST be a natural integer." &
+               " URL: " & URL (URI (Request))));
+   end Contact_Tags;
+
+   ----------------
+   --  Contacts  --
+   ----------------
 
    function Contacts
      (Request : in AWS.Status.Data)
@@ -138,13 +169,14 @@ package body Request is
       use AWS.Status;
       use AWS.URL;
       use Errors;
+      use Storage.Read;
 
       P      : constant AWS.Parameters.List := Parameters (Request);
       Org_Id : constant String := P.Get ("org_id");
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => Storage.Read.Contacts (Natural'Value (Org_Id)));
+         Content     => Contacts (Natural'Value (Org_Id)));
 
    exception
       when E : Constraint_Error =>
@@ -157,9 +189,9 @@ package body Request is
                " URL: " & URL (URI (Request))));
    end Contacts;
 
-   --------------------------
-   --  Contacts_Attributes --
-   --------------------------
+   ---------------------------
+   --  Contacts_Attributes  --
+   ---------------------------
 
    function Contacts_Attributes
      (Request : in AWS.Status.Data)
@@ -188,41 +220,11 @@ package body Request is
                " URL: " & URL (URI (Request))));
    end Contacts_Attributes;
 
-   -------------------
-   --  Organization --
-   -------------------
+   ---------------------
+   --  Contacts_Tags  --
+   ---------------------
 
-   function Organization
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data
-   is
-      use AWS.Status;
-      use AWS.URL;
-      use Errors;
-
-      P      : constant AWS.Parameters.List := Parameters (Request);
-      Org_Id : constant String := P.Get ("org_id");
-   begin
-      return Build_Response
-        (Status_Data => Request,
-         Content     => Storage.Read.Organization (Natural'Value (Org_Id)));
-
-   exception
-      when E : Constraint_Error =>
-         return Build_Response
-           (Status_Data => Request,
-            Content     => Exception_Handler
-              (Event   => E,
-               Message => "Bad GET parameter." &
-               " org_id MUST be a natural integer." &
-               " URL: " & URL (URI (Request))));
-   end Organization;
-
-   ------------------------------
-   --  Organization_Attributes --
-   ------------------------------
-
-   function Organization_Attributes
+   function Contacts_Tags
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
@@ -236,7 +238,7 @@ package body Request is
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => Organization_Attributes (Natural'Value (Org_Id)));
+         Content     => Contacts_Tags (Natural'Value (Org_Id)));
 
    exception
       when E : Constraint_Error =>
@@ -247,11 +249,42 @@ package body Request is
                Message => "Bad GET parameter." &
                " org_id MUST be a natural integer." &
                " URL: " & URL (URI (Request))));
-   end Organization_Attributes;
+   end Contacts_Tags;
 
-   ------------
-   --  Queue --
-   ------------
+   --------------------
+   --  Organization  --
+   --------------------
+
+   function Organization
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+      use AWS.Status;
+      use AWS.URL;
+      use Errors;
+      use Storage.Read;
+
+      P      : constant AWS.Parameters.List := Parameters (Request);
+      Org_Id : constant String := P.Get ("org_id");
+   begin
+      return Build_Response
+        (Status_Data => Request,
+         Content     => Organization (Natural'Value (Org_Id)));
+
+   exception
+      when E : Constraint_Error =>
+         return Build_Response
+           (Status_Data => Request,
+            Content     => Exception_Handler
+              (Event   => E,
+               Message => "Bad GET parameter." &
+               " org_id MUST be a natural integer." &
+               " URL: " & URL (URI (Request))));
+   end Organization;
+
+   -------------
+   --  Queue  --
+   -------------
 
    function Queue
      (Request : in AWS.Status.Data)

@@ -36,6 +36,11 @@ package Request is
       return AWS.Response.Data;
    --  Get a Contact_Attributes JSON.
 
+   function Contact_Tags
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --  Get a Contact_Tags JSON.
+
    function Contacts
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
@@ -46,15 +51,15 @@ package Request is
       return AWS.Response.Data;
    --  Get the Contacts_Attributes JSON.
 
+   function Contacts_Tags
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --  Get the Contacts_Tags JSON.
+
    function Organization
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
    --  Get the Organization JSON.
-
-   function Organization_Attributes
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Organization_Attributes JSON.
 
    function Queue
      (Request : in AWS.Status.Data)

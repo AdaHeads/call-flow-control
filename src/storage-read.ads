@@ -24,7 +24,7 @@
 package Storage.Read is
 
    function Contact
-     (Ce_Id  : in Natural)
+     (Ce_Id  : in Positive)
       return String;
    --  Return a Contact JSON string.
 
@@ -32,6 +32,11 @@ package Storage.Read is
      (Ce_Id  : in Natural)
       return String;
    --  Return a Contact_Attributes JSON string.
+
+   function Contact_Tags
+     (Ce_Id  : in Natural)
+      return String;
+   --  Return a Contact_Tags JSON string.
 
    function Contacts
      (Org_Id : in Natural)
@@ -43,14 +48,14 @@ package Storage.Read is
       return String;
    --  Return a Contacts_Attributes JSON string.
 
+   function Contacts_Tags
+     (Org_Id  : in Natural)
+      return String;
+   --  Return a Contacts_Tags JSON string.
+
    function Organization
      (Org_Id : in Natural)
       return String;
    --  Return an Organization JSON string.
-
-   function Organization_Attributes
-     (Org_Id : in Natural)
-      return String;
-   --  Return an Organization_Attributes JSON string.
 
 end Storage.Read;

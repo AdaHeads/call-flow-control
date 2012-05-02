@@ -29,52 +29,79 @@ package My_Configuration is
 
    use Yolk.Utilities;
 
-   type Keys is (DB_Host,
+   type Keys is (Cache_Max_Element_Age,
+                 Cache_Size_Contact,
+                 Cache_Size_Organization,
+                 DB_Host,
+                 DB_Name,
                  DB_Port,
-                 DB_Database,
                  DB_User,
                  DB_Password,
+                 DB2_Host,
+                 DB2_Name,
+                 DB2_Port,
+                 DB2_User,
+                 DB2_Password,
                  Handler_Get_Contact,
                  Handler_Get_Contact_Attributes,
+                 Handler_Get_Contact_Tags,
                  Handler_Get_Contacts,
                  Handler_Get_Contacts_Attributes,
+                 Handler_Get_Contacts_Tags,
                  Handler_Get_Organization,
-                 Handler_Get_Organization_Attributes,
                  Handler_Get_Queue);
 
    type Defaults_Array is array (Keys) of
      Ada.Strings.Unbounded.Unbounded_String;
 
    Default_Values : constant Defaults_Array :=
-                      (DB_Host
+                      (Cache_Max_Element_Age
+                       => TUS ("86_400"),
+                       Cache_Size_Contact
+                       => TUS ("10_000"),
+                       Cache_Size_Organization
+                       => TUS ("1_000"),
+                       DB_Host
                        => TUS ("pg.adaheads.com"),
+                       DB_Name
+                       => TUS ("customers"),
                        DB_Port
                        => TUS ("5432"),
-                       DB_Database
-                       => TUS ("testingdb"),
                        DB_User
-                       => TUS ("postgres"),
+                       => TUS ("alice"),
                        DB_Password
+                       => TUS ("D3nSort3H3st"),
+                       DB2_Host
+                       => TUS ("pg2.adaheads.com"),
+                       DB2_Name
+                       => TUS ("customers"),
+                       DB2_Port
+                       => TUS ("5433"),
+                       DB2_User
+                       => TUS ("alice"),
+                       DB2_Password
                        => TUS ("D3nSort3H3st"),
                        Handler_Get_Contact
                        => TUS ("/get/contact"),
                        Handler_Get_Contact_Attributes
                        => TUS ("/get/contact_attributes"),
+                       Handler_Get_Contact_Tags
+                       => TUS ("/get/contact_tags"),
                        Handler_Get_Contacts
                        => TUS ("/get/contacts"),
                        Handler_Get_Contacts_Attributes
                        => TUS ("/get/contacts_attributes"),
+                       Handler_Get_Contacts_Tags
+                       => TUS ("/get/contacts_tags"),
                        Handler_Get_Organization
-                       => TUS ("/get/company"),
-                       Handler_Get_Organization_Attributes
-                       => TUS ("/get/company_attributes"),
+                       => TUS ("/get/organization"),
                        Handler_Get_Queue
                        => TUS ("/get/queue"));
 
    package Config is new Yolk.Config_File_Parser
-     (Key_Type => Keys,
+     (Key_Type            => Keys,
       Defaults_Array_Type => Defaults_Array,
-      Defaults => Default_Values,
-      Config_File => "configuration/alice_config.ini");
+      Defaults            => Default_Values,
+      Config_File         => "configuration/alice_config.ini");
 
 end My_Configuration;
