@@ -21,10 +21,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Fixed;
 with Database;
 with Errors;
 with GNATCOLL.JSON;
+with Yolk.Log;
 with Yolk.Utilities;
 
 package body Storage.Read is
@@ -37,76 +37,92 @@ package body Storage.Read is
      (Ce_Id  : in Positive)
       return String
    is
-      use Ada.Strings;
       use Database;
       use Errors;
       use GNATCOLL.JSON;
+      use Yolk.Log;
       use Yolk.Utilities;
 
-      DB_Connection : constant Exec.Database_Connection :=
-                        Get_DB_Connection;
+      Contact_JSON   : JSON_Value := Create_Object;
+      Cursor         : Exec.Forward_Cursor;
+      DB_Connections : Database_Connection_Pool;
+      Query          : constant SQL_Query :=
+                         SQL_Select (Fields        =>
+                                       Contactentity.Ce_Id &
+                                       Contactentity.Ce_Name &
+                                       Contactentity.Json,
+                                     Where         =>
+                                       Contactentity.Ce_Id = Ce_Id,
+                                     Auto_Complete => True);
 
-      Cursor : Exec.Forward_Cursor;
-      Query         : constant SQL_Query :=
-                        SQL_Select (Fields        =>
-                                      Contactentity.Ce_Id &
-                                      Contactentity.Ce_Name &
-                                      Contactentity.Json,
-                                    Where         =>
-                                      Contactentity.Ce_Id = Ce_Id,
-                                    Auto_Complete => True);
-
-      P             : constant Exec.Prepared_Statement :=
-                        Exec.Prepare (Query, On_Server => True);
-
-      Contact_JSON : JSON_Value := Create_Object;
-
-      Valid : Boolean := False;
-      Value : Unbounded_String := Null_Unbounded_String;
+      Valid          : Boolean := False;
+      Value          : Unbounded_String := Null_Unbounded_String;
    begin
       Contact_Cache.Read (Key      => Positive'Image (Ce_Id),
                           Is_Valid => Valid,
                           Value    => Value);
 
-      if Valid then
-         return TS (Value);
-      else
-         Cursor.Fetch (DB_Connection, P);
+      if not Valid then
+         DB_Connections := Get_DB_Connections;
 
-         if DB_Connection.Success then
-            while Exec.Has_Row (Cursor) loop
-               Contact_JSON := GNATCOLL.JSON.Read (Cursor.Value (2), "foo");
+         Fetch_Data :
+         for k in DB_Connections.Hosts'Range loop
+            Cursor.Fetch (DB_Connections.Hosts (k), Query);
 
-               Contact_JSON.Set_Field (Field_Name => Cursor.Field_Name (0),
-                                       Field      => Cursor.Integer_Value (0));
-               Contact_JSON.Set_Field (Field_Name => Cursor.Field_Name (1),
-                                       Field      => Cursor.Value (1));
+            if DB_Connections.Hosts (k).Success then
+               while Exec.Has_Row (Cursor) loop
+                  Contact_JSON := GNATCOLL.JSON.Read
+                    (Cursor.Value (2),
+                     "json.error");
 
-               Cursor.Next;
-            end loop;
+                  Contact_JSON.Set_Field
+                    (Field_Name => Cursor.Field_Name (0),
+                     Field      => Cursor.Integer_Value (0));
 
-            Value := TUS (Write (Contact_JSON));
-            Contact_Cache.Write (Key   => Positive'Image (Ce_Id),
-                                 Value => Value);
+                  Contact_JSON.Set_Field
+                    (Field_Name => Cursor.Field_Name (1),
+                     Field      => Cursor.Value (1));
 
-            return TS (Value);
-         else
-            raise Database_Error;
-         end if;
+                  Cursor.Next;
+               end loop;
+
+               Value := TUS (Write (Contact_JSON));
+               Contact_Cache.Write (Key   => Positive'Image (Ce_Id),
+                                    Value => Value);
+               --  TODO: Write code so we only cache objects with actual
+               --  content. No need to cache empty JSON object strings.
+
+               exit Fetch_Data;
+            else
+               DB_Connections.Status (k) := Failed;
+               Register_Failed_DB_Connection (Pool => DB_Connections);
+
+               Trace (Handle  => Info,
+                      Message => "Cannot complete query to the " &
+                      Database_Connection_Priority'Image (k) &
+                      " database server. Message from server is '" &
+                      Trim (Exec.Error (DB_Connections.Hosts (k))) & "'");
+
+               if k = Database_Connection_Priority'Last then
+                  raise Database_Error with Trim
+                    (Exec.Error (DB_Connections.Hosts (k)));
+               end if;
+            end if;
+         end loop Fetch_Data;
       end if;
+
+      return TS (Value);
    exception
       when Event : Database_Error =>
          return Exception_Handler
            (Event   => Event,
-            Message => "DB error in call to Storage.Read.Contact " &
-            "(" & Fixed.Trim (Positive'Image (Ce_Id), Left) & ")" &
-            " - Message returned from DB is '" &
-            Fixed.Trim (Exec.Error (DB_Connection), Both) & "'");
+            Message => "Fatal database error in Storage.Read.Contact " &
+            "(" & Trim (Positive'Image (Ce_Id)) & ")");
       when Event : others =>
          return Exception_Handler
            (Event   => Event,
             Message => "Error in call to Storage.Read.Contact " &
-            "(" & Fixed.Trim (Positive'Image (Ce_Id), Left) & ")");
+            "(" & Trim (Positive'Image (Ce_Id)) & ")");
    end Contact;
 
    --------------------------

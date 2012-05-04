@@ -34,6 +34,23 @@ package Storage is
 
    Database_Error : exception;
 
+   type Database_Connection_Priority is (Primary, Secondary);
+
+   type Database_Connection_Status is (Uninitialized, Initialized, Failed);
+
+   type Database_Connection_Array is array
+     (Database_Connection_Priority) of Exec.Database_Connection;
+
+   type Database_Connection_Status_Array is array
+     (Database_Connection_Priority) of Database_Connection_Status;
+
+   type Database_Connection_Pool is
+      record
+         Hosts  : Database_Connection_Array := (others => null);
+         Status : Database_Connection_Status_Array :=
+                    (others => Uninitialized);
+      end record;
+
    package Contact_Cache is new Yolk.Cache.String_Keys
      (Element_Type      => Unbounded_String,
       Cleanup_Size      => Config.Get (Cache_Size_Contact) + 1,
@@ -93,14 +110,17 @@ package Storage is
       Reserved_Capacity => Config.Get (Cache_Size_Organization));
    --  Cache for individual organization JSON objects.
 
-   function Get_DB_Connection
-     return Exec.Database_Connection;
-   --  Return a connection to the database.
-   --
-   --  IMPORTANT!
-   --  You should _NEVER_ use this connection for any write operations (delete,
-   --  update, insert) because if the primary database server is offline for
-   --  some reason, a READ ONLY connection to the backup server is returned
-   --  instead.
+   function Get_DB_Connections
+     return Database_Connection_Pool;
+   --  TODO
+
+   procedure Register_Failed_DB_Connection
+     (Pool : in Database_Connection_Pool);
+   --  TODO
+
+   function Trim
+     (Source : in String)
+      return String;
+   --  Trim Source string on both sides.
 
 end Storage;
