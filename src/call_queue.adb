@@ -45,19 +45,23 @@ package body Call_Queue is
    type Priority_Level is (Low, Normal, High);
 
    package Random_Priority is new Discrete_Random (Priority_Level);
-   use Random_Priority;
    --  This is used by the FreeSWITCH_Queue_Monitor task to generate random
    --  calls.
 
+   subtype Org_Id is Integer range 1 .. 5;
+   package Random_Organization is new Discrete_Random (Org_Id);
+   --  HERE FOR TESTING PURPOSES.
+   --  This is just to be able to randomnly grab an organization so it can be
+   --  added as the callee in a Call record.
+
    subtype Call_Id is String (1 .. 10);
    --  Unique identifier for each call in the queue. This type will
-   --  obviously depend heavily on the kind of ID used internally by
-   --  FreeSWITCH.
+   --  obviously depend heavily on the kind of ID used internally by the PBX.
 
    type Call is
       record
          Id            : Call_Id;
-         Callee        : String (1 .. 8);
+         Callee        : Org_Id;
          Caller        : String (1 .. 8);
          Priority      : Priority_Level;
          Timestamp_UTC : Ada.Calendar.Time;
@@ -90,7 +94,7 @@ package body Call_Queue is
    protected Queue is
       procedure Add
         (Id         : in Call_Id;
-         Callee     : in String;
+         Callee     : in Org_Id;
          Caller     : in String;
          Priority   : in Priority_Level;
          Start      : in Ada.Calendar.Time);
@@ -118,7 +122,7 @@ package body Call_Queue is
       --  This is set to False whenever a Call is added or removed from the
       --  queue.
 
-      JSON_Object         : JSON_Value := JSON_Null;
+      JSON                : JSON_Value := JSON_Null;
       --  This holds the current JSON_Value object from which the
       --  JSON_String is constructed.
 
@@ -135,37 +139,41 @@ package body Call_Queue is
       --  The queue map.
    end Queue;
 
-   task FreeSWITCH_Queue_Monitor;
-   --  This is supposed to monitor one or more FreeSWITCH servers. Currently
-   --  it just generates dummy calls.
+   task PBX_Queue_Monitor;
+   --  This is supposed to monitor one or more PBX's. Currently it just
+   --  generates dummy calls.
 
-   task body FreeSWITCH_Queue_Monitor
+   task body PBX_Queue_Monitor
    is
       use Ada.Calendar;
       use Task_Controller;
 
-      type Foo is mod 50;
+      type Foo is mod 30;
       Id_Array : array (Foo) of Call_Id := (others => "          ");
       --  Simulate up to 50 calls in the queue.
 
       C        : Foo := 0;
       --  Basic counter variable.
 
-      G : Generator;
-      P : Priority_Level;
+      G     : Random_Priority.Generator;
+      Org_G : Random_Organization.Generator;
+      OID   : Org_Id;
+      P     : Priority_Level;
       --  Random priority levels on the generated calls.
    begin
-      Reset (G);
+      Random_Priority.Reset (G);
+      Random_Organization.Reset (Org_G, 42);
 
       loop
          exit when Task_State = Down;
 
-         P := Random (G);
+         P := Random_Priority.Random (G);
+         OID := Random_Organization.Random (Org_G);
 
          Id_Array (C) := AWS.Utils.Random_String (10);
 
          Queue.Add (Id       => Id_Array (C),
-                    Callee   => AWS.Utils.Random_String (8),
+                    Callee   => OID,
                     Caller   => AWS.Utils.Random_String (8),
                     Priority => P,
                     Start    => Clock);
@@ -180,7 +188,7 @@ package body Call_Queue is
       end loop;
 
       Queue.Clear;
-   end FreeSWITCH_Queue_Monitor;
+   end PBX_Queue_Monitor;
 
    task Generate_JSON;
    --  Rebuild the queue JSON. Once every ½ second we check if a call has
@@ -244,13 +252,13 @@ package body Call_Queue is
    is
       use Ada.Strings;
 
-      JSON_Object : constant JSON_Value := Create_Object;
+      JSON : constant JSON_Value := Create_Object;
    begin
-      JSON_Object.Set_Field
+      JSON.Set_Field
         ("length",
          Fixed.Trim (Source => Natural'Image (Queue.Length),
                      Side   => Left));
-      return JSON_Object.Write;
+      return JSON.Write;
    end Length;
 
    -------------
@@ -265,7 +273,7 @@ package body Call_Queue is
 
       procedure Add
         (Id       : in Call_Id;
-         Callee   : in String;
+         Callee   : in Org_Id;
          Caller   : in String;
          Priority : in Priority_Level;
          Start    : in Ada.Calendar.Time)
@@ -350,19 +358,20 @@ package body Call_Queue is
          end Unix_Timestamp;
       begin
          if JSON_Needs_Building then
-            JSON_Object := Create_Object;
-            JSON_Object.Set_Field ("length", Natural (Queue_Map.Length));
+            JSON := Create_Object;
+
+            JSON.Set_Field ("length", Natural (Queue_Map.Length));
             Low_JSON_Arr    := Empty_Array;
             Normal_JSON_Arr := Empty_Array;
             High_JSON_Arr   := Empty_Array;
 
             Queue_Map.Iterate (Go'Access);
 
-            JSON_Object.Set_Field ("low", Low_JSON_Arr);
-            JSON_Object.Set_Field ("normal", Normal_JSON_Arr);
-            JSON_Object.Set_Field ("high", High_JSON_Arr);
+            JSON.Set_Field ("low", Low_JSON_Arr);
+            JSON.Set_Field ("normal", Normal_JSON_Arr);
+            JSON.Set_Field ("high", High_JSON_Arr);
 
-            JSON_String := TUS (JSON_Object.Write);
+            JSON_String := TUS (JSON.Write);
          end if;
       end Build_JSON;
 
