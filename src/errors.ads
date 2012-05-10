@@ -25,16 +25,22 @@ with Ada.Exceptions;
 
 package Errors is
 
+   Database_Error : exception;
+   --  Is raised for ANY fatal database errors.
+
+   GET_Parameter_Error : exception;
+   --  Is raised if one or more GET parameters are missing/wrong or otherwise
+   --  in bad condition.
+
+   procedure Error_Handler
+     (Message : in String);
+   --  Log error messages to the Error trace.
+
    function Exception_Handler
      (Event   : in Ada.Exceptions.Exception_Occurrence;
       Message : in String)
       return String;
    --  Log exception messages to the Error trace and returns a JSON String
    --  containing the exception.
-
-   procedure Exception_Handler
-     (Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String);
-   --  Log exception messages to the Error trace.
 
 end Errors;

@@ -27,6 +27,21 @@ with Yolk.Log;
 
 package body Errors is
 
+   ---------------------
+   --  Error_Handler  --
+   ---------------------
+
+   procedure Error_Handler
+     (Message : in String)
+   is
+      use Ada.Task_Identification;
+      use Yolk.Log;
+
+   begin
+      Trace (Error,
+             Image (Current_Task) & "-" & Message);
+   end Error_Handler;
+
    -------------------------
    --  Exception_Handler  --
    -------------------------
@@ -41,41 +56,21 @@ package body Errors is
       use GNATCOLL.JSON;
       use Yolk.Log;
 
-      E_Name      : constant String := Exception_Name (Event);
-      E_Msg       : constant String := Exception_Message (Event);
-      JSON_Object : constant JSON_Value := Create_Object;
+      E_Name : constant String     := Exception_Name (Event);
+      E_Msg  : constant String     := Exception_Message (Event);
+      JSON   : constant JSON_Value := Create_Object;
    begin
       Trace (Error,
-             "Task ID " & Image (Current_Task) &
-             " - " & E_Name & " - " & E_Msg & " - " & Message);
+             Image (Current_Task) &
+             "-" & E_Name & "-" & E_Msg & "-" & Message);
 
-      JSON_Object.Set_Field (Field_Name => "exception",
+      JSON.Set_Field (Field_Name => "exception",
                              Field      => E_Name);
-      JSON_Object.Set_Field (Field_Name => "exception_message",
+      JSON.Set_Field (Field_Name => "exception_message",
                              Field      => E_Msg);
-      JSON_Object.Set_Field (Field_Name => "message",
+      JSON.Set_Field (Field_Name => "message",
                              Field      => Message);
-      return Write (JSON_Object);
-   end Exception_Handler;
-
-   -------------------------
-   --  Exception_Handler  --
-   -------------------------
-
-   procedure Exception_Handler
-     (Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String)
-   is
-      use Ada.Exceptions;
-      use Ada.Task_Identification;
-      use Yolk.Log;
-
-      E_Name : constant String := Exception_Name (Event);
-      E_Msg  : constant String := Exception_Message (Event);
-   begin
-      Trace (Error,
-             "Task ID " & Image (Current_Task) &
-             " - " & E_Name & " - " & E_Msg & " - " & Message);
+      return JSON.Write;
    end Exception_Handler;
 
 end Errors;
