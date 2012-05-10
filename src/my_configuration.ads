@@ -49,7 +49,8 @@ package My_Configuration is
                  Handler_Get_Contacts_Attributes,
                  Handler_Get_Contacts_Tags,
                  Handler_Get_Organization,
-                 Handler_Get_Queue);
+                 Handler_Get_Queue,
+                 Handler_Get_Queue_Length);
 
    type Defaults_Array is array (Keys) of
      Ada.Strings.Unbounded.Unbounded_String;
@@ -96,7 +97,9 @@ package My_Configuration is
                        Handler_Get_Organization
                        => TUS ("/get/organization"),
                        Handler_Get_Queue
-                       => TUS ("/get/queue"));
+                       => TUS ("/get/queue"),
+                       Handler_Get_Queue_Length
+                       => TUS ("/get/queue_length"));
 
    package Config is new Yolk.Config_File_Parser
      (Key_Type            => Keys,
