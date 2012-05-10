@@ -107,6 +107,12 @@ package body My_Handlers is
          URI        => My.Config.Get (My.Handler_Get_Queue),
          Action     => Create
            (Callback => Request.Queue'Access));
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => My.Config.Get (My.Handler_Get_Queue_Length),
+         Action     => Create
+           (Callback => Request.Queue_Length'Access));
    end Set;
 
 end My_Handlers;
