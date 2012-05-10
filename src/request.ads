@@ -66,4 +66,9 @@ package Request is
       return AWS.Response.Data;
    --  Get the call queue JSON.
 
+   function Queue_Length
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --  Get the call queue length JSON.
+
 end Request;

@@ -25,19 +25,17 @@ with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
 with Ada.Task_Attributes;
 with GNATCOLL.SQL.Postgres;
-with Yolk.Log;
 
 package body Storage is
 
-   Null_Database_Connection_Pool : constant Database_Connection_Pool
-     := (Hosts  => (others => null),
-         Status => (others => Uninitialized));
+   Null_Pool : constant Database_Connection_Pool :=
+                 (others => Null_Database_Connection);
 
    package Task_Association is new Ada.Task_Attributes
-     (Database_Connection_Pool, Null_Database_Connection_Pool);
+     (Database_Connection_Pool, Null_Pool);
+   --  Associates a specific task ID with a Database_Connection_Pool.
 
-   DB_Descriptions               : constant array
-     (Database_Connection_Priority) of
+   DB_Descriptions : constant array (Database_Connection_Type) of
      Exec.Database_Description :=
        (Primary   => Postgres.Setup
             (Database      => Config.Get (DB_Name),
@@ -62,38 +60,23 @@ package body Storage is
      return Database_Connection_Pool
    is
       use GNATCOLL.SQL.Exec;
-      use Yolk.Log;
 
-      Connection_Pool : Database_Connection_Pool;
+      Connection_Pool : Database_Connection_Pool := Task_Association.Value;
    begin
-      Connection_Pool := Task_Association.Value;
-
-      for k in Connection_Pool.Hosts'Range loop
-         case Connection_Pool.Status (k) is
+      for k in Connection_Pool'Range loop
+         case Connection_Pool (k).State is
             when Uninitialized | Failed =>
-               Trace (Handle  => Info,
-                      Message => Database_Connection_Priority'Image (k) &
-                      "-" &
-                      Database_Connection_Status'Image
-                        (Connection_Pool.Status (k)));
-
-               Connection_Pool.Hosts (k) :=
+               Connection_Pool (k).Host :=
                  DB_Descriptions (k).Build_Connection;
 
-               if Check_Connection (Connection_Pool.Hosts (k)) then
-                  Connection_Pool.Status (k) := Initialized;
+               if Check_Connection (Connection_Pool (k).Host) then
+                  Connection_Pool (k).State := Initialized;
                else
-                  Connection_Pool.Status (k) := Failed;
+                  Connection_Pool (k).State := Failed;
                end if;
             when Initialized =>
-               Trace (Handle  => Info,
-                      Message => Database_Connection_Priority'Image (k) &
-                      "-" &
-                      Database_Connection_Status'Image
-                        (Connection_Pool.Status (k)));
-
-               Exec.Reset_Connection (Connection_Pool.Hosts (k),
-                                      Database_Connection_Priority'Image (k));
+               Exec.Reset_Connection (Connection_Pool (k).Host,
+                                      Database_Connection_Type'Image (k));
          end case;
       end loop;
 

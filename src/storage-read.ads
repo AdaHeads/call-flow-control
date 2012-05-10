@@ -23,39 +23,51 @@
 
 package Storage.Read is
 
-   function Contact
-     (Ce_Id  : in Positive)
+   function Get_Contact
+     (Ce_Id  : in String)
       return String;
-   --  Return a Contact JSON string.
+   --  Return a Contact JSON string. This contains the data for ONE contact-
+   --  entity.
 
-   function Contact_Attributes
-     (Ce_Id  : in Natural)
+   function Get_Contact_Attributes
+     (Ce_Id  : in String)
       return String;
-   --  Return a Contact_Attributes JSON string.
+   --  Return a Contact_Attributes JSON string. This contains attributes for
+   --  ONE contactentity. Note that one contactentity can have several
+   --  different attribute sets, depending on the organization the contact
+   --  belongs to.
 
-   function Contact_Tags
-     (Ce_Id  : in Natural)
+   function Get_Contact_Tags
+     (Ce_Id  : in String)
       return String;
-   --  Return a Contact_Tags JSON string.
+   --  Return a Contact_Tags JSON string. This contains tags for ONE
+   --  contactentity. Note that one contactentity can have several different
+   --  tag sets, depending on the organization the contact belongs to.
 
-   function Contacts
-     (Org_Id : in Natural)
+   function Get_Org_Contacts
+     (Org_Id : in String)
       return String;
-   --  Return a Contacts JSON string.
+   --  Return a Contacts JSON string. This contains all the contactentities
+   --  belonging to Org_Id.
 
-   function Contacts_Attributes
-     (Org_Id  : in Natural)
+   function Get_Org_Contacts_Attributes
+     (Org_Id  : in String)
       return String;
-   --  Return a Contacts_Attributes JSON string.
+   --  Return a Contacts_Attributes JSON string. This contains all the
+   --  contactentity attributes that relates to the given Org_Id, meaning one
+   --  set of attributes per contactentity that relates to Org_Id.
 
-   function Contacts_Tags
-     (Org_Id  : in Natural)
+   function Get_Org_Contacts_Tags
+     (Org_Id  : in String)
       return String;
-   --  Return a Contacts_Tags JSON string.
+   --  Return a Contacts_Tags JSON string. This contains all the
+   --  contactentity tags that relates to the given Org_Id, meaning one
+   --  set of tags per contactentity that relates to Org_Id.
 
-   function Organization
-     (Org_Id : in Natural)
+   function Get_Organization
+     (Org_Id : in String)
       return String;
-   --  Return an Organization JSON string.
+   --  Return an Organization JSON string. This contains the data for ONE
+   --  organization.
 
 end Storage.Read;

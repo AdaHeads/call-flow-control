@@ -32,24 +32,28 @@ package Storage is
    use GNATCOLL.SQL;
    use My_Configuration;
 
-   Database_Error : exception;
+   type Database_Connection_Type is (Primary, Secondary);
+   --  The Primary connection is READ/WRITE while the Secondary is READ, so for
+   --  SELECT queries both can be used, whereas INSERT/UPDATE/DELETE will only
+   --  work with the Primary connection.
 
-   type Database_Connection_Priority is (Primary, Secondary);
+   type Database_Connection_State is (Uninitialized, Initialized, Failed);
+   --  The state of a database connection.
+   --    Uninitialized : The connection has never been used.
+   --    Initialized   : The connection has been connected to the database.
+   --    Failed        : The connection failed.
 
-   type Database_Connection_Status is (Uninitialized, Initialized, Failed);
-
-   type Database_Connection_Array is array
-     (Database_Connection_Priority) of Exec.Database_Connection;
-
-   type Database_Connection_Status_Array is array
-     (Database_Connection_Priority) of Database_Connection_Status;
-
-   type Database_Connection_Pool is
+   type Database_Connection is
       record
-         Hosts  : Database_Connection_Array := (others => null);
-         Status : Database_Connection_Status_Array :=
-                    (others => Uninitialized);
+         Host  : Exec.Database_Connection;
+         State : Database_Connection_State;
       end record;
+
+   Null_Database_Connection : constant Database_Connection
+     := (null, Uninitialized);
+
+   type Database_Connection_Pool is array (Database_Connection_Type) of
+     Database_Connection;
 
    package Contact_Cache is new Yolk.Cache.String_Keys
      (Element_Type      => Unbounded_String,
@@ -75,7 +79,7 @@ package Storage is
       Reserved_Capacity => Config.Get (Cache_Size_Contact));
    --  Cache for individual contact tags JSON objects.
 
-   package Contacts_Cache is new Yolk.Cache.String_Keys
+   package Org_Contacts_Cache is new Yolk.Cache.String_Keys
      (Element_Type      => Unbounded_String,
       Cleanup_Size      => Config.Get (Cache_Size_Organization) + 1,
       Cleanup_On_Write  => True,
@@ -84,7 +88,7 @@ package Storage is
    --  Cache for groups of contact JSON objects. The groups SHOULD be based on
    --  the organization the contacts belong to.
 
-   package Contacts_Attributes_Cache is new Yolk.Cache.String_Keys
+   package Org_Contacts_Attributes_Cache is new Yolk.Cache.String_Keys
      (Element_Type      => Unbounded_String,
       Cleanup_Size      => Config.Get (Cache_Size_Organization) + 1,
       Cleanup_On_Write  => True,
@@ -93,7 +97,7 @@ package Storage is
    --  Cache for groups of contact attributes JSON objects. The groups SHOULD
    --  be based on the organization the contacts belong to.
 
-   package Contacts_Tags_Cache is new Yolk.Cache.String_Keys
+   package Org_Contacts_Tags_Cache is new Yolk.Cache.String_Keys
      (Element_Type      => Unbounded_String,
       Cleanup_Size      => Config.Get (Cache_Size_Organization) + 1,
       Cleanup_On_Write  => True,
@@ -112,11 +116,22 @@ package Storage is
 
    function Get_DB_Connections
      return Database_Connection_Pool;
-   --  TODO
+   --  Return an array with the primary and secondary database connections.
+   --
+   --  IMPORTANT:
+   --  Only the primary connection is read/write. The secondary is read only,
+   --  so be sure never to use the secondary connection for any insert/delete/
+   --  update queries.
 
    procedure Register_Failed_DB_Connection
      (Pool : in Database_Connection_Pool);
-   --  TODO
+   --  If a specific connection fails, set it to Storage.Failed and register
+   --  the Database_Connection_Pool object as failed.
+   --
+   --  NOTE:
+   --  A failed database connection is re-tried on every hit to the database,
+   --  so it will be re-initialized as soon as the database host is back online
+   --  again.
 
    function Trim
      (Source : in String)

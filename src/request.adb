@@ -21,7 +21,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  with Ada.Exceptions;
 with AWS.Messages;
 with AWS.Parameters;
 with AWS.URL;
@@ -79,21 +78,19 @@ package body Request is
       use Storage.Read;
 
       P      : constant AWS.Parameters.List := Parameters (Request);
-      Ce_Id  : constant String := P.Get ("ce_id");
+      Ce_Id  : constant String              := P.Get ("ce_id");
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => Contact (Positive'Value (Ce_Id)));
+         Content     => Get_Contact (Ce_Id));
 
    exception
-      when E : Constraint_Error =>
+      when Event : others =>
          return Build_Response
            (Status_Data => Request,
             Content     => Exception_Handler
-              (Event   => E,
-               Message => "Bad GET parameter." &
-               " ce_id MUST be a positive integer." &
-               " URL: " & URL (URI (Request))));
+              (Event   => Event,
+               Message => "Requested resource: " & URL (URI (Request))));
    end Contact;
 
    --------------------------
@@ -110,21 +107,19 @@ package body Request is
       use Storage.Read;
 
       P      : constant AWS.Parameters.List := Parameters (Request);
-      Ce_Id  : constant String := P.Get ("ce_id");
+      Ce_Id  : constant String              := P.Get ("ce_id");
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => Contact_Attributes (Natural'Value (Ce_Id)));
+         Content     => Get_Contact_Attributes (Ce_Id));
 
    exception
-      when E : Constraint_Error =>
+      when Event : others =>
          return Build_Response
            (Status_Data => Request,
             Content     => Exception_Handler
-              (Event   => E,
-               Message => "Bad GET parameter." &
-               " ce_id MUST be a natural integer." &
-               " URL: " & URL (URI (Request))));
+              (Event   => Event,
+               Message => "Requested resource: " & URL (URI (Request))));
    end Contact_Attributes;
 
    --------------------
@@ -141,21 +136,19 @@ package body Request is
       use Storage.Read;
 
       P      : constant AWS.Parameters.List := Parameters (Request);
-      Ce_Id  : constant String := P.Get ("ce_id");
+      Ce_Id  : constant String              := P.Get ("ce_id");
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => Contact_Tags (Natural'Value (Ce_Id)));
+         Content     => Get_Contact_Tags (Ce_Id));
 
    exception
-      when E : Constraint_Error =>
+      when Event : others =>
          return Build_Response
            (Status_Data => Request,
             Content     => Exception_Handler
-              (Event   => E,
-               Message => "Bad GET parameter." &
-               " ce_id MUST be a natural integer." &
-               " URL: " & URL (URI (Request))));
+              (Event   => Event,
+               Message => "Requested resource: " & URL (URI (Request))));
    end Contact_Tags;
 
    ----------------
@@ -172,21 +165,19 @@ package body Request is
       use Storage.Read;
 
       P      : constant AWS.Parameters.List := Parameters (Request);
-      Org_Id : constant String := P.Get ("org_id");
+      Org_Id : constant String              := P.Get ("org_id");
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => Contacts (Natural'Value (Org_Id)));
+         Content     => Get_Org_Contacts (Org_Id));
 
    exception
-      when E : Constraint_Error =>
+      when Event : others =>
          return Build_Response
            (Status_Data => Request,
             Content     => Exception_Handler
-              (Event   => E,
-               Message => "Bad GET parameter." &
-               " org_id MUST be a natural integer." &
-               " URL: " & URL (URI (Request))));
+              (Event   => Event,
+               Message => "Requested resource: " & URL (URI (Request))));
    end Contacts;
 
    ---------------------------
@@ -203,21 +194,19 @@ package body Request is
       use Storage.Read;
 
       P      : constant AWS.Parameters.List := Parameters (Request);
-      Org_Id : constant String := P.Get ("org_id");
+      Org_Id : constant String              := P.Get ("org_id");
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => Contacts_Attributes (Natural'Value (Org_Id)));
+         Content     => Get_Org_Contacts_Attributes (Org_Id));
 
    exception
-      when E : Constraint_Error =>
+      when Event : others =>
          return Build_Response
            (Status_Data => Request,
             Content     => Exception_Handler
-              (Event   => E,
-               Message => "Bad GET parameter." &
-               " org_id MUST be a natural integer." &
-               " URL: " & URL (URI (Request))));
+              (Event   => Event,
+               Message => "Requested resource: " & URL (URI (Request))));
    end Contacts_Attributes;
 
    ---------------------
@@ -234,21 +223,19 @@ package body Request is
       use Storage.Read;
 
       P      : constant AWS.Parameters.List := Parameters (Request);
-      Org_Id : constant String := P.Get ("org_id");
+      Org_Id : constant String              := P.Get ("org_id");
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => Contacts_Tags (Natural'Value (Org_Id)));
+         Content     => Get_Org_Contacts_Tags (Org_Id));
 
    exception
-      when E : Constraint_Error =>
+      when Event : others =>
          return Build_Response
            (Status_Data => Request,
             Content     => Exception_Handler
-              (Event   => E,
-               Message => "Bad GET parameter." &
-               " org_id MUST be a natural integer." &
-               " URL: " & URL (URI (Request))));
+              (Event   => Event,
+               Message => "Requested resource: " & URL (URI (Request))));
    end Contacts_Tags;
 
    --------------------
@@ -265,21 +252,19 @@ package body Request is
       use Storage.Read;
 
       P      : constant AWS.Parameters.List := Parameters (Request);
-      Org_Id : constant String := P.Get ("org_id");
+      Org_Id : constant String              := P.Get ("org_id");
    begin
       return Build_Response
         (Status_Data => Request,
-         Content     => Organization (Natural'Value (Org_Id)));
+         Content     => Get_Organization (Org_Id));
 
    exception
-      when E : Constraint_Error =>
+      when Event : others =>
          return Build_Response
            (Status_Data => Request,
             Content     => Exception_Handler
-              (Event   => E,
-               Message => "Bad GET parameter." &
-               " org_id MUST be a natural integer." &
-               " URL: " & URL (URI (Request))));
+              (Event   => Event,
+               Message => "Requested resource: " & URL (URI (Request))));
    end Organization;
 
    -------------
@@ -290,18 +275,23 @@ package body Request is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
-      use AWS.Status;
-
-      P : constant AWS.Parameters.List := Parameters (Request);
    begin
-      if P.Get ("kind") = "length" then
-         return Build_Response (Status_Data => Request,
-                                Content     => Call_Queue.Length);
-      else
-         return Build_Response
-           (Status_Data => Request,
-            Content     => Call_Queue.Get);
-      end if;
+      return Build_Response
+        (Status_Data => Request,
+         Content     => Call_Queue.Get);
    end Queue;
+
+   --------------------
+   --  Queue_Length  --
+   --------------------
+
+   function Queue_Length
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+   begin
+      return Build_Response (Status_Data => Request,
+                             Content     => Call_Queue.Length);
+   end Queue_Length;
 
 end Request;
