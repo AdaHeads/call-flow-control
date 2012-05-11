@@ -45,9 +45,9 @@ package My_Configuration is
                  Handler_Get_Contact,
                  Handler_Get_Contact_Attributes,
                  Handler_Get_Contact_Tags,
-                 Handler_Get_Contacts,
-                 Handler_Get_Contacts_Attributes,
-                 Handler_Get_Contacts_Tags,
+                 Handler_Get_Org_Contacts,
+                 Handler_Get_Org_Contacts_Attributes,
+                 Handler_Get_Org_Contacts_Tags,
                  Handler_Get_Organization,
                  Handler_Get_Queue,
                  Handler_Get_Queue_Length);
@@ -88,12 +88,12 @@ package My_Configuration is
                        => TUS ("/get/contact_attributes"),
                        Handler_Get_Contact_Tags
                        => TUS ("/get/contact_tags"),
-                       Handler_Get_Contacts
-                       => TUS ("/get/contacts"),
-                       Handler_Get_Contacts_Attributes
-                       => TUS ("/get/contacts_attributes"),
-                       Handler_Get_Contacts_Tags
-                       => TUS ("/get/contacts_tags"),
+                       Handler_Get_Org_Contacts
+                       => TUS ("/get/org_contacts"),
+                       Handler_Get_Org_Contacts_Attributes
+                       => TUS ("/get/org_contacts_attributes"),
+                       Handler_Get_Org_Contacts_Tags
+                       => TUS ("/get/org_contacts_tags"),
                        Handler_Get_Organization
                        => TUS ("/get/organization"),
                        Handler_Get_Queue
