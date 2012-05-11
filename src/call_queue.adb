@@ -250,14 +250,10 @@ package body Call_Queue is
    function Length
      return String
    is
-      use Ada.Strings;
-
       JSON : constant JSON_Value := Create_Object;
    begin
-      JSON.Set_Field
-        ("length",
-         Fixed.Trim (Source => Natural'Image (Queue.Length),
-                     Side   => Left));
+      JSON.Set_Field ("length", Queue.Length);
+
       return JSON.Write;
    end Length;
 
