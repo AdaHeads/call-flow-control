@@ -151,11 +151,11 @@ package body Request is
                Message => "Requested resource: " & URL (URI (Request))));
    end Contact_Tags;
 
-   ----------------
-   --  Contacts  --
-   ----------------
+   --------------------
+   --  Org_Contacts  --
+   --------------------
 
-   function Contacts
+   function Org_Contacts
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
@@ -178,13 +178,13 @@ package body Request is
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
-   end Contacts;
+   end Org_Contacts;
 
-   ---------------------------
-   --  Contacts_Attributes  --
-   ---------------------------
+   -------------------------------
+   --  Org_Contacts_Attributes  --
+   -------------------------------
 
-   function Contacts_Attributes
+   function Org_Contacts_Attributes
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
@@ -207,13 +207,13 @@ package body Request is
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
-   end Contacts_Attributes;
+   end Org_Contacts_Attributes;
 
-   ---------------------
-   --  Contacts_Tags  --
-   ---------------------
+   -------------------------
+   --  Org_Contacts_Tags  --
+   -------------------------
 
-   function Contacts_Tags
+   function Org_Contacts_Tags
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
@@ -236,7 +236,7 @@ package body Request is
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
-   end Contacts_Tags;
+   end Org_Contacts_Tags;
 
    --------------------
    --  Organization  --

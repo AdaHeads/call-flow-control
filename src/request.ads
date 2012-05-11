@@ -41,17 +41,17 @@ package Request is
       return AWS.Response.Data;
    --  Get a Contact_Tags JSON.
 
-   function Contacts
+   function Org_Contacts
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
    --  Get the Contacts JSON.
 
-   function Contacts_Attributes
+   function Org_Contacts_Attributes
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
    --  Get the Contacts_Attributes JSON.
 
-   function Contacts_Tags
+   function Org_Contacts_Tags
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
    --  Get the Contacts_Tags JSON.

@@ -190,37 +190,40 @@ package body Storage.Read is
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
 
       Attr_Array     : JSON_Array;
-      JSON           : constant JSON_Value := Create_Object;
-      Temp_JSON      : JSON_Value          := Create_Object;
-      Value          : Unbounded_String    := Null_Unbounded_String;
+      DB_Columns     : JSON_Value;
+      DB_JSON        : JSON_Value;
+      JSON           : constant JSON_Value      := Create_Object;
+
+      Value          : Unbounded_String         := Null_Unbounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
          Cursor.Fetch (DB_Connections (k).Host, Query);
 
          if DB_Connections (k).Host.Success then
-            while Exec.Has_Row (Cursor) loop
-               Temp_JSON := GNATCOLL.JSON.Read
-                 (Cursor.Value (0),
-                  "json.error");
+            while Cursor.Has_Row loop
+               DB_Columns := Create_Object;
+               DB_JSON    := Create_Object;
 
-               Temp_JSON.Set_Field
-                 (Field_Name => Cursor.Field_Name (1),
-                  Field      => Cursor.Integer_Value (1));
+               DB_JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
 
-               Temp_JSON.Set_Field
-                 (Field_Name => Cursor.Field_Name (2),
-                  Field      => Cursor.Integer_Value (2));
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (1),
+                                     Field      => Cursor.Integer_Value (1));
+
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (2),
+                                     Field      => Cursor.Integer_Value (2));
+
+               DB_JSON.Set_Field (Field_Name => "db_columns",
+                                  Field      => DB_Columns);
 
                Append (Arr => Attr_Array,
-                       Val => Temp_JSON);
+                       Val => DB_JSON);
 
                Cursor.Next;
             end loop;
 
-            JSON.Set_Field
-                 (Field_Name => "attributes",
-                  Field      => Attr_Array);
+            JSON.Set_Field (Field_Name => "attributes",
+                            Field      => Attr_Array);
 
             Value := TUS (JSON.Write);
 
@@ -264,29 +267,30 @@ package body Storage.Read is
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
 
-      JSON           : JSON_Value       := Create_Object;
-      Value          : Unbounded_String := Null_Unbounded_String;
+      DB_Columns     : JSON_Value;
+      JSON           : JSON_Value               := Create_Object;
+
+      Value          : Unbounded_String         := Null_Unbounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
          Cursor.Fetch (DB_Connections (k).Host, Query);
 
          if DB_Connections (k).Host.Success then
-            while Exec.Has_Row (Cursor) loop
-               JSON := GNATCOLL.JSON.Read
-                 (Cursor.Value (0),
-                  "json.error");
+            if Cursor.Has_Row then
+               DB_Columns := Create_Object;
 
-               JSON.Set_Field
-                 (Field_Name => Cursor.Field_Name (1),
-                  Field      => Cursor.Integer_Value (1));
+               JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
 
-               JSON.Set_Field
-                 (Field_Name => Cursor.Field_Name (2),
-                  Field      => Cursor.Value (2));
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (1),
+                                     Field      => Cursor.Integer_Value (1));
 
-               Cursor.Next;
-            end loop;
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (2),
+                                     Field      => Cursor.Value (2));
+
+               JSON.Set_Field (Field_Name => "db_columns",
+                               Field      => DB_Columns);
+            end if;
 
             Value := TUS (JSON.Write);
 
@@ -361,38 +365,41 @@ package body Storage.Read is
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
 
+      DB_Columns     : JSON_Value;
+      DB_JSON        : JSON_Value;
       Tag_Array      : JSON_Array;
-      JSON           : constant JSON_Value := Create_Object;
-      Temp_JSON      : JSON_Value          := Create_Object;
-      Value          : Unbounded_String    := Null_Unbounded_String;
+      JSON           : constant JSON_Value      := Create_Object;
+
+      Value          : Unbounded_String         := Null_Unbounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
          Cursor.Fetch (DB_Connections (k).Host, Query);
 
          if DB_Connections (k).Host.Success then
-            while Exec.Has_Row (Cursor) loop
-               Temp_JSON := GNATCOLL.JSON.Read
-                 (Cursor.Value (0),
-                  "json.error");
+            while Cursor.Has_Row loop
+               DB_Columns := Create_Object;
+               DB_JSON    := Create_Object;
 
-               Temp_JSON.Set_Field
-                 (Field_Name => Cursor.Field_Name (1),
-                  Field      => Cursor.Integer_Value (1));
+               DB_JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
 
-               Temp_JSON.Set_Field
-                 (Field_Name => Cursor.Field_Name (2),
-                  Field      => Cursor.Integer_Value (2));
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (1),
+                                     Field      => Cursor.Integer_Value (1));
+
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (2),
+                                     Field      => Cursor.Integer_Value (2));
+
+               DB_JSON.Set_Field (Field_Name => "db_columns",
+                                  Field      => DB_Columns);
 
                Append (Arr => Tag_Array,
-                       Val => Temp_JSON);
+                       Val => DB_JSON);
 
                Cursor.Next;
             end loop;
 
-            JSON.Set_Field
-                 (Field_Name => "tags",
-                  Field      => Tag_Array);
+            JSON.Set_Field (Field_Name => "tags",
+                            Field      => Tag_Array);
 
             Value := TUS (JSON.Write);
 
@@ -500,37 +507,40 @@ package body Storage.Read is
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
 
       Attr_Array     : JSON_Array;
-      JSON           : constant JSON_Value := Create_Object;
-      Temp_JSON      : JSON_Value          := Create_Object;
-      Value          : Unbounded_String    := Null_Unbounded_String;
+      DB_Columns     : JSON_Value;
+      DB_JSON        : JSON_Value;
+      JSON           : constant JSON_Value      := Create_Object;
+
+      Value          : Unbounded_String         := Null_Unbounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
          Cursor.Fetch (DB_Connections (k).Host, Query);
 
          if DB_Connections (k).Host.Success then
-            while Exec.Has_Row (Cursor) loop
-               Temp_JSON := GNATCOLL.JSON.Read
-                 (Cursor.Value (0),
-                  "json.error");
+            while Cursor.Has_Row loop
+               DB_Columns := Create_Object;
+               DB_JSON    := Create_Object;
 
-               Temp_JSON.Set_Field
-                 (Field_Name => Cursor.Field_Name (1),
-                  Field      => Cursor.Integer_Value (1));
+               DB_JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
 
-               Temp_JSON.Set_Field
-                 (Field_Name => Cursor.Field_Name (2),
-                  Field      => Cursor.Integer_Value (2));
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (1),
+                                     Field      => Cursor.Integer_Value (1));
+
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (2),
+                                     Field      => Cursor.Integer_Value (2));
+
+               DB_JSON.Set_Field (Field_Name => "db_columns",
+                                  Field      => DB_Columns);
 
                Append (Arr => Attr_Array,
-                       Val => Temp_JSON);
+                       Val => DB_JSON);
 
                Cursor.Next;
             end loop;
 
-            JSON.Set_Field
-                 (Field_Name => "attributes",
-                  Field      => Attr_Array);
+            JSON.Set_Field (Field_Name => "attributes",
+                            Field      => Attr_Array);
 
             Value := TUS (JSON.Write);
 
@@ -586,41 +596,43 @@ package body Storage.Read is
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
 
       Contact_Array  : JSON_Array;
-      JSON           : constant JSON_Value := Create_Object;
-      Temp_JSON      : JSON_Value          := Create_Object;
-      Value          : Unbounded_String    := Null_Unbounded_String;
+      DB_Columns     : JSON_Value;
+      DB_JSON        : JSON_Value;
+      JSON           : constant JSON_Value      := Create_Object;
+
+      Value          : Unbounded_String         := Null_Unbounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
          Cursor.Fetch (DB_Connections (k).Host, Query);
 
          if DB_Connections (k).Host.Success then
-            while Exec.Has_Row (Cursor) loop
-               Temp_JSON := GNATCOLL.JSON.Read
-                 (Cursor.Value (0),
-                  "json.error");
+            while Cursor.Has_Row loop
+               DB_Columns := Create_Object;
+               DB_JSON    := Create_Object;
 
-               Temp_JSON.Set_Field
-                 (Field_Name => Cursor.Field_Name (1),
-                  Field      => Cursor.Integer_Value (1));
+               DB_JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
 
-               Temp_JSON.Set_Field
-                 (Field_Name => Cursor.Field_Name (2),
-                  Field      => Cursor.Integer_Value (2));
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (1),
+                                     Field      => Cursor.Integer_Value (1));
 
-               Temp_JSON.Set_Field
-                 (Field_Name => Cursor.Field_Name (3),
-                  Field      => Cursor.Value (3));
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (2),
+                                     Field      => Cursor.Integer_Value (2));
+
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (3),
+                                     Field      => Cursor.Value (3));
+
+               DB_JSON.Set_Field (Field_Name => "db_columns",
+                                  Field      => DB_Columns);
 
                Append (Arr => Contact_Array,
-                       Val => Temp_JSON);
+                       Val => DB_JSON);
 
                Cursor.Next;
             end loop;
 
-            JSON.Set_Field
-              (Field_Name => "contacts",
-               Field      => Contact_Array);
+            JSON.Set_Field (Field_Name => "contacts",
+                            Field      => Contact_Array);
 
             Value := TUS (JSON.Write);
 
@@ -696,38 +708,41 @@ package body Storage.Read is
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
 
+      DB_Columns     : JSON_Value;
+      DB_JSON        : JSON_Value;
       Tag_Array      : JSON_Array;
-      JSON           : constant JSON_Value := Create_Object;
-      Temp_JSON      : JSON_Value          := Create_Object;
-      Value          : Unbounded_String    := Null_Unbounded_String;
+      JSON           : constant JSON_Value      := Create_Object;
+
+      Value          : Unbounded_String         := Null_Unbounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
          Cursor.Fetch (DB_Connections (k).Host, Query);
 
          if DB_Connections (k).Host.Success then
-            while Exec.Has_Row (Cursor) loop
-               Temp_JSON := GNATCOLL.JSON.Read
-                 (Cursor.Value (0),
-                  "json.error");
+            while Cursor.Has_Row loop
+               DB_Columns := Create_Object;
+               DB_JSON    := Create_Object;
 
-               Temp_JSON.Set_Field
-                 (Field_Name => Cursor.Field_Name (1),
-                  Field      => Cursor.Integer_Value (1));
+               DB_JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
 
-               Temp_JSON.Set_Field
-                 (Field_Name => Cursor.Field_Name (2),
-                  Field      => Cursor.Integer_Value (2));
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (1),
+                                     Field      => Cursor.Integer_Value (1));
+
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (2),
+                                     Field      => Cursor.Integer_Value (2));
+
+               DB_JSON.Set_Field (Field_Name => "db_columns",
+                                  Field      => DB_Columns);
 
                Append (Arr => Tag_Array,
-                       Val => Temp_JSON);
+                       Val => DB_JSON);
 
                Cursor.Next;
             end loop;
 
-            JSON.Set_Field
-                 (Field_Name => "tags",
-                  Field      => Tag_Array);
+            JSON.Set_Field (Field_Name => "tags",
+                            Field      => Tag_Array);
 
             Value := TUS (JSON.Write);
 
@@ -803,33 +818,33 @@ package body Storage.Read is
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
 
-      JSON           : JSON_Value       := Create_Object;
-      Value          : Unbounded_String := Null_Unbounded_String;
+      DB_Columns     : JSON_Value;
+      JSON           : JSON_Value               := Create_Object;
+
+      Value          : Unbounded_String         := Null_Unbounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
          Cursor.Fetch (DB_Connections (k).Host, Query);
 
          if DB_Connections (k).Host.Success then
-            while Exec.Has_Row (Cursor) loop
-               JSON := GNATCOLL.JSON.Read
-                 (Cursor.Value (0),
-                  "json.error");
+            if Cursor.Has_Row then
+               DB_Columns := Create_Object;
 
-               JSON.Set_Field
-                 (Field_Name => Cursor.Field_Name (1),
-                  Field      => Cursor.Integer_Value (1));
+               JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
 
-               JSON.Set_Field
-                 (Field_Name => Cursor.Field_Name (2),
-                  Field      => Cursor.Value (2));
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (1),
+                                     Field      => Cursor.Integer_Value (1));
 
-               JSON.Set_Field
-                 (Field_Name => Cursor.Field_Name (3),
-                  Field      => Cursor.Value (3));
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (2),
+                                     Field      => Cursor.Value (2));
 
-               Cursor.Next;
-            end loop;
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (3),
+                                     Field      => Cursor.Value (3));
+
+               JSON.Set_Field (Field_Name => "db_columns",
+                               Field      => DB_Columns);
+            end if;
 
             Value := TUS (JSON.Write);
 
