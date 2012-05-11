@@ -9,10 +9,10 @@
 \language_package default
 \inputencoding auto
 \fontencoding global
-\font_roman default
+\font_roman times
 \font_sans default
 \font_typewriter default
-\font_default_family default
+\font_default_family rmdefault
 \use_non_tex_fonts false
 \font_sc false
 \font_osf false
@@ -96,11 +96,10 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-Alice acts as the connector between one or more NAME_OF_PRODUCT clients
- and a data store/soft PBX that is comprised of a mixture of LDAP/PostgreSQL
- servers and one ore more FreeSWITCH servers.
+Alice acts as the connector between one or more NAME_OF_PRODUCT clients,
+ a PostgreSQL data store and one ore more PBX'es.
  Her main task is to get and set data via a HTTP/JSON based protocol.
- This document is the final authority on the protocol understood by Alice.
+ This document is the final authority on the Alice protocol.
 \end_layout
 
 \begin_layout Section
@@ -108,34 +107,11 @@ The Protocol
 \end_layout
 
 \begin_layout Standard
-In its most basic form the protocol consists of a set of 
-\begin_inset Quotes eld
-\end_inset
-
-get
-\begin_inset Quotes erd
-\end_inset
-
- and 
-\begin_inset Quotes eld
-\end_inset
-
-set
-\begin_inset Quotes erd
-\end_inset
-
- interfaces.
- You can either get some data from Alice, or you can tell her to set some
- data.
- 
-\end_layout
-
-\begin_layout Standard
 When data is requested (get) the search parameters are always given as a
- HTTP GET query string and the result is always returned as a JSON string.
- When data is added/updated/deleted (set) the parameters are always given
+ HTTP GET query string and the result is always returned as a JSON document.
+ When data is inserted/updated/deleted (set) the parameters are always given
  as a HTTP POST request and the confirmation returned from Alice will always
- be a JSON string.
+ be a JSON document.
 \end_layout
 
 \begin_layout Standard
@@ -154,8 +130,290 @@ All data handled by the protocol is expected to be UTF-8 encoded.
 \end_layout
 
 \begin_layout Standard
-All interfaces should of course be prefixed with whatever server:port is
- used for a given Alice instance.
+Application level errors and exceptions are returned as JSON documents.
+ How these are handled is entirely up to the client.
+ HTTP level errors are returned as normal for HTTP servers.
+\end_layout
+
+\begin_layout Section
+The Data Model
+\end_layout
+
+\begin_layout Standard
+Instead of using only a relational or document based model, we've opted
+ for a mixture.
+ Data that is relational in nature is stored in columns in a relational
+ database, whereas everything else is stored in a JSON document.
+ When a client requests a specific type of data Alice combimes these two
+ storage models into a final JSON document.
+\end_layout
+
+\begin_layout Standard
+A benefit of this is that the client software easily can add new fields,
+ simply by expanding on the JSON document.
+ If we take the 
+\emph on
+/get/contact
+\emph default
+ interface as an example, it might return a JSON looking like this:
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"name":"Arthur Dent",
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset Quotes eld
+\end_inset
+
+items
+\begin_inset Quotes erd
+\end_inset
+
+:[
+\begin_inset Quotes erd
+\end_inset
+
+towel
+\begin_inset Quotes erd
+\end_inset
+
+,
+\begin_inset Quotes erd
+\end_inset
+
+heart of gold
+\begin_inset Quotes erd
+\end_inset
+
+,
+\begin_inset Quotes erd
+\end_inset
+
+dressing gown
+\begin_inset Quotes erd
+\end_inset
+
+],
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset Quotes eld
+\end_inset
+
+emailaddress
+\begin_inset Quotes erd
+\end_inset
+
+:
+\begin_inset Quotes erd
+\end_inset
+
+arthurdent42@somewhere.unknown.org
+\begin_inset Quotes erd
+\end_inset
+
+,
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset Quotes eld
+\end_inset
+
+cellphone
+\begin_inset Quotes erd
+\end_inset
+
+:
+\begin_inset Quotes erd
+\end_inset
+
+555-777-888-999
+\begin_inset Quotes erd
+\end_inset
+
+,
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset Quotes eld
+\end_inset
+
+dislikes
+\begin_inset Quotes erd
+\end_inset
+
+:
+\begin_inset Quotes erd
+\end_inset
+
+Vogons
+\begin_inset Quotes erd
+\end_inset
+
+,
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset Quotes eld
+\end_inset
+
+db_columns
+\begin_inset Quotes erd
+\end_inset
+
+:
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"ce_id":1,
+\end_layout
+
+\begin_layout LyX-Code
+"ce_name":"Arthur Dent",
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset Quotes eld
+\end_inset
+
+sip_uri
+\begin_inset Quotes erd
+\end_inset
+
+:
+\begin_inset Quotes erd
+\end_inset
+
+sip://arthurdent.somewhere
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\end_deeper
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout Standard
+The 
+\emph on
+db_columns
+\emph default
+ JSON node is build from the actual columns available in the relational
+ database, in this case 
+\emph on
+ce_id
+\emph default
+, 
+\emph on
+ce_name
+\emph default
+ and 
+\emph on
+sip_uri
+\emph default
+.
+ The data found in these columns can be queried, sorted, grouped and/or
+ joined by Alice.
+ She is, so to speak, aware of them.
+ 
+\end_layout
+
+\begin_layout Standard
+The other JSON nodes (
+\emph on
+name
+\emph default
+, 
+\emph on
+items
+\emph default
+, 
+\emph on
+emailaddress
+\emph default
+, 
+\emph on
+cellphone
+\emph default
+, 
+\emph on
+dislikes
+\emph default
+) comes from the JSON document associated with a contactentity.
+ This is controlled 100% by the client software.
+ Alice is completely oblivious as to what this document contains and why.
+ Things put here are only searchable by the client.
+\end_layout
+
+\begin_layout Standard
+The strength of this model is that new fields can be added to a contactentity
+ on the fly, without needing any changes to Alice or the database.
+ Changes to Alice and/or the database itself is only necessary if the new
+ field must be searchable by Alice.
+\end_layout
+
+\begin_layout Standard
+The weakness of this model is of course that a poorly designed/build client
+ can end up with some very bad JSON.
+ We believe the strength outweighs the weakness.
+\end_layout
+
+\begin_layout Section
+Exceptions
+\end_layout
+
+\begin_layout Standard
+When bad things happen an exception is raised and an error JSON document
+ returned.
+ These have the following format:
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"exception_message":"foo", 
+\end_layout
+
+\begin_layout LyX-Code
+"exception":"SOME.EXCEPTION", 
+\end_layout
+
+\begin_layout LyX-Code
+"message":"bar"
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout Standard
+All exceptions have this format.
+ It is entirely up to the client to decide what to do with an exception.
 \end_layout
 
 \begin_layout Section
@@ -163,305 +421,922 @@ Getting Data
 \end_layout
 
 \begin_layout Subsection
-/get/company?o=[COMPANY]
+/get/contact?ce_id=[natural integer]
 \end_layout
 
 \begin_layout Standard
-This interface return all the data associated with COMPANY.
- If the given company doesn't exist in the database, then an empty JSON
- string ({}) is returned.
-\end_layout
-
-\begin_layout Standard
-Only company data is returned when calling this interface.
- No employee data is returned.
- Calling for example
-\end_layout
-
-\begin_layout LyX-Code
-/get/company?o=Hansen%20VVS
-\end_layout
-
-\begin_layout Standard
-will return a JSON string similar to this:
+This interface return the JSON document associated with the contactentity
+ identified by 
+\emph on
+ce_id
+\emph default
+.
+ Example JSON document:
 \end_layout
 
 \begin_layout LyX-Code
 {
 \end_layout
 
+\begin_deeper
 \begin_layout LyX-Code
-"o=Hansen VVS,dc=example,dc=com": 
+"name":"Arthur Dent",
 \end_layout
 
 \begin_layout LyX-Code
-    {
+\begin_inset Quotes eld
+\end_inset
+
+db_columns
+\begin_inset Quotes erd
+\end_inset
+
+:
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"ce_id":1,
 \end_layout
 
 \begin_layout LyX-Code
-    "l": "Næstved",
+"ce_name":"Arthur Dent",
 \end_layout
 
 \begin_layout LyX-Code
-    "o": "Hansen VVS",
+\begin_inset Quotes eld
+\end_inset
+
+sip_uri
+\begin_inset Quotes erd
+\end_inset
+
+:
+\begin_inset Quotes erd
+\end_inset
+
+sip://arthurdent.somewhere
+\begin_inset Quotes erd
+\end_inset
+
+
 \end_layout
 
+\end_deeper
 \begin_layout LyX-Code
-    "street": "Slagelsevej 13",
+}
 \end_layout
 
-\begin_layout LyX-Code
-    "objectClass":
-\end_layout
-
-\begin_layout LyX-Code
-        [
-\end_layout
-
-\begin_layout LyX-Code
-        "top",             
-\end_layout
-
-\begin_layout LyX-Code
-        "organization"
-\end_layout
-
-\begin_layout LyX-Code
-        ],         
-\end_layout
-
-\begin_layout LyX-Code
-    "telephoneNumber": "+45 5544 3321",
-\end_layout
-
-\begin_layout LyX-Code
-    "postalCode": "DK-4700"
-\end_layout
-
-\begin_layout LyX-Code
-    }
-\end_layout
-
+\end_deeper
+\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
 
 \begin_layout Standard
-TODO: Document each JSON field.
+An empty JSON document is returned if 
+\emph on
+ce_id
+\emph default
+ doesn't exist in the database:
+\end_layout
+
+\begin_layout LyX-Code
+{}
 \end_layout
 
 \begin_layout Subsection
-/get/person?o=[COMPANY]&cn=[PERSON]
+/get/contact_attributes?ce_id=[natural integer]
 \end_layout
 
 \begin_layout Standard
-This interface return the data associated with PERSON employed by COMPANY.
- Calling for example
+This interface return the attributes associated with the 
+\emph on
+ce_id
+\emph default
+ contactentity.
+ Example JSON document:
 \end_layout
 
 \begin_layout LyX-Code
-/get/person?o=Hansen%20VVS&cn=Brian%20Hansen
+{
 \end_layout
 
-\begin_layout Standard
-will return a JSON string similar to this:
+\begin_deeper
+\begin_layout LyX-Code
+"attributes":
 \end_layout
 
 \begin_layout LyX-Code
-{     
+[
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"phone":"555-777-888", 
 \end_layout
 
 \begin_layout LyX-Code
-"cn=Brian Hansen,o=HansenVVS,dc=example,dc=com": 
+"db_columns":
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"ce_id":1, 
 \end_layout
 
 \begin_layout LyX-Code
-    {         
+"org_id":1
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}, 
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+"email":"some@email.address"
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+},
 \end_layout
 
 \begin_layout LyX-Code
-    "cn": "Brian Hansen",         
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"phone":"999-000-111", 
 \end_layout
 
 \begin_layout LyX-Code
-    "objectClass": 
+"db_columns":
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"ce_id":1, 
 \end_layout
 
 \begin_layout LyX-Code
-        [             
+"org_id":2
 \end_layout
 
+\end_deeper
 \begin_layout LyX-Code
-        "person",             
+}, 
 \end_layout
 
+\end_deeper
 \begin_layout LyX-Code
-        "organizationalPerson",             
+"email":"some.other@email.address"
 \end_layout
 
-\begin_layout LyX-Code
-        "top"         
-\end_layout
-
-\begin_layout LyX-Code
-        ],         
-\end_layout
-
-\begin_layout LyX-Code
-    "telephoneNumber": "+45 2266 1155",
-\end_layout
-
-\begin_layout LyX-Code
-    "sn": "Hansen",         
-\end_layout
-
-\begin_layout LyX-Code
-    "title": "Gasmester"     
-\end_layout
-
-\begin_layout LyX-Code
-    } 
-\end_layout
-
+\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
 
+\end_deeper
+\begin_layout LyX-Code
+]
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout LyX-Code
+
+\end_layout
+
 \begin_layout Standard
-TODO: Document each JSON field.
+Note that 
+\emph on
+attributes
+\emph default
+ contains an array, meaning that one contactentity can be associated with
+ several attribute sets.
+ This means that the attributes of a contactentity can change depending
+ on the context in which it is seen.
+\end_layout
+
+\begin_layout Standard
+If there are no attributes associated with a contactentity, the following
+ JSON document is returned:
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"attributes":[]
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout LyX-Code
+
 \end_layout
 
 \begin_layout Subsection
-/get/persons?o=[COMPANY]
+/get/contact_tags?ce_id=[natural integer]
 \end_layout
 
 \begin_layout Standard
-This interface return the persons associated with COMPANY.
- Calling for example
+This interface return the tags associated with the 
+\emph on
+ce_id
+\emph default
+ contactentity.
+ Example JSON document:
 \end_layout
 
 \begin_layout LyX-Code
-/get/persons?o=Hansen%20VVS
+{
 \end_layout
 
-\begin_layout Standard
-will return a JSON string similar to this:
+\begin_deeper
+\begin_layout LyX-Code
+"tags":
 \end_layout
 
 \begin_layout LyX-Code
-{     
+[
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"db_columns":
 \end_layout
 
 \begin_layout LyX-Code
-"cn=Ole Johnsen,o=Hansen VVS,dc=example,dc=com": 
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"ce_id":1, 
 \end_layout
 
 \begin_layout LyX-Code
-    {         
+"org_id":2
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}, 
 \end_layout
 
 \begin_layout LyX-Code
-    "cn": "Ole Kappel Johnsen",         
+"tags":
 \end_layout
 
 \begin_layout LyX-Code
-    "objectClass": 
+[
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"Ada", 
 \end_layout
 
 \begin_layout LyX-Code
-        [             
+"Slackware", 
 \end_layout
 
 \begin_layout LyX-Code
-        "person",             
+"Linux"
 \end_layout
 
+\end_deeper
 \begin_layout LyX-Code
-        "organizationalPerson",             
+]
 \end_layout
 
+\end_deeper
 \begin_layout LyX-Code
-        "top"         
+}
 \end_layout
 
+\end_deeper
 \begin_layout LyX-Code
-        ],         
+]
 \end_layout
 
-\begin_layout LyX-Code
-    "telephoneNumber": "+45 55 11 66 35",         
-\end_layout
-
-\begin_layout LyX-Code
-    "sn": "Johnsen",         
-\end_layout
-
-\begin_layout LyX-Code
-    "title": "Svend"     
-\end_layout
-
-\begin_layout LyX-Code
-    },
-\end_layout
-
-\begin_layout LyX-Code
-"cn=Brian Hansen,o=Hansen VVS,dc=example,dc=com": 
-\end_layout
-
-\begin_layout LyX-Code
-    {         
-\end_layout
-
-\begin_layout LyX-Code
-    "cn": "Brian Hansen",         
-\end_layout
-
-\begin_layout LyX-Code
-    "objectClass": 
-\end_layout
-
-\begin_layout LyX-Code
-        [             
-\end_layout
-
-\begin_layout LyX-Code
-        "person",             
-\end_layout
-
-\begin_layout LyX-Code
-        "organizationalPerson",             
-\end_layout
-
-\begin_layout LyX-Code
-        "top"         
-\end_layout
-
-\begin_layout LyX-Code
-        ],         
-\end_layout
-
-\begin_layout LyX-Code
-    "telephoneNumber": "+45 2266 1155",         
-\end_layout
-
-\begin_layout LyX-Code
-    "sn": "Hansen",         
-\end_layout
-
-\begin_layout LyX-Code
-    "title": "Gasmester"     
-\end_layout
-
-\begin_layout LyX-Code
-    } 
-\end_layout
-
+\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
 
 \begin_layout Standard
-TODO: Document each JSON field.
+As with the attributes interface the 
+\emph on
+tags
+\emph default
+ node contains an array so several tag sets can be associated with a contactenti
+ty.
+\end_layout
+
+\begin_layout Standard
+If there are no tags associated with a contactentity, the following JSON
+ document is returned:
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"tags":[]
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout LyX-Code
+
+\end_layout
+
+\begin_layout Subsection
+/get/organization?org_id=[natural_integer]
+\end_layout
+
+\begin_layout Standard
+This interface return the data associated with the 
+\emph on
+org_id
+\emph default
+ organization.
+ Example JSON:
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"name":"AdaHeads K/S", 
+\end_layout
+
+\begin_layout LyX-Code
+"db_columns":
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"org_name":"AdaHeads K/S", 
+\end_layout
+
+\begin_layout LyX-Code
+"identifier":"sip://adaheads", 
+\end_layout
+
+\begin_layout LyX-Code
+"org_id":1
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout Standard
+An empty JSON document is returned if no 
+\emph on
+org_id
+\emph default
+ organization is found in the database:
+\end_layout
+
+\begin_layout LyX-Code
+{}
+\end_layout
+
+\begin_layout Subsection
+/get/org_contacts?org_id=[natural integer]
+\end_layout
+
+\begin_layout Standard
+This interface return all the contactentities associated with 
+\emph on
+org_id
+\emph default
+.
+ Example JSON:
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"contacts":
+\end_layout
+
+\begin_layout LyX-Code
+[
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"name":"Zaphod B.", 
+\end_layout
+
+\begin_layout LyX-Code
+"db_columns":
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"ce_id":4, 
+\end_layout
+
+\begin_layout LyX-Code
+"org_id":2, 
+\end_layout
+
+\begin_layout LyX-Code
+"ce_name":"Zaphod B."
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}, 
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"name":"Tricia Takanawa", 
+\end_layout
+
+\begin_layout LyX-Code
+"db_columns":
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"ce_id":1, 
+\end_layout
+
+\begin_layout LyX-Code
+"org_id":2, 
+\end_layout
+
+\begin_layout LyX-Code
+"ce_name":"Tricia Takanawa"
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+]
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout Standard
+The 
+\emph on
+contacts
+\emph default
+ node contains an array, so it can hold multiple contactentities.
+ If no contactentities are associated with the given 
+\emph on
+org_id
+\emph default
+ the following JSON document is returned:
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"contacts":[]
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout Subsection
+/get/org_contacts_attributes?org_id=[natural integer]
+\end_layout
+
+\begin_layout Standard
+This interface return all the contactentity attribute sets associated with
+ 
+\emph on
+org_id
+\emph default
+.
+ Example JSON document:
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"attributes":
+\end_layout
+
+\begin_layout LyX-Code
+[
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"phone":"555-777-888", 
+\end_layout
+
+\begin_layout LyX-Code
+"db_columns":
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"ce_id":1, 
+\end_layout
+
+\begin_layout LyX-Code
+"org_id":1
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}, 
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+"email":"some@email.address"
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}, 
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"phone":"444-555-777", 
+\end_layout
+
+\begin_layout LyX-Code
+"db_columns":
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"ce_id":7, 
+\end_layout
+
+\begin_layout LyX-Code
+"org_id":1
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}, 
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+"email":"contact@me.here"
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+]
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout Standard
+Because there can be several contactentity attribute sets associated an
+ 
+\emph on
+org_id
+\emph default
+ the 
+\emph on
+attributes
+\emph default
+ JSON node contains an array.
+ If there are no attribute sets, the following JSON document is returned:
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"attributes":[]
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout Subsection
+/get/org_contacts_tags?org_id=[natural integer]
+\end_layout
+
+\begin_layout Standard
+This interface return all the contactentity tag sets associated with 
+\emph on
+org_id
+\emph default
+.
+ Example JSON document:
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"tags":
+\end_layout
+
+\begin_layout LyX-Code
+[
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"tags":
+\end_layout
+
+\begin_layout LyX-Code
+[
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"Ada", 
+\end_layout
+
+\begin_layout LyX-Code
+"Slackware", 
+\end_layout
+
+\begin_layout LyX-Code
+"Linux"
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+],
+\end_layout
+
+\begin_layout LyX-Code
+"db_columns":
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"ce_id":1, 
+\end_layout
+
+\begin_layout LyX-Code
+"org_id":1
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\end_deeper
+\end_deeper
+\begin_layout LyX-Code
+}, 
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"tags":
+\end_layout
+
+\begin_layout LyX-Code
+[
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"Support", 
+\end_layout
+
+\begin_layout LyX-Code
+"Accounting", 
+\end_layout
+
+\begin_layout LyX-Code
+"Sales"
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+],
+\end_layout
+
+\begin_layout LyX-Code
+"db_columns":
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"ce_id":7, 
+\end_layout
+
+\begin_layout LyX-Code
+"org_id":1
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\end_deeper
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+]
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout Standard
+Because there can be several contactentity tag sets associated an 
+\emph on
+org_id
+\emph default
+ the 
+\emph on
+tags
+\emph default
+ JSON node contains an array.
+ If there are no tag sets, the following JSON document is returned:
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"tags":[]
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
 \end_layout
 
 \begin_layout Subsection
@@ -487,162 +1362,248 @@ will return a JSON string like this:
 {     
 \end_layout
 
+\begin_deeper
 \begin_layout LyX-Code
 "normal": 
 \end_layout
 
+\end_deeper
 \begin_layout LyX-Code
     [         
 \end_layout
 
+\begin_deeper
 \begin_layout LyX-Code
     {             
 \end_layout
 
+\begin_deeper
 \begin_layout LyX-Code
-    "UTC_start_date": "2012-02-22 14:23:30",
+    "UTC_start_date":"2012-02-22 14:23:30",
 \end_layout
 
 \begin_layout LyX-Code
-    "id": "GDhcf2VBww",               
+    "id":"GDhcf2VBww",               
 \end_layout
 
 \begin_layout LyX-Code
-    "unix_timestamp": "1329920610",             
+    "unix_timestamp":"1329920610",             
 \end_layout
 
 \begin_layout LyX-Code
-    "callee": "mU1Ff16h",             
+    "callee":5,             
 \end_layout
 
 \begin_layout LyX-Code
-    "caller": "d7sIp1kR"         
+    "caller":"d7sIp1kR"         
 \end_layout
 
+\end_deeper
 \begin_layout LyX-Code
     }
 \end_layout
 
+\end_deeper
 \begin_layout LyX-Code
     ],
 \end_layout
 
+\begin_deeper
 \begin_layout LyX-Code
 "high": 
 \end_layout
 
+\end_deeper
 \begin_layout LyX-Code
     [         
 \end_layout
 
+\begin_deeper
 \begin_layout LyX-Code
     {              
 \end_layout
 
+\begin_deeper
 \begin_layout LyX-Code
-    "UTC_start_date": "2012-02-22 14:23:11",
+    "UTC_start_date":"2012-02-22 14:23:11",
 \end_layout
 
 \begin_layout LyX-Code
-    "id": "bRbYsMUVqx",             
+    "id":"bRbYsMUVqx",             
 \end_layout
 
 \begin_layout LyX-Code
-    "unix_timestamp": "1329920591",                 
+    "unix_timestamp":"1329920591",                 
 \end_layout
 
 \begin_layout LyX-Code
-    "callee": "pMT3k2fb",             
+    "callee":3,             
 \end_layout
 
 \begin_layout LyX-Code
-    "caller": "oCgDF7ua"         
+    "caller":"oCgDF7ua"         
 \end_layout
 
+\end_deeper
 \begin_layout LyX-Code
     }
 \end_layout
 
+\end_deeper
 \begin_layout LyX-Code
     ],
 \end_layout
 
+\begin_deeper
 \begin_layout LyX-Code
 "low": 
 \end_layout
 
+\end_deeper
 \begin_layout LyX-Code
     [         
 \end_layout
 
+\begin_deeper
 \begin_layout LyX-Code
     {             
 \end_layout
 
+\begin_deeper
 \begin_layout LyX-Code
-    "UTC_start_date": "2012-02-22 14:23:17",             "id": "VV8BFqGpqG",
-             
+    "UTC_start_date":"2012-02-22 14:23:17",            
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+ "id":"VV8BFqGpqG",             
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+    "unix_timestamp":"1329920597",              
 \end_layout
 
 \begin_layout LyX-Code
-    "unix_timestamp": "1329920597",              
+    "callee":9,             
 \end_layout
 
+\begin_deeper
 \begin_layout LyX-Code
-    "callee": "7ar4Y1qc",             "caller": 
+ "caller":"ZQsRogwB"         
 \end_layout
 
-\begin_layout LyX-Code
-    "ZQsRogwB"         
-\end_layout
-
+\end_deeper
+\end_deeper
 \begin_layout LyX-Code
     }
 \end_layout
 
+\end_deeper
 \begin_layout LyX-Code
-    ]
+    ],
 \end_layout
 
+\begin_deeper
+\begin_layout LyX-Code
+\begin_inset Quotes eld
+\end_inset
+
+length
+\begin_inset Quotes erd
+\end_inset
+
+:3
+\end_layout
+
+\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
 
 \begin_layout Standard
-TODO: Document each JSON field.
-\end_layout
-
-\begin_layout Subsection
-/get/queue?kind=length
-\end_layout
-
-\begin_layout Standard
-This interface returns the length of the current call queue.
- Calling
-\end_layout
-
-\begin_layout LyX-Code
-/get/queue?kind=length
-\end_layout
-
-\begin_layout Standard
-will return a JSON string like this:
+The 
+\emph on
+normal
+\emph default
+, 
+\emph on
+low
+\emph default
+ and 
+\emph on
+high
+\emph default
+ nodes represent priority in the queue.
+ All these naturally contains arrays of calls.
+ The 
+\emph on
+length
+\emph default
+ node contains the totalt length of the queue.
+ The
+\emph on
+ callee
+\emph default
+ node maps to an 
+\emph on
+org_id
+\emph default
+.
+ An empty queue return the following JSON document:
 \end_layout
 
 \begin_layout LyX-Code
 {
 \end_layout
 
+\begin_deeper
 \begin_layout LyX-Code
-"length":"7"
+"normal":[], 
 \end_layout
 
+\begin_layout LyX-Code
+"length":0, 
+\end_layout
+
+\begin_layout LyX-Code
+"high":[], 
+\end_layout
+
+\begin_layout LyX-Code
+"low":[]
+\end_layout
+
+\end_deeper
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout Subsection
+/get/queue_length
+\end_layout
+
+\begin_layout Standard
+This interface returns the length of the current call queue.
+ Example JSON document:
+\end_layout
+
+\begin_layout LyX-Code
+{
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"length":7
+\end_layout
+
+\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
 
 \begin_layout Standard
-TODO: Document each JSON field.
+
 \end_layout
 
 \end_body
