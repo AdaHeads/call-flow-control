@@ -1,6 +1,8 @@
-%% LyX 2.0.0 created this file.  For more info, see http://www.lyx.org/.
+%% LyX 2.0.3 created this file.  For more info, see http://www.lyx.org/.
 %% Do not edit unless you really know what you are doing.
 \documentclass[12pt,english]{article}
+\usepackage{mathptmx}
+\renewcommand{\familydefault}{\rmdefault}
 \usepackage[T1]{fontenc}
 \usepackage[latin9]{inputenc}
 \usepackage{geometry}
@@ -37,23 +39,18 @@
 \section{Introduction}
 
 Alice acts as the connector between one or more NAME\_OF\_PRODUCT
-clients and a data store/soft PBX that is comprised of a mixture of
-LDAP/PostgreSQL servers and one ore more FreeSWITCH servers. Her main
+clients, a PostgreSQL data store and one ore more PBX'es. Her main
 task is to get and set data via a HTTP/JSON based protocol. This document
-is the final authority on the protocol understood by Alice.
+is the final authority on the Alice protocol.
 
 
 \section{The Protocol}
 
-In its most basic form the protocol consists of a set of {}``get''
-and {}``set'' interfaces. You can either get some data from Alice,
-or you can tell her to set some data. 
-
 When data is requested (get) the search parameters are always given
 as a HTTP GET query string and the result is always returned as a
-JSON string. When data is added/updated/deleted (set) the parameters
+JSON document. When data is inserted/updated/deleted (set) the parameters
 are always given as a HTTP POST request and the confirmation returned
-from Alice will always be a JSON string.
+from Alice will always be a JSON document.
 
 In order to access any of the interfaces, a client must first authenticate
 itself. This is done using OpenID. The login interface is the only
@@ -61,175 +58,488 @@ interface that can be accessed without prior login.
 
 All data handled by the protocol is expected to be UTF-8 encoded.
 Alice does not check whether this is in fact the case, so when implementing
-clients, be sure to verify that all data sent to Alice is in fact
-UTF-8 encoded.
+clients, be sure to verify that all data sent to Alice are UTF-8 encoded.
 
-All interfaces should of course be prefixed with whatever server:port
-is used for a given Alice instance.
+Application level errors and exceptions are returned as JSON documents.
+How these are handled is entirely up to the client. HTTP level errors
+are returned as normal for HTTP servers.
+
+
+\section{The Data Model}
+
+Instead of using only a relational or document based model, we've
+opted for a mixture. Data that is relational in nature is stored in
+columns in a relational database, whereas everything else is stored
+in a JSON document. When a client requests a specific type of data
+Alice combines these two storage models into a final JSON document.
+
+A benefit of this is that the client software easily can add new fields,
+simply by expanding on the JSON document. If we take the \emph{/get/contact}
+interface as an example, it might return a JSON looking like this:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},
+
+``items'':{[}''towel'',''heart~of~gold'',''dressing~gown''{]},
+
+``emailaddress'':''arthurdent42@somewhere.unknown.org'',
+
+``cellphone'':''555-777-888-999'',
+
+``dislikes'':''Vogons'',
+
+``db\_columns'':
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}ce\_id\textquotedbl{}:1,
+
+\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},
+
+``sip\_uri'':''sip://arthurdent.somewhere''
+\end{lyxcode}
+\}
+\end{lyxcode}
+\end{lyxcode}
+\}
+\end{lyxcode}
+The \emph{db\_columns} JSON node is build from the actual columns
+available in the relational database, in this case \emph{ce\_id},
+\emph{ce\_name} and \emph{sip\_uri}. The data found in these columns
+can be queried, sorted, grouped and/or joined by Alice. She is, so
+to speak, aware of them. 
+
+The other JSON nodes (\emph{name}, \emph{items}, \emph{emailaddress},
+\emph{cellphone}, \emph{dislikes}) comes from the JSON document associated
+with a contact entity. This is controlled 100\% by the client software.
+Alice is completely oblivious as to what this document contains and
+why. Things put here are only searchable by the client.
+
+The strength of this model is that new fields can be added to a contact
+entity on the fly, without needing any changes to Alice or the database.
+Changes to Alice and/or the database itself is only necessary if the
+new field must be searchable by Alice.
+
+The weakness of this model is of course that a poorly designed/build
+client can end up with some very bad JSON. We believe the strength
+outweighs the weakness.
+
+
+\section{Exceptions}
+
+When bad things happen an exception is raised and an error JSON document
+returned. These have the following format:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}exception\_message\textquotedbl{}:\textquotedbl{}foo\textquotedbl{},~
+
+\textquotedbl{}exception\textquotedbl{}:\textquotedbl{}SOME.EXCEPTION\textquotedbl{},~
+
+\textquotedbl{}message\textquotedbl{}:\textquotedbl{}bar\textquotedbl{}
+\end{lyxcode}
+\}
+\end{lyxcode}
+All exceptions have this format. It is entirely up to the client to
+decide what to do with an exception.
 
 
 \section{Getting Data}
 
 
-\subsection{/get/company?o={[}COMPANY{]}}
+\subsection{/get/contact?ce\_id={[}natural integer{]}}
 
-This interface return all the data associated with COMPANY. If the
-given company doesn't exist in the database, then an empty JSON string
-(\{\}) is returned.
-
-Only company data is returned when calling this interface. No employee
-data is returned. Calling for example
-\begin{lyxcode}
-/get/company?o=Hansen\%20VVS
-\end{lyxcode}
-will return a JSON string similar to this:
+This interface returns the JSON document associated with the contact
+entity identified by \emph{ce\_id}. Example JSON document:
 \begin{lyxcode}
 \{
+\begin{lyxcode}
+\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},
 
-\textquotedbl{}o=Hansen~VVS,dc=example,dc=com\textquotedbl{}:~
+``db\_columns'':
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}ce\_id\textquotedbl{}:1,
 
-~~~~\{
+\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},
 
-~~~~\textquotedbl{}l\textquotedbl{}:~\textquotedbl{}Næstved\textquotedbl{},
-
-~~~~\textquotedbl{}o\textquotedbl{}:~\textquotedbl{}Hansen~VVS\textquotedbl{},
-
-~~~~\textquotedbl{}street\textquotedbl{}:~\textquotedbl{}Slagelsevej~13\textquotedbl{},
-
-~~~~\textquotedbl{}objectClass\textquotedbl{}:
-
-~~~~~~~~{[}
-
-~~~~~~~~\textquotedbl{}top\textquotedbl{},~~~~~~~~~~~~~
-
-~~~~~~~~\textquotedbl{}organization\textquotedbl{}
-
-~~~~~~~~{]},~~~~~~~~~
-
-~~~~\textquotedbl{}telephoneNumber\textquotedbl{}:~\textquotedbl{}+45~5544~3321\textquotedbl{},
-
-~~~~\textquotedbl{}postalCode\textquotedbl{}:~\textquotedbl{}DK-4700\textquotedbl{}
-
-~~~~\}
-
+``sip\_uri'':''sip://arthurdent.somewhere''
+\end{lyxcode}
 \}
 \end{lyxcode}
-TODO: Document each JSON field.
-
-
-\subsection{/get/person?o={[}COMPANY{]}\&cn={[}PERSON{]}}
-
-This interface return the data associated with PERSON employed by
-COMPANY. Calling for example
-\begin{lyxcode}
-/get/person?o=Hansen\%20VVS\&cn=Brian\%20Hansen
 \end{lyxcode}
-will return a JSON string similar to this:
-\begin{lyxcode}
-\{~~~~~
-
-\textquotedbl{}cn=Brian~Hansen,o=HansenVVS,dc=example,dc=com\textquotedbl{}:~
-
-~~~~\{~~~~~~~~~
-
-~~~~\textquotedbl{}cn\textquotedbl{}:~\textquotedbl{}Brian~Hansen\textquotedbl{},~~~~~~~~~
-
-~~~~\textquotedbl{}objectClass\textquotedbl{}:~
-
-~~~~~~~~{[}~~~~~~~~~~~~~
-
-~~~~~~~~\textquotedbl{}person\textquotedbl{},~~~~~~~~~~~~~
-
-~~~~~~~~\textquotedbl{}organizationalPerson\textquotedbl{},~~~~~~~~~~~~~
-
-~~~~~~~~\textquotedbl{}top\textquotedbl{}~~~~~~~~~
-
-~~~~~~~~{]},~~~~~~~~~
-
-~~~~\textquotedbl{}telephoneNumber\textquotedbl{}:~\textquotedbl{}+45~2266~1155\textquotedbl{},
-
-~~~~\textquotedbl{}sn\textquotedbl{}:~\textquotedbl{}Hansen\textquotedbl{},~~~~~~~~~
-
-~~~~\textquotedbl{}title\textquotedbl{}:~\textquotedbl{}Gasmester\textquotedbl{}~~~~~
-
-~~~~\}~
-
 \}
 \end{lyxcode}
-TODO: Document each JSON field.
-
-
-\subsection{/get/persons?o={[}COMPANY{]}}
-
-This interface return the persons associated with COMPANY. Calling
-for example
+An empty JSON document is returned if \emph{ce\_id} doesn't exist
+in the database:
 \begin{lyxcode}
-/get/persons?o=Hansen\%20VVS
+\{\}
 \end{lyxcode}
-will return a JSON string similar to this:
+
+\subsection{/get/contact\_attributes?ce\_id={[}natural integer{]}}
+
+This interface returns the attributes associated with the \emph{ce\_id}
+contact entity. Example JSON document:
 \begin{lyxcode}
-\{~~~~~
+\{
+\begin{lyxcode}
+\textquotedbl{}attributes\textquotedbl{}:
 
-\textquotedbl{}cn=Ole~Johnsen,o=Hansen~VVS,dc=example,dc=com\textquotedbl{}:~
+{[}
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}555-777-888\textquotedbl{},~
 
-~~~~\{~~~~~~~~~
+\textquotedbl{}db\_columns\textquotedbl{}:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}ce\_id\textquotedbl{}:1,~
 
-~~~~\textquotedbl{}cn\textquotedbl{}:~\textquotedbl{}Ole~Kappel~Johnsen\textquotedbl{},~~~~~~~~~
+\textquotedbl{}org\_id\textquotedbl{}:1
+\end{lyxcode}
+\},~
+\end{lyxcode}
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}some@email.address\textquotedbl{}
+\end{lyxcode}
+\},
 
-~~~~\textquotedbl{}objectClass\textquotedbl{}:~
+\{
+\begin{lyxcode}
+\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}999-000-111\textquotedbl{},~
 
-~~~~~~~~{[}~~~~~~~~~~~~~
+\textquotedbl{}db\_columns\textquotedbl{}:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}ce\_id\textquotedbl{}:1,~
 
-~~~~~~~~\textquotedbl{}person\textquotedbl{},~~~~~~~~~~~~~
-
-~~~~~~~~\textquotedbl{}organizationalPerson\textquotedbl{},~~~~~~~~~~~~~
-
-~~~~~~~~\textquotedbl{}top\textquotedbl{}~~~~~~~~~
-
-~~~~~~~~{]},~~~~~~~~~
-
-~~~~\textquotedbl{}telephoneNumber\textquotedbl{}:~\textquotedbl{}+45~55~11~66~35\textquotedbl{},~~~~~~~~~
-
-~~~~\textquotedbl{}sn\textquotedbl{}:~\textquotedbl{}Johnsen\textquotedbl{},~~~~~~~~~
-
-~~~~\textquotedbl{}title\textquotedbl{}:~\textquotedbl{}Svend\textquotedbl{}~~~~~
-
-~~~~\},
-
-\textquotedbl{}cn=Brian~Hansen,o=Hansen~VVS,dc=example,dc=com\textquotedbl{}:~
-
-~~~~\{~~~~~~~~~
-
-~~~~\textquotedbl{}cn\textquotedbl{}:~\textquotedbl{}Brian~Hansen\textquotedbl{},~~~~~~~~~
-
-~~~~\textquotedbl{}objectClass\textquotedbl{}:~
-
-~~~~~~~~{[}~~~~~~~~~~~~~
-
-~~~~~~~~\textquotedbl{}person\textquotedbl{},~~~~~~~~~~~~~
-
-~~~~~~~~\textquotedbl{}organizationalPerson\textquotedbl{},~~~~~~~~~~~~~
-
-~~~~~~~~\textquotedbl{}top\textquotedbl{}~~~~~~~~~
-
-~~~~~~~~{]},~~~~~~~~~
-
-~~~~\textquotedbl{}telephoneNumber\textquotedbl{}:~\textquotedbl{}+45~2266~1155\textquotedbl{},~~~~~~~~~
-
-~~~~\textquotedbl{}sn\textquotedbl{}:~\textquotedbl{}Hansen\textquotedbl{},~~~~~~~~~
-
-~~~~\textquotedbl{}title\textquotedbl{}:~\textquotedbl{}Gasmester\textquotedbl{}~~~~~
-
-~~~~\}~
-
+\textquotedbl{}org\_id\textquotedbl{}:2
+\end{lyxcode}
+\},~
+\end{lyxcode}
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}some.other@email.address\textquotedbl{}
+\end{lyxcode}
 \}
 \end{lyxcode}
-TODO: Document each JSON field.
+{]}
+\end{lyxcode}
+\}
 
+
+\end{lyxcode}
+Note that \emph{attributes} contains an array, meaning that one contact
+entity can be associated with several attribute sets. This means that
+the attributes of a contact entity can change depending on the context
+in which it is seen.
+
+If there are no attributes associated with a contact entity, the following
+JSON document is returned:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}attributes\textquotedbl{}:{[}{]}
+\end{lyxcode}
+\}
+
+
+\end{lyxcode}
+
+\subsection{/get/contact\_tags?ce\_id={[}natural integer{]}}
+
+This interface returns the tags associated with the \emph{ce\_id}
+contact entity. Example JSON document:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}tags\textquotedbl{}:
+
+{[}
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}db\_columns\textquotedbl{}:
+
+\{
+\begin{lyxcode}
+\textquotedbl{}ce\_id\textquotedbl{}:1,~
+
+\textquotedbl{}org\_id\textquotedbl{}:2
+\end{lyxcode}
+\},~
+
+\textquotedbl{}tags\textquotedbl{}:
+
+{[}
+\begin{lyxcode}
+\textquotedbl{}Ada\textquotedbl{},~
+
+\textquotedbl{}Slackware\textquotedbl{},~
+
+\textquotedbl{}Linux\textquotedbl{}
+\end{lyxcode}
+{]}
+\end{lyxcode}
+\}
+\end{lyxcode}
+{]}
+\end{lyxcode}
+\}
+\end{lyxcode}
+As with the attributes interface the \emph{tags} node contains an
+array so several tag sets can be associated with a contact entity.
+
+If there are no tags associated with a contact entity, the following
+JSON document is returned:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}tags\textquotedbl{}:{[}{]}
+\end{lyxcode}
+\}
+
+
+\end{lyxcode}
+
+\subsection{/get/organization?org\_id={[}natural\_integer{]}}
+
+This interface returns the data associated with the \emph{org\_id}
+organization. Example JSON:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}name\textquotedbl{}:\textquotedbl{}AdaHeads~K/S\textquotedbl{},~
+
+\textquotedbl{}db\_columns\textquotedbl{}:
+
+\{
+\begin{lyxcode}
+\textquotedbl{}org\_name\textquotedbl{}:\textquotedbl{}AdaHeads~K/S\textquotedbl{},~
+
+\textquotedbl{}identifier\textquotedbl{}:\textquotedbl{}sip://adaheads\textquotedbl{},~
+
+\textquotedbl{}org\_id\textquotedbl{}:1
+\end{lyxcode}
+\}
+\end{lyxcode}
+\}
+\end{lyxcode}
+An empty JSON document is returned if no \emph{org\_id} organization
+is found in the database:
+\begin{lyxcode}
+\{\}
+\end{lyxcode}
+
+\subsection{/get/org\_contacts?org\_id={[}natural integer{]}}
+
+This interface returns all the contact entities associated with \emph{org\_id}.
+Example JSON:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}contacts\textquotedbl{}:
+
+{[}
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Zaphod~B.\textquotedbl{},~
+
+\textquotedbl{}db\_columns\textquotedbl{}:
+
+\{
+\begin{lyxcode}
+\textquotedbl{}ce\_id\textquotedbl{}:4,~
+
+\textquotedbl{}org\_id\textquotedbl{}:2,~
+
+\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Zaphod~B.\textquotedbl{}
+\end{lyxcode}
+\}
+\end{lyxcode}
+\},~
+
+\{
+\begin{lyxcode}
+\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Tricia~Takanawa\textquotedbl{},~
+
+\textquotedbl{}db\_columns\textquotedbl{}:
+
+\{
+\begin{lyxcode}
+\textquotedbl{}ce\_id\textquotedbl{}:1,~
+
+\textquotedbl{}org\_id\textquotedbl{}:2,~
+
+\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Tricia~Takanawa\textquotedbl{}
+\end{lyxcode}
+\}
+\end{lyxcode}
+\}
+\end{lyxcode}
+{]}
+\end{lyxcode}
+\}
+\end{lyxcode}
+The \emph{contacts} node contains an array, so it can hold multiple
+contact entities. If no contact entities are associated with the given
+\emph{org\_id} the following JSON document is returned:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}contacts\textquotedbl{}:{[}{]}
+\end{lyxcode}
+\}
+\end{lyxcode}
+
+\subsection{/get/org\_contacts\_attributes?org\_id={[}natural integer{]}}
+
+This interface returns all the contact entity attribute sets associated
+with \emph{org\_id}. Example JSON document:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}attributes\textquotedbl{}:
+
+{[}
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}555-777-888\textquotedbl{},~
+
+\textquotedbl{}db\_columns\textquotedbl{}:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}ce\_id\textquotedbl{}:1,~
+
+\textquotedbl{}org\_id\textquotedbl{}:1
+\end{lyxcode}
+\},~
+\end{lyxcode}
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}some@email.address\textquotedbl{}
+\end{lyxcode}
+\},~
+
+\{
+\begin{lyxcode}
+\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}444-555-777\textquotedbl{},~
+
+\textquotedbl{}db\_columns\textquotedbl{}:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}ce\_id\textquotedbl{}:7,~
+
+\textquotedbl{}org\_id\textquotedbl{}:1
+\end{lyxcode}
+\},~
+\end{lyxcode}
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}contact@me.here\textquotedbl{}
+\end{lyxcode}
+\}
+\end{lyxcode}
+{]}
+\end{lyxcode}
+\}
+\end{lyxcode}
+Because there can be several contact entity attribute sets associated
+an \emph{org\_id} the \emph{attributes} JSON node contains an array.
+If there are no attribute sets, the following JSON document is returned:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}attributes\textquotedbl{}:{[}{]}
+\end{lyxcode}
+\}
+\end{lyxcode}
+
+\subsection{/get/org\_contacts\_tags?org\_id={[}natural integer{]}}
+
+This interface returns all the contact entity tag sets associated
+with \emph{org\_id}. Example JSON document:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}tags\textquotedbl{}:
+
+{[}
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}tags\textquotedbl{}:
+
+{[}
+\begin{lyxcode}
+\textquotedbl{}Ada\textquotedbl{},~
+
+\textquotedbl{}Slackware\textquotedbl{},~
+
+\textquotedbl{}Linux\textquotedbl{}
+\end{lyxcode}
+{]},
+
+\textquotedbl{}db\_columns\textquotedbl{}:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}ce\_id\textquotedbl{}:1,~
+
+\textquotedbl{}org\_id\textquotedbl{}:1
+\end{lyxcode}
+\}
+\end{lyxcode}
+\end{lyxcode}
+\},~
+
+\{
+\begin{lyxcode}
+\textquotedbl{}tags\textquotedbl{}:
+
+{[}
+\begin{lyxcode}
+\textquotedbl{}Support\textquotedbl{},~
+
+\textquotedbl{}Accounting\textquotedbl{},~
+
+\textquotedbl{}Sales\textquotedbl{}
+\end{lyxcode}
+{]},
+
+\textquotedbl{}db\_columns\textquotedbl{}:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}ce\_id\textquotedbl{}:7,~
+
+\textquotedbl{}org\_id\textquotedbl{}:1
+\end{lyxcode}
+\}
+\end{lyxcode}
+\end{lyxcode}
+\}
+\end{lyxcode}
+{]}
+\end{lyxcode}
+\}
+\end{lyxcode}
+The \emph{tags} JSON node contains an array because there can be several
+contact entity tag sets associated with an \emph{org\_id}. If there
+are no tag sets, the following JSON document is returned:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}tags\textquotedbl{}:{[}{]}
+\end{lyxcode}
+\}
+\end{lyxcode}
 
 \subsection{/get/queue}
 
-This interface return the current call queue. This is updated once
+This interface returns the current call queue. This is updated once
 each second, so polling the /get/queue interface more often than once
 each second is both wasteful and pointless. Calling for example:
 \begin{lyxcode}
@@ -238,83 +548,101 @@ each second is both wasteful and pointless. Calling for example:
 will return a JSON string like this:
 \begin{lyxcode}
 \{~~~~~
-
+\begin{lyxcode}
 \textquotedbl{}normal\textquotedbl{}:~
-
+\end{lyxcode}
 ~~~~{[}~~~~~~~~~
-
+\begin{lyxcode}
 ~~~~\{~~~~~~~~~~~~~
+\begin{lyxcode}
+~~~~\textquotedbl{}UTC\_start\_date\textquotedbl{}:\textquotedbl{}2012-02-22~14:23:30\textquotedbl{},
 
-~~~~\textquotedbl{}UTC\_start\_date\textquotedbl{}:~\textquotedbl{}2012-02-22~14:23:30\textquotedbl{},
+~~~~\textquotedbl{}id\textquotedbl{}:\textquotedbl{}GDhcf2VBww\textquotedbl{},~~~~~~~~~~~~~~~
 
-~~~~\textquotedbl{}id\textquotedbl{}:~\textquotedbl{}GDhcf2VBww\textquotedbl{},~~~~~~~~~~~~~~~
+~~~~\textquotedbl{}unix\_timestamp\textquotedbl{}:\textquotedbl{}1329920610\textquotedbl{},~~~~~~~~~~~~~
 
-~~~~\textquotedbl{}unix\_timestamp\textquotedbl{}:~\textquotedbl{}1329920610\textquotedbl{},~~~~~~~~~~~~~
+~~~~\textquotedbl{}callee\textquotedbl{}:5,~~~~~~~~~~~~~
 
-~~~~\textquotedbl{}callee\textquotedbl{}:~\textquotedbl{}mU1Ff16h\textquotedbl{},~~~~~~~~~~~~~
-
-~~~~\textquotedbl{}caller\textquotedbl{}:~\textquotedbl{}d7sIp1kR\textquotedbl{}~~~~~~~~~
-
+~~~~\textquotedbl{}caller\textquotedbl{}:\textquotedbl{}d7sIp1kR\textquotedbl{}~~~~~~~~~
+\end{lyxcode}
 ~~~~\}
-
+\end{lyxcode}
 ~~~~{]},
-
+\begin{lyxcode}
 \textquotedbl{}high\textquotedbl{}:~
-
+\end{lyxcode}
 ~~~~{[}~~~~~~~~~
-
+\begin{lyxcode}
 ~~~~\{~~~~~~~~~~~~~~
+\begin{lyxcode}
+~~~~\textquotedbl{}UTC\_start\_date\textquotedbl{}:\textquotedbl{}2012-02-22~14:23:11\textquotedbl{},
 
-~~~~\textquotedbl{}UTC\_start\_date\textquotedbl{}:~\textquotedbl{}2012-02-22~14:23:11\textquotedbl{},
+~~~~\textquotedbl{}id\textquotedbl{}:\textquotedbl{}bRbYsMUVqx\textquotedbl{},~~~~~~~~~~~~~
 
-~~~~\textquotedbl{}id\textquotedbl{}:~\textquotedbl{}bRbYsMUVqx\textquotedbl{},~~~~~~~~~~~~~
+~~~~\textquotedbl{}unix\_timestamp\textquotedbl{}:\textquotedbl{}1329920591\textquotedbl{},~~~~~~~~~~~~~~~~~
 
-~~~~\textquotedbl{}unix\_timestamp\textquotedbl{}:~\textquotedbl{}1329920591\textquotedbl{},~~~~~~~~~~~~~~~~~
+~~~~\textquotedbl{}callee\textquotedbl{}:3,~~~~~~~~~~~~~
 
-~~~~\textquotedbl{}callee\textquotedbl{}:~\textquotedbl{}pMT3k2fb\textquotedbl{},~~~~~~~~~~~~~
-
-~~~~\textquotedbl{}caller\textquotedbl{}:~\textquotedbl{}oCgDF7ua\textquotedbl{}~~~~~~~~~
-
+~~~~\textquotedbl{}caller\textquotedbl{}:\textquotedbl{}oCgDF7ua\textquotedbl{}~~~~~~~~~
+\end{lyxcode}
 ~~~~\}
-
+\end{lyxcode}
 ~~~~{]},
-
+\begin{lyxcode}
 \textquotedbl{}low\textquotedbl{}:~
-
+\end{lyxcode}
 ~~~~{[}~~~~~~~~~
-
+\begin{lyxcode}
 ~~~~\{~~~~~~~~~~~~~
+\begin{lyxcode}
+~~~~\textquotedbl{}UTC\_start\_date\textquotedbl{}:\textquotedbl{}2012-02-22~14:23:17\textquotedbl{},~~~~~~~~~~~~
+\begin{lyxcode}
+~\textquotedbl{}id\textquotedbl{}:\textquotedbl{}VV8BFqGpqG\textquotedbl{},~~~~~~~~~~~~~
+\end{lyxcode}
+~~~~\textquotedbl{}unix\_timestamp\textquotedbl{}:\textquotedbl{}1329920597\textquotedbl{},~~~~~~~~~~~~~~
 
-~~~~\textquotedbl{}UTC\_start\_date\textquotedbl{}:~\textquotedbl{}2012-02-22~14:23:17\textquotedbl{},~~~~~~~~~~~~~\textquotedbl{}id\textquotedbl{}:~\textquotedbl{}VV8BFqGpqG\textquotedbl{},~~~~~~~~~~~~~
-
-~~~~\textquotedbl{}unix\_timestamp\textquotedbl{}:~\textquotedbl{}1329920597\textquotedbl{},~~~~~~~~~~~~~~
-
-~~~~\textquotedbl{}callee\textquotedbl{}:~\textquotedbl{}7ar4Y1qc\textquotedbl{},~~~~~~~~~~~~~\textquotedbl{}caller\textquotedbl{}:~
-
-~~~~\textquotedbl{}ZQsRogwB\textquotedbl{}~~~~~~~~~
-
+~~~~\textquotedbl{}callee\textquotedbl{}:9,~~~~~~~~~~~~~
+\begin{lyxcode}
+~\textquotedbl{}caller\textquotedbl{}:\textquotedbl{}ZQsRogwB\textquotedbl{}~~~~~~~~~
+\end{lyxcode}
+\end{lyxcode}
 ~~~~\}
-
-~~~~{]}
-
+\end{lyxcode}
+~~~~{]},
+\begin{lyxcode}
+``length'':3
+\end{lyxcode}
 \}
 \end{lyxcode}
-TODO: Document each JSON field.
-
-
-\subsection{/get/queue?kind=length}
-
-This interface returns the length of the current call queue. Calling
-\begin{lyxcode}
-/get/queue?kind=length
-\end{lyxcode}
-will return a JSON string like this:
+The \emph{normal}, \emph{low} and \emph{high} nodes represent priority
+in the queue. All these naturally contains arrays of calls. The \emph{length}
+node contains the totalt length of the queue. The\emph{ callee} node
+maps to an \emph{org\_id}. An empty queue returns the following JSON
+document:
 \begin{lyxcode}
 \{
+\begin{lyxcode}
+\textquotedbl{}normal\textquotedbl{}:{[}{]},~
 
-\textquotedbl{}length\textquotedbl{}:\textquotedbl{}7\textquotedbl{}
+\textquotedbl{}length\textquotedbl{}:0,~
 
+\textquotedbl{}high\textquotedbl{}:{[}{]},~
+
+\textquotedbl{}low\textquotedbl{}:{[}{]}
+\end{lyxcode}
 \}
 \end{lyxcode}
-TODO: Document each JSON field.
+
+\subsection{/get/queue\_length}
+
+This interface returns the length of the current call queue. Example
+JSON document:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}length\textquotedbl{}:7
+\end{lyxcode}
+\}
+\end{lyxcode}
+
 \end{document}

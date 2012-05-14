@@ -13,24 +13,18 @@ Table of Contents
 1 Introduction
 
 Alice acts as the connector between one or more NAME_OF_PRODUCT 
-clients and a data store/soft PBX that is comprised of a mixture 
-of LDAP/PostgreSQL servers and one ore more FreeSWITCH servers. 
-Her main task is to get and set data via a HTTP/JSON based 
-protocol. This document is the final authority on the protocol 
-understood by Alice.
+clients, a PostgreSQL data store and one ore more PBX'es. Her 
+main task is to get and set data via a HTTP/JSON based protocol. 
+This document is the final authority on the Alice protocol.
 
 2 The Protocol
 
-In its most basic form the protocol consists of a set of “get” 
-and “set” interfaces. You can either get some data from Alice, or 
-you can tell her to set some data. 
-
 When data is requested (get) the search parameters are always 
 given as a HTTP GET query string and the result is always 
-returned as a JSON string. When data is added/updated/deleted 
-(set) the parameters are always given as a HTTP POST request and 
-the confirmation returned from Alice will always be a JSON 
-string.
+returned as a JSON document. When data is 
+inserted/updated/deleted (set) the parameters are always given as 
+a HTTP POST request and the confirmation returned from Alice will 
+always be a JSON document.
 
 In order to access any of the interfaces, a client must first 
 authenticate itself. This is done using OpenID. The login 
@@ -40,169 +34,476 @@ prior login.
 All data handled by the protocol is expected to be UTF-8 encoded. 
 Alice does not check whether this is in fact the case, so when 
 implementing clients, be sure to verify that all data sent to 
-Alice is in fact UTF-8 encoded.
+Alice are UTF-8 encoded.
 
-All interfaces should of course be prefixed with whatever 
-server:port is used for a given Alice instance.
+Application level errors and exceptions are returned as JSON 
+documents. How these are handled is entirely up to the client. 
+HTTP level errors are returned as normal for HTTP servers.
 
-3 Getting Data
+3 The Data Model
 
-3.1 /get/company?o=[COMPANY]
+Instead of using only a relational or document based model, we've 
+opted for a mixture. Data that is relational in nature is stored 
+in columns in a relational database, whereas everything else is 
+stored in a JSON document. When a client requests a specific type 
+of data Alice combines these two storage models into a final JSON 
+document.
 
-This interface return all the data associated with COMPANY. If 
-the given company doesn't exist in the database, then an empty 
-JSON string ({}) is returned.
-
-Only company data is returned when calling this interface. No 
-employee data is returned. Calling for example
-
-/get/company?o=Hansen%20VVS
-
-will return a JSON string similar to this:
+A benefit of this is that the client software easily can add new 
+fields, simply by expanding on the JSON document. If we take the 
+/get/contact interface as an example, it might return a JSON 
+looking like this:
 
 {
 
-"o=Hansen VVS,dc=example,dc=com": 
+  "name":"Arthur Dent",
+
+  “items”:[”towel”,”heart of gold”,”dressing gown”],
+
+  “emailaddress”:”arthurdent42@somewhere.unknown.org”,
+
+  “cellphone”:”555-777-888-999”,
+
+  “dislikes”:”Vogons”,
+
+  “db_columns”:
 
     {
 
-    "l": "Næstved",
+      "ce_id":1,
 
-    "o": "Hansen VVS",
+      "ce_name":"Arthur Dent",
 
-    "street": "Slagelsevej 13",
-
-    "objectClass":
-
-        [
-
-        "top",             
-
-        "organization"
-
-        ],         
-
-    "telephoneNumber": "+45 5544 3321",
-
-    "postalCode": "DK-4700"
+      “sip_uri”:”sip://arthurdent.somewhere”
 
     }
 
 }
 
-TODO: Document each JSON field.
+The db_columns JSON node is build from the actual columns 
+available in the relational database, in this case ce_id, ce_name 
+and sip_uri. The data found in these columns can be queried, 
+sorted, grouped and/or joined by Alice. She is, so to speak, 
+aware of them. 
 
-3.2 /get/person?o=[COMPANY]&cn=[PERSON]
+The other JSON nodes (name, items, emailaddress, cellphone, 
+dislikes) comes from the JSON document associated with a contact 
+entity. This is controlled 100% by the client software. Alice is 
+completely oblivious as to what this document contains and why. 
+Things put here are only searchable by the client.
 
-This interface return the data associated with PERSON employed by 
-COMPANY. Calling for example
+The strength of this model is that new fields can be added to a 
+contact entity on the fly, without needing any changes to Alice 
+or the database. Changes to Alice and/or the database itself is 
+only necessary if the new field must be searchable by Alice.
 
-/get/person?o=Hansen%20VVS&cn=Brian%20Hansen
+The weakness of this model is of course that a poorly 
+designed/build client can end up with some very bad JSON. We 
+believe the strength outweighs the weakness.
 
-will return a JSON string similar to this:
+4 Exceptions
 
-{     
+When bad things happen an exception is raised and an error JSON 
+document returned. These have the following format:
 
-"cn=Brian Hansen,o=HansenVVS,dc=example,dc=com": 
+{
 
-    {         
+  "exception_message":"foo", 
 
-    "cn": "Brian Hansen",         
+  "exception":"SOME.EXCEPTION", 
 
-    "objectClass": 
-
-        [             
-
-        "person",             
-
-        "organizationalPerson",             
-
-        "top"         
-
-        ],         
-
-    "telephoneNumber": "+45 2266 1155",
-
-    "sn": "Hansen",         
-
-    "title": "Gasmester"     
-
-    } 
+  "message":"bar"
 
 }
 
-TODO: Document each JSON field.
+All exceptions have this format. It is entirely up to the client 
+to decide what to do with an exception.
 
-3.3 /get/persons?o=[COMPANY]
+5 Getting Data
 
-This interface return the persons associated with COMPANY. 
-Calling for example
+5.1 /get/contact?ce_id=[natural integer]
 
-/get/persons?o=Hansen%20VVS
+This interface returns the JSON document associated with the 
+contact entity identified by ce_id. Example JSON document:
 
-will return a JSON string similar to this:
+{
 
-{     
+  "name":"Arthur Dent",
 
-"cn=Ole Johnsen,o=Hansen VVS,dc=example,dc=com": 
+  “db_columns”:
 
-    {         
+    {
 
-    "cn": "Ole Kappel Johnsen",         
+      "ce_id":1,
 
-    "objectClass": 
+      "ce_name":"Arthur Dent",
 
-        [             
+      “sip_uri”:”sip://arthurdent.somewhere”
 
-        "person",             
+    }
 
-        "organizationalPerson",             
+}
 
-        "top"         
+An empty JSON document is returned if ce_id doesn't exist in the 
+database:
 
-        ],         
+{}
 
-    "telephoneNumber": "+45 55 11 66 35",         
+5.2 /get/contact_attributes?ce_id=[natural integer]
 
-    "sn": "Johnsen",         
+This interface returns the attributes associated with the ce_id 
+contact entity. Example JSON document:
 
-    "title": "Svend"     
+{
+
+  "attributes":
+
+  [
+
+    {
+
+      "phone":"555-777-888", 
+
+      "db_columns":
+
+        {
+
+          "ce_id":1, 
+
+          "org_id":1
+
+        }, 
+
+      "email":"some@email.address"
 
     },
 
-"cn=Brian Hansen,o=Hansen VVS,dc=example,dc=com": 
+    {
 
-    {         
+      "phone":"999-000-111", 
 
-    "cn": "Brian Hansen",         
+      "db_columns":
 
-    "objectClass": 
+        {
 
-        [             
+          "ce_id":1, 
 
-        "person",             
+          "org_id":2
 
-        "organizationalPerson",             
+        }, 
 
-        "top"         
+      "email":"some.other@email.address"
 
-        ],         
+    }
 
-    "telephoneNumber": "+45 2266 1155",         
-
-    "sn": "Hansen",         
-
-    "title": "Gasmester"     
-
-    } 
+  ]
 
 }
 
-TODO: Document each JSON field.
 
-3.4 /get/queue
 
-This interface return the current call queue. This is updated 
+Note that attributes contains an array, meaning that one contact 
+entity can be associated with several attribute sets. This means 
+that the attributes of a contact entity can change depending on 
+the context in which it is seen.
+
+If there are no attributes associated with a contact entity, the 
+following JSON document is returned:
+
+{
+
+  "attributes":[]
+
+}
+
+
+
+5.3 /get/contact_tags?ce_id=[natural integer]
+
+This interface returns the tags associated with the ce_id contact 
+entity. Example JSON document:
+
+{
+
+  "tags":
+
+  [
+
+    {
+
+      "db_columns":
+
+      {
+
+        "ce_id":1, 
+
+        "org_id":2
+
+      }, 
+
+      "tags":
+
+      [
+
+        "Ada", 
+
+        "Slackware", 
+
+        "Linux"
+
+      ]
+
+    }
+
+  ]
+
+}
+
+As with the attributes interface the tags node contains an array 
+so several tag sets can be associated with a contact entity.
+
+If there are no tags associated with a contact entity, the 
+following JSON document is returned:
+
+{
+
+  "tags":[]
+
+}
+
+
+
+5.4 /get/organization?org_id=[natural_integer]
+
+This interface returns the data associated with the org_id 
+organization. Example JSON:
+
+{
+
+  "name":"AdaHeads K/S", 
+
+  "db_columns":
+
+  {
+
+    "org_name":"AdaHeads K/S", 
+
+    "identifier":"sip://adaheads", 
+
+    "org_id":1
+
+  }
+
+}
+
+An empty JSON document is returned if no org_id organization is 
+found in the database:
+
+{}
+
+5.5 /get/org_contacts?org_id=[natural integer]
+
+This interface returns all the contact entities associated with 
+org_id. Example JSON:
+
+{
+
+  "contacts":
+
+  [
+
+    {
+
+      "name":"Zaphod B.", 
+
+      "db_columns":
+
+      {
+
+        "ce_id":4, 
+
+        "org_id":2, 
+
+        "ce_name":"Zaphod B."
+
+      }
+
+    }, 
+
+    {
+
+      "name":"Tricia Takanawa", 
+
+      "db_columns":
+
+      {
+
+        "ce_id":1, 
+
+        "org_id":2, 
+
+        "ce_name":"Tricia Takanawa"
+
+      }
+
+    }
+
+  ]
+
+}
+
+The contacts node contains an array, so it can hold multiple 
+contact entities. If no contact entities are associated with the 
+given org_id the following JSON document is returned:
+
+{
+
+  "contacts":[]
+
+}
+
+5.6 /get/org_contacts_attributes?org_id=[natural integer]
+
+This interface returns all the contact entity attribute sets 
+associated with org_id. Example JSON document:
+
+{
+
+  "attributes":
+
+  [
+
+    {
+
+      "phone":"555-777-888", 
+
+      "db_columns":
+
+        {
+
+          "ce_id":1, 
+
+          "org_id":1
+
+        }, 
+
+      "email":"some@email.address"
+
+    }, 
+
+    {
+
+      "phone":"444-555-777", 
+
+      "db_columns":
+
+        {
+
+          "ce_id":7, 
+
+          "org_id":1
+
+        }, 
+
+      "email":"contact@me.here"
+
+    }
+
+  ]
+
+}
+
+Because there can be several contact entity attribute sets 
+associated an org_id the attributes JSON node contains an array. 
+If there are no attribute sets, the following JSON document is 
+returned:
+
+{
+
+  "attributes":[]
+
+}
+
+5.7 /get/org_contacts_tags?org_id=[natural integer]
+
+This interface returns all the contact entity tag sets associated 
+with org_id. Example JSON document:
+
+{
+
+  "tags":
+
+  [
+
+    {
+
+      "tags":
+
+      [
+
+        "Ada", 
+
+        "Slackware", 
+
+        "Linux"
+
+      ],
+
+      "db_columns":
+
+        {
+
+          "ce_id":1, 
+
+          "org_id":1
+
+        }
+
+    }, 
+
+    {
+
+      "tags":
+
+      [
+
+        "Support", 
+
+        "Accounting", 
+
+        "Sales"
+
+      ],
+
+      "db_columns":
+
+        {
+
+          "ce_id":7, 
+
+          "org_id":1
+
+        }
+
+    }
+
+  ]
+
+}
+
+The tags JSON node contains an array because there can be several 
+contact entity tag sets associated with an org_id. If there are 
+no tag sets, the following JSON document is returned:
+
+{
+
+  "tags":[]
+
+}
+
+5.8 /get/queue
+
+This interface returns the current call queue. This is updated 
 once each second, so polling the /get/queue interface more often 
 than once each second is both wasteful and pointless. Calling for 
 example:
@@ -213,83 +514,97 @@ will return a JSON string like this:
 
 {     
 
-"normal": 
+  "normal": 
 
     [         
 
-    {             
+      {             
 
-    "UTC_start_date": "2012-02-22 14:23:30",
+        "UTC_start_date":"2012-02-22 14:23:30",
 
-    "id": "GDhcf2VBww",               
+        "id":"GDhcf2VBww",               
 
-    "unix_timestamp": "1329920610",             
+        "unix_timestamp":"1329920610",             
 
-    "callee": "mU1Ff16h",             
+        "callee":5,             
 
-    "caller": "d7sIp1kR"         
+        "caller":"d7sIp1kR"         
 
-    }
+      }
 
     ],
 
-"high": 
+  "high": 
 
     [         
 
-    {              
+      {              
 
-    "UTC_start_date": "2012-02-22 14:23:11",
+        "UTC_start_date":"2012-02-22 14:23:11",
 
-    "id": "bRbYsMUVqx",             
+        "id":"bRbYsMUVqx",             
 
-    "unix_timestamp": "1329920591",                 
+        "unix_timestamp":"1329920591",                 
 
-    "callee": "pMT3k2fb",             
+        "callee":3,             
 
-    "caller": "oCgDF7ua"         
+        "caller":"oCgDF7ua"         
 
-    }
+      }
 
     ],
 
-"low": 
+  "low": 
 
     [         
 
-    {             
+      {             
 
-    "UTC_start_date": "2012-02-22 14:23:17",             "id": 
-"VV8BFqGpqG",             
+        "UTC_start_date":"2012-02-22 14:23:17",            
 
-    "unix_timestamp": "1329920597",              
+       "id":"VV8BFqGpqG",             
 
-    "callee": "7ar4Y1qc",             "caller": 
+        "unix_timestamp":"1329920597",              
 
-    "ZQsRogwB"         
+        "callee":9,             
 
-    }
+       "caller":"ZQsRogwB"         
 
-    ]
+      }
+
+    ],
+
+  “length”:3
 
 }
 
-TODO: Document each JSON field.
-
-3.5 /get/queue?kind=length
-
-This interface returns the length of the current call queue. 
-Calling
-
-/get/queue?kind=length
-
-will return a JSON string like this:
+The normal, low and high nodes represent priority in the queue. 
+All these naturally contains arrays of calls. The length node 
+contains the totalt length of the queue. The callee node maps to 
+an org_id. An empty queue returns the following JSON document:
 
 {
 
-"length":"7"
+  "normal":[], 
+
+  "length":0, 
+
+  "high":[], 
+
+  "low":[]
 
 }
 
-TODO: Document each JSON field.
+5.9 /get/queue_length
+
+This interface returns the length of the current call queue. 
+Example JSON document:
+
+{
+
+  "length":7
+
+}
+
+
 
