@@ -135,6 +135,79 @@ Application level errors and exceptions are returned as JSON documents.
 \end_layout
 
 \begin_layout Section
+The Same Origin Policy - JSONP
+\end_layout
+
+\begin_layout Standard
+Same Origin Policy is a security feature found in the JavaScript implementation
+ in most browser.
+ It prevents you from making requests to pages on a different domain, another
+ subdomain or through a different protocol.
+ The consequence of this is that you cannot query Alice from a client on
+ a different domain than the one used by Alice, which in some cases can
+ be a pain.
+\end_layout
+
+\begin_layout Standard
+The solution to this problem is something called the JSONP standard.
+ This is supported transparently and out of the box by jQuery (and probably
+ other Javascript frameworks).
+ You simply change the 
+\emph on
+get()
+\emph default
+ or 
+\emph on
+post()
+\emph default
+ call to be JSONP based by stating that you would like the return type to
+ be 
+\emph on
+json
+\emph default
+.
+\end_layout
+
+\begin_layout Standard
+If you prefer to build your own query strings by hand, then you must add
+ a 
+\emph on
+jsoncallback
+\emph default
+ (preferred) or 
+\emph on
+callback
+\emph default
+ (will work) parameter with any value.
+ The value of 
+\emph on
+jsoncallback
+\emph default
+ is then used by Alice to wrap the returned JSON string, like this:
+\end_layout
+
+\begin_layout LyX-Code
+/get/queue_length?jsoncallback=foo
+\end_layout
+
+\begin_layout LyX-Code
+foo({
+\begin_inset Quotes erd
+\end_inset
+
+length
+\begin_inset Quotes erd
+\end_inset
+
+:7})
+\end_layout
+
+\begin_layout Standard
+Strictly speaking this is only necessary if the client is running in a browser
+ and is being hosted from another domain than Alice.
+\end_layout
+
+\begin_layout Section
 The Data Model
 \end_layout
 

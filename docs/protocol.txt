@@ -40,7 +40,34 @@ Application level errors and exceptions are returned as JSON
 documents. How these are handled is entirely up to the client. 
 HTTP level errors are returned as normal for HTTP servers.
 
-3 The Data Model
+3 The Same Origin Policy - JSONP
+
+Same Origin Policy is a security feature found in the JavaScript 
+implementation in most browser. It prevents you from making 
+requests to pages on a different domain, another subdomain or 
+through a different protocol. The consequence of this is that you 
+cannot query Alice from a client on a different domain than the 
+one used by Alice, which in some cases can be a pain.
+
+The solution to this problem is something called the JSONP 
+standard. This is supported transparently and out of the box by 
+jQuery (and probably other Javascript frameworks). You simply 
+change the get() or post() call to be JSONP based by stating that 
+you would like the return type to be json.
+
+If you prefer to build your own query strings by hand, then you 
+must add a jsoncallback (preferred) or callback (will work) 
+parameter with any value. The value of jsoncallback is then used 
+by Alice to wrap the returned JSON string, like this:
+
+/get/queue_length?jsoncallback=foo
+
+foo({”length”:7})
+
+Strictly speaking this is only necessary if the client is running 
+in a browser and is being hosted from another domain than Alice.
+
+4 The Data Model
 
 Instead of using only a relational or document based model, we've 
 opted for a mixture. Data that is relational in nature is stored 
@@ -101,7 +128,7 @@ The weakness of this model is of course that a poorly
 designed/build client can end up with some very bad JSON. We 
 believe the strength outweighs the weakness.
 
-4 Exceptions
+5 Exceptions
 
 When bad things happen an exception is raised and an error JSON 
 document returned. These have the following format:
@@ -119,9 +146,9 @@ document returned. These have the following format:
 All exceptions have this format. It is entirely up to the client 
 to decide what to do with an exception.
 
-5 Getting Data
+6 Getting Data
 
-5.1 /get/contact?ce_id=[natural integer]
+6.1 /get/contact?ce_id=[natural integer]
 
 This interface returns the JSON document associated with the 
 contact entity identified by ce_id. Example JSON document:
@@ -149,7 +176,7 @@ database:
 
 {}
 
-5.2 /get/contact_attributes?ce_id=[natural integer]
+6.2 /get/contact_attributes?ce_id=[natural integer]
 
 This interface returns the attributes associated with the ce_id 
 contact entity. Example JSON document:
@@ -218,7 +245,7 @@ following JSON document is returned:
 
 
 
-5.3 /get/contact_tags?ce_id=[natural integer]
+6.3 /get/contact_tags?ce_id=[natural integer]
 
 This interface returns the tags associated with the ce_id contact 
 entity. Example JSON document:
@@ -273,7 +300,7 @@ following JSON document is returned:
 
 
 
-5.4 /get/organization?org_id=[natural_integer]
+6.4 /get/organization?org_id=[natural_integer]
 
 This interface returns the data associated with the org_id 
 organization. Example JSON:
@@ -301,7 +328,7 @@ found in the database:
 
 {}
 
-5.5 /get/org_contacts?org_id=[natural integer]
+6.5 /get/org_contacts?org_id=[natural integer]
 
 This interface returns all the contact entities associated with 
 org_id. Example JSON:
@@ -362,7 +389,7 @@ given org_id the following JSON document is returned:
 
 }
 
-5.6 /get/org_contacts_attributes?org_id=[natural integer]
+6.6 /get/org_contacts_attributes?org_id=[natural integer]
 
 This interface returns all the contact entity attribute sets 
 associated with org_id. Example JSON document:
@@ -424,7 +451,7 @@ returned:
 
 }
 
-5.7 /get/org_contacts_tags?org_id=[natural integer]
+6.7 /get/org_contacts_tags?org_id=[natural integer]
 
 This interface returns all the contact entity tag sets associated 
 with org_id. Example JSON document:
@@ -501,7 +528,7 @@ no tag sets, the following JSON document is returned:
 
 }
 
-5.8 /get/queue
+6.8 /get/queue
 
 This interface returns the current call queue. This is updated 
 once each second, so polling the /get/queue interface more often 
@@ -595,7 +622,7 @@ an org_id. An empty queue returns the following JSON document:
 
 }
 
-5.9 /get/queue_length
+6.9 /get/queue_length
 
 This interface returns the length of the current call queue. 
 Example JSON document:

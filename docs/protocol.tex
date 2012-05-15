@@ -65,6 +65,34 @@ How these are handled is entirely up to the client. HTTP level errors
 are returned as normal for HTTP servers.
 
 
+\section{The Same Origin Policy - JSONP}
+
+Same Origin Policy is a security feature found in the JavaScript implementation
+in most browser. It prevents you from making requests to pages on
+a different domain, another subdomain or through a different protocol.
+The consequence of this is that you cannot query Alice from a client
+on a different domain than the one used by Alice, which in some cases
+can be a pain.
+
+The solution to this problem is something called the JSONP standard.
+This is supported transparently and out of the box by jQuery (and
+probably other Javascript frameworks). You simply change the \emph{get()}
+or \emph{post()} call to be JSONP based by stating that you would
+like the return type to be \emph{json}.
+
+If you prefer to build your own query strings by hand, then you must
+add a \emph{jsoncallback} (preferred) or \emph{callback} (will work)
+parameter with any value. The value of \emph{jsoncallback} is then
+used by Alice to wrap the returned JSON string, like this:
+\begin{lyxcode}
+/get/queue\_length?jsoncallback=foo
+
+foo(\{''length'':7\})
+\end{lyxcode}
+Strictly speaking this is only necessary if the client is running
+in a browser and is being hosted from another domain than Alice.
+
+
 \section{The Data Model}
 
 Instead of using only a relational or document based model, we've
