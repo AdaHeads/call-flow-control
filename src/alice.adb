@@ -44,7 +44,7 @@ procedure Alice is
    use Yolk.Process_Owner;
    use Yolk.Utilities;
 
-   Alice_Version : constant String := "0.30";
+   Alice_Version : constant String := "0.31";
 
    Resource_Handlers : AWS.Services.Dispatchers.URI.Handler;
    Web_Server        : AWS.Server.HTTP;
