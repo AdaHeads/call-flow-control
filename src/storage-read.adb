@@ -259,7 +259,8 @@ package body Storage.Read is
                 SQL_Select (Fields        =>
                               Contactentity.Json &
                               Contactentity.Ce_Id &
-                              Contactentity.Ce_Name,
+                              Contactentity.Ce_Name &
+                              Contactentity.Is_Human,
                             Where         =>
                               Contactentity.Ce_Id = Natural'Value (Ce_Id),
                             Auto_Complete => True);
@@ -287,6 +288,17 @@ package body Storage.Read is
 
                DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (2),
                                      Field      => Cursor.Value (2));
+
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (3),
+                                     Field      => Cursor.Boolean_Value (3));
+
+               if Cursor.Boolean_Value (3) then
+                  JSON.Set_Field (Field_Name => "type",
+                                  Field      => "human");
+               else
+                  JSON.Set_Field (Field_Name => "type",
+                                  Field      => "function");
+               end if;
 
                JSON.Set_Field (Field_Name => "db_columns",
                                Field      => DB_Columns);
@@ -586,7 +598,8 @@ package body Storage.Read is
                                  Contactentity.Json &
                                  Organization_Contactentities.Org_Id &
                                  Contactentity.Ce_Id &
-                                 Contactentity.Ce_Name,
+                                 Contactentity.Ce_Name &
+                                 Contactentity.Is_Human,
                                From   => Contacts,
                                Where  =>
                                  Organization_Contactentities.Org_Id =
@@ -621,6 +634,17 @@ package body Storage.Read is
 
                DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (3),
                                      Field      => Cursor.Value (3));
+
+               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (4),
+                                     Field      => Cursor.Boolean_Value (4));
+
+               if Cursor.Boolean_Value (4) then
+                  DB_JSON.Set_Field (Field_Name => "type",
+                                     Field      => "human");
+               else
+                  DB_JSON.Set_Field (Field_Name => "type",
+                                     Field      => "function");
+               end if;
 
                DB_JSON.Set_Field (Field_Name => "db_columns",
                                   Field      => DB_Columns);
