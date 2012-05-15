@@ -42,6 +42,13 @@ package body Request is
    --      ?callback=foo
    --  GET parameter is present.
 
+   function JSON_Callback_Value
+     (Status_Data : in AWS.Status.Data)
+      return String;
+   --  Return either the GET callback=foo or jsoncallback=foo value, with
+   --  jsoncallback having precedence over plain callback. Return empty string
+   --  if none of them are set.
+
    ---------------------------
    --  Build_JSON_Response  --
    ---------------------------
@@ -51,7 +58,6 @@ package body Request is
       Content     : in String)
       return AWS.Response.Data
    is
-      use Ada.Strings;
       use AWS.Messages;
       use AWS.Response;
       use AWS.Status;
@@ -59,9 +65,8 @@ package body Request is
       D          : AWS.Response.Data;
       Encoding   : constant Content_Encoding := Preferred_Coding (Status_Data);
 
-      P          : constant AWS.Parameters.List := Parameters (Status_Data);
       Callback   : constant String              :=
-                     Fixed.Trim (P.Get ("callback"), Both);
+                     JSON_Callback_Value (Status_Data);
    begin
       if Callback'Length > 0 then
          D := Build (Content_Type  => JSON_MIME_Type,
@@ -164,6 +169,30 @@ package body Request is
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
    end Contact_Tags;
+
+   ---------------------------
+   --  JSON_Callback_Value  --
+   ---------------------------
+
+   function JSON_Callback_Value
+     (Status_Data : in AWS.Status.Data)
+      return String
+   is
+      use Ada.Strings;
+      use AWS.Status;
+
+      P             : constant AWS.Parameters.List := Parameters (Status_Data);
+
+      Callback      : constant String := Fixed.Trim (P.Get ("callback"), Both);
+      JSON_Callback : constant String :=
+                        Fixed.Trim (P.Get ("jsoncallback"), Both);
+   begin
+      if JSON_Callback'Length > 0 then
+         return JSON_Callback;
+      end if;
+
+      return Callback;
+   end JSON_Callback_Value;
 
    --------------------
    --  Org_Contacts  --
