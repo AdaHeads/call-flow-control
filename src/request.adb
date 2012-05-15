@@ -21,6 +21,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Fixed;
 with AWS.Messages;
 with AWS.Parameters;
 with AWS.URL;
@@ -30,39 +31,52 @@ with Storage.Read;
 
 package body Request is
 
-   JSON_MIME_Type : constant String := "application/json";
+   JSON_MIME_Type : constant String := "application/json; charset=utf-8";
 
-   function Build_Response
+   function Build_JSON_Response
      (Status_Data : in AWS.Status.Data;
       Content     : in String)
       return AWS.Response.Data;
-   --  Build the response and compress it if the client supports it.
+   --  Build the response and compress it if the client supports it. Also wraps
+   --  JSON string in foo(JSON string) if the
+   --      ?callback=foo
+   --  GET parameter is present.
 
-   ----------------------
-   --  Build_Response  --
-   ----------------------
+   ---------------------------
+   --  Build_JSON_Response  --
+   ---------------------------
 
-   function Build_Response
+   function Build_JSON_Response
      (Status_Data : in AWS.Status.Data;
       Content     : in String)
       return AWS.Response.Data
    is
+      use Ada.Strings;
       use AWS.Messages;
       use AWS.Response;
       use AWS.Status;
 
-      Encoding : Content_Encoding := Identity;
+      D          : AWS.Response.Data;
+      Encoding   : constant Content_Encoding := Preferred_Coding (Status_Data);
+
+      P          : constant AWS.Parameters.List := Parameters (Status_Data);
+      Callback   : constant String              :=
+                     Fixed.Trim (P.Get ("callback"), Both);
    begin
-      if Is_Supported (Status_Data, GZip) then
-         Encoding := GZip;
-         --  GZip is supported by the client.
+      if Callback'Length > 0 then
+         D := Build (Content_Type  => JSON_MIME_Type,
+                     Message_Body  => Callback & "(" & Content & ")",
+                     Encoding      => Encoding,
+                     Cache_Control => No_Cache);
+      else
+         D :=  Build (Content_Type  => JSON_MIME_Type,
+                      Message_Body  => Content,
+                      Encoding      => Encoding,
+                      Cache_Control => No_Cache);
       end if;
 
-      return Build (Content_Type  => JSON_MIME_Type,
-                    Message_Body  => Content,
-                    Encoding      => Encoding,
-                    Cache_Control => No_Cache);
-   end Build_Response;
+      return D;
+   end Build_JSON_Response;
 
    ---------------
    --  Contact  --
@@ -80,13 +94,13 @@ package body Request is
       P      : constant AWS.Parameters.List := Parameters (Request);
       Ce_Id  : constant String              := P.Get ("ce_id");
    begin
-      return Build_Response
+      return Build_JSON_Response
         (Status_Data => Request,
          Content     => Get_Contact (Ce_Id));
 
    exception
       when Event : others =>
-         return Build_Response
+         return Build_JSON_Response
            (Status_Data => Request,
             Content     => Exception_Handler
               (Event   => Event,
@@ -109,13 +123,13 @@ package body Request is
       P      : constant AWS.Parameters.List := Parameters (Request);
       Ce_Id  : constant String              := P.Get ("ce_id");
    begin
-      return Build_Response
+      return Build_JSON_Response
         (Status_Data => Request,
          Content     => Get_Contact_Attributes (Ce_Id));
 
    exception
       when Event : others =>
-         return Build_Response
+         return Build_JSON_Response
            (Status_Data => Request,
             Content     => Exception_Handler
               (Event   => Event,
@@ -138,13 +152,13 @@ package body Request is
       P      : constant AWS.Parameters.List := Parameters (Request);
       Ce_Id  : constant String              := P.Get ("ce_id");
    begin
-      return Build_Response
+      return Build_JSON_Response
         (Status_Data => Request,
          Content     => Get_Contact_Tags (Ce_Id));
 
    exception
       when Event : others =>
-         return Build_Response
+         return Build_JSON_Response
            (Status_Data => Request,
             Content     => Exception_Handler
               (Event   => Event,
@@ -167,13 +181,13 @@ package body Request is
       P      : constant AWS.Parameters.List := Parameters (Request);
       Org_Id : constant String              := P.Get ("org_id");
    begin
-      return Build_Response
+      return Build_JSON_Response
         (Status_Data => Request,
          Content     => Get_Org_Contacts (Org_Id));
 
    exception
       when Event : others =>
-         return Build_Response
+         return Build_JSON_Response
            (Status_Data => Request,
             Content     => Exception_Handler
               (Event   => Event,
@@ -196,13 +210,13 @@ package body Request is
       P      : constant AWS.Parameters.List := Parameters (Request);
       Org_Id : constant String              := P.Get ("org_id");
    begin
-      return Build_Response
+      return Build_JSON_Response
         (Status_Data => Request,
          Content     => Get_Org_Contacts_Attributes (Org_Id));
 
    exception
       when Event : others =>
-         return Build_Response
+         return Build_JSON_Response
            (Status_Data => Request,
             Content     => Exception_Handler
               (Event   => Event,
@@ -225,13 +239,13 @@ package body Request is
       P      : constant AWS.Parameters.List := Parameters (Request);
       Org_Id : constant String              := P.Get ("org_id");
    begin
-      return Build_Response
+      return Build_JSON_Response
         (Status_Data => Request,
          Content     => Get_Org_Contacts_Tags (Org_Id));
 
    exception
       when Event : others =>
-         return Build_Response
+         return Build_JSON_Response
            (Status_Data => Request,
             Content     => Exception_Handler
               (Event   => Event,
@@ -254,13 +268,13 @@ package body Request is
       P      : constant AWS.Parameters.List := Parameters (Request);
       Org_Id : constant String              := P.Get ("org_id");
    begin
-      return Build_Response
+      return Build_JSON_Response
         (Status_Data => Request,
          Content     => Get_Organization (Org_Id));
 
    exception
       when Event : others =>
-         return Build_Response
+         return Build_JSON_Response
            (Status_Data => Request,
             Content     => Exception_Handler
               (Event   => Event,
@@ -276,7 +290,7 @@ package body Request is
       return AWS.Response.Data
    is
    begin
-      return Build_Response
+      return Build_JSON_Response
         (Status_Data => Request,
          Content     => Call_Queue.Get);
    end Queue;
@@ -290,8 +304,8 @@ package body Request is
       return AWS.Response.Data
    is
    begin
-      return Build_Response (Status_Data => Request,
-                             Content     => Call_Queue.Length);
+      return Build_JSON_Response (Status_Data => Request,
+                                  Content     => Call_Queue.Length);
    end Queue_Length;
 
 end Request;
