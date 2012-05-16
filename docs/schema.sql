@@ -36,16 +36,19 @@ ALTER TABLE organization
 --
 --  Note that the COLLATE parameter should be set according to the environment.
 --
---     ce_id   : Unique identifier for a contact entity.
---     ce_name : SHOULD contain the actual name of the contact entity. This is
---               used primarily for sorting and presentation, to avoid parsing
---               the JSON object.
---     json    : The actual contact entity data.
+--     ce_id    : Unique identifier for a contact entity.
+--     ce_name  : SHOULD contain the actual name of the contact entity. This is
+--                used primarily for sorting and presentation, to avoid parsing
+--                the JSON object.
+--     json     : The actual contact entity data.
+--     is_human : If True the contact entity is an actual human, if False then
+--     		  it's a function/group.
 CREATE TABLE contactentity
 (
   ce_id serial NOT NULL,
   ce_name text COLLATE pg_catalog."da_DK.utf8" NOT NULL,
   json text NOT NULL,
+  is_human boolean NOT NULL DEFAULT true,
   CONSTRAINT contactentity_pkey PRIMARY KEY (ce_id )
 )
 WITH (
@@ -113,6 +116,7 @@ WITH (
 );
 ALTER TABLE contactentity_attributes
   OWNER TO alice;
+
 
 --  Contact entity tags.
 --  SHOULD contain the searchable tags that enables a receptionist to quickly
