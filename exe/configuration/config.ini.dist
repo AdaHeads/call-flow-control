@@ -304,7 +304,7 @@ Session_Lifetime 1200.0
 #   server could possibly mean a lot of memory spend keeping track of all
 #   those sessions. Use with caution.
 
-Session_Name Alice
+Session_Name Yolk
 # String
 # Default: Yolk
 # AWS configuration option: Yes
@@ -676,7 +676,7 @@ Receive_Timeout 30.0
 #
 # Number of seconds before timing out when receiving data.
 
-Reuse_Address True
+Reuse_Address False
 # Boolean
 # Default: False
 # AWS configuration option: Yes
@@ -709,7 +709,7 @@ Server_Host
 #
 # Unless you _know_ you need to set the host, this parameter should be left empty.
 
-Server_Name Alice
+Server_Name Yolk
 # String
 # Default: Yolk
 # AWS configuration option: Yes

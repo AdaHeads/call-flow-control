@@ -2,6 +2,9 @@
 build*/*
 !build*/.gitignore
 
+# Do not track the .ini files in exe/configuration
+exe/configuration/*.ini
+
 # Do not track pid files and the alice executable in exe/
 exe/alice
 exe/*.pid
