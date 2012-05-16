@@ -31,19 +31,6 @@ package Database is
    type T_Numbered_Contactentity_Attributes (Index : Integer)
       is new T_Abstract_Contactentity_Attributes (null, Index) with null record;
 
-   type T_Abstract_Contactentity_Tags (Instance : Cst_String_Access; Index : Integer)
-      is abstract new SQL_Table (Ta_Contactentity_Tags, Instance, Index) with
-   record
-      Ce_Id : SQL_Field_Integer (Ta_Contactentity_Tags, Instance, N_Ce_Id, Index);
-      Json : SQL_Field_Text (Ta_Contactentity_Tags, Instance, N_Json, Index);
-      Org_Id : SQL_Field_Integer (Ta_Contactentity_Tags, Instance, N_Org_Id, Index);
-   end record;
-
-   type T_Contactentity_Tags (Instance : Cst_String_Access)
-      is new T_Abstract_Contactentity_Tags (Instance, -1) with null record;
-   type T_Numbered_Contactentity_Tags (Index : Integer)
-      is new T_Abstract_Contactentity_Tags (null, Index) with null record;
-
    type T_Abstract_Organization (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Organization, Instance, Index) with
    record
@@ -73,15 +60,11 @@ package Database is
    function FK (Self : T_Contactentity_Attributes'Class; Foreign : T_Organization'Class) return SQL_Criteria;
    function FK (Self : T_Contactentity_Attributes'Class; Foreign : T_Contactentity'Class) return SQL_Criteria;
    function FK (Self : T_Contactentity_Attributes'Class; Foreign : T_Organization_Contactentities'Class) return SQL_Criteria;
-   function FK (Self : T_Contactentity_Tags'Class; Foreign : T_Organization'Class) return SQL_Criteria;
-   function FK (Self : T_Contactentity_Tags'Class; Foreign : T_Contactentity'Class) return SQL_Criteria;
-   function FK (Self : T_Contactentity_Tags'Class; Foreign : T_Organization_Contactentities'Class) return SQL_Criteria;
    function FK (Self : T_Organization_Contactentities'Class; Foreign : T_Organization'Class) return SQL_Criteria;
    function FK (Self : T_Organization_Contactentities'Class; Foreign : T_Contactentity'Class) return SQL_Criteria;
 
    Contactentity : T_Contactentity (null);
    Contactentity_Attributes : T_Contactentity_Attributes (null);
-   Contactentity_Tags : T_Contactentity_Tags (null);
    Organization : T_Organization (null);
    Organization_Contactentities : T_Organization_Contactentities (null);
 end Database;

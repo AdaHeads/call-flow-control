@@ -141,35 +141,6 @@ package body Request is
                Message => "Requested resource: " & URL (URI (Request))));
    end Contact_Attributes;
 
-   --------------------
-   --  Contact_Tags  --
-   --------------------
-
-   function Contact_Tags
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data
-   is
-      use AWS.Status;
-      use AWS.URL;
-      use Errors;
-      use Storage.Read;
-
-      P      : constant AWS.Parameters.List := Parameters (Request);
-      Ce_Id  : constant String              := P.Get ("ce_id");
-   begin
-      return Build_JSON_Response
-        (Status_Data => Request,
-         Content     => Get_Contact_Tags (Ce_Id));
-
-   exception
-      when Event : others =>
-         return Build_JSON_Response
-           (Status_Data => Request,
-            Content     => Exception_Handler
-              (Event   => Event,
-               Message => "Requested resource: " & URL (URI (Request))));
-   end Contact_Tags;
-
    ---------------------------
    --  JSON_Callback_Value  --
    ---------------------------
@@ -251,35 +222,6 @@ package body Request is
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
    end Org_Contacts_Attributes;
-
-   -------------------------
-   --  Org_Contacts_Tags  --
-   -------------------------
-
-   function Org_Contacts_Tags
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data
-   is
-      use AWS.Status;
-      use AWS.URL;
-      use Errors;
-      use Storage.Read;
-
-      P      : constant AWS.Parameters.List := Parameters (Request);
-      Org_Id : constant String              := P.Get ("org_id");
-   begin
-      return Build_JSON_Response
-        (Status_Data => Request,
-         Content     => Get_Org_Contacts_Tags (Org_Id));
-
-   exception
-      when Event : others =>
-         return Build_JSON_Response
-           (Status_Data => Request,
-            Content     => Exception_Handler
-              (Event   => Event,
-               Message => "Requested resource: " & URL (URI (Request))));
-   end Org_Contacts_Tags;
 
    --------------------
    --  Organization  --

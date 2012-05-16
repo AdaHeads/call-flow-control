@@ -37,13 +37,6 @@ package Storage.Read is
    --  different attribute sets, depending on the organization the contact
    --  belongs to.
 
-   function Get_Contact_Tags
-     (Ce_Id  : in String)
-      return String;
-   --  Return a Contact_Tags JSON string. This contains tags for ONE
-   --  contactentity. Note that one contactentity can have several different
-   --  tag sets, depending on the organization the contact belongs to.
-
    function Get_Org_Contacts
      (Org_Id : in String)
       return String;
@@ -56,13 +49,6 @@ package Storage.Read is
    --  Return a Contacts_Attributes JSON string. This contains all the
    --  contactentity attributes that relates to the given Org_Id, meaning one
    --  set of attributes per contactentity that relates to Org_Id.
-
-   function Get_Org_Contacts_Tags
-     (Org_Id  : in String)
-      return String;
-   --  Return a Contacts_Tags JSON string. This contains all the
-   --  contactentity tags that relates to the given Org_Id, meaning one
-   --  set of tags per contactentity that relates to Org_Id.
 
    function Get_Organization
      (Org_Id : in String)

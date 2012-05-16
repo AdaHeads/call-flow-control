@@ -130,12 +130,6 @@ Handler_Get_Contact_Attributes /get/contact_attributes
 #
 # The regular expression to match the /get/contact_attributes resource.
 
-Handler_Get_Contact_Tags /get/contact_tags
-# String.
-# Default: /get/contact_tags
-#
-# The regular expression to match the /get/contact_tags resource.
-
 Handler_Get_Org_Contacts /get/org_contacts
 # String.
 # Default: /get/org_contacts
@@ -147,12 +141,6 @@ Handler_Get_Org_Contacts_Attributes /get/org_contacts_attributes
 # Default: /get/org_contacts_attributes
 #
 # The regular expression to match the /get/org_contact_attributes resource.
-
-Handler_Get_Org_Contacts_Tags /get/org_contacts_tags
-# String.
-# Default: /get/org_contacts_tags
-#
-# The regular expression to match the /get/org_contact_tags resource.
 
 Handler_Get_Organization /get/organization
 # String.

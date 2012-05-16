@@ -40,8 +40,7 @@
 
 Alice acts as the connector between one or more NAME\_OF\_PRODUCT
 clients, a PostgreSQL data store and one ore more PBX'es. Her main
-task is to get and set data via a HTTP/JSON based protocol. This document
-is the final authority on the Alice protocol.
+task is to get and set data via a HTTP/JSON based protocol.
 
 
 \section{The Protocol}
@@ -231,7 +230,9 @@ contact entity. Example JSON document:
 \end{lyxcode}
 \},~
 \end{lyxcode}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}some@email.address\textquotedbl{}
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}some@email.address\textquotedbl{},
+
+\textquotedbl{}tags\textquotedbl{}:{[}\textquotedbl{}Ada\textquotedbl{},\textquotedbl{}Slackware\textquotedbl{},\textquotedbl{}Linux\textquotedbl{}{]}
 \end{lyxcode}
 \},
 
@@ -270,62 +271,6 @@ JSON document is returned:
 \{
 \begin{lyxcode}
 \textquotedbl{}attributes\textquotedbl{}:{[}{]}
-\end{lyxcode}
-\}
-
-
-\end{lyxcode}
-
-\subsection{/get/contact\_tags?ce\_id={[}natural integer{]}}
-
-This interface returns the tags associated with the \emph{ce\_id}
-contact entity. Example JSON document:
-\begin{lyxcode}
-\{
-\begin{lyxcode}
-\textquotedbl{}tags\textquotedbl{}:
-
-{[}
-\begin{lyxcode}
-\{
-\begin{lyxcode}
-\textquotedbl{}db\_columns\textquotedbl{}:
-
-\{
-\begin{lyxcode}
-\textquotedbl{}ce\_id\textquotedbl{}:1,~
-
-\textquotedbl{}org\_id\textquotedbl{}:2
-\end{lyxcode}
-\},~
-
-\textquotedbl{}tags\textquotedbl{}:
-
-{[}
-\begin{lyxcode}
-\textquotedbl{}Ada\textquotedbl{},~
-
-\textquotedbl{}Slackware\textquotedbl{},~
-
-\textquotedbl{}Linux\textquotedbl{}
-\end{lyxcode}
-{]}
-\end{lyxcode}
-\}
-\end{lyxcode}
-{]}
-\end{lyxcode}
-\}
-\end{lyxcode}
-As with the attributes interface the \emph{tags} node contains an
-array so several tag sets can be associated with a contact entity.
-
-If there are no tags associated with a contact entity, the following
-JSON document is returned:
-\begin{lyxcode}
-\{
-\begin{lyxcode}
-\textquotedbl{}tags\textquotedbl{}:{[}{]}
 \end{lyxcode}
 \}
 
@@ -448,7 +393,9 @@ with \emph{org\_id}. Example JSON document:
 \end{lyxcode}
 \},~
 \end{lyxcode}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}some@email.address\textquotedbl{}
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}some@email.address\textquotedbl{},
+
+\textquotedbl{}tags\textquotedbl{}:{[}\textquotedbl{}Ada\textquotedbl{},\textquotedbl{}Slackware\textquotedbl{},\textquotedbl{}Linux\textquotedbl{}{]}
 \end{lyxcode}
 \},~
 
@@ -481,86 +428,6 @@ If there are no attribute sets, the following JSON document is returned:
 \{
 \begin{lyxcode}
 \textquotedbl{}attributes\textquotedbl{}:{[}{]}
-\end{lyxcode}
-\}
-\end{lyxcode}
-
-\subsection{/get/org\_contacts\_tags?org\_id={[}natural integer{]}}
-
-This interface returns all the contact entity tag sets associated
-with \emph{org\_id}. Example JSON document:
-\begin{lyxcode}
-\{
-\begin{lyxcode}
-\textquotedbl{}tags\textquotedbl{}:
-
-{[}
-\begin{lyxcode}
-\{
-\begin{lyxcode}
-\textquotedbl{}tags\textquotedbl{}:
-
-{[}
-\begin{lyxcode}
-\textquotedbl{}Ada\textquotedbl{},~
-
-\textquotedbl{}Slackware\textquotedbl{},~
-
-\textquotedbl{}Linux\textquotedbl{}
-\end{lyxcode}
-{]},
-
-\textquotedbl{}db\_columns\textquotedbl{}:
-\begin{lyxcode}
-\{
-\begin{lyxcode}
-\textquotedbl{}ce\_id\textquotedbl{}:1,~
-
-\textquotedbl{}org\_id\textquotedbl{}:1
-\end{lyxcode}
-\}
-\end{lyxcode}
-\end{lyxcode}
-\},~
-
-\{
-\begin{lyxcode}
-\textquotedbl{}tags\textquotedbl{}:
-
-{[}
-\begin{lyxcode}
-\textquotedbl{}Support\textquotedbl{},~
-
-\textquotedbl{}Accounting\textquotedbl{},~
-
-\textquotedbl{}Sales\textquotedbl{}
-\end{lyxcode}
-{]},
-
-\textquotedbl{}db\_columns\textquotedbl{}:
-\begin{lyxcode}
-\{
-\begin{lyxcode}
-\textquotedbl{}ce\_id\textquotedbl{}:7,~
-
-\textquotedbl{}org\_id\textquotedbl{}:1
-\end{lyxcode}
-\}
-\end{lyxcode}
-\end{lyxcode}
-\}
-\end{lyxcode}
-{]}
-\end{lyxcode}
-\}
-\end{lyxcode}
-The \emph{tags} JSON node contains an array because there can be several
-contact entity tag sets associated with an \emph{org\_id}. If there
-are no tag sets, the following JSON document is returned:
-\begin{lyxcode}
-\{
-\begin{lyxcode}
-\textquotedbl{}tags\textquotedbl{}:{[}{]}
 \end{lyxcode}
 \}
 \end{lyxcode}

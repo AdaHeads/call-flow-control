@@ -84,8 +84,8 @@ ALTER TABLE organization_contactentities
 
 
 --  Contact entity attributes.
---  SHOULD contain such data as name, emailaddresses, phone numbers and other
---  relevant information about a contact entity.
+--  SHOULD contain such data as name, emailaddresses, phone numbers, tags and
+--  other relevant information about a contact entity.
 --
 --  Note that the constraints make sure that there can only be one set of
 --  attributes per org_id <-> ce_id relation, and that this set is removed if
@@ -115,39 +115,4 @@ WITH (
   OIDS=FALSE
 );
 ALTER TABLE contactentity_attributes
-  OWNER TO alice;
-
-
---  Contact entity tags.
---  SHOULD contain the searchable tags that enables a receptionist to quickly
---  locate a contact entity.
---
---  Note that the constraints make sure that there can only be one set of tags
---  per org_id <-> ce_id relation, and that this set is removed if the
---  organization, contact entity or organization <-> contact relation is
---  deleted from the database.
---
---     org_id : Identifies an organization.
---     ce_id  : Identifies a contact entity.
---     json   : The actual tags for a contact entity.
-CREATE TABLE contactentity_tags
-(
-  org_id integer NOT NULL,
-  ce_id integer NOT NULL,
-  json text NOT NULL,
-  CONSTRAINT contactentity_tags_pkey PRIMARY KEY (ce_id , org_id ),
-  CONSTRAINT contactentity_tags_ce_and_org_id_fkey FOREIGN KEY (ce_id, org_id)
-      REFERENCES organization_contactentities (ce_id, org_id) MATCH SIMPLE
-      ON UPDATE CASCADE ON DELETE CASCADE,
-  CONSTRAINT contactentity_tags_org_id_fkey FOREIGN KEY (org_id)
-      REFERENCES organization (org_id) MATCH SIMPLE
-      ON UPDATE CASCADE ON DELETE CASCADE,
-  CONSTRAINT contactentity_tags_ce_id_fkey FOREIGN KEY (ce_id)
-      REFERENCES contactentity (ce_id) MATCH SIMPLE
-      ON UPDATE CASCADE ON DELETE CASCADE
-)
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE contactentity_tags
   OWNER TO alice;

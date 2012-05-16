@@ -74,12 +74,6 @@ package body My_Handlers is
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Get_Contact_Tags),
-         Action     => Create
-           (Callback => Request.Contact_Tags'Access));
-
-      AWS.Services.Dispatchers.URI.Register
-        (Dispatcher => RH,
          URI        => My.Config.Get (My.Handler_Get_Org_Contacts),
          Action     => Create
            (Callback => Request.Org_Contacts'Access));
@@ -89,12 +83,6 @@ package body My_Handlers is
          URI        => My.Config.Get (My.Handler_Get_Org_Contacts_Attributes),
          Action     => Create
            (Callback => Request.Org_Contacts_Attributes'Access));
-
-      AWS.Services.Dispatchers.URI.Register
-        (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Get_Org_Contacts_Tags),
-         Action     => Create
-           (Callback => Request.Org_Contacts_Tags'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,

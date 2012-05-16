@@ -14,8 +14,7 @@ Table of Contents
 
 Alice acts as the connector between one or more NAME_OF_PRODUCT 
 clients, a PostgreSQL data store and one ore more PBX'es. Her 
-main task is to get and set data via a HTTP/JSON based protocol. 
-This document is the final authority on the Alice protocol.
+main task is to get and set data via a HTTP/JSON based protocol.
 
 2 The Protocol
 
@@ -201,7 +200,9 @@ contact entity. Example JSON document:
 
         }, 
 
-      "email":"some@email.address"
+      "email":"some@email.address",
+
+      "tags":["Ada","Slackware","Linux"]
 
     },
 
@@ -245,62 +246,7 @@ following JSON document is returned:
 
 
 
-6.3 /get/contact_tags?ce_id=[natural integer]
-
-This interface returns the tags associated with the ce_id contact 
-entity. Example JSON document:
-
-{
-
-  "tags":
-
-  [
-
-    {
-
-      "db_columns":
-
-      {
-
-        "ce_id":1, 
-
-        "org_id":2
-
-      }, 
-
-      "tags":
-
-      [
-
-        "Ada", 
-
-        "Slackware", 
-
-        "Linux"
-
-      ]
-
-    }
-
-  ]
-
-}
-
-As with the attributes interface the tags node contains an array 
-so several tag sets can be associated with a contact entity.
-
-If there are no tags associated with a contact entity, the 
-following JSON document is returned:
-
-{
-
-  "tags":[]
-
-}
-
-
-
-6.4 /get/organization?org_id=[natural_integer]
+6.3 /get/organization?org_id=[natural_integer]
 
 This interface returns the data associated with the org_id 
 organization. Example JSON:
@@ -328,7 +274,7 @@ found in the database:
 
 {}
 
-6.5 /get/org_contacts?org_id=[natural integer]
+6.4 /get/org_contacts?org_id=[natural integer]
 
 This interface returns all the contact entities associated with 
 org_id. Example JSON:
@@ -389,7 +335,7 @@ given org_id the following JSON document is returned:
 
 }
 
-6.6 /get/org_contacts_attributes?org_id=[natural integer]
+6.5 /get/org_contacts_attributes?org_id=[natural integer]
 
 This interface returns all the contact entity attribute sets 
 associated with org_id. Example JSON document:
@@ -414,7 +360,9 @@ associated with org_id. Example JSON document:
 
         }, 
 
-      "email":"some@email.address"
+      "email":"some@email.address",
+
+      "tags":["Ada","Slackware","Linux"]
 
     }, 
 
@@ -451,84 +399,7 @@ returned:
 
 }
 
-6.7 /get/org_contacts_tags?org_id=[natural integer]
-
-This interface returns all the contact entity tag sets associated 
-with org_id. Example JSON document:
-
-{
-
-  "tags":
-
-  [
-
-    {
-
-      "tags":
-
-      [
-
-        "Ada", 
-
-        "Slackware", 
-
-        "Linux"
-
-      ],
-
-      "db_columns":
-
-        {
-
-          "ce_id":1, 
-
-          "org_id":1
-
-        }
-
-    }, 
-
-    {
-
-      "tags":
-
-      [
-
-        "Support", 
-
-        "Accounting", 
-
-        "Sales"
-
-      ],
-
-      "db_columns":
-
-        {
-
-          "ce_id":7, 
-
-          "org_id":1
-
-        }
-
-    }
-
-  ]
-
-}
-
-The tags JSON node contains an array because there can be several 
-contact entity tag sets associated with an org_id. If there are 
-no tag sets, the following JSON document is returned:
-
-{
-
-  "tags":[]
-
-}
-
-6.8 /get/queue
+6.6 /get/queue
 
 This interface returns the current call queue. This is updated 
 once each second, so polling the /get/queue interface more often 
@@ -622,7 +493,7 @@ an org_id. An empty queue returns the following JSON document:
 
 }
 
-6.9 /get/queue_length
+6.7 /get/queue_length
 
 This interface returns the length of the current call queue. 
 Example JSON document:

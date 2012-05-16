@@ -42,10 +42,8 @@ package My_Configuration is
                  DB2_Password,
                  Handler_Get_Contact,
                  Handler_Get_Contact_Attributes,
-                 Handler_Get_Contact_Tags,
                  Handler_Get_Org_Contacts,
                  Handler_Get_Org_Contacts_Attributes,
-                 Handler_Get_Org_Contacts_Tags,
                  Handler_Get_Organization,
                  Handler_Get_Queue,
                  Handler_Get_Queue_Length);
@@ -67,7 +65,7 @@ package My_Configuration is
                        DB_User
                        => TUS ("alice"),
                        DB_Password
-                       => TUS ("D3nSort3H3st"),
+                       => TUS ("secret"),
                        DB2_Host
                        => TUS ("pg2.adaheads.com"),
                        DB2_Name
@@ -75,19 +73,15 @@ package My_Configuration is
                        DB2_User
                        => TUS ("alice"),
                        DB2_Password
-                       => TUS ("D3nSort3H3st"),
+                       => TUS ("secret"),
                        Handler_Get_Contact
                        => TUS ("/get/contact"),
                        Handler_Get_Contact_Attributes
                        => TUS ("/get/contact_attributes"),
-                       Handler_Get_Contact_Tags
-                       => TUS ("/get/contact_tags"),
                        Handler_Get_Org_Contacts
                        => TUS ("/get/org_contacts"),
                        Handler_Get_Org_Contacts_Attributes
                        => TUS ("/get/org_contacts_attributes"),
-                       Handler_Get_Org_Contacts_Tags
-                       => TUS ("/get/org_contacts_tags"),
                        Handler_Get_Organization
                        => TUS ("/get/organization"),
                        Handler_Get_Queue

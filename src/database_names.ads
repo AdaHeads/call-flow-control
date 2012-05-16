@@ -5,8 +5,6 @@ package Database_Names is
    Ta_Contactentity : constant Cst_String_Access := TC_Contactentity'Access;
    TC_Contactentity_Attributes : aliased constant String := "contactentity_attributes";
    Ta_Contactentity_Attributes : constant Cst_String_Access := TC_Contactentity_Attributes'Access;
-   TC_Contactentity_Tags : aliased constant String := "contactentity_tags";
-   Ta_Contactentity_Tags : constant Cst_String_Access := TC_Contactentity_Tags'Access;
    TC_Organization : aliased constant String := "organization";
    Ta_Organization : constant Cst_String_Access := TC_Organization'Access;
    TC_Organization_Contactentities : aliased constant String := "organization_contactentities";

@@ -99,7 +99,6 @@ Introduction
 Alice acts as the connector between one or more NAME_OF_PRODUCT clients,
  a PostgreSQL data store and one ore more PBX'es.
  Her main task is to get and set data via a HTTP/JSON based protocol.
- This document is the final authority on the Alice protocol.
 \end_layout
 
 \begin_layout Section
@@ -643,7 +642,11 @@ ce_id
 
 \end_deeper
 \begin_layout LyX-Code
-"email":"some@email.address"
+"email":"some@email.address",
+\end_layout
+
+\begin_layout LyX-Code
+"tags":["Ada","Slackware","Linux"]
 \end_layout
 
 \end_deeper
@@ -730,133 +733,6 @@ If there are no attributes associated with a contact entity, the following
 \begin_deeper
 \begin_layout LyX-Code
 "attributes":[]
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-}
-\end_layout
-
-\begin_layout LyX-Code
-
-\end_layout
-
-\begin_layout Subsection
-/get/contact_tags?ce_id=[natural integer]
-\end_layout
-
-\begin_layout Standard
-This interface returns the tags associated with the 
-\emph on
-ce_id
-\emph default
- contact entity.
- Example JSON document:
-\end_layout
-
-\begin_layout LyX-Code
-{
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"tags":
-\end_layout
-
-\begin_layout LyX-Code
-[
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-{
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"db_columns":
-\end_layout
-
-\begin_layout LyX-Code
-{
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"ce_id":1, 
-\end_layout
-
-\begin_layout LyX-Code
-"org_id":2
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-}, 
-\end_layout
-
-\begin_layout LyX-Code
-"tags":
-\end_layout
-
-\begin_layout LyX-Code
-[
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"Ada", 
-\end_layout
-
-\begin_layout LyX-Code
-"Slackware", 
-\end_layout
-
-\begin_layout LyX-Code
-"Linux"
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-]
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-}
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-]
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-}
-\end_layout
-
-\begin_layout Standard
-As with the attributes interface the 
-\emph on
-tags
-\emph default
- node contains an array so several tag sets can be associated with a contact
- entity.
-\end_layout
-
-\begin_layout Standard
-If there are no tags associated with a contact entity, the following JSON
- document is returned:
-\end_layout
-
-\begin_layout LyX-Code
-{
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"tags":[]
 \end_layout
 
 \end_deeper
@@ -1139,7 +1015,11 @@ org_id
 
 \end_deeper
 \begin_layout LyX-Code
-"email":"some@email.address"
+"email":"some@email.address",
+\end_layout
+
+\begin_layout LyX-Code
+"tags":["Ada","Slackware","Linux"]
 \end_layout
 
 \end_deeper
@@ -1220,191 +1100,6 @@ attributes
 \begin_deeper
 \begin_layout LyX-Code
 "attributes":[]
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-}
-\end_layout
-
-\begin_layout Subsection
-/get/org_contacts_tags?org_id=[natural integer]
-\end_layout
-
-\begin_layout Standard
-This interface returns all the contact entity tag sets associated with 
-\emph on
-org_id
-\emph default
-.
- Example JSON document:
-\end_layout
-
-\begin_layout LyX-Code
-{
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"tags":
-\end_layout
-
-\begin_layout LyX-Code
-[
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-{
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"tags":
-\end_layout
-
-\begin_layout LyX-Code
-[
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"Ada", 
-\end_layout
-
-\begin_layout LyX-Code
-"Slackware", 
-\end_layout
-
-\begin_layout LyX-Code
-"Linux"
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-],
-\end_layout
-
-\begin_layout LyX-Code
-"db_columns":
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-{
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"ce_id":1, 
-\end_layout
-
-\begin_layout LyX-Code
-"org_id":1
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-}
-\end_layout
-
-\end_deeper
-\end_deeper
-\begin_layout LyX-Code
-}, 
-\end_layout
-
-\begin_layout LyX-Code
-{
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"tags":
-\end_layout
-
-\begin_layout LyX-Code
-[
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"Support", 
-\end_layout
-
-\begin_layout LyX-Code
-"Accounting", 
-\end_layout
-
-\begin_layout LyX-Code
-"Sales"
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-],
-\end_layout
-
-\begin_layout LyX-Code
-"db_columns":
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-{
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"ce_id":7, 
-\end_layout
-
-\begin_layout LyX-Code
-"org_id":1
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-}
-\end_layout
-
-\end_deeper
-\end_deeper
-\begin_layout LyX-Code
-}
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-]
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-}
-\end_layout
-
-\begin_layout Standard
-The 
-\emph on
-tags
-\emph default
- JSON node contains an array because there can be several contact entity
- tag sets associated with an 
-\emph on
-org_id
-\emph default
-.
- If there are no tag sets, the following JSON document is returned:
-\end_layout
-
-\begin_layout LyX-Code
-{
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"tags":[]
 \end_layout
 
 \end_deeper

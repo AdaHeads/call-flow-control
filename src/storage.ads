@@ -71,14 +71,6 @@ package Storage is
       Reserved_Capacity => Config.Get (Cache_Size_Contact));
    --  Cache for individual contact attributes JSON objects.
 
-   package Contact_Tags_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => Unbounded_String,
-      Cleanup_Size      => Config.Get (Cache_Size_Contact) + 1,
-      Cleanup_On_Write  => True,
-      Max_Element_Age   => Config.Get (Cache_Max_Element_Age),
-      Reserved_Capacity => Config.Get (Cache_Size_Contact));
-   --  Cache for individual contact tags JSON objects.
-
    package Org_Contacts_Cache is new Yolk.Cache.String_Keys
      (Element_Type      => Unbounded_String,
       Cleanup_Size      => Config.Get (Cache_Size_Organization) + 1,
@@ -96,15 +88,6 @@ package Storage is
       Reserved_Capacity => Config.Get (Cache_Size_Organization));
    --  Cache for groups of contact attributes JSON objects. The groups SHOULD
    --  be based on the organization the contacts belong to.
-
-   package Org_Contacts_Tags_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => Unbounded_String,
-      Cleanup_Size      => Config.Get (Cache_Size_Organization) + 1,
-      Cleanup_On_Write  => True,
-      Max_Element_Age   => Config.Get (Cache_Max_Element_Age),
-      Reserved_Capacity => Config.Get (Cache_Size_Organization));
-   --  Cache for groups of contact tags JSON objects. The groups SHOULD be
-   --  based on the organization the contacts belong to.
 
    package Organization_Cache is new Yolk.Cache.String_Keys
      (Element_Type      => Unbounded_String,
