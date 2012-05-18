@@ -42,8 +42,10 @@ package My_Configuration is
                  DB2_Password,
                  Handler_Get_Contact,
                  Handler_Get_Contact_Attributes,
+                 Handler_Get_Contact_Full,
                  Handler_Get_Org_Contacts,
                  Handler_Get_Org_Contacts_Attributes,
+                 Handler_Get_Org_Contacts_Full,
                  Handler_Get_Organization,
                  Handler_Get_Queue,
                  Handler_Get_Queue_Length);
@@ -78,10 +80,14 @@ package My_Configuration is
                        => TUS ("/get/contact"),
                        Handler_Get_Contact_Attributes
                        => TUS ("/get/contact_attributes"),
+                       Handler_Get_Contact_Full
+                       => TUS ("/get/contact_full"),
                        Handler_Get_Org_Contacts
                        => TUS ("/get/org_contacts"),
                        Handler_Get_Org_Contacts_Attributes
                        => TUS ("/get/org_contacts_attributes"),
+                       Handler_Get_Org_Contacts_Full
+                       => TUS ("/get/org_contacts_full"),
                        Handler_Get_Organization
                        => TUS ("/get/organization"),
                        Handler_Get_Queue

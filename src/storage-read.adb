@@ -25,6 +25,7 @@ with AWS.Utils;
 with Database;
 with Errors;
 with GNATCOLL.JSON;
+with JSONIFY;
 with Yolk.Utilities;
 
 package body Storage.Read is
@@ -41,22 +42,32 @@ package body Storage.Read is
    function Get_Contact_From_DB
      (Ce_Id : in String)
       return Unbounded_String;
-   --  Get the Ce_Id contactentity from persistent storage.
+   --  Get the Ce_Id contact entity from persistent storage.
 
    function Get_Contact_Attributes_From_DB
      (Ce_Id  : in String)
       return Unbounded_String;
-   --  Get the Ce_Id contactentity attributes from persistent storage.
+   --  Get the Ce_Id contact entity attributes from persistent storage.
+
+   function Get_Contact_Full_From_DB
+     (Ce_Id : in String)
+      return Unbounded_String;
+   --  Get the Ce_Id contact entity with Attributes from persistent storage.
 
    function Get_Org_Contacts_From_DB
      (Org_Id : in String)
       return Unbounded_String;
-   --  Get the Org_Id contactentities from persistent storage.
+   --  Get the Org_Id contact entities from persistent storage.
 
    function Get_Org_Contacts_Attributes_From_DB
      (Org_Id : in String)
       return Unbounded_String;
-   --  Get the Org_Id contactentity attributes from persistent storage.
+   --  Get the Org_Id contact entity attributes from persistent storage.
+
+   function Get_Org_Contacts_Full_From_DB
+     (Org_Id : in String)
+      return Unbounded_String;
+   --  Get the Org_Id contact entities from persistent storage.
 
    function Get_Organization_From_DB
      (Org_Id : in String)
@@ -178,12 +189,7 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-
-      Attr_Array     : JSON_Array;
-      DB_Columns     : JSON_Value;
-      DB_JSON        : JSON_Value;
-      JSON           : constant JSON_Value      := Create_Object;
-
+      JSON           : JSON_Value               := Create_Object;
       Value          : Unbounded_String         := Null_Unbounded_String;
    begin
       Fetch_Data :
@@ -191,29 +197,7 @@ package body Storage.Read is
          Cursor.Fetch (DB_Connections (k).Host, Query);
 
          if DB_Connections (k).Host.Success then
-            while Cursor.Has_Row loop
-               DB_Columns := Create_Object;
-               DB_JSON    := Create_Object;
-
-               DB_JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
-
-               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (1),
-                                     Field      => Cursor.Integer_Value (1));
-
-               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (2),
-                                     Field      => Cursor.Integer_Value (2));
-
-               DB_JSON.Set_Field (Field_Name => "db_columns",
-                                  Field      => DB_Columns);
-
-               Append (Arr => Attr_Array,
-                       Val => DB_JSON);
-
-               Cursor.Next;
-            end loop;
-
-            JSON.Set_Field (Field_Name => "attributes",
-                            Field      => Attr_Array);
+            JSONIFY.Contact_Attributes (Cursor, JSON);
 
             Value := TUS (JSON.Write);
 
@@ -242,6 +226,84 @@ package body Storage.Read is
    is
       use Database;
       use Errors;
+
+      Query : constant SQL_Query :=
+                SQL_Select (Fields        =>
+                              Contactentity.Json &
+                              Contactentity.Ce_Id &
+                              Contactentity.Ce_Name &
+                              Contactentity.Is_Human,
+                            Where         =>
+                              Contactentity.Ce_Id = Natural'Value (Ce_Id),
+                            Auto_Complete => True);
+
+      Cursor         : Exec.Forward_Cursor;
+      DB_Connections : Database_Connection_Pool := Get_DB_Connections;
+      Value          : Unbounded_String         := Null_Unbounded_String;
+   begin
+      Fetch_Data :
+      for k in DB_Connections'Range loop
+         Cursor.Fetch (DB_Connections (k).Host, Query);
+
+         if DB_Connections (k).Host.Success then
+            Value := JSONIFY.Contact (Cursor);
+
+            if Cursor.Processed_Rows > 0 then
+               Contact_Cache.Write (Key   => Ce_Id,
+                                    Value => Value);
+            end if;
+
+            exit Fetch_Data;
+         else
+            Failed_Query (Connection_Pool => DB_Connections,
+                          Connection_Type => k);
+         end if;
+      end loop Fetch_Data;
+
+      return Value;
+   end Get_Contact_From_DB;
+
+   ------------------------
+   --  Get_Contact_Full  --
+   ------------------------
+
+   function Get_Contact_Full
+     (Ce_Id  : in String)
+      return String
+   is
+      use AWS.Utils;
+      use Errors;
+      use Yolk.Utilities;
+
+      Valid : Boolean          := False;
+      Value : Unbounded_String := Null_Unbounded_String;
+   begin
+      Contact_Cache.Read (Key      => Ce_Id,
+                          Is_Valid => Valid,
+                          Value    => Value);
+
+      if not Valid then
+         if not Is_Number (Ce_Id) then
+            raise GET_Parameter_Error with
+              "ce_id must be a valid natural integer";
+         end if;
+
+         Value := Get_Contact_Full_From_DB (Ce_Id);
+      end if;
+
+      return TS (Value);
+   end Get_Contact_Full;
+
+   --------------------------------
+   --  Get_Contact_Full_From_DB  --
+   --------------------------------
+
+   function Get_Contact_Full_From_DB
+     (Ce_Id : in String)
+      return Unbounded_String
+   is
+      use Database;
+      use Errors;
       use GNATCOLL.JSON;
       use Yolk.Utilities;
 
@@ -257,10 +319,7 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-
-      DB_Columns     : JSON_Value;
       JSON           : JSON_Value               := Create_Object;
-
       Value          : Unbounded_String         := Null_Unbounded_String;
    begin
       Fetch_Data :
@@ -268,31 +327,7 @@ package body Storage.Read is
          Cursor.Fetch (DB_Connections (k).Host, Query);
 
          if DB_Connections (k).Host.Success then
-            if Cursor.Has_Row then
-               DB_Columns := Create_Object;
-
-               JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
-
-               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (1),
-                                     Field      => Cursor.Integer_Value (1));
-
-               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (2),
-                                     Field      => Cursor.Value (2));
-
-               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (3),
-                                     Field      => Cursor.Boolean_Value (3));
-
-               if Cursor.Boolean_Value (3) then
-                  JSON.Set_Field (Field_Name => "type",
-                                  Field      => "human");
-               else
-                  JSON.Set_Field (Field_Name => "type",
-                                  Field      => "function");
-               end if;
-
-               JSON.Set_Field (Field_Name => "db_columns",
-                               Field      => DB_Columns);
-            end if;
+            JSONIFY.Contact_Full (Cursor, JSON);
 
             Value := TUS (JSON.Write);
 
@@ -309,7 +344,7 @@ package body Storage.Read is
       end loop Fetch_Data;
 
       return Value;
-   end Get_Contact_From_DB;
+   end Get_Contact_Full_From_DB;
 
    ------------------------
    --  Get_Org_Contacts  --
@@ -398,12 +433,7 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-
-      Attr_Array     : JSON_Array;
-      DB_Columns     : JSON_Value;
-      DB_JSON        : JSON_Value;
-      JSON           : constant JSON_Value      := Create_Object;
-
+      JSON           : JSON_Value               := Create_Object;
       Value          : Unbounded_String         := Null_Unbounded_String;
    begin
       Fetch_Data :
@@ -411,29 +441,7 @@ package body Storage.Read is
          Cursor.Fetch (DB_Connections (k).Host, Query);
 
          if DB_Connections (k).Host.Success then
-            while Cursor.Has_Row loop
-               DB_Columns := Create_Object;
-               DB_JSON    := Create_Object;
-
-               DB_JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
-
-               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (1),
-                                     Field      => Cursor.Integer_Value (1));
-
-               DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (2),
-                                     Field      => Cursor.Integer_Value (2));
-
-               DB_JSON.Set_Field (Field_Name => "db_columns",
-                                  Field      => DB_Columns);
-
-               Append (Arr => Attr_Array,
-                       Val => DB_JSON);
-
-               Cursor.Next;
-            end loop;
-
-            JSON.Set_Field (Field_Name => "attributes",
-                            Field      => Attr_Array);
+            JSONIFY.Org_Contacts_Attributes (Cursor, JSON);
 
             Value := TUS (JSON.Write);
 
@@ -457,6 +465,100 @@ package body Storage.Read is
    --------------------------------
 
    function Get_Org_Contacts_From_DB
+     (Org_Id : in String)
+      return Unbounded_String
+   is
+      use Database;
+      use Errors;
+      use GNATCOLL.JSON;
+      use Yolk.Utilities;
+
+      Contacts : constant SQL_Left_Join_Table :=
+                   Left_Join (Full    =>
+                                Contactentity,
+                              Partial =>
+                                Organization_Contactentities,
+                              On      =>
+                                Contactentity.Ce_Id =
+                                  Organization_Contactentities.Ce_Id);
+
+      Query    : constant SQL_Query :=
+                   SQL_Select (Fields =>
+                                 Contactentity.Json &
+                                 Organization_Contactentities.Org_Id &
+                                 Contactentity.Ce_Id &
+                                 Contactentity.Ce_Name &
+                                 Contactentity.Is_Human,
+                               From   => Contacts,
+                               Where  =>
+                                 Organization_Contactentities.Org_Id =
+                                   Natural'Value (Org_Id));
+
+      Cursor         : Exec.Forward_Cursor;
+      DB_Connections : Database_Connection_Pool := Get_DB_Connections;
+      JSON           : JSON_Value               := Create_Object;
+      Value          : Unbounded_String         := Null_Unbounded_String;
+   begin
+      Fetch_Data :
+      for k in DB_Connections'Range loop
+         Cursor.Fetch (DB_Connections (k).Host, Query);
+
+         if DB_Connections (k).Host.Success then
+            JSONIFY.Org_Contacts (Cursor, JSON);
+
+            Value := TUS (JSON.Write);
+
+            if Cursor.Processed_Rows > 0 then
+               Org_Contacts_Cache.Write (Key   => Org_Id,
+                                         Value => Value);
+            end if;
+
+            exit Fetch_Data;
+         else
+            Failed_Query (Connection_Pool => DB_Connections,
+                          Connection_Type => k);
+         end if;
+      end loop Fetch_Data;
+
+      return Value;
+   end Get_Org_Contacts_From_DB;
+
+   -----------------------------
+   --  Get_Org_Contacts_Full  --
+   -----------------------------
+
+   function Get_Org_Contacts_Full
+     (Org_Id : in String)
+      return String
+   is
+      use AWS.Utils;
+      use Errors;
+      use Yolk.Utilities;
+
+      Valid : Boolean          := False;
+      Value : Unbounded_String := Null_Unbounded_String;
+   begin
+      Org_Contacts_Cache.Read (Key      => Org_Id,
+                               Is_Valid => Valid,
+                               Value    => Value);
+
+      if not Valid then
+         if not Is_Number (Org_Id) then
+            raise GET_Parameter_Error with
+              "org_id must be a valid natural integer";
+         end if;
+
+         Value := Get_Org_Contacts_Full_From_DB (Org_Id);
+      end if;
+
+      return TS (Value);
+   end Get_Org_Contacts_Full;
+
+   -------------------------------------
+   --  Get_Org_Contacts_Full_From_DB  --
+   -------------------------------------
+
+   function Get_Org_Contacts_Full_From_DB
      (Org_Id : in String)
       return Unbounded_String
    is
@@ -554,7 +656,7 @@ package body Storage.Read is
       end loop Fetch_Data;
 
       return Value;
-   end Get_Org_Contacts_From_DB;
+   end Get_Org_Contacts_Full_From_DB;
 
    ------------------------
    --  Get_Organization  --

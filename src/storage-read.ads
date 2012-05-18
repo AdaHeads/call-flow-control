@@ -26,16 +26,22 @@ package Storage.Read is
    function Get_Contact
      (Ce_Id  : in String)
       return String;
-   --  Return a Contact JSON string. This contains the data for ONE contact-
+   --  Return a Contact JSON string. This contains the data for ONE contact
    --  entity.
 
    function Get_Contact_Attributes
      (Ce_Id  : in String)
       return String;
    --  Return a Contact_Attributes JSON string. This contains attributes for
-   --  ONE contactentity. Note that one contactentity can have several
+   --  ONE contact entity. Note that one contact entity can have several
    --  different attribute sets, depending on the organization the contact
    --  belongs to.
+
+   function Get_Contact_Full
+     (Ce_Id  : in String)
+      return String;
+   --  Return a Contact JSON string with Attributes. This contains the data for
+   --  ONE contact entity.
 
    function Get_Org_Contacts
      (Org_Id : in String)
@@ -49,6 +55,12 @@ package Storage.Read is
    --  Return a Contacts_Attributes JSON string. This contains all the
    --  contactentity attributes that relates to the given Org_Id, meaning one
    --  set of attributes per contactentity that relates to Org_Id.
+
+   function Get_Org_Contacts_Full
+     (Org_Id : in String)
+      return String;
+   --  Return a Contacts JSON string with Attributes. This contains all the
+   --  contact entities belonging to Org_Id.
 
    function Get_Organization
      (Org_Id : in String)

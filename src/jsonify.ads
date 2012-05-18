@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                 Request                                   --
+--                                 JSONIFY                                   --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,54 +21,33 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Status;
-with AWS.Response;
+with Ada.Strings.Unbounded;
+with GNATCOLL.JSON;
+with GNATCOLL.SQL.Exec;
 
-package Request is
+package JSONIFY is
+
+   use Ada.Strings.Unbounded;
+   use GNATCOLL.SQL;
 
    function Contact
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get a Contact JSON.
+     (Cursor : in Exec.Forward_Cursor)
+      return Unbounded_String;
 
    function Contact_Attributes
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get a Contact_Attributes JSON.
+     (Cursor : in Exec.Forward_Cursor)
+      return Unbounded_String;
 
    function Contact_Full
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get a Contact JSON with Attributes.
+     (Cursor : in Exec.Forward_Cursor)
+      return Unbounded_String;
 
    function Org_Contacts
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Contacts JSON.
+     (Cursor : in Exec.Forward_Cursor)
+      return Unbounded_String;
 
-   function Org_Contacts_Attributes
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Contacts_Attributes JSON.
+   procedure Org_Contacts_Attributes
+     (Cursor : in out Exec.Forward_Cursor;
+      JSON   : in out JSON_Value);
 
-   function Org_Contacts_Full
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Contacts JSON with Attributes.
-
-   function Organization
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Organization JSON.
-
-   function Queue
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the call queue JSON.
-
-   function Queue_Length
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the call queue length JSON.
-
-end Request;
+end JSONIFY;
