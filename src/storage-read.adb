@@ -25,7 +25,6 @@ with AWS.Utils;
 with Database;
 with Errors;
 with JSONIFY;
-with Yolk.Utilities;
 
 package body Storage.Read is
 
@@ -40,37 +39,37 @@ package body Storage.Read is
 
    function Get_Contact_From_DB
      (Ce_Id : in String)
-      return Unbounded_String;
+      return JSON.Bounded_String;
    --  Get the Ce_Id contact entity from persistent storage.
 
    function Get_Contact_Attributes_From_DB
      (Ce_Id  : in String)
-      return Unbounded_String;
+      return JSON.Bounded_String;
    --  Get the Ce_Id contact entity attributes from persistent storage.
 
    function Get_Contact_Full_From_DB
      (Ce_Id : in String)
-      return Unbounded_String;
+      return JSON.Bounded_String;
    --  Get the Ce_Id contact entity with Attributes from persistent storage.
 
    function Get_Org_Contacts_From_DB
      (Org_Id : in String)
-      return Unbounded_String;
+      return JSON.Bounded_String;
    --  Get the Org_Id contact entities from persistent storage.
 
    function Get_Org_Contacts_Attributes_From_DB
      (Org_Id : in String)
-      return Unbounded_String;
+      return JSON.Bounded_String;
    --  Get the Org_Id contact entity attributes from persistent storage.
 
    function Get_Org_Contacts_Full_From_DB
      (Org_Id : in String)
-      return Unbounded_String;
+      return JSON.Bounded_String;
    --  Get the Org_Id contact entities from persistent storage.
 
    function Get_Organization_From_DB
      (Org_Id : in String)
-      return Unbounded_String;
+      return JSON.Bounded_String;
    --  Get the Org_Id organization from persistent storage.
 
    --------------------
@@ -111,10 +110,9 @@ package body Storage.Read is
    is
       use AWS.Utils;
       use Errors;
-      use Yolk.Utilities;
 
       Valid : Boolean          := False;
-      Value : Unbounded_String := Null_Unbounded_String;
+      Value : JSON.Bounded_String;
    begin
       Contact_Cache.Read (Key      => Ce_Id,
                           Is_Valid => Valid,
@@ -129,7 +127,7 @@ package body Storage.Read is
          Value := Get_Contact_From_DB (Ce_Id);
       end if;
 
-      return TS (Value);
+      return JSON.To_String (Value);
    end Get_Contact;
 
    ------------------------------
@@ -142,10 +140,9 @@ package body Storage.Read is
    is
       use AWS.Utils;
       use Errors;
-      use Yolk.Utilities;
 
       Valid : Boolean          := False;
-      Value : Unbounded_String := Null_Unbounded_String;
+      Value : JSON.Bounded_String;
    begin
       Contact_Attributes_Cache.Read (Key      => Ce_Id,
                                      Is_Valid => Valid,
@@ -160,7 +157,7 @@ package body Storage.Read is
          Value := Get_Contact_Attributes_From_DB (Ce_Id);
       end if;
 
-      return TS (Value);
+      return JSON.To_String (Value);
    end Get_Contact_Attributes;
 
    --------------------------------------
@@ -169,7 +166,7 @@ package body Storage.Read is
 
    function Get_Contact_Attributes_From_DB
      (Ce_Id : in String)
-      return Unbounded_String
+      return JSON.Bounded_String
    is
       use Database;
       use Errors;
@@ -186,7 +183,7 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      Value          : Unbounded_String         := Null_Unbounded_String;
+      Value          : JSON.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -216,7 +213,7 @@ package body Storage.Read is
 
    function Get_Contact_From_DB
      (Ce_Id : in String)
-      return Unbounded_String
+      return JSON.Bounded_String
    is
       use Database;
       use Errors;
@@ -233,7 +230,7 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      Value          : Unbounded_String         := Null_Unbounded_String;
+      Value          : JSON.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -267,10 +264,9 @@ package body Storage.Read is
    is
       use AWS.Utils;
       use Errors;
-      use Yolk.Utilities;
 
       Valid : Boolean          := False;
-      Value : Unbounded_String := Null_Unbounded_String;
+      Value : JSON.Bounded_String;
    begin
       Contact_Full_Cache.Read (Key      => Ce_Id,
                                Is_Valid => Valid,
@@ -285,7 +281,7 @@ package body Storage.Read is
          Value := Get_Contact_Full_From_DB (Ce_Id);
       end if;
 
-      return TS (Value);
+      return JSON.To_String (Value);
    end Get_Contact_Full;
 
    --------------------------------
@@ -294,7 +290,7 @@ package body Storage.Read is
 
    function Get_Contact_Full_From_DB
      (Ce_Id : in String)
-      return Unbounded_String
+      return JSON.Bounded_String
    is
       use Database;
       use Errors;
@@ -323,7 +319,7 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      Value          : Unbounded_String         := Null_Unbounded_String;
+      Value          : JSON.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -357,10 +353,9 @@ package body Storage.Read is
    is
       use AWS.Utils;
       use Errors;
-      use Yolk.Utilities;
 
       Valid : Boolean          := False;
-      Value : Unbounded_String := Null_Unbounded_String;
+      Value : JSON.Bounded_String;
    begin
       Org_Contacts_Cache.Read (Key      => Org_Id,
                                Is_Valid => Valid,
@@ -375,7 +370,7 @@ package body Storage.Read is
          Value := Get_Org_Contacts_From_DB (Org_Id);
       end if;
 
-      return TS (Value);
+      return JSON.To_String (Value);
    end Get_Org_Contacts;
 
    -----------------------------------
@@ -388,10 +383,9 @@ package body Storage.Read is
    is
       use AWS.Utils;
       use Errors;
-      use Yolk.Utilities;
 
       Valid : Boolean          := False;
-      Value : Unbounded_String := Null_Unbounded_String;
+      Value : JSON.Bounded_String;
    begin
       Org_Contacts_Attributes_Cache.Read (Key      => Org_Id,
                                           Is_Valid => Valid,
@@ -406,7 +400,7 @@ package body Storage.Read is
          Value := Get_Org_Contacts_Attributes_From_DB (Org_Id);
       end if;
 
-      return TS (Value);
+      return JSON.To_String (Value);
    end Get_Org_Contacts_Attributes;
 
    -------------------------------------------
@@ -415,7 +409,7 @@ package body Storage.Read is
 
    function Get_Org_Contacts_Attributes_From_DB
      (Org_Id : in String)
-      return Unbounded_String
+      return JSON.Bounded_String
    is
       use Database;
       use Errors;
@@ -432,7 +426,7 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      Value          : Unbounded_String         := Null_Unbounded_String;
+      Value          : JSON.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -462,7 +456,7 @@ package body Storage.Read is
 
    function Get_Org_Contacts_From_DB
      (Org_Id : in String)
-      return Unbounded_String
+      return JSON.Bounded_String
    is
       use Database;
       use Errors;
@@ -489,7 +483,7 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      Value          : Unbounded_String         := Null_Unbounded_String;
+      Value          : JSON.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -523,10 +517,9 @@ package body Storage.Read is
    is
       use AWS.Utils;
       use Errors;
-      use Yolk.Utilities;
 
       Valid : Boolean          := False;
-      Value : Unbounded_String := Null_Unbounded_String;
+      Value : JSON.Bounded_String;
    begin
       Org_Contacts_Full_Cache.Read (Key      => Org_Id,
                                     Is_Valid => Valid,
@@ -541,7 +534,7 @@ package body Storage.Read is
          Value := Get_Org_Contacts_Full_From_DB (Org_Id);
       end if;
 
-      return TS (Value);
+      return JSON.To_String (Value);
    end Get_Org_Contacts_Full;
 
    -------------------------------------
@@ -550,7 +543,7 @@ package body Storage.Read is
 
    function Get_Org_Contacts_Full_From_DB
      (Org_Id : in String)
-      return Unbounded_String
+      return JSON.Bounded_String
    is
       use Database;
       use Errors;
@@ -591,7 +584,7 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      Value          : Unbounded_String         := Null_Unbounded_String;
+      Value          : JSON.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -625,10 +618,9 @@ package body Storage.Read is
    is
       use AWS.Utils;
       use Errors;
-      use Yolk.Utilities;
 
       Valid : Boolean          := False;
-      Value : Unbounded_String := Null_Unbounded_String;
+      Value : JSON.Bounded_String;
    begin
       Organization_Cache.Read (Key      => Org_Id,
                                Is_Valid => Valid,
@@ -643,7 +635,7 @@ package body Storage.Read is
          Value := Get_Organization_From_DB (Org_Id);
       end if;
 
-      return TS (Value);
+      return JSON.To_String (Value);
    end Get_Organization;
 
    --------------------------------
@@ -652,7 +644,7 @@ package body Storage.Read is
 
    function Get_Organization_From_DB
      (Org_Id : in String)
-      return Unbounded_String
+      return JSON.Bounded_String
    is
       use Database;
       use Errors;
@@ -669,7 +661,8 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      Value          : Unbounded_String         := Null_Unbounded_String;
+      Value          : JSON.Bounded_String :=
+                         JSON.Null_Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
