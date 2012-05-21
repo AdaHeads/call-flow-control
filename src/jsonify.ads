@@ -21,37 +21,39 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with Ada.Strings.Unbounded;
 with GNATCOLL.SQL.Exec;
 
 package JSONIFY is
 
+   use Ada.Strings.Unbounded;
+
    procedure Contact
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      JSON   : in out GNATCOLL.JSON.JSON_Value);
+      Value  : in out Unbounded_String);
 
    procedure Contact_Attributes
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      JSON   : in out GNATCOLL.JSON.JSON_Value);
+      Value  : in out Unbounded_String);
 
    procedure Contact_Full
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      JSON   : in out GNATCOLL.JSON.JSON_Value);
+      Value  : in out Unbounded_String);
 
    procedure Org_Contacts
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      JSON   : in out GNATCOLL.JSON.JSON_Value);
+      Value  : in out Unbounded_String);
 
    procedure Org_Contacts_Attributes
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      JSON   : in out GNATCOLL.JSON.JSON_Value);
+      Value  : in out Unbounded_String);
 
    procedure Org_Contacts_Full
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      JSON   : in out GNATCOLL.JSON.JSON_Value);
+      Value  : in out Unbounded_String);
 
    procedure Organization
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      JSON   : in out GNATCOLL.JSON.JSON_Value);
+      Value  : in out Unbounded_String);
 
 end JSONIFY;

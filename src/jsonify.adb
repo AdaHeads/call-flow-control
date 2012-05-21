@@ -21,6 +21,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with GNATCOLL.JSON;
+with Yolk.Utilities;
+
 package body JSONIFY is
 
    ---------------
@@ -29,11 +32,13 @@ package body JSONIFY is
 
    procedure Contact
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      JSON   : in out GNATCOLL.JSON.JSON_Value)
+      Value  : in out Unbounded_String)
    is
       use GNATCOLL.JSON;
+      use Yolk.Utilities;
 
       DB_Columns : JSON_Value;
+      JSON       : JSON_Value := Create_Object;
    begin
       if Cursor.Has_Row then
          DB_Columns := Create_Object;
@@ -57,6 +62,8 @@ package body JSONIFY is
 
          JSON.Set_Field ("db_columns", DB_Columns);
       end if;
+
+      Value := TUS (JSON.Write);
    end Contact;
 
    --------------------------
@@ -65,13 +72,15 @@ package body JSONIFY is
 
    procedure Contact_Attributes
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      JSON   : in out GNATCOLL.JSON.JSON_Value)
+      Value  : in out Unbounded_String)
    is
       use GNATCOLL.JSON;
+      use Yolk.Utilities;
 
       Attr_Array : JSON_Array;
       DB_Columns : JSON_Value;
       DB_JSON    : JSON_Value;
+      JSON       : constant JSON_Value := Create_Object;
    begin
       while Cursor.Has_Row loop
          DB_Columns := Create_Object;
@@ -93,6 +102,8 @@ package body JSONIFY is
       end loop;
 
       JSON.Set_Field ("attributes", Attr_Array);
+
+      Value := TUS (JSON.Write);
    end Contact_Attributes;
 
    --------------------
@@ -101,14 +112,16 @@ package body JSONIFY is
 
    procedure Contact_Full
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      JSON   : in out GNATCOLL.JSON.JSON_Value)
+      Value  : in out Unbounded_String)
    is
       use GNATCOLL.JSON;
+      use Yolk.Utilities;
 
       Attr_Array      : JSON_Array;
       Attr_DB_Columns : JSON_Value;
       Attr_JSON       : JSON_Value;
       DB_Columns      : JSON_Value;
+      JSON            : JSON_Value := Create_Object;
    begin
       if Cursor.Has_Row then
          --  Cursor can contain more than one row, so we start by building the
@@ -156,6 +169,8 @@ package body JSONIFY is
 
          JSON.Set_Field ("attributes", Attr_Array);
       end if;
+
+      Value := TUS (JSON.Write);
    end Contact_Full;
 
    --------------------
@@ -164,13 +179,15 @@ package body JSONIFY is
 
    procedure Org_Contacts
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      JSON   : in out GNATCOLL.JSON.JSON_Value)
+      Value  : in out Unbounded_String)
    is
       use GNATCOLL.JSON;
+      use Yolk.Utilities;
 
       Contact_Array : JSON_Array;
       DB_Columns    : JSON_Value;
       DB_JSON       : JSON_Value;
+      JSON          : constant JSON_Value := Create_Object;
    begin
       while Cursor.Has_Row loop
          DB_Columns := Create_Object;
@@ -201,6 +218,8 @@ package body JSONIFY is
       end loop;
 
       JSON.Set_Field ("contacts", Contact_Array);
+
+      Value := TUS (JSON.Write);
    end Org_Contacts;
 
    -------------------------------
@@ -209,13 +228,15 @@ package body JSONIFY is
 
    procedure Org_Contacts_Attributes
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      JSON   : in out GNATCOLL.JSON.JSON_Value)
+      Value  : in out Unbounded_String)
    is
       use GNATCOLL.JSON;
+      use Yolk.Utilities;
 
       Attr_Array : JSON_Array;
       DB_Columns : JSON_Value;
       DB_JSON    : JSON_Value;
+      JSON       : constant JSON_Value := Create_Object;
    begin
       while Cursor.Has_Row loop
          DB_Columns := Create_Object;
@@ -237,6 +258,8 @@ package body JSONIFY is
       end loop;
 
       JSON.Set_Field ("attributes", Attr_Array);
+
+      Value := TUS (JSON.Write);
    end Org_Contacts_Attributes;
 
    -------------------------
@@ -245,15 +268,17 @@ package body JSONIFY is
 
    procedure Org_Contacts_Full
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      JSON   : in out GNATCOLL.JSON.JSON_Value)
+      Value  : in out Unbounded_String)
    is
       use GNATCOLL.JSON;
+      use Yolk.Utilities;
 
       Attr_DB_Columns : JSON_Value;
       Attr_JSON       : JSON_Value;
       Contact_Array   : JSON_Array;
       Contact_JSON    : JSON_Value;
       DB_Columns      : JSON_Value;
+      JSON            : constant JSON_Value := Create_Object;
    begin
       while Cursor.Has_Row loop
          Contact_JSON := Create_Object;
@@ -299,6 +324,8 @@ package body JSONIFY is
       end loop;
 
       JSON.Set_Field ("contacts", Contact_Array);
+
+      Value := TUS (JSON.Write);
    end Org_Contacts_Full;
 
    --------------------
@@ -307,11 +334,13 @@ package body JSONIFY is
 
    procedure Organization
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      JSON   : in out GNATCOLL.JSON.JSON_Value)
+      Value  : in out Unbounded_String)
    is
       use GNATCOLL.JSON;
+      use Yolk.Utilities;
 
       DB_Columns : JSON_Value;
+      JSON       : JSON_Value;
    begin
       if Cursor.Has_Row then
          DB_Columns := Create_Object;
@@ -329,6 +358,8 @@ package body JSONIFY is
 
          JSON.Set_Field ("db_columns", DB_Columns);
       end if;
+
+      Value := TUS (JSON.Write);
    end Organization;
 
 end JSONIFY;

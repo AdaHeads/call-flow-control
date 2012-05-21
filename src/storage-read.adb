@@ -24,7 +24,6 @@
 with AWS.Utils;
 with Database;
 with Errors;
-with GNATCOLL.JSON;
 with JSONIFY;
 with Yolk.Utilities;
 
@@ -174,8 +173,6 @@ package body Storage.Read is
    is
       use Database;
       use Errors;
-      use GNATCOLL.JSON;
-      use Yolk.Utilities;
 
       Query : constant SQL_Query :=
                 SQL_Select (Fields        =>
@@ -189,7 +186,6 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      JSON           : JSON_Value               := Create_Object;
       Value          : Unbounded_String         := Null_Unbounded_String;
    begin
       Fetch_Data :
@@ -197,9 +193,7 @@ package body Storage.Read is
          Cursor.Fetch (DB_Connections (k).Host, Query);
 
          if DB_Connections (k).Host.Success then
-            JSONIFY.Contact_Attributes (Cursor, JSON);
-
-            Value := TUS (JSON.Write);
+            JSONIFY.Contact_Attributes (Cursor, Value);
 
             if Cursor.Processed_Rows > 0 then
                Contact_Attributes_Cache.Write (Key   => Ce_Id,
@@ -226,8 +220,6 @@ package body Storage.Read is
    is
       use Database;
       use Errors;
-      use GNATCOLL.JSON;
-      use Yolk.Utilities;
 
       Query : constant SQL_Query :=
                 SQL_Select (Fields        =>
@@ -241,7 +233,6 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      JSON           : JSON_Value               := Create_Object;
       Value          : Unbounded_String         := Null_Unbounded_String;
    begin
       Fetch_Data :
@@ -249,9 +240,7 @@ package body Storage.Read is
          Cursor.Fetch (DB_Connections (k).Host, Query);
 
          if DB_Connections (k).Host.Success then
-            JSONIFY.Contact (Cursor, JSON);
-
-            Value := TUS (JSON.Write);
+            JSONIFY.Contact (Cursor, Value);
 
             if Cursor.Processed_Rows > 0 then
                Contact_Cache.Write (Key   => Ce_Id,
@@ -309,8 +298,6 @@ package body Storage.Read is
    is
       use Database;
       use Errors;
-      use GNATCOLL.JSON;
-      use Yolk.Utilities;
 
       CA_Join : constant SQL_Left_Join_Table :=
                   Left_Join (Full    =>
@@ -336,7 +323,6 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      JSON           : JSON_Value               := Create_Object;
       Value          : Unbounded_String         := Null_Unbounded_String;
    begin
       Fetch_Data :
@@ -344,9 +330,7 @@ package body Storage.Read is
          Cursor.Fetch (DB_Connections (k).Host, Query);
 
          if DB_Connections (k).Host.Success then
-            JSONIFY.Contact_Full (Cursor, JSON);
-
-            Value := TUS (JSON.Write);
+            JSONIFY.Contact_Full (Cursor, Value);
 
             if Cursor.Processed_Rows > 0 then
                Contact_Full_Cache.Write (Key   => Ce_Id,
@@ -435,8 +419,6 @@ package body Storage.Read is
    is
       use Database;
       use Errors;
-      use GNATCOLL.JSON;
-      use Yolk.Utilities;
 
       Query : constant SQL_Query :=
                 SQL_Select (Fields        =>
@@ -450,7 +432,6 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      JSON           : JSON_Value               := Create_Object;
       Value          : Unbounded_String         := Null_Unbounded_String;
    begin
       Fetch_Data :
@@ -458,9 +439,7 @@ package body Storage.Read is
          Cursor.Fetch (DB_Connections (k).Host, Query);
 
          if DB_Connections (k).Host.Success then
-            JSONIFY.Org_Contacts_Attributes (Cursor, JSON);
-
-            Value := TUS (JSON.Write);
+            JSONIFY.Org_Contacts_Attributes (Cursor, Value);
 
             if Cursor.Processed_Rows > 0 then
                Org_Contacts_Attributes_Cache.Write (Key   => Org_Id,
@@ -487,8 +466,6 @@ package body Storage.Read is
    is
       use Database;
       use Errors;
-      use GNATCOLL.JSON;
-      use Yolk.Utilities;
 
       Contacts : constant SQL_Left_Join_Table :=
                    Left_Join (Full    =>
@@ -512,7 +489,6 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      JSON           : JSON_Value               := Create_Object;
       Value          : Unbounded_String         := Null_Unbounded_String;
    begin
       Fetch_Data :
@@ -520,9 +496,7 @@ package body Storage.Read is
          Cursor.Fetch (DB_Connections (k).Host, Query);
 
          if DB_Connections (k).Host.Success then
-            JSONIFY.Org_Contacts (Cursor, JSON);
-
-            Value := TUS (JSON.Write);
+            JSONIFY.Org_Contacts (Cursor, Value);
 
             if Cursor.Processed_Rows > 0 then
                Org_Contacts_Cache.Write (Key   => Org_Id,
@@ -580,8 +554,6 @@ package body Storage.Read is
    is
       use Database;
       use Errors;
-      use GNATCOLL.JSON;
-      use Yolk.Utilities;
 
       Contacts : constant SQL_Left_Join_Table :=
                    Left_Join (Full    =>
@@ -619,7 +591,6 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      JSON           : JSON_Value               := Create_Object;
       Value          : Unbounded_String         := Null_Unbounded_String;
    begin
       Fetch_Data :
@@ -627,9 +598,7 @@ package body Storage.Read is
          Cursor.Fetch (DB_Connections (k).Host, Query);
 
          if DB_Connections (k).Host.Success then
-            JSONIFY.Org_Contacts_Full (Cursor, JSON);
-
-            Value := TUS (JSON.Write);
+            JSONIFY.Org_Contacts_Full (Cursor, Value);
 
             if Cursor.Processed_Rows > 0 then
                Org_Contacts_Full_Cache.Write (Key   => Org_Id,
@@ -687,8 +656,6 @@ package body Storage.Read is
    is
       use Database;
       use Errors;
-      use GNATCOLL.JSON;
-      use Yolk.Utilities;
 
       Query : constant SQL_Query :=
                 SQL_Select (Fields        =>
@@ -702,7 +669,6 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      JSON           : JSON_Value               := Create_Object;
       Value          : Unbounded_String         := Null_Unbounded_String;
    begin
       Fetch_Data :
@@ -710,9 +676,7 @@ package body Storage.Read is
          Cursor.Fetch (DB_Connections (k).Host, Query);
 
          if DB_Connections (k).Host.Success then
-            JSONIFY.Organization (Cursor, JSON);
-
-            Value := TUS (JSON.Write);
+            JSONIFY.Organization (Cursor, Value);
 
             if Cursor.Processed_Rows > 0 then
                Organization_Cache.Write (Key   => Org_Id,
