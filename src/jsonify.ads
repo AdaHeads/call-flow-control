@@ -21,33 +21,37 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded;
 with GNATCOLL.JSON;
 with GNATCOLL.SQL.Exec;
 
 package JSONIFY is
 
-   use Ada.Strings.Unbounded;
-   use GNATCOLL.SQL;
+   procedure Contact
+     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
+      JSON   : in out GNATCOLL.JSON.JSON_Value);
 
-   function Contact
-     (Cursor : in Exec.Forward_Cursor)
-      return Unbounded_String;
+   procedure Contact_Attributes
+     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
+      JSON   : in out GNATCOLL.JSON.JSON_Value);
 
-   function Contact_Attributes
-     (Cursor : in Exec.Forward_Cursor)
-      return Unbounded_String;
+   procedure Contact_Full
+     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
+      JSON   : in out GNATCOLL.JSON.JSON_Value);
 
-   function Contact_Full
-     (Cursor : in Exec.Forward_Cursor)
-      return Unbounded_String;
-
-   function Org_Contacts
-     (Cursor : in Exec.Forward_Cursor)
-      return Unbounded_String;
+   procedure Org_Contacts
+     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
+      JSON   : in out GNATCOLL.JSON.JSON_Value);
 
    procedure Org_Contacts_Attributes
-     (Cursor : in out Exec.Forward_Cursor;
-      JSON   : in out JSON_Value);
+     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
+      JSON   : in out GNATCOLL.JSON.JSON_Value);
+
+   procedure Org_Contacts_Full
+     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
+      JSON   : in out GNATCOLL.JSON.JSON_Value);
+
+   procedure Organization
+     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
+      JSON   : in out GNATCOLL.JSON.JSON_Value);
 
 end JSONIFY;

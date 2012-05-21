@@ -21,60 +21,54 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Yolk.Utilities;
-
 package body JSONIFY is
 
    ---------------
    --  Contact  --
    ---------------
 
-   function Contact
-     (Cursor : in Exec.Forward_Cursor)
-      return Unbounded_String
+   procedure Contact
+     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
+      JSON   : in out GNATCOLL.JSON.JSON_Value)
    is
-      use Yolk.Utilities;
+      use GNATCOLL.JSON;
 
       DB_Columns : JSON_Value;
-      JSON       : JSON_Value := Create_Object;
    begin
       if Cursor.Has_Row then
          DB_Columns := Create_Object;
 
          JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
 
-         DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (1),
-                               Field      => Cursor.Integer_Value (1));
+         DB_Columns.Set_Field (Cursor.Field_Name (1),
+                               Cursor.Integer_Value (1));
 
-         DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (2),
-                               Field      => Cursor.Value (2));
+         DB_Columns.Set_Field (Cursor.Field_Name (2),
+                               Cursor.Value (2));
 
-         DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (3),
-                               Field      => Cursor.Boolean_Value (3));
+         DB_Columns.Set_Field (Cursor.Field_Name (3),
+                               Cursor.Boolean_Value (3));
 
          if Cursor.Boolean_Value (3) then
-            JSON.Set_Field (Field_Name => "type",
-                            Field      => "human");
+            JSON.Set_Field ("type", "human");
          else
-            JSON.Set_Field (Field_Name => "type",
-                            Field      => "function");
+            JSON.Set_Field ("type", "function");
          end if;
 
-         JSON.Set_Field (Field_Name => "db_columns",
-                         Field      => DB_Columns);
+         JSON.Set_Field ("db_columns", DB_Columns);
       end if;
-
-      return TUS (JSON.Write);
    end Contact;
 
    --------------------------
    --  Contact_Attributes  --
    --------------------------
 
-   function Contact_Attributes
-     (Cursor : in out Exec.Forward_Cursor)
-      return Unbounded_String
+   procedure Contact_Attributes
+     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
+      JSON   : in out GNATCOLL.JSON.JSON_Value)
    is
+      use GNATCOLL.JSON;
+
       Attr_Array : JSON_Array;
       DB_Columns : JSON_Value;
       DB_JSON    : JSON_Value;
@@ -85,23 +79,20 @@ package body JSONIFY is
 
          DB_JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
 
-         DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (1),
-                               Field      => Cursor.Integer_Value (1));
+         DB_Columns.Set_Field (Cursor.Field_Name (1),
+                               Cursor.Integer_Value (1));
 
-         DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (2),
-                               Field      => Cursor.Integer_Value (2));
+         DB_Columns.Set_Field (Cursor.Field_Name (2),
+                               Cursor.Integer_Value (2));
 
-         DB_JSON.Set_Field (Field_Name => "db_columns",
-                            Field      => DB_Columns);
+         DB_JSON.Set_Field ("db_columns", DB_Columns);
 
-         Append (Arr => Attr_Array,
-                 Val => DB_JSON);
+         Append (Attr_Array, DB_JSON);
 
          Cursor.Next;
       end loop;
 
-      JSON.Set_Field (Field_Name => "attributes",
-                      Field      => Attr_Array);
+      JSON.Set_Field ("attributes", Attr_Array);
    end Contact_Attributes;
 
    --------------------
@@ -109,38 +100,61 @@ package body JSONIFY is
    --------------------
 
    procedure Contact_Full
-     (Cursor : in out Exec.Forward_Cursor)
-      return Unbounded_String
+     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
+      JSON   : in out GNATCOLL.JSON.JSON_Value)
    is
-      DB_Columns : JSON_Value;
+      use GNATCOLL.JSON;
+
+      Attr_Array      : JSON_Array;
+      Attr_DB_Columns : JSON_Value;
+      Attr_JSON       : JSON_Value;
+      DB_Columns      : JSON_Value;
    begin
       if Cursor.Has_Row then
-
-         --  BAD IMPLEMENTATION! NOT COMPLETE!
-
+         --  Cursor can contain more than one row, so we start by building the
+         --  main JSON object from the first row, so we don't repeat the JSON
+         --  building code for the same data over and over.
          DB_Columns := Create_Object;
 
          JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
 
-         DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (1),
-                               Field      => Cursor.Integer_Value (1));
+         DB_Columns.Set_Field (Cursor.Field_Name (1),
+                               Cursor.Integer_Value (1));
 
-         DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (2),
-                               Field      => Cursor.Value (2));
+         DB_Columns.Set_Field (Cursor.Field_Name (2),
+                               Cursor.Value (2));
 
-         DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (3),
-                               Field      => Cursor.Boolean_Value (3));
+         DB_Columns.Set_Field (Cursor.Field_Name (3),
+                               Cursor.Boolean_Value (3));
 
          if Cursor.Boolean_Value (3) then
-            JSON.Set_Field (Field_Name => "type",
-                            Field      => "human");
+            JSON.Set_Field ("type", "human");
          else
-            JSON.Set_Field (Field_Name => "type",
-                            Field      => "function");
+            JSON.Set_Field ("type", "function");
          end if;
 
-         JSON.Set_Field (Field_Name => "db_columns",
-                         Field      => DB_Columns);
+         JSON.Set_Field ("db_columns", DB_Columns);
+
+         while Cursor.Has_Row loop
+            Attr_JSON := Create_Object;
+            Attr_DB_Columns := Create_Object;
+
+            Attr_JSON := GNATCOLL.JSON.Read (Cursor.Value (4), "json.error");
+
+            Attr_DB_Columns.Set_Field (Cursor.Field_Name (5),
+                                       Cursor.Integer_Value (5));
+
+            Attr_DB_Columns.Set_Field (Cursor.Field_Name (6),
+                                       Cursor.Integer_Value (6));
+
+            Attr_JSON.Set_Field ("db_columns", Attr_DB_Columns);
+
+            Append (Attr_Array, Attr_JSON);
+
+            Cursor.Next;
+         end loop;
+
+         JSON.Set_Field ("attributes", Attr_Array);
       end if;
    end Contact_Full;
 
@@ -149,9 +163,11 @@ package body JSONIFY is
    --------------------
 
    procedure Org_Contacts
-     (Cursor : in out Exec.Forward_Cursor)
-      return Unbounded_String
+     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
+      JSON   : in out GNATCOLL.JSON.JSON_Value)
    is
+      use GNATCOLL.JSON;
+
       Contact_Array : JSON_Array;
       DB_Columns    : JSON_Value;
       DB_JSON       : JSON_Value;
@@ -162,37 +178,29 @@ package body JSONIFY is
 
          DB_JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
 
-         DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (1),
-                               Field      => Cursor.Integer_Value (1));
+         DB_Columns.Set_Field (Cursor.Field_Name (1),
+                               Cursor.Integer_Value (1));
 
-         DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (2),
-                               Field      => Cursor.Integer_Value (2));
+         DB_Columns.Set_Field (Cursor.Field_Name (2),
+                               Cursor.Value (2));
 
-         DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (3),
-                               Field      => Cursor.Value (3));
+         DB_Columns.Set_Field (Cursor.Field_Name (3),
+                               Cursor.Boolean_Value (3));
 
-         DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (4),
-                               Field      => Cursor.Boolean_Value (4));
-
-         if Cursor.Boolean_Value (4) then
-            DB_JSON.Set_Field (Field_Name => "type",
-                               Field      => "human");
+         if Cursor.Boolean_Value (3) then
+            DB_JSON.Set_Field ("type", "human");
          else
-            DB_JSON.Set_Field (Field_Name => "type",
-                               Field      => "function");
+            DB_JSON.Set_Field ("type", "function");
          end if;
 
-         DB_JSON.Set_Field (Field_Name => "db_columns",
-                            Field      => DB_Columns);
+         DB_JSON.Set_Field ("db_columns", DB_Columns);
 
-         Append (Arr => Contact_Array,
-                 Val => DB_JSON);
+         Append (Contact_Array, DB_JSON);
 
          Cursor.Next;
       end loop;
 
-      JSON.Set_Field (Field_Name => "contacts",
-                      Field      => Contact_Array);
+      JSON.Set_Field ("contacts", Contact_Array);
    end Org_Contacts;
 
    -------------------------------
@@ -200,9 +208,11 @@ package body JSONIFY is
    -------------------------------
 
    procedure Org_Contacts_Attributes
-     (Cursor : in out Exec.Forward_Cursor)
-      return Unbounded_String
+     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
+      JSON   : in out GNATCOLL.JSON.JSON_Value)
    is
+      use GNATCOLL.JSON;
+
       Attr_Array : JSON_Array;
       DB_Columns : JSON_Value;
       DB_JSON    : JSON_Value;
@@ -213,23 +223,112 @@ package body JSONIFY is
 
          DB_JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
 
-         DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (1),
-                               Field      => Cursor.Integer_Value (1));
+         DB_Columns.Set_Field (Cursor.Field_Name (1),
+                               Cursor.Integer_Value (1));
 
-         DB_Columns.Set_Field (Field_Name => Cursor.Field_Name (2),
-                               Field      => Cursor.Integer_Value (2));
+         DB_Columns.Set_Field (Cursor.Field_Name (2),
+                               Cursor.Integer_Value (2));
 
-         DB_JSON.Set_Field (Field_Name => "db_columns",
-                            Field      => DB_Columns);
+         DB_JSON.Set_Field ("db_columns", DB_Columns);
 
-         Append (Arr => Attr_Array,
-                 Val => DB_JSON);
+         Append (Attr_Array, DB_JSON);
 
          Cursor.Next;
       end loop;
 
-      JSON.Set_Field (Field_Name => "attributes",
-                      Field      => Attr_Array);
+      JSON.Set_Field ("attributes", Attr_Array);
    end Org_Contacts_Attributes;
+
+   -------------------------
+   --  Org_Contacts_Full  --
+   -------------------------
+
+   procedure Org_Contacts_Full
+     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
+      JSON   : in out GNATCOLL.JSON.JSON_Value)
+   is
+      use GNATCOLL.JSON;
+
+      Attr_DB_Columns : JSON_Value;
+      Attr_JSON       : JSON_Value;
+      Contact_Array   : JSON_Array;
+      Contact_JSON    : JSON_Value;
+      DB_Columns      : JSON_Value;
+   begin
+      while Cursor.Has_Row loop
+         Contact_JSON := Create_Object;
+         DB_Columns := Create_Object;
+
+         Contact_JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
+
+         DB_Columns.Set_Field (Cursor.Field_Name (1),
+                               Cursor.Integer_Value (1));
+
+         DB_Columns.Set_Field (Cursor.Field_Name (2),
+                               Cursor.Value (2));
+
+         DB_Columns.Set_Field (Cursor.Field_Name (3),
+                               Cursor.Boolean_Value (3));
+
+         if Cursor.Boolean_Value (3) then
+            Contact_JSON.Set_Field ("type", "human");
+         else
+            Contact_JSON.Set_Field ("type", "function");
+         end if;
+
+         Contact_JSON.Set_Field ("db_columns", DB_Columns);
+
+         Attr_JSON := Create_Object;
+         Attr_DB_Columns := Create_Object;
+
+         Attr_JSON := GNATCOLL.JSON.Read (Cursor.Value (4), "json.error");
+
+         Attr_DB_Columns.Set_Field (Cursor.Field_Name (5),
+                                    Cursor.Integer_Value (5));
+
+         Attr_DB_Columns.Set_Field (Cursor.Field_Name (6),
+                                    Cursor.Integer_Value (6));
+
+         Attr_JSON.Set_Field ("db_columns", Attr_DB_Columns);
+
+         Contact_JSON.Set_Field ("attributes", Attr_JSON);
+
+         Append (Contact_Array, Contact_JSON);
+
+         Cursor.Next;
+      end loop;
+
+      JSON.Set_Field ("contacts", Contact_Array);
+   end Org_Contacts_Full;
+
+   --------------------
+   --  Organization  --
+   --------------------
+
+   procedure Organization
+     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
+      JSON   : in out GNATCOLL.JSON.JSON_Value)
+   is
+      use GNATCOLL.JSON;
+
+      DB_Columns : JSON_Value;
+   begin
+      if Cursor.Has_Row then
+         DB_Columns := Create_Object;
+
+         JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
+
+         DB_Columns.Set_Field (Cursor.Field_Name (1),
+                               Cursor.Integer_Value (1));
+
+         DB_Columns.Set_Field (Cursor.Field_Name (2),
+                               Cursor.Value (2));
+
+         DB_Columns.Set_Field (Cursor.Field_Name (3),
+                               Cursor.Value (3));
+
+         JSON.Set_Field ("db_columns", DB_Columns);
+      end if;
+   end Organization;
 
 end JSONIFY;
