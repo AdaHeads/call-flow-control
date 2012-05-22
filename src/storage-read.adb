@@ -22,9 +22,9 @@
 -------------------------------------------------------------------------------
 
 with AWS.Utils;
-with Database;
 with Errors;
 with JSONIFY;
+with Queries;
 
 package body Storage.Read is
 
@@ -168,26 +168,18 @@ package body Storage.Read is
      (Ce_Id : in String)
       return JSON_Small.Bounded_String
    is
-      use Database;
       use Errors;
+      use GNATCOLL.SQL.Exec;
 
-      Query : constant SQL_Query :=
-                SQL_Select (Fields        =>
-                              Contactentity_Attributes.Json &
-                              Contactentity_Attributes.Ce_Id &
-                              Contactentity_Attributes.Org_Id,
-                            Where         =>
-                              Contactentity_Attributes.Ce_Id =
-                                Natural'Value (Ce_Id),
-                            Auto_Complete => True);
-
-      Cursor         : Exec.Forward_Cursor;
+      Cursor         : Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
       Value          : JSON_Small.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
-         Cursor.Fetch (DB_Connections (k).Host, Query);
+         Cursor.Fetch (DB_Connections (k).Host,
+                       Queries.P_Get_Contact_Attributes,
+                       Params => (1 => +Natural'Value (Ce_Id)));
 
          if DB_Connections (k).Host.Success then
             JSONIFY.Contact_Attributes (Cursor, Value);
@@ -215,26 +207,18 @@ package body Storage.Read is
      (Ce_Id : in String)
       return JSON_Small.Bounded_String
    is
-      use Database;
       use Errors;
+      use GNATCOLL.SQL.Exec;
 
-      Query : constant SQL_Query :=
-                SQL_Select (Fields        =>
-                              Contactentity.Json &
-                              Contactentity.Ce_Id &
-                              Contactentity.Ce_Name &
-                              Contactentity.Is_Human,
-                            Where         =>
-                              Contactentity.Ce_Id = Natural'Value (Ce_Id),
-                            Auto_Complete => True);
-
-      Cursor         : Exec.Forward_Cursor;
+      Cursor         : Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
       Value          : JSON_Small.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
-         Cursor.Fetch (DB_Connections (k).Host, Query);
+         Cursor.Fetch (DB_Connections (k).Host,
+                       Queries.P_Get_Contact,
+                       Params => (1 => +Natural'Value (Ce_Id)));
 
          if DB_Connections (k).Host.Success then
             JSONIFY.Contact (Cursor, Value);
@@ -292,38 +276,18 @@ package body Storage.Read is
      (Ce_Id : in String)
       return JSON_Small.Bounded_String
    is
-      use Database;
       use Errors;
+      use GNATCOLL.SQL.Exec;
 
-      CA_Join : constant SQL_Left_Join_Table :=
-                  Left_Join (Full    =>
-                               Contactentity,
-                             Partial =>
-                               Contactentity_Attributes,
-                             On      =>
-                               Contactentity.Ce_Id =
-                                 Contactentity_Attributes.Ce_Id);
-
-      Query : constant SQL_Query :=
-                SQL_Select (Fields        =>
-                              Contactentity.Json &
-                              Contactentity.Ce_Id &
-                              Contactentity.Ce_Name &
-                              Contactentity.Is_Human &
-                              Contactentity_Attributes.Json &
-                              Contactentity_Attributes.Org_Id &
-                              Contactentity_Attributes.Ce_Id,
-                            From          => CA_Join,
-                            Where         =>
-                              Contactentity.Ce_Id = Natural'Value (Ce_Id));
-
-      Cursor         : Exec.Forward_Cursor;
+      Cursor         : Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
       Value          : JSON_Small.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
-         Cursor.Fetch (DB_Connections (k).Host, Query);
+         Cursor.Fetch (DB_Connections (k).Host,
+                       Queries.P_Get_Contact_Full,
+                       Params => (1 => +Natural'Value (Ce_Id)));
 
          if DB_Connections (k).Host.Success then
             JSONIFY.Contact_Full (Cursor, Value);
@@ -411,26 +375,18 @@ package body Storage.Read is
      (Org_Id : in String)
       return JSON_Large.Bounded_String
    is
-      use Database;
       use Errors;
+      use GNATCOLL.SQL.Exec;
 
-      Query : constant SQL_Query :=
-                SQL_Select (Fields        =>
-                              Contactentity_Attributes.Json &
-                              Contactentity_Attributes.Org_Id &
-                              Contactentity_Attributes.Ce_Id,
-                            Where         =>
-                              Contactentity_Attributes.Org_Id =
-                                Natural'Value (Org_Id),
-                            Auto_Complete => True);
-
-      Cursor         : Exec.Forward_Cursor;
+      Cursor         : Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
       Value          : JSON_Large.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
-         Cursor.Fetch (DB_Connections (k).Host, Query);
+         Cursor.Fetch (DB_Connections (k).Host,
+                       Queries.P_Get_Org_Contacts_Attributes,
+                       Params => (1 => +Natural'Value (Org_Id)));
 
          if DB_Connections (k).Host.Success then
             JSONIFY.Org_Contacts_Attributes (Cursor, Value);
@@ -458,36 +414,18 @@ package body Storage.Read is
      (Org_Id : in String)
       return JSON_Large.Bounded_String
    is
-      use Database;
       use Errors;
+      use GNATCOLL.SQL.Exec;
 
-      Contacts : constant SQL_Left_Join_Table :=
-                   Join (Table1 =>
-                           Contactentity,
-                         Table2 =>
-                           Organization_Contactentities,
-                         On     =>
-                           Contactentity.Ce_Id =
-                             Organization_Contactentities.Ce_Id);
-
-      Query    : constant SQL_Query :=
-                   SQL_Select (Fields =>
-                                 Contactentity.Json &
-                                 Contactentity.Ce_Id &
-                                 Contactentity.Ce_Name &
-                                 Contactentity.Is_Human,
-                               From   => Contacts,
-                               Where  =>
-                                 Organization_Contactentities.Org_Id =
-                                   Natural'Value (Org_Id));
-
-      Cursor         : Exec.Forward_Cursor;
+      Cursor         : Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
       Value          : JSON_Large.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
-         Cursor.Fetch (DB_Connections (k).Host, Query);
+         Cursor.Fetch (DB_Connections (k).Host,
+                       Queries.P_Get_Org_Contacts,
+                       Params => (1 => +Natural'Value (Org_Id)));
 
          if DB_Connections (k).Host.Success then
             JSONIFY.Org_Contacts (Cursor, Value);
@@ -545,51 +483,18 @@ package body Storage.Read is
      (Org_Id : in String)
       return JSON_Large.Bounded_String
    is
-      use Database;
       use Errors;
+      use GNATCOLL.SQL.Exec;
 
-      Contacts : constant SQL_Left_Join_Table :=
-                   Join (Table1 =>
-                           Contactentity,
-                         Table2 =>
-                           Organization_Contactentities,
-                         On     =>
-                           Contactentity.Ce_Id =
-                             Organization_Contactentities.Ce_Id);
-
-      CA_Join : constant SQL_Left_Join_Table :=
-                   Left_Join (Full    =>
-                                Contacts,
-                              Partial =>
-                                Contactentity_Attributes,
-                              On      =>
-                                Contactentity.Ce_Id =
-                                  Contactentity_Attributes.Ce_Id);
-
-      Query    : constant SQL_Query :=
-                   SQL_Select (Fields =>
-                                 Contactentity.Json &
-                                 Contactentity.Ce_Id &
-                                 Contactentity.Ce_Name &
-                                 Contactentity.Is_Human &
-                                 Contactentity_Attributes.Json &
-                                 Contactentity_Attributes.Org_Id &
-                                 Contactentity_Attributes.Ce_Id,
-                               From   => CA_Join,
-                               Where  =>
-                                 Organization_Contactentities.Org_Id =
-                                   Natural'Value (Org_Id) and
-                                 (Contactentity_Attributes.Org_Id =
-                                    Natural'Value (Org_Id) or
-                                 Is_Null (Contactentity_Attributes.Org_Id)));
-
-      Cursor         : Exec.Forward_Cursor;
+      Cursor         : Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
       Value          : JSON_Large.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
-         Cursor.Fetch (DB_Connections (k).Host, Query);
+         Cursor.Fetch (DB_Connections (k).Host,
+                       Queries.P_Get_Org_Contacts_Full,
+                       Params => (1 => +Natural'Value (Org_Id)));
 
          if DB_Connections (k).Host.Success then
             JSONIFY.Org_Contacts_Full (Cursor, Value);
@@ -647,27 +552,19 @@ package body Storage.Read is
      (Org_Id : in String)
       return JSON_Small.Bounded_String
    is
-      use Database;
       use Errors;
+      use GNATCOLL.SQL.Exec;
 
-      Query : constant SQL_Query :=
-                SQL_Select (Fields        =>
-                              Organization.Json &
-                              Organization.Org_Id &
-                              Organization.Org_Name &
-                              Organization.Identifier,
-                            Where         =>
-                              Organization.Org_Id = Natural'Value (Org_Id),
-                            Auto_Complete => True);
-
-      Cursor         : Exec.Forward_Cursor;
+      Cursor         : Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
       Value          : JSON_Small.Bounded_String :=
                          JSON_Small.Null_Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
-         Cursor.Fetch (DB_Connections (k).Host, Query);
+         Cursor.Fetch (DB_Connections (k).Host,
+                       Queries.P_Get_Organization,
+                       Params => (1 => +Natural'Value (Org_Id)));
 
          if DB_Connections (k).Host.Success then
             JSONIFY.Organization (Cursor, Value);
