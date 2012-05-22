@@ -22,16 +22,20 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Bounded;
+with My_Configuration;
 
 package Common is
 
    use Ada.Strings;
+   use My_Configuration;
 
-   package JSON_Large is new Bounded.Generic_Bounded_Length (100_000);
+   package JSON_Large is new
+     Bounded.Generic_Bounded_Length (Config.Get (JSON_Size_Large));
    --  Used to hold JSON strings which are considered "large", ie. collections
    --  of contacts, attributes or similar.
 
-   package JSON_Small is new Bounded.Generic_Bounded_Length (10_000);
+   package JSON_Small is new
+     Bounded.Generic_Bounded_Length (Config.Get (JSON_Size_Small));
    --  Used to hold JSON strings which are considered "small", ie. a single
    --  contact, organization or similar.
 
