@@ -462,13 +462,13 @@ package body Storage.Read is
       use Errors;
 
       Contacts : constant SQL_Left_Join_Table :=
-                   Left_Join (Full    =>
-                                Contactentity,
-                              Partial =>
-                                Organization_Contactentities,
-                              On      =>
-                                Contactentity.Ce_Id =
-                                  Organization_Contactentities.Ce_Id);
+                   Join (Table1 =>
+                           Contactentity,
+                         Table2 =>
+                           Organization_Contactentities,
+                         On     =>
+                           Contactentity.Ce_Id =
+                             Organization_Contactentities.Ce_Id);
 
       Query    : constant SQL_Query :=
                    SQL_Select (Fields =>
@@ -549,13 +549,13 @@ package body Storage.Read is
       use Errors;
 
       Contacts : constant SQL_Left_Join_Table :=
-                   Left_Join (Full    =>
-                                Contactentity,
-                              Partial =>
-                                Organization_Contactentities,
-                              On      =>
-                                Contactentity.Ce_Id =
-                                  Organization_Contactentities.Ce_Id);
+                   Join (Table1 =>
+                           Contactentity,
+                         Table2 =>
+                           Organization_Contactentities,
+                         On     =>
+                           Contactentity.Ce_Id =
+                             Organization_Contactentities.Ce_Id);
 
       CA_Join : constant SQL_Left_Join_Table :=
                    Left_Join (Full    =>
@@ -579,8 +579,9 @@ package body Storage.Read is
                                Where  =>
                                  Organization_Contactentities.Org_Id =
                                    Natural'Value (Org_Id) and
-                                 Contactentity_Attributes.Org_Id =
-                                   Natural'Value (Org_Id));
+                                 (Contactentity_Attributes.Org_Id =
+                                    Natural'Value (Org_Id) or
+                                 Is_Null (Contactentity_Attributes.Org_Id)));
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;

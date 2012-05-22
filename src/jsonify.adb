@@ -83,7 +83,8 @@ package body JSONIFY is
          DB_Columns := Create_Object;
          DB_JSON    := Create_Object;
 
-         DB_JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
+         DB_JSON := GNATCOLL.JSON.Read (Cursor.Value (0),
+                                        "db_json.json.error");
 
          DB_Columns.Set_Field (Cursor.Field_Name (1),
                                Cursor.Integer_Value (1));
@@ -145,20 +146,23 @@ package body JSONIFY is
          J.Set_Field ("db_columns", DB_Columns);
 
          while Cursor.Has_Row loop
-            Attr_JSON := Create_Object;
-            Attr_DB_Columns := Create_Object;
+            if not Cursor.Is_Null (4) then
+               Attr_JSON := Create_Object;
+               Attr_DB_Columns := Create_Object;
 
-            Attr_JSON := GNATCOLL.JSON.Read (Cursor.Value (4), "json.error");
+               Attr_JSON := GNATCOLL.JSON.Read (Cursor.Value (4),
+                                                "attr.json.error");
 
-            Attr_DB_Columns.Set_Field (Cursor.Field_Name (5),
-                                       Cursor.Integer_Value (5));
+               Attr_DB_Columns.Set_Field (Cursor.Field_Name (5),
+                                          Cursor.Integer_Value (5));
 
-            Attr_DB_Columns.Set_Field (Cursor.Field_Name (6),
-                                       Cursor.Integer_Value (6));
+               Attr_DB_Columns.Set_Field (Cursor.Field_Name (6),
+                                          Cursor.Integer_Value (6));
 
-            Attr_JSON.Set_Field ("db_columns", Attr_DB_Columns);
+               Attr_JSON.Set_Field ("db_columns", Attr_DB_Columns);
 
-            Append (Attr_Array, Attr_JSON);
+               Append (Attr_Array, Attr_JSON);
+            end if;
 
             Cursor.Next;
          end loop;
@@ -188,7 +192,8 @@ package body JSONIFY is
          DB_Columns := Create_Object;
          DB_JSON    := Create_Object;
 
-         DB_JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
+         DB_JSON := GNATCOLL.JSON.Read (Cursor.Value (0),
+                                        "db_json.json.error");
 
          DB_Columns.Set_Field (Cursor.Field_Name (1),
                                Cursor.Integer_Value (1));
@@ -236,7 +241,8 @@ package body JSONIFY is
          DB_Columns := Create_Object;
          DB_JSON    := Create_Object;
 
-         DB_JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
+         DB_JSON := GNATCOLL.JSON.Read (Cursor.Value (0),
+                                        "db_json.json.error");
 
          DB_Columns.Set_Field (Cursor.Field_Name (1),
                                Cursor.Integer_Value (1));
@@ -277,7 +283,8 @@ package body JSONIFY is
          Contact_JSON := Create_Object;
          DB_Columns := Create_Object;
 
-         Contact_JSON := GNATCOLL.JSON.Read (Cursor.Value (0), "json.error");
+         Contact_JSON := GNATCOLL.JSON.Read (Cursor.Value (0),
+                                             "contact_json.json.error");
 
          DB_Columns.Set_Field (Cursor.Field_Name (1),
                                Cursor.Integer_Value (1));
@@ -299,15 +306,18 @@ package body JSONIFY is
          Attr_JSON := Create_Object;
          Attr_DB_Columns := Create_Object;
 
-         Attr_JSON := GNATCOLL.JSON.Read (Cursor.Value (4), "json.error");
+         if not Cursor.Is_Null (4) then
+            Attr_JSON := GNATCOLL.JSON.Read (Cursor.Value (4),
+                                             "attr.json.error");
 
-         Attr_DB_Columns.Set_Field (Cursor.Field_Name (5),
-                                    Cursor.Integer_Value (5));
+            Attr_DB_Columns.Set_Field (Cursor.Field_Name (5),
+                                       Cursor.Integer_Value (5));
 
-         Attr_DB_Columns.Set_Field (Cursor.Field_Name (6),
-                                    Cursor.Integer_Value (6));
+            Attr_DB_Columns.Set_Field (Cursor.Field_Name (6),
+                                       Cursor.Integer_Value (6));
 
-         Attr_JSON.Set_Field ("db_columns", Attr_DB_Columns);
+            Attr_JSON.Set_Field ("db_columns", Attr_DB_Columns);
+         end if;
 
          Contact_JSON.Set_Field ("attributes", Attr_JSON);
 
