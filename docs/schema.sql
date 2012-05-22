@@ -1,6 +1,6 @@
 --  An organization.
 --  SHOULD contain information relevant to describing an organization, like one
---  or more addresses, phone numbers, products and similar. All this data is 
+--  or more addresses, phone numbers, products and similar. All this data is
 --  kept in the json column which MUST contain a valid JSON object string.
 --
 --  Note that the COLLATE parameters should be set according to the environment.
@@ -16,9 +16,9 @@
 CREATE TABLE organization
 (
   org_id serial NOT NULL,
-  org_name text COLLATE pg_catalog."da_DK.utf8" NOT NULL,
-  identifier text COLLATE pg_catalog."da_DK.utf8" NOT NULL,
-  json text NOT NULL,
+  org_name character varying(256) NOT NULL,
+  identifier character varying(256) NOT NULL,
+  json character varying(10000) NOT NULL,
   CONSTRAINT organization_pkey PRIMARY KEY (org_id ),
   CONSTRAINT organization_identifier_key UNIQUE (identifier )
 )
@@ -46,8 +46,8 @@ ALTER TABLE organization
 CREATE TABLE contactentity
 (
   ce_id serial NOT NULL,
-  ce_name text COLLATE pg_catalog."da_DK.utf8" NOT NULL,
-  json text NOT NULL,
+  ce_name character varying(256) NOT NULL,
+  json character varying(10000) NOT NULL,
   is_human boolean NOT NULL DEFAULT true,
   CONSTRAINT contactentity_pkey PRIMARY KEY (ce_id )
 )
@@ -99,16 +99,16 @@ CREATE TABLE contactentity_attributes
 (
   org_id integer NOT NULL,
   ce_id integer NOT NULL,
-  json text NOT NULL,
+  json character varying(10000) NOT NULL,
   CONSTRAINT contactentity_attributes_pkey PRIMARY KEY (ce_id , org_id ),
   CONSTRAINT contactentity_attributes_ce_and_org_id_fkey FOREIGN KEY (ce_id, org_id)
       REFERENCES organization_contactentities (ce_id, org_id) MATCH SIMPLE
       ON UPDATE CASCADE ON DELETE CASCADE,
-  CONSTRAINT contactentity_attributes_org_id_fkey FOREIGN KEY (org_id)
-      REFERENCES organization (org_id) MATCH SIMPLE
-      ON UPDATE CASCADE ON DELETE CASCADE,
   CONSTRAINT contactentity_attributes_ce_id_fkey FOREIGN KEY (ce_id)
       REFERENCES contactentity (ce_id) MATCH SIMPLE
+      ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT contactentity_attributes_org_id_fkey FOREIGN KEY (org_id)
+      REFERENCES organization (org_id) MATCH SIMPLE
       ON UPDATE CASCADE ON DELETE CASCADE
 )
 WITH (
@@ -116,3 +116,4 @@ WITH (
 );
 ALTER TABLE contactentity_attributes
   OWNER TO alice;
+
