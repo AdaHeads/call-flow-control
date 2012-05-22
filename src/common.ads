@@ -27,11 +27,11 @@ package Common is
 
    use Ada.Strings;
 
-   package JSON_Large is new Bounded.Generic_Bounded_Length (10_000);
+   package JSON_Large is new Bounded.Generic_Bounded_Length (100_000);
    --  Used to hold JSON strings which are considered "large", ie. collections
    --  of contacts, attributes or similar.
 
-   package JSON_Small is new Bounded.Generic_Bounded_Length (1_000);
+   package JSON_Small is new Bounded.Generic_Bounded_Length (10_000);
    --  Used to hold JSON strings which are considered "small", ie. a single
    --  contact, organization or similar.
 
