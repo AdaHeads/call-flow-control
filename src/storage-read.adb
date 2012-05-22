@@ -39,37 +39,37 @@ package body Storage.Read is
 
    function Get_Contact_From_DB
      (Ce_Id : in String)
-      return JSON.Bounded_String;
+      return JSON_Small.Bounded_String;
    --  Get the Ce_Id contact entity from persistent storage.
 
    function Get_Contact_Attributes_From_DB
      (Ce_Id  : in String)
-      return JSON.Bounded_String;
+      return JSON_Small.Bounded_String;
    --  Get the Ce_Id contact entity attributes from persistent storage.
 
    function Get_Contact_Full_From_DB
      (Ce_Id : in String)
-      return JSON.Bounded_String;
+      return JSON_Small.Bounded_String;
    --  Get the Ce_Id contact entity with Attributes from persistent storage.
 
    function Get_Org_Contacts_From_DB
      (Org_Id : in String)
-      return JSON.Bounded_String;
+      return JSON_Large.Bounded_String;
    --  Get the Org_Id contact entities from persistent storage.
 
    function Get_Org_Contacts_Attributes_From_DB
      (Org_Id : in String)
-      return JSON.Bounded_String;
+      return JSON_Large.Bounded_String;
    --  Get the Org_Id contact entity attributes from persistent storage.
 
    function Get_Org_Contacts_Full_From_DB
      (Org_Id : in String)
-      return JSON.Bounded_String;
+      return JSON_Large.Bounded_String;
    --  Get the Org_Id contact entities from persistent storage.
 
    function Get_Organization_From_DB
      (Org_Id : in String)
-      return JSON.Bounded_String;
+      return JSON_Small.Bounded_String;
    --  Get the Org_Id organization from persistent storage.
 
    --------------------
@@ -111,8 +111,8 @@ package body Storage.Read is
       use AWS.Utils;
       use Errors;
 
-      Valid : Boolean          := False;
-      Value : JSON.Bounded_String;
+      Valid : Boolean := False;
+      Value : JSON_Small.Bounded_String;
    begin
       Contact_Cache.Read (Key      => Ce_Id,
                           Is_Valid => Valid,
@@ -127,7 +127,7 @@ package body Storage.Read is
          Value := Get_Contact_From_DB (Ce_Id);
       end if;
 
-      return JSON.To_String (Value);
+      return JSON_Small.To_String (Value);
    end Get_Contact;
 
    ------------------------------
@@ -141,8 +141,8 @@ package body Storage.Read is
       use AWS.Utils;
       use Errors;
 
-      Valid : Boolean          := False;
-      Value : JSON.Bounded_String;
+      Valid : Boolean := False;
+      Value : JSON_Small.Bounded_String;
    begin
       Contact_Attributes_Cache.Read (Key      => Ce_Id,
                                      Is_Valid => Valid,
@@ -157,7 +157,7 @@ package body Storage.Read is
          Value := Get_Contact_Attributes_From_DB (Ce_Id);
       end if;
 
-      return JSON.To_String (Value);
+      return JSON_Small.To_String (Value);
    end Get_Contact_Attributes;
 
    --------------------------------------
@@ -166,7 +166,7 @@ package body Storage.Read is
 
    function Get_Contact_Attributes_From_DB
      (Ce_Id : in String)
-      return JSON.Bounded_String
+      return JSON_Small.Bounded_String
    is
       use Database;
       use Errors;
@@ -183,7 +183,7 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      Value          : JSON.Bounded_String;
+      Value          : JSON_Small.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -213,7 +213,7 @@ package body Storage.Read is
 
    function Get_Contact_From_DB
      (Ce_Id : in String)
-      return JSON.Bounded_String
+      return JSON_Small.Bounded_String
    is
       use Database;
       use Errors;
@@ -230,7 +230,7 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      Value          : JSON.Bounded_String;
+      Value          : JSON_Small.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -265,8 +265,8 @@ package body Storage.Read is
       use AWS.Utils;
       use Errors;
 
-      Valid : Boolean          := False;
-      Value : JSON.Bounded_String;
+      Valid : Boolean := False;
+      Value : JSON_Small.Bounded_String;
    begin
       Contact_Full_Cache.Read (Key      => Ce_Id,
                                Is_Valid => Valid,
@@ -281,7 +281,7 @@ package body Storage.Read is
          Value := Get_Contact_Full_From_DB (Ce_Id);
       end if;
 
-      return JSON.To_String (Value);
+      return JSON_Small.To_String (Value);
    end Get_Contact_Full;
 
    --------------------------------
@@ -290,7 +290,7 @@ package body Storage.Read is
 
    function Get_Contact_Full_From_DB
      (Ce_Id : in String)
-      return JSON.Bounded_String
+      return JSON_Small.Bounded_String
    is
       use Database;
       use Errors;
@@ -319,7 +319,7 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      Value          : JSON.Bounded_String;
+      Value          : JSON_Small.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -354,8 +354,8 @@ package body Storage.Read is
       use AWS.Utils;
       use Errors;
 
-      Valid : Boolean          := False;
-      Value : JSON.Bounded_String;
+      Valid : Boolean := False;
+      Value : JSON_Large.Bounded_String;
    begin
       Org_Contacts_Cache.Read (Key      => Org_Id,
                                Is_Valid => Valid,
@@ -370,7 +370,7 @@ package body Storage.Read is
          Value := Get_Org_Contacts_From_DB (Org_Id);
       end if;
 
-      return JSON.To_String (Value);
+      return JSON_Large.To_String (Value);
    end Get_Org_Contacts;
 
    -----------------------------------
@@ -384,8 +384,8 @@ package body Storage.Read is
       use AWS.Utils;
       use Errors;
 
-      Valid : Boolean          := False;
-      Value : JSON.Bounded_String;
+      Valid : Boolean := False;
+      Value : JSON_Large.Bounded_String;
    begin
       Org_Contacts_Attributes_Cache.Read (Key      => Org_Id,
                                           Is_Valid => Valid,
@@ -400,7 +400,7 @@ package body Storage.Read is
          Value := Get_Org_Contacts_Attributes_From_DB (Org_Id);
       end if;
 
-      return JSON.To_String (Value);
+      return JSON_Large.To_String (Value);
    end Get_Org_Contacts_Attributes;
 
    -------------------------------------------
@@ -409,7 +409,7 @@ package body Storage.Read is
 
    function Get_Org_Contacts_Attributes_From_DB
      (Org_Id : in String)
-      return JSON.Bounded_String
+      return JSON_Large.Bounded_String
    is
       use Database;
       use Errors;
@@ -426,7 +426,7 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      Value          : JSON.Bounded_String;
+      Value          : JSON_Large.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -456,7 +456,7 @@ package body Storage.Read is
 
    function Get_Org_Contacts_From_DB
      (Org_Id : in String)
-      return JSON.Bounded_String
+      return JSON_Large.Bounded_String
    is
       use Database;
       use Errors;
@@ -483,7 +483,7 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      Value          : JSON.Bounded_String;
+      Value          : JSON_Large.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -518,8 +518,8 @@ package body Storage.Read is
       use AWS.Utils;
       use Errors;
 
-      Valid : Boolean          := False;
-      Value : JSON.Bounded_String;
+      Valid : Boolean := False;
+      Value : JSON_Large.Bounded_String;
    begin
       Org_Contacts_Full_Cache.Read (Key      => Org_Id,
                                     Is_Valid => Valid,
@@ -534,7 +534,7 @@ package body Storage.Read is
          Value := Get_Org_Contacts_Full_From_DB (Org_Id);
       end if;
 
-      return JSON.To_String (Value);
+      return JSON_Large.To_String (Value);
    end Get_Org_Contacts_Full;
 
    -------------------------------------
@@ -543,7 +543,7 @@ package body Storage.Read is
 
    function Get_Org_Contacts_Full_From_DB
      (Org_Id : in String)
-      return JSON.Bounded_String
+      return JSON_Large.Bounded_String
    is
       use Database;
       use Errors;
@@ -584,7 +584,7 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      Value          : JSON.Bounded_String;
+      Value          : JSON_Large.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -619,8 +619,8 @@ package body Storage.Read is
       use AWS.Utils;
       use Errors;
 
-      Valid : Boolean          := False;
-      Value : JSON.Bounded_String;
+      Valid : Boolean := False;
+      Value : JSON_Small.Bounded_String;
    begin
       Organization_Cache.Read (Key      => Org_Id,
                                Is_Valid => Valid,
@@ -635,7 +635,7 @@ package body Storage.Read is
          Value := Get_Organization_From_DB (Org_Id);
       end if;
 
-      return JSON.To_String (Value);
+      return JSON_Small.To_String (Value);
    end Get_Organization;
 
    --------------------------------
@@ -644,7 +644,7 @@ package body Storage.Read is
 
    function Get_Organization_From_DB
      (Org_Id : in String)
-      return JSON.Bounded_String
+      return JSON_Small.Bounded_String
    is
       use Database;
       use Errors;
@@ -661,8 +661,8 @@ package body Storage.Read is
 
       Cursor         : Exec.Forward_Cursor;
       DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      Value          : JSON.Bounded_String :=
-                         JSON.Null_Bounded_String;
+      Value          : JSON_Small.Bounded_String :=
+                         JSON_Small.Null_Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop

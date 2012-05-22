@@ -31,7 +31,7 @@ package body JSONIFY is
 
    procedure Contact
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      Value  : in out JSON.Bounded_String)
+      Value  : in out JSON_Small.Bounded_String)
    is
       use GNATCOLL.JSON;
 
@@ -61,7 +61,7 @@ package body JSONIFY is
          J.Set_Field ("db_columns", DB_Columns);
       end if;
 
-      Value := JSON.To_Bounded_String (J.Write);
+      Value := JSON_Small.To_Bounded_String (J.Write);
    end Contact;
 
    --------------------------
@@ -70,7 +70,7 @@ package body JSONIFY is
 
    procedure Contact_Attributes
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      Value  : in out JSON.Bounded_String)
+      Value  : in out JSON_Small.Bounded_String)
    is
       use GNATCOLL.JSON;
 
@@ -100,7 +100,7 @@ package body JSONIFY is
 
       J.Set_Field ("attributes", Attr_Array);
 
-      Value := JSON.To_Bounded_String (J.Write);
+      Value := JSON_Small.To_Bounded_String (J.Write);
    end Contact_Attributes;
 
    --------------------
@@ -109,7 +109,7 @@ package body JSONIFY is
 
    procedure Contact_Full
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      Value  : in out JSON.Bounded_String)
+      Value  : in out JSON_Small.Bounded_String)
    is
       use GNATCOLL.JSON;
 
@@ -166,7 +166,7 @@ package body JSONIFY is
          J.Set_Field ("attributes", Attr_Array);
       end if;
 
-      Value := JSON.To_Bounded_String (J.Write);
+      Value := JSON_Small.To_Bounded_String (J.Write);
    end Contact_Full;
 
    --------------------
@@ -175,7 +175,7 @@ package body JSONIFY is
 
    procedure Org_Contacts
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      Value  : in out JSON.Bounded_String)
+      Value  : in out JSON_Large.Bounded_String)
    is
       use GNATCOLL.JSON;
 
@@ -214,7 +214,7 @@ package body JSONIFY is
 
       J.Set_Field ("contacts", Contact_Array);
 
-      Value := JSON.To_Bounded_String (J.Write);
+      Value := JSON_Large.To_Bounded_String (J.Write);
    end Org_Contacts;
 
    -------------------------------
@@ -223,7 +223,7 @@ package body JSONIFY is
 
    procedure Org_Contacts_Attributes
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      Value  : in out JSON.Bounded_String)
+      Value  : in out JSON_Large.Bounded_String)
    is
       use GNATCOLL.JSON;
 
@@ -253,7 +253,7 @@ package body JSONIFY is
 
       J.Set_Field ("attributes", Attr_Array);
 
-      Value := JSON.To_Bounded_String (J.Write);
+      Value := JSON_Large.To_Bounded_String (J.Write);
    end Org_Contacts_Attributes;
 
    -------------------------
@@ -262,7 +262,7 @@ package body JSONIFY is
 
    procedure Org_Contacts_Full
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      Value  : in out JSON.Bounded_String)
+      Value  : in out JSON_Large.Bounded_String)
    is
       use GNATCOLL.JSON;
 
@@ -318,7 +318,7 @@ package body JSONIFY is
 
       J.Set_Field ("contacts", Contact_Array);
 
-      Value := JSON.To_Bounded_String (J.Write);
+      Value := JSON_Large.To_Bounded_String (J.Write);
    end Org_Contacts_Full;
 
    --------------------
@@ -327,7 +327,7 @@ package body JSONIFY is
 
    procedure Organization
      (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      Value  : in out JSON.Bounded_String)
+      Value  : in out JSON_Small.Bounded_String)
    is
       use GNATCOLL.JSON;
 
@@ -351,7 +351,7 @@ package body JSONIFY is
          J.Set_Field ("db_columns", DB_Columns);
       end if;
 
-      Value := JSON.To_Bounded_String (J.Write);
+      Value := JSON_Small.To_Bounded_String (J.Write);
    end Organization;
 
 end JSONIFY;
