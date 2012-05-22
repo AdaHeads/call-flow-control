@@ -32,12 +32,12 @@ package Queries is
 
    --  Get_Contact query and prepared statement.
    Get_Contact : constant SQL_Query
-     := SQL_Select (Fields        =>
+     := SQL_Select (Fields =>
                       Contactentity.Json &
                       Contactentity.Ce_Id &
                       Contactentity.Ce_Name &
                       Contactentity.Is_Human,
-                    Where         =>
+                    Where  =>
                       Contactentity.Ce_Id = Integer_Param (1));
 
    P_Get_Contact : constant Prepared_Statement
@@ -62,11 +62,9 @@ package Queries is
                  Name          => "get_contact_attributes");
 
    --  Get_Contact_Full query and prepared statement.
-   Get_Contact_Full_Join : constant SQL_Left_Join_Table
-     :=  Left_Join (Full    =>
-                      Contactentity,
-                    Partial =>
-                      Contactentity_Attributes,
+   Get_Contact_Full_Left_Join : constant SQL_Left_Join_Table
+     :=  Left_Join (Full    => Contactentity,
+                    Partial => Contactentity_Attributes,
                     On      =>
                       Contactentity.Ce_Id = Contactentity_Attributes.Ce_Id);
 
@@ -79,7 +77,7 @@ package Queries is
                       Contactentity_Attributes.Json &
                       Contactentity_Attributes.Org_Id &
                       Contactentity_Attributes.Ce_Id,
-                    From   => Get_Contact_Full_Join,
+                    From   => Get_Contact_Full_Left_Join,
                     Where  => Contactentity.Ce_Id = Integer_Param (1));
 
    P_Get_Contact_Full : constant Prepared_Statement
@@ -95,8 +93,7 @@ package Queries is
                        Organization.Org_Id &
                        Organization.Org_Name &
                        Organization.Identifier,
-                     Where  =>
-                       Organization.Org_Id = Integer_Param (1));
+                     Where  => Organization.Org_Id = Integer_Param (1));
 
    P_Get_Organization : constant Prepared_Statement
      := Prepare (Query         => Get_Organization,
@@ -106,10 +103,8 @@ package Queries is
 
    --  Get_Org_Contacts query and prepared statement.
    Get_Org_Contacts_Join : constant SQL_Left_Join_Table
-     := Join (Table1 =>
-                Contactentity,
-              Table2 =>
-                Organization_Contactentities,
+     := Join (Table1 => Contactentity,
+              Table2 => Organization_Contactentities,
               On     =>
                 Contactentity.Ce_Id = Organization_Contactentities.Ce_Id);
 
