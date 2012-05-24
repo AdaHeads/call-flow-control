@@ -47,7 +47,7 @@ package body Call_Queue is
    --  HERE FOR TESTING PURPOSES.
    --  This is used by the PBX_Queue_Monitor task to generate random calls.
 
-   subtype Org_Id is Integer range 1 .. 5;
+   subtype Org_Id is Natural range 1 .. 5;
    package Random_Organization is new Discrete_Random (Org_Id);
    --  HERE FOR TESTING PURPOSES.
    --  This is just to be able to randomnly grab an organization so it can be
@@ -120,14 +120,16 @@ package body Call_Queue is
 
       procedure Remove
         (Id      : in     Call_Id;
+         Org_Id  :    out Natural;
          Success :    out Boolean);
       --  Remove a call from the queue.
 
       procedure Remove_First
-        (Removed_Call_Id : in out Call_Id);
+        (Removed_Call_Id :    out Call_Id;
+         Removed_Org_Id  :    out Natural);
       --  Remove the first call in the queue. Removed_Call_Id contains the Id
-      --  of the removed call. If there are no calls to remove, an empty string
-      --  is returned.
+      --  of the removed call and Removed_Org_Id is the Id of the callee.
+      --  If there are no calls to remove, an empty string and a 0 is returned.
    private
       JSON_Needs_Building : Boolean := True;
       --  This is set to False whenever a Call is added or removed from the
@@ -201,7 +203,7 @@ package body Call_Queue is
    end PBX_Queue_Monitor;
 
    task Generate_JSON;
-   --  Rebuild the queue JSON. Once every ½ second we check if a call has
+   --  Rebuild the queue JSON. Once every Â½ second we check if a call has
    --  been either added or removed from the queue, and if that is the case,
    --  then we re-build the queue JSON.
 
@@ -250,22 +252,27 @@ package body Call_Queue is
       return String
    is
       JSON    : constant JSON_Value := Create_Object;
+      Org_Id  : Natural := 0;
       Success : Boolean;
    begin
       if Id'Length > 0 then
-         Queue.Remove (Id, Success);
+         Queue.Remove (Id, Org_Id, Success);
 
          if Success then
             JSON.Set_Field ("id", Id);
+            JSON.Set_Field ("org_id", Org_Id);
          end if;
       else
          declare
-            CI : Call_Id;
+            CI     : Call_Id;
+            Org_Id : Natural;
          begin
-            Queue.Remove_First (Removed_Call_Id => CI);
+            Queue.Remove_First (Removed_Call_Id => CI,
+                                Removed_Org_Id  => Org_Id);
 
-            if CI /= "          " then
+            if Org_Id > 0 then
                JSON.Set_Field ("id", CI);
+               JSON.Set_Field ("org_id", Org_Id);
             end if;
          end;
       end if;
@@ -443,9 +450,12 @@ package body Call_Queue is
         (Id : in Call_Id)
       is
          Success : Boolean;
+         Org_Id  : Natural;
+
          pragma Unreferenced (Success);
+         pragma Unreferenced (Org_Id);
       begin
-         Remove (Id, Success);
+         Remove (Id, Org_Id, Success);
       end Remove;
 
       --------------
@@ -454,11 +464,13 @@ package body Call_Queue is
 
       procedure Remove
         (Id      : in     Call_Id;
+         Org_Id  :    out Natural;
          Success :    out Boolean)
       is
          C    : Ordered_Call_Queue_Map.Cursor;
          Elem : Call;
       begin
+         Org_Id := 0;
          Success := False;
 
          Queue_Maps_Loop :
@@ -470,9 +482,11 @@ package body Call_Queue is
                Elem := Ordered_Call_Queue_Map.Element (C);
 
                if Elem.Id = Id then
-                  Queue_Maps (P).Delete (C);
-                  JSON_Needs_Building := True;
+                  Org_Id := Elem.Callee;
                   Success := True;
+                  JSON_Needs_Building := True;
+
+                  Queue_Maps (P).Delete (C);
 
                   exit Queue_Maps_Loop;
                end if;
@@ -487,20 +501,25 @@ package body Call_Queue is
       --------------------
 
       procedure Remove_First
-        (Removed_Call_Id : in out Call_Id)
+        (Removed_Call_Id :    out Call_Id;
+         Removed_Org_Id  :    out Natural)
       is
       begin
          if Queue_Maps (High).Length > 0 then
             Removed_Call_Id := Queue_Maps (High).First_Element.Id;
+            Removed_Org_Id := Queue_Maps (High).First_Element.Callee;
             Queue_Maps (High).Delete_First;
          elsif Queue_Maps (Normal).Length > 0 then
             Removed_Call_Id := Queue_Maps (Normal).First_Element.Id;
+            Removed_Org_Id := Queue_Maps (Normal).First_Element.Callee;
             Queue_Maps (Normal).Delete_First;
          elsif Queue_Maps (Low).Length > 0 then
             Removed_Call_Id := Queue_Maps (Low).First_Element.Id;
+            Removed_Org_Id := Queue_Maps (Low).First_Element.Callee;
             Queue_Maps (Low).Delete_First;
          else
             Removed_Call_Id := "          ";
+            Removed_Org_Id := 0;
          end if;
       end Remove_First;
    end Queue;
