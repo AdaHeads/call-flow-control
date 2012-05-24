@@ -26,7 +26,13 @@ package Call_Queue is
    function Get
      return String;
    --  Return a JSON String containing the length of the queue and all the
-   --  waiting in the queue.
+   --  calls waiting in the queue.
+
+   function Get_Call
+     (Id : in String)
+      return String;
+   --  Return a JSON String containing the data for the longest waiting call,
+   --  if there is a call in the queue. This deletes the call from the queue.
 
    function Length
      return String;

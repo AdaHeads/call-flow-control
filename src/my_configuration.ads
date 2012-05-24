@@ -40,6 +40,7 @@ package My_Configuration is
                  DB2_Name,
                  DB2_User,
                  DB2_Password,
+                 Handler_Get_Call,
                  Handler_Get_Contact,
                  Handler_Get_Contact_Attributes,
                  Handler_Get_Contact_Full,
@@ -78,6 +79,8 @@ package My_Configuration is
                        => TUS ("alice"),
                        DB2_Password
                        => TUS ("secret"),
+                       Handler_Get_Call
+                       => TUS ("/get/call"),
                        Handler_Get_Contact
                        => TUS ("/get/contact"),
                        Handler_Get_Contact_Attributes

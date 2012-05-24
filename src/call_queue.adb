@@ -23,10 +23,9 @@
 
 with Ada.Calendar.Conversions;
 with Ada.Calendar.Formatting;
-with Ada.Containers.Hashed_Maps;
+with Ada.Containers.Ordered_Maps;
 with Ada.Numerics.Discrete_Random;
 with Ada.Strings.Fixed;
-with Ada.Strings.Hash;
 with Ada.Strings.Unbounded;
 with AWS.Utils;
 with Interfaces.C;
@@ -45,8 +44,8 @@ package body Call_Queue is
    type Priority_Level is (Low, Normal, High);
 
    package Random_Priority is new Discrete_Random (Priority_Level);
-   --  This is used by the FreeSWITCH_Queue_Monitor task to generate random
-   --  calls.
+   --  HERE FOR TESTING PURPOSES.
+   --  This is used by the PBX_Queue_Monitor task to generate random calls.
 
    subtype Org_Id is Integer range 1 .. 5;
    package Random_Organization is new Discrete_Random (Org_Id);
@@ -71,25 +70,26 @@ package body Call_Queue is
    function Equal_Elements
      (Left, Right : in Call)
       return Boolean;
-   --  Return True if two Call elements are equal, meaning that all the
-   --  record components match.
+   --  Return True if two Call elements are equal.
 
-   function Equal_Keys
-     (Left, Right : in Call_Id)
+   function Sort_Elements
+     (Left, Right : in Ada.Calendar.Time)
       return Boolean;
-   --  Return True if the two Call_Id are the same.
+   --  Return True if Left is < the Right. This sorts the calls in the ordered
+   --  queue maps according to the Call.Timestamp_UTC component.
 
-   package Call_Queue_Map is new Hashed_Maps
-     (Key_Type        => Call_Id,
-      Element_Type    => Call,
-      Hash            => Ada.Strings.Hash,
-      Equivalent_Keys => Equal_Keys,
-      "="             => Equal_Elements);
-   --  The hashed map used to hold all the calls. Note that we're not
-   --  doing any kind of sorting. This is expected to be done in the
-   --  client.
+   package Ordered_Call_Queue_Map is new Ordered_Maps
+     (Key_Type     => Ada.Calendar.Time,
+      Element_Type => Call,
+      "<"          => Sort_Elements,
+      "="          => Equal_Elements);
+   --  All call queues are kept in a Ordered_Call_Queue_Map, with sorting being
+   --  done according to the Call.Timestamp_UTC component.
 
-   use Call_Queue_Map;
+   type Queue_Maps_Array is array (Priority_Level) of
+     Ordered_Call_Queue_Map.Map;
+
+   type Queue_JSON_Array is array (Priority_Level) of JSON_Array;
 
    protected Queue is
       procedure Add
@@ -98,13 +98,13 @@ package body Call_Queue is
          Caller     : in String;
          Priority   : in Priority_Level;
          Start      : in Ada.Calendar.Time);
-      --  Add a call to the queue.
+      --  Add a call to the queue designated by Priority.
 
       procedure Build_JSON;
-      --  Build the queue JSON based on the Call records in the queue.
+      --  Build the queue JSON based on the Call records in the queues.
 
       procedure Clear;
-      --  Delete all calls from the queue.
+      --  Delete all calls from the queues.
 
       function Get
         return String;
@@ -112,15 +112,26 @@ package body Call_Queue is
 
       function Length
         return Natural;
-      --  Return the amount of Call records currently in the queue.
+      --  Return the amount of Call records currently in the queues.
 
       procedure Remove
         (Id : in Call_Id);
       --  Remove a call from the queue.
+
+      procedure Remove
+        (Id      : in     Call_Id;
+         Success :    out Boolean);
+      --  Remove a call from the queue.
+
+      procedure Remove_First
+        (Removed_Call_Id : in out Call_Id);
+      --  Remove the first call in the queue. Removed_Call_Id contains the Id
+      --  of the removed call. If there are no calls to remove, an empty string
+      --  is returned.
    private
       JSON_Needs_Building : Boolean := True;
       --  This is set to False whenever a Call is added or removed from the
-      --  queue.
+      --  queues.
 
       JSON                : JSON_Value := JSON_Null;
       --  This holds the current JSON_Value object from which the
@@ -129,14 +140,12 @@ package body Call_Queue is
       JSON_String         : Unbounded_String := TUS ("{}");
       --  The JSON returned in call to Get.
 
-      Low_JSON_Arr        : JSON_Array := Empty_Array;
-      Normal_JSON_Arr     : JSON_Array := Empty_Array;
-      High_JSON_Arr       : JSON_Array := Empty_Array;
+      JSON_Arrays         : Queue_JSON_Array := (others => Empty_Array);
       --  The JSON arrays containing the calls in the queue according to
       --  their priority.
 
-      Queue_Map           : Map;
-      --  The queue map.
+      Queue_Maps          : Queue_Maps_Array;
+      --  The queue maps.
    end Queue;
 
    task PBX_Queue_Monitor;
@@ -149,10 +158,11 @@ package body Call_Queue is
       use Task_Controller;
 
       type Foo is mod 30;
-      Id_Array : array (Foo) of Call_Id := (others => "          ");
-      --  Simulate up to 50 calls in the queue.
 
-      C        : Foo := 0;
+      Id_Array : array (Foo) of Call_Id := (others => "          ");
+      --  Simulate up to a total of 30 calls in the queues.
+
+      C     : Foo := 0;
       --  Basic counter variable.
 
       G     : Random_Priority.Generator;
@@ -184,7 +194,7 @@ package body Call_Queue is
 
          C := C + 1;
 
-         delay 1.0;
+         delay 15.0;
       end loop;
 
       Queue.Clear;
@@ -192,7 +202,7 @@ package body Call_Queue is
 
    task Generate_JSON;
    --  Rebuild the queue JSON. Once every ½ second we check if a call has
-   --  been either added or removed from the queue, and that is the case,
+   --  been either added or removed from the queue, and if that is the case,
    --  then we re-build the queue JSON.
 
    task body Generate_JSON
@@ -220,18 +230,6 @@ package body Call_Queue is
       return Left = Right;
    end Equal_Elements;
 
-   ------------------
-   --  Equal_Keys  --
-   ------------------
-
-   function Equal_Keys
-     (Left, Right : in Call_Id)
-      return Boolean
-   is
-   begin
-      return Left = Right;
-   end Equal_Keys;
-
    -----------
    --  Get  --
    -----------
@@ -242,6 +240,38 @@ package body Call_Queue is
    begin
       return Queue.Get;
    end Get;
+
+   ----------------
+   --  Get_Call  --
+   ----------------
+
+   function Get_Call
+     (Id : in String)
+      return String
+   is
+      JSON    : constant JSON_Value := Create_Object;
+      Success : Boolean;
+   begin
+      if Id'Length > 0 then
+         Queue.Remove (Id, Success);
+
+         if Success then
+            JSON.Set_Field ("id", Id);
+         end if;
+      else
+         declare
+            CI : Call_Id;
+         begin
+            Queue.Remove_First (Removed_Call_Id => CI);
+
+            if CI /= "          " then
+               JSON.Set_Field ("id", CI);
+            end if;
+         end;
+      end if;
+
+      return JSON.Write;
+   end Get_Call;
 
    --------------
    --  Length  --
@@ -275,12 +305,13 @@ package body Call_Queue is
          Start    : in Ada.Calendar.Time)
       is
       begin
-         Queue_Map.Insert (Key      => Id,
-                           New_Item => (Id            => Id,
-                                        Callee        => Callee,
-                                        Caller        => Caller,
-                                        Priority      => Priority,
-                                        Timestamp_UTC => Start));
+         Queue_Maps (Priority).Insert (Key      => Start,
+                                       New_Item => (Id            => Id,
+                                                    Callee        => Callee,
+                                                    Caller        => Caller,
+                                                    Priority      => Priority,
+                                                    Timestamp_UTC => Start));
+
          JSON_Needs_Building := True;
       end Add;
 
@@ -296,7 +327,7 @@ package body Call_Queue is
          use Ada.Strings.Fixed;
 
          procedure Go
-           (Position : in Cursor);
+           (Position : in Ordered_Call_Queue_Map.Cursor);
          --  JSON'ify each Call in the queue.
 
          function Unix_Timestamp
@@ -310,12 +341,12 @@ package body Call_Queue is
          ---------
 
          procedure Go
-           (Position : in Cursor)
+           (Position : in Ordered_Call_Queue_Map.Cursor)
          is
             A_Call : Call;
             Value  : constant JSON_Value := Create_Object;
          begin
-            A_Call := Element (Position);
+            A_Call := Ordered_Call_Queue_Map.Element (Position);
 
             Value.Set_Field ("id", A_Call.Id);
             Value.Set_Field ("callee", A_Call.Callee);
@@ -324,17 +355,7 @@ package body Call_Queue is
             Value.Set_Field
               ("unix_timestamp", Unix_Timestamp (A_Call.Timestamp_UTC));
 
-            case A_Call.Priority is
-               when Low =>
-                  Append (Arr => Low_JSON_Arr,
-                          Val => Value);
-               when Normal =>
-                  Append (Arr => Normal_JSON_Arr,
-                          Val => Value);
-               when High =>
-                  Append (Arr => High_JSON_Arr,
-                          Val => Value);
-            end case;
+            Append (JSON_Arrays (A_Call.Priority), Value);
          end Go;
 
          ----------------------
@@ -356,16 +377,17 @@ package body Call_Queue is
          if JSON_Needs_Building then
             JSON := Create_Object;
 
-            JSON.Set_Field ("length", Natural (Queue_Map.Length));
-            Low_JSON_Arr    := Empty_Array;
-            Normal_JSON_Arr := Empty_Array;
-            High_JSON_Arr   := Empty_Array;
+            JSON.Set_Field ("length", Queue.Length);
 
-            Queue_Map.Iterate (Go'Access);
+            JSON_Arrays := (others => Empty_Array);
 
-            JSON.Set_Field ("low", Low_JSON_Arr);
-            JSON.Set_Field ("normal", Normal_JSON_Arr);
-            JSON.Set_Field ("high", High_JSON_Arr);
+            for P in Queue_Maps'Range loop
+               Queue_Maps (P).Iterate (Go'Access);
+            end loop;
+
+            JSON.Set_Field ("low", JSON_Arrays (Low));
+            JSON.Set_Field ("normal", JSON_Arrays (Normal));
+            JSON.Set_Field ("high", JSON_Arrays (High));
 
             JSON_String := TUS (JSON.Write);
          end if;
@@ -378,7 +400,10 @@ package body Call_Queue is
       procedure Clear
       is
       begin
-         Queue_Map.Clear;
+         for P in Queue_Maps'Range loop
+            Queue_Maps (P).Clear;
+         end loop;
+
          JSON_String := TUS ("{}");
          JSON_Needs_Building := True;
       end Clear;
@@ -401,8 +426,13 @@ package body Call_Queue is
       function Length
         return Natural
       is
+         C : Natural := 0;
       begin
-         return Natural (Queue_Map.Length);
+         for P in Queue_Maps'Range loop
+            C := C + Natural (Queue_Maps (P).Length);
+         end loop;
+
+         return C;
       end Length;
 
       --------------
@@ -412,10 +442,80 @@ package body Call_Queue is
       procedure Remove
         (Id : in Call_Id)
       is
+         Success : Boolean;
+         pragma Unreferenced (Success);
       begin
-         Queue_Map.Exclude (Id);
-         JSON_Needs_Building := True;
+         Remove (Id, Success);
       end Remove;
+
+      --------------
+      --  Remove  --
+      --------------
+
+      procedure Remove
+        (Id      : in     Call_Id;
+         Success :    out Boolean)
+      is
+         C    : Ordered_Call_Queue_Map.Cursor;
+         Elem : Call;
+      begin
+         Success := False;
+
+         Queue_Maps_Loop :
+         for P in Queue_Maps'Range loop
+            C := Queue_Maps (P).First;
+
+            Remove_Loop :
+            for K in 1 .. Queue_Maps (P).Length loop
+               Elem := Ordered_Call_Queue_Map.Element (C);
+
+               if Elem.Id = Id then
+                  Queue_Maps (P).Delete (C);
+                  JSON_Needs_Building := True;
+                  Success := True;
+
+                  exit Queue_Maps_Loop;
+               end if;
+
+               Ordered_Call_Queue_Map.Next (C);
+            end loop Remove_Loop;
+         end loop Queue_Maps_Loop;
+      end Remove;
+
+      --------------------
+      --  Remove_First  --
+      --------------------
+
+      procedure Remove_First
+        (Removed_Call_Id : in out Call_Id)
+      is
+      begin
+         if Queue_Maps (High).Length > 0 then
+            Removed_Call_Id := Queue_Maps (High).First_Element.Id;
+            Queue_Maps (High).Delete_First;
+         elsif Queue_Maps (Normal).Length > 0 then
+            Removed_Call_Id := Queue_Maps (Normal).First_Element.Id;
+            Queue_Maps (Normal).Delete_First;
+         elsif Queue_Maps (Low).Length > 0 then
+            Removed_Call_Id := Queue_Maps (Low).First_Element.Id;
+            Queue_Maps (Low).Delete_First;
+         else
+            Removed_Call_Id := "          ";
+         end if;
+      end Remove_First;
    end Queue;
+
+   ---------------------
+   --  Sort_Elements  --
+   ---------------------
+
+   function Sort_Elements
+     (Left, Right : in Ada.Calendar.Time)
+      return Boolean
+   is
+      use Ada.Calendar;
+   begin
+      return Left < Right;
+   end Sort_Elements;
 
 end Call_Queue;

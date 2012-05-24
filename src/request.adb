@@ -83,6 +83,34 @@ package body Request is
       return D;
    end Build_JSON_Response;
 
+   ------------
+   --  Call  --
+   ------------
+
+   function Call
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+      use AWS.Status;
+      use AWS.URL;
+      use Errors;
+
+      P  : constant AWS.Parameters.List := Parameters (Request);
+      Id : constant String              := P.Get ("id");
+   begin
+      return Build_JSON_Response
+        (Status_Data => Request,
+         Content     => Call_Queue.Get_Call (Id));
+
+   exception
+      when Event : others =>
+         return Build_JSON_Response
+           (Status_Data => Request,
+            Content     => Exception_Handler
+              (Event   => Event,
+               Message => "Requested resource: " & URL (URI (Request))));
+   end Call;
+
    ---------------
    --  Contact  --
    ---------------
