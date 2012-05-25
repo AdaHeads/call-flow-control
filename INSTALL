@@ -4,7 +4,9 @@ are met, then all you have to do is:
 
     $ make
 
-You now have a fully functioning Alice server in the exe/ directory.
+You now have a fully functioning Alice server in the exe/ directory. Remember that
+Alice needs a Yolk config.ini file in the configuration/ directory. You can use the
+base config.ini.dist file that comes with Yolk as a base for this.
 
 You can build a debug version of Alice with:
 
