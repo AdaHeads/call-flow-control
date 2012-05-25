@@ -144,6 +144,12 @@ DB2_Password secret
 # These Key/Value pairs define which dispatcher is used for a given resource.
 # All resource handlers are specified in the My_Handlers package.
 
+Handler_Get_Call /get/call
+# String.
+# Default: /get/call
+#
+# The regular expression to match the /get/call resource.
+
 Handler_Get_Contact /get/contact
 # String.
 # Default: /get/contact
