@@ -56,9 +56,9 @@ package body My_Handlers is
       --  content of the website is used. I personally prefer giving back 404's
       --  if unknown content is requested by a client.
 
-      ---------------------------------------
-      --  Dispatchers for known resources  --
-      ---------------------------------------
+      ------------------
+      --  Dispatchers --
+      ------------------
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
