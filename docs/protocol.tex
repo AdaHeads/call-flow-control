@@ -1,4 +1,4 @@
-%% LyX 2.0.3 created this file.  For more info, see http://www.lyx.org/.
+%% LyX 2.0.0 created this file.  For more info, see http://www.lyx.org/.
 %% Do not edit unless you really know what you are doing.
 \documentclass[12pt,english]{article}
 \usepackage{mathptmx}
@@ -64,7 +64,7 @@ How these are handled is entirely up to the client. HTTP level errors
 are returned as normal for HTTP servers.
 
 
-\section{The Same Origin Policy - JSONP}
+\section{The Same Origin Policy - CORS and JSONP}
 
 Same Origin Policy is a security feature found in the JavaScript implementation
 in most browser. It prevents you from making requests to pages on
@@ -73,23 +73,12 @@ The consequence of this is that you cannot query Alice from a client
 on a different domain than the one used by Alice, which in some cases
 can be a pain.
 
-The solution to this problem is something called the JSONP standard.
-This is supported transparently and out of the box by jQuery (and
-probably other Javascript frameworks). You simply change the \emph{get()}
-or \emph{post()} call to be JSONP based by stating that you would
-like the return type to be \emph{json}.
-
-If you prefer to build your own query strings by hand, then you must
-add a \emph{jsoncallback} (preferred) or \emph{callback} (will work)
-parameter with any value. The value of \emph{jsoncallback} is then
-used by Alice to wrap the returned JSON string, like this:
-\begin{lyxcode}
-/get/queue\_length?jsoncallback=foo
-
-foo(\{''length'':7\})
-\end{lyxcode}
-Strictly speaking this is only necessary if the client is running
-in a browser and is being hosted from another domain than Alice.
+The solutions to this problem is something called Cross-Origin Resource
+Sharing (CORS) and the JSONP standard. Both of these are supported
+out of the box by jQuery and probably also by other Javascript frameworks.
+The {}``correct'' and preferred method to use for cross domain access
+is CORS. Only use JSONP if CORS for some reason or another isn't supported
+by your platform.
 
 
 \section{The Data Model}
@@ -108,15 +97,15 @@ interface as an example, it might return a JSON looking like this:
 \begin{lyxcode}
 \textquotedbl{}name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},
 
-``items'':{[}''towel'',''heart~of~gold'',''dressing~gown''{]},
+{}``items'':{[}''towel'',''heart~of~gold'',''dressing~gown''{]},
 
-``emailaddress'':''arthurdent42@somewhere.unknown.org'',
+{}``emailaddress'':''arthurdent42@somewhere.unknown.org'',
 
-``cellphone'':''555-777-888-999'',
+{}``cellphone'':''555-777-888-999'',
 
-``dislikes'':''Vogons'',
+{}``dislikes'':''Vogons'',
 
-``db\_columns'':
+{}``db\_columns'':
 \begin{lyxcode}
 \{
 \begin{lyxcode}
@@ -124,7 +113,7 @@ interface as an example, it might return a JSON looking like this:
 
 \textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},
 
-``sip\_uri'':''sip://arthurdent.somewhere''
+{}``sip\_uri'':''sip://arthurdent.somewhere''
 \end{lyxcode}
 \}
 \end{lyxcode}
@@ -175,7 +164,29 @@ decide what to do with an exception.
 \section{Getting Data}
 
 
-\subsection{/get/contact?ce\_id={[}natural integer{]}}
+\subsection{/get/call{[}?id=call id{]}}
+
+This interface returns the JSON document associated with a call. If
+the \emph{id} parameter is given, and the \emph{id} actually exists
+in the call queue, then the specific call is returned. If the \emph{id}
+parameter is not given, the call with the highest priority and age
+is returned. If a call is returned it is also removed from the queue.
+Example JSON document:
+\begin{lyxcode}
+\{~~~~~
+\begin{lyxcode}
+\textquotedbl{}id\textquotedbl{}:\textquotedbl{}08yvc18eIM\textquotedbl{},~~~~~
+
+\textquotedbl{}org\_id\textquotedbl{}:3~
+\end{lyxcode}
+\}
+\end{lyxcode}
+If no call is found, an empty JSON document is returned:
+\begin{lyxcode}
+\{\}
+\end{lyxcode}
+
+\subsection{/get/contact?ce\_id=positive integer}
 
 This interface returns the JSON document associated with the contact
 entity identified by \emph{ce\_id}. Example JSON document:
@@ -184,7 +195,7 @@ entity identified by \emph{ce\_id}. Example JSON document:
 \begin{lyxcode}
 \textquotedbl{}name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},
 
-``db\_columns'':
+{}``db\_columns'':
 \begin{lyxcode}
 \{
 \begin{lyxcode}
@@ -192,7 +203,7 @@ entity identified by \emph{ce\_id}. Example JSON document:
 
 \textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},
 
-``sip\_uri'':''sip://arthurdent.somewhere''
+{}``sip\_uri'':''sip://arthurdent.somewhere''
 \end{lyxcode}
 \}
 \end{lyxcode}
@@ -205,7 +216,7 @@ in the database:
 \{\}
 \end{lyxcode}
 
-\subsection{/get/contact\_attributes?ce\_id={[}natural integer{]}}
+\subsection{/get/contact\_attributes?ce\_id=positive integer}
 
 This interface returns the attributes associated with the \emph{ce\_id}
 contact entity. Example JSON document:
@@ -273,11 +284,112 @@ JSON document is returned:
 \textquotedbl{}attributes\textquotedbl{}:{[}{]}
 \end{lyxcode}
 \}
-
-
 \end{lyxcode}
 
-\subsection{/get/organization?org\_id={[}natural\_integer{]}}
+\subsection{/get/contact\_full?ce\_id=positive integer}
+
+This interface returns the full data associated with \emph{ce\_id},
+meaning it combines the data from \emph{/get/contact} and \emph{/get/contact\_attributes}.
+Example JSON document:
+\begin{lyxcode}
+\{~~~~~
+\begin{lyxcode}
+\textquotedbl{}attributes\textquotedbl{}:~
+
+{[}~~~~~~~~~
+\begin{lyxcode}
+\{~~~~~~~~~~~~~
+\begin{lyxcode}
+\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}60431992\textquotedbl{},
+
+\textquotedbl{}db\_columns\textquotedbl{}:~
+\begin{lyxcode}
+\{~~~~~~~~~~~~~~~~~
+\begin{lyxcode}
+\textquotedbl{}ce\_id\textquotedbl{}:1,~~~~~~~~~~~~~~~~~
+
+\textquotedbl{}org\_id\textquotedbl{}:1~~~~~~~~~~~~~
+\end{lyxcode}
+\},~~~~~~~~~~~~~
+\end{lyxcode}
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}tl@adaheads.com\textquotedbl{}~~~~~~~~~
+\end{lyxcode}
+\},~~~~~~~~~
+
+\{~~~~~~~~~~~~~
+\begin{lyxcode}
+\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}33488201\textquotedbl{},~~~~~~~~~~~~~
+
+\textquotedbl{}db\_columns\textquotedbl{}:~
+\begin{lyxcode}
+\{~~~~~~~~~~~~~~~~~
+\begin{lyxcode}
+\textquotedbl{}ce\_id\textquotedbl{}:1,~~~~~~~~~~~~~~~~~
+
+\textquotedbl{}org\_id\textquotedbl{}:3~~~~~~~~~~~~~
+\end{lyxcode}
+\},~~~~~~~~~~~~~
+\end{lyxcode}
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}thomas@loecke.dk\textquotedbl{}~~~~~~~~~
+\end{lyxcode}
+\},~~~~~~~~~
+
+\{~~~~~~~~~~~~~
+\begin{lyxcode}
+\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}88329100\textquotedbl{},~~~~~~~~~~~~~
+
+\textquotedbl{}db\_columns\textquotedbl{}:~
+\begin{lyxcode}
+\{~~~~~~~~~~~~~~~~~
+\begin{lyxcode}
+\textquotedbl{}ce\_id\textquotedbl{}:1,~~~~~~~~~~~~~~~~~
+
+\textquotedbl{}org\_id\textquotedbl{}:2~~~~~~~~~~~~~
+\end{lyxcode}
+\},~~~~~~~~~~~~~
+\end{lyxcode}
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}thomas@responsum.dk\textquotedbl{},~~~~~~~~~~~~~
+
+\textquotedbl{}tags\textquotedbl{}:~
+
+{[}~~~~~~~~~~~~~~~~~
+\begin{lyxcode}
+\textquotedbl{}Ada\textquotedbl{},~~~~~~~~~~~~~~~~~
+
+\textquotedbl{}Slackware\textquotedbl{},~~~~~~~~~~~~~~~~~
+
+\textquotedbl{}Linux\textquotedbl{}~~~~~~~~~~~~~
+\end{lyxcode}
+{]}~~~~~~~~~
+\end{lyxcode}
+\}~~~~~
+\end{lyxcode}
+{]},~~~~~
+
+\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Thomas~Løcke\textquotedbl{},~~~~~
+
+\textquotedbl{}db\_columns\textquotedbl{}:~
+\begin{lyxcode}
+\{~~~~~~~~~
+\begin{lyxcode}
+\textquotedbl{}is\_human\textquotedbl{}:true,~~~~~~~~~
+
+\textquotedbl{}ce\_id\textquotedbl{}:1,~~~~~~~~~
+
+\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Thomas~Løcke\textquotedbl{}~~~~~
+\end{lyxcode}
+\},~~~~~
+\end{lyxcode}
+\textquotedbl{}type\textquotedbl{}:~\textquotedbl{}human\textquotedbl{}~
+\end{lyxcode}
+\}
+\end{lyxcode}
+An empty JSON document is returned if \emph{ce\_id} does not exist:
+\begin{lyxcode}
+\{\}
+\end{lyxcode}
+
+\subsection{/get/organization?org\_id=positive integer}
 
 This interface returns the data associated with the \emph{org\_id}
 organization. Example JSON:
@@ -306,7 +418,7 @@ is found in the database:
 \{\}
 \end{lyxcode}
 
-\subsection{/get/org\_contacts?org\_id={[}natural integer{]}}
+\subsection{/get/org\_contacts?org\_id=positive integer}
 
 This interface returns all the contact entities associated with \emph{org\_id}.
 Example JSON:
@@ -368,7 +480,7 @@ contact entities. If no contact entities are associated with the given
 \}
 \end{lyxcode}
 
-\subsection{/get/org\_contacts\_attributes?org\_id={[}natural integer{]}}
+\subsection{/get/org\_contacts\_attributes?org\_id=positive integer}
 
 This interface returns all the contact entity attribute sets associated
 with \emph{org\_id}. Example JSON document:
@@ -428,6 +540,152 @@ If there are no attribute sets, the following JSON document is returned:
 \{
 \begin{lyxcode}
 \textquotedbl{}attributes\textquotedbl{}:{[}{]}
+\end{lyxcode}
+\}
+\end{lyxcode}
+
+\subsection{/get/org\_contacts\_full?org\_id=positive integer}
+
+This interface returns the full contact data for all contacts associated
+with \emph{org\_id}, meaning it combines the data from \emph{/get/org\_contact}
+and \emph{/get/org\_contact\_attributes}. Example JSON document:
+\begin{quotation}
+\{ 
+\begin{quotation}
+\textquotedbl{}contacts\textquotedbl{}: 
+
+{[} 
+\begin{quotation}
+\{ 
+\begin{quotation}
+\textquotedbl{}attributes\textquotedbl{}: 
+\begin{quotation}
+\{ 
+\begin{quotation}
+\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}555-777\textquotedbl{}, 
+
+\textquotedbl{}db\_columns\textquotedbl{}: 
+\begin{quotation}
+\{ 
+\begin{quotation}
+\textquotedbl{}ce\_id\textquotedbl{}:1,
+
+\textquotedbl{}org\_id\textquotedbl{}:1 
+\end{quotation}
+\}, 
+\end{quotation}
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}abc@def\textquotedbl{} 
+\end{quotation}
+\}, 
+\end{quotation}
+\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Mr. Alphabet\textquotedbl{},
+
+\textquotedbl{}db\_columns\textquotedbl{}: 
+\begin{quotation}
+\{ 
+\begin{quotation}
+\textquotedbl{}is\_human\textquotedbl{}:true, 
+
+\textquotedbl{}ce\_id\textquotedbl{}:1, 
+
+\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Mr. Alphabet\textquotedbl{} 
+\end{quotation}
+\}, 
+\end{quotation}
+\textquotedbl{}type\textquotedbl{}:\textquotedbl{}human\textquotedbl{} 
+\end{quotation}
+\}, 
+
+\{ 
+\begin{quotation}
+\textquotedbl{}attributes\textquotedbl{}: 
+\begin{quotation}
+\{ 
+\begin{quotation}
+\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}345345\textquotedbl{}, 
+
+\textquotedbl{}db\_columns\textquotedbl{}: 
+\begin{quotation}
+\{ 
+\begin{quotation}
+\textquotedbl{}ce\_id\textquotedbl{}:3, 
+
+\textquotedbl{}org\_id\textquotedbl{}:1
+\end{quotation}
+\}, 
+\end{quotation}
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}foo@bar\textquotedbl{} 
+\end{quotation}
+\}, 
+\end{quotation}
+\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Foo Smith\textquotedbl{}, 
+
+\textquotedbl{}db\_columns\textquotedbl{}: 
+\begin{quotation}
+\{ 
+\begin{quotation}
+\textquotedbl{}is\_human\textquotedbl{}:true, 
+
+\textquotedbl{}ce\_id\textquotedbl{}:3, 
+
+\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Foo Smith\textquotedbl{} 
+\end{quotation}
+\}, 
+\end{quotation}
+\textquotedbl{}type\textquotedbl{}:\textquotedbl{}human\textquotedbl{} 
+\end{quotation}
+\}, 
+
+\{ 
+\begin{quotation}
+\textquotedbl{}attributes\textquotedbl{}: 
+\begin{quotation}
+\{ 
+\begin{quotation}
+\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}555-78787878\textquotedbl{}, 
+
+\textquotedbl{}db\_columns\textquotedbl{}: 
+\begin{quotation}
+\{ 
+\begin{quotation}
+\textquotedbl{}ce\_id\textquotedbl{}:4, 
+
+\textquotedbl{}org\_id\textquotedbl{}:1 
+\end{quotation}
+\}, 
+\end{quotation}
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}Bar Johnson\textquotedbl{}
+\end{quotation}
+\}, 
+\end{quotation}
+\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Bar Johnson\textquotedbl{}, 
+
+\textquotedbl{}db\_columns\textquotedbl{}: 
+\begin{quotation}
+\{ 
+\begin{quotation}
+\textquotedbl{}is\_human\textquotedbl{}:true, 
+
+\textquotedbl{}ce\_id\textquotedbl{}:4, 
+
+\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Bar Johnson\textquotedbl{} 
+\end{quotation}
+\}, 
+\end{quotation}
+\textquotedbl{}type\textquotedbl{}:\textquotedbl{}human\textquotedbl{} 
+\end{quotation}
+\}, 
+\end{quotation}
+{]} 
+\end{quotation}
+\}
+\end{quotation}
+If there are no contacts associated with \emph{org\_id} the following
+JSON document is returned:
+\begin{lyxcode}
+\{
+\begin{lyxcode}
+\textquotedbl{}contacts\textquotedbl{}:{[}{]}
 \end{lyxcode}
 \}
 \end{lyxcode}
@@ -505,7 +763,7 @@ will return a JSON string like this:
 \end{lyxcode}
 ~~~~{]},
 \begin{lyxcode}
-``length'':3
+{}``length'':3
 \end{lyxcode}
 \}
 \end{lyxcode}
