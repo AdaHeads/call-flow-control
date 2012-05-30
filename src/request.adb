@@ -77,7 +77,7 @@ package body Request is
 
       Origin_Host : constant String := Origin (Request);
    begin
-      if Origin_Host = "" then
+      if Origin_Host'Length > 0 then
          Set.Add_Header (D     => Response,
                          Name  => Access_Control_Allow_Origin_Token,
                          Value => Origin_Host);
