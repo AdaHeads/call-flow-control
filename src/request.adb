@@ -24,6 +24,7 @@
 with Ada.Strings.Fixed;
 with AWS.Messages;
 with AWS.Parameters;
+with AWS.Response.Set;
 with AWS.URL;
 with Call_Queue;
 with Errors;
@@ -34,51 +35,105 @@ package body Request is
    JSON_MIME_Type : constant String := "application/json; charset=utf-8";
 
    function Build_JSON_Response
-     (Status_Data : in AWS.Status.Data;
-      Content     : in String)
+     (Request : in AWS.Status.Data;
+      Content : in String)
       return AWS.Response.Data;
    --  Build the response and compress it if the client supports it. Also wraps
    --  JSON string in foo(JSON string) if the
-   --      ?callback=foo
+   --      ?jsoncallback=foo
    --  GET parameter is present.
 
-   function JSON_Callback_Value
-     (Status_Data : in AWS.Status.Data)
+   procedure Add_CORS_Headers
+     (Request  : in     AWS.Status.Data;
+      Response : in out AWS.Response.Data);
+   --  If the client sends the Origin: header, add these two CORS headers:
+   --    Access-Control-Allow-Origin
+   --    Access-Control-Allow-Credentials
+   --  where the first one should contain the value of the given Origin: header
+   --  and the second a Boolean True. This should be enough to enable very
+   --  simple CORS support in Alice.
+
+   function Add_JSONP_Callback
+     (Content : in String;
+      Request : in AWS.Status.Data)
       return String;
-   --  Return either the GET callback=foo or jsoncallback=foo value, with
-   --  jsoncallback having precedence over plain callback. Return empty string
-   --  if none of them are set.
+   --  Wrap Content in jsoncallback(Content) if the jsoncallback parameter
+   --  is given in the Request. jsonpcallback is replaced with the actual value
+   --  of the jsoncallback parameter.
+   --  NOTE:
+   --  We do not support the callback parameter. It is too generic.
+
+   ------------------------
+   --  Add_CORS_Headers  --
+   ------------------------
+
+   procedure Add_CORS_Headers
+     (Request  : in     AWS.Status.Data;
+      Response : in out AWS.Response.Data)
+   is
+      use AWS.Messages;
+      use AWS.Response;
+      use AWS.Status;
+
+      Origin_Host : constant String := Origin (Request);
+   begin
+      if Origin_Host = "" then
+         Set.Add_Header (D     => Response,
+                         Name  => Access_Control_Allow_Origin_Token,
+                         Value => Origin_Host);
+
+         Set.Add_Header (D     => Response,
+                         Name  => Access_Control_Allow_Credentials_Token,
+                         Value => "true");
+      end if;
+   end Add_CORS_Headers;
+
+   --------------------------
+   --  Add_JSONP_Callback  --
+   --------------------------
+
+   function Add_JSONP_Callback
+     (Content  : in String;
+      Request  : in AWS.Status.Data)
+      return String
+   is
+      use Ada.Strings;
+      use AWS.Status;
+
+      P             : constant AWS.Parameters.List := Parameters (Request);
+
+      JSON_Callback : constant String :=
+                        Fixed.Trim (P.Get ("jsoncallback"), Both);
+   begin
+      if JSON_Callback'Length > 0 then
+         return JSON_Callback & "(" & Content & ")";
+      end if;
+
+      return Content;
+   end Add_JSONP_Callback;
 
    ---------------------------
    --  Build_JSON_Response  --
    ---------------------------
 
    function Build_JSON_Response
-     (Status_Data : in AWS.Status.Data;
-      Content     : in String)
+     (Request : in AWS.Status.Data;
+      Content : in String)
       return AWS.Response.Data
    is
       use AWS.Messages;
       use AWS.Response;
       use AWS.Status;
 
-      D          : AWS.Response.Data;
-      Encoding   : constant Content_Encoding := Preferred_Coding (Status_Data);
-
-      Callback   : constant String              :=
-                     JSON_Callback_Value (Status_Data);
+      D        : AWS.Response.Data;
+      Encoding : constant Content_Encoding := Preferred_Coding (Request);
    begin
-      if Callback'Length > 0 then
-         D := Build (Content_Type  => JSON_MIME_Type,
-                     Message_Body  => Callback & "(" & Content & ")",
-                     Encoding      => Encoding,
-                     Cache_Control => No_Cache);
-      else
-         D :=  Build (Content_Type  => JSON_MIME_Type,
-                      Message_Body  => Content,
-                      Encoding      => Encoding,
-                      Cache_Control => No_Cache);
-      end if;
+      D :=  Build (Content_Type  => JSON_MIME_Type,
+                   Message_Body  => Add_JSONP_Callback (Content, Request),
+                   Encoding      => Encoding,
+                   Cache_Control => No_Cache);
+
+      Add_CORS_Headers (Request, D);
 
       return D;
    end Build_JSON_Response;
@@ -99,13 +154,13 @@ package body Request is
       Id : constant String              := P.Get ("id");
    begin
       return Build_JSON_Response
-        (Status_Data => Request,
+        (Request => Request,
          Content     => Call_Queue.Get_Call (Id));
 
    exception
       when Event : others =>
          return Build_JSON_Response
-           (Status_Data => Request,
+           (Request => Request,
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
@@ -128,13 +183,13 @@ package body Request is
       Ce_Id  : constant String              := P.Get ("ce_id");
    begin
       return Build_JSON_Response
-        (Status_Data => Request,
+        (Request => Request,
          Content     => Get_Contact (Ce_Id));
 
    exception
       when Event : others =>
          return Build_JSON_Response
-           (Status_Data => Request,
+           (Request => Request,
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
@@ -157,13 +212,13 @@ package body Request is
       Ce_Id  : constant String              := P.Get ("ce_id");
    begin
       return Build_JSON_Response
-        (Status_Data => Request,
+        (Request => Request,
          Content     => Get_Contact_Attributes (Ce_Id));
 
    exception
       when Event : others =>
          return Build_JSON_Response
-           (Status_Data => Request,
+           (Request => Request,
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
@@ -186,41 +241,17 @@ package body Request is
       Ce_Id  : constant String              := P.Get ("ce_id");
    begin
       return Build_JSON_Response
-        (Status_Data => Request,
+        (Request => Request,
          Content     => Get_Contact_Full (Ce_Id));
 
    exception
       when Event : others =>
          return Build_JSON_Response
-           (Status_Data => Request,
+           (Request => Request,
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
    end Contact_Full;
-
-   ---------------------------
-   --  JSON_Callback_Value  --
-   ---------------------------
-
-   function JSON_Callback_Value
-     (Status_Data : in AWS.Status.Data)
-      return String
-   is
-      use Ada.Strings;
-      use AWS.Status;
-
-      P             : constant AWS.Parameters.List := Parameters (Status_Data);
-
-      Callback      : constant String := Fixed.Trim (P.Get ("callback"), Both);
-      JSON_Callback : constant String :=
-                        Fixed.Trim (P.Get ("jsoncallback"), Both);
-   begin
-      if JSON_Callback'Length > 0 then
-         return JSON_Callback;
-      end if;
-
-      return Callback;
-   end JSON_Callback_Value;
 
    --------------------
    --  Org_Contacts  --
@@ -239,13 +270,13 @@ package body Request is
       Org_Id : constant String              := P.Get ("org_id");
    begin
       return Build_JSON_Response
-        (Status_Data => Request,
+        (Request => Request,
          Content     => Get_Org_Contacts (Org_Id));
 
    exception
       when Event : others =>
          return Build_JSON_Response
-           (Status_Data => Request,
+           (Request => Request,
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
@@ -268,13 +299,13 @@ package body Request is
       Org_Id : constant String              := P.Get ("org_id");
    begin
       return Build_JSON_Response
-        (Status_Data => Request,
+        (Request => Request,
          Content     => Get_Org_Contacts_Attributes (Org_Id));
 
    exception
       when Event : others =>
          return Build_JSON_Response
-           (Status_Data => Request,
+           (Request => Request,
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
@@ -297,13 +328,13 @@ package body Request is
       Org_Id : constant String              := P.Get ("org_id");
    begin
       return Build_JSON_Response
-        (Status_Data => Request,
+        (Request => Request,
          Content     => Get_Org_Contacts_Full (Org_Id));
 
    exception
       when Event : others =>
          return Build_JSON_Response
-           (Status_Data => Request,
+           (Request => Request,
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
@@ -326,13 +357,13 @@ package body Request is
       Org_Id : constant String              := P.Get ("org_id");
    begin
       return Build_JSON_Response
-        (Status_Data => Request,
+        (Request => Request,
          Content     => Get_Organization (Org_Id));
 
    exception
       when Event : others =>
          return Build_JSON_Response
-           (Status_Data => Request,
+           (Request => Request,
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
@@ -348,7 +379,7 @@ package body Request is
    is
    begin
       return Build_JSON_Response
-        (Status_Data => Request,
+        (Request => Request,
          Content     => Call_Queue.Get);
    end Queue;
 
@@ -361,7 +392,7 @@ package body Request is
       return AWS.Response.Data
    is
    begin
-      return Build_JSON_Response (Status_Data => Request,
+      return Build_JSON_Response (Request => Request,
                                   Content     => Call_Queue.Length);
    end Queue_Length;
 
