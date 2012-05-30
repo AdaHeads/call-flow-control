@@ -32,7 +32,10 @@ package Call_Queue is
      (Id : in String)
       return String;
    --  Return a JSON String containing the data for the longest waiting call,
-   --  if there is a call in the queue. This deletes the call from the queue.
+   --  if there is a call in the queue, else return an empty JSON string.
+   --  If Id is non-empty, try and return the call with Id. If no call is found
+   --  return an empty JSON string.
+   --  If a call is returned it is also deleted from the queue.
 
    function Length
      return String;
