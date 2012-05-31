@@ -12,9 +12,9 @@ Table of Contents
 
 1 Introduction
 
-Alice acts as the connector between one or more NAME_OF_PRODUCT 
-clients, a PostgreSQL data store and one ore more PBX'es. Her 
-main task is to get and set data via a HTTP/JSON based protocol.
+Alice acts as the connector between one or more Bob clients, a 
+PostgreSQL data store and one ore more PBX'es. Her main task is 
+to get and set data via a HTTP/JSON based protocol.
 
 2 The Protocol
 
@@ -39,70 +39,59 @@ Application level errors and exceptions are returned as JSON
 documents. How these are handled is entirely up to the client. 
 HTTP level errors are returned as normal for HTTP servers.
 
-3 The Same Origin Policy - JSONP
+3 The Same Origin Policy - CORS and JSONP
 
-Same Origin Policy is a security feature found in the JavaScript 
+Same Origin Policy is a security feature found in the Javascript 
 implementation in most browser. It prevents you from making 
 requests to pages on a different domain, another subdomain or 
 through a different protocol. The consequence of this is that you 
 cannot query Alice from a client on a different domain than the 
 one used by Alice, which in some cases can be a pain.
 
-The solution to this problem is something called the JSONP 
-standard. This is supported transparently and out of the box by 
-jQuery (and probably other Javascript frameworks). You simply 
-change the get() or post() call to be JSONP based by stating that 
-you would like the return type to be json.
-
-If you prefer to build your own query strings by hand, then you 
-must add a jsoncallback (preferred) or callback (will work) 
-parameter with any value. The value of jsoncallback is then used 
-by Alice to wrap the returned JSON string, like this:
-
-/get/queue_length?jsoncallback=foo
-
-foo({”length”:7})
-
-Strictly speaking this is only necessary if the client is running 
-in a browser and is being hosted from another domain than Alice.
+The solutions to this problem is something called Cross-Origin 
+Resource Sharing (CORS) and the JSONP standard. Both of these are 
+supported out of the box by jQuery and probably also by other 
+Javascript frameworks. The “correct” and preferred method to use 
+for cross domain access is CORS. Only use JSONP if CORS for some 
+reason or another isn't supported by your platform.
 
 4 The Data Model
 
 Instead of using only a relational or document based model, we've 
-opted for a mixture. Data that is relational in nature is stored 
-in columns in a relational database, whereas everything else is 
+opted for a mix. Data that is relational in nature is stored in 
+columns in a relational database, whereas everything else is 
 stored in a JSON document. When a client requests a specific type 
 of data Alice combines these two storage models into a final JSON 
 document.
 
 A benefit of this is that the client software easily can add new 
-fields, simply by expanding on the JSON document. If we take the 
-/get/contact interface as an example, it might return a JSON 
-looking like this:
+fields and data structures, simply by expanding on the JSON 
+document. If we take the /get/contact interface as an example, it 
+might return a JSON document looking like this:
 
 {
 
-  "name":"Arthur Dent",
+"name":"Arthur Dent",
 
-  “items”:[”towel”,”heart of gold”,”dressing gown”],
+“items”:[”towel”,”heart of gold”,”dressing gown”],
 
-  “emailaddress”:”arthurdent42@somewhere.unknown.org”,
+“emailaddress”:”arthurdent42@somewhere.unknown.org”,
 
-  “cellphone”:”555-777-888-999”,
+“cellphone”:”555-777-888-999”,
 
-  “dislikes”:”Vogons”,
+“dislikes”:”Vogons”,
 
-  “db_columns”:
+“db_columns”:
 
-    {
+  {
 
-      "ce_id":1,
+  "ce_id":1,
 
-      "ce_name":"Arthur Dent",
+  "ce_name":"Arthur Dent",
 
-      “sip_uri”:”sip://arthurdent.somewhere”
+  “sip_uri”:”sip://arthurdent.somewhere”
 
-    }
+  }
 
 }
 
@@ -121,7 +110,9 @@ Things put here are only searchable by the client.
 The strength of this model is that new fields can be added to a 
 contact entity on the fly, without needing any changes to Alice 
 or the database. Changes to Alice and/or the database itself is 
-only necessary if the new field must be searchable by Alice.
+only necessary if the new field must be searchable by Alice, for 
+example in the case of a new interface, where some given 
+parameter is being used to search for specific rows of data.
 
 The weakness of this model is of course that a poorly 
 designed/build client can end up with some very bad JSON. We 
@@ -134,11 +125,11 @@ document returned. These have the following format:
 
 {
 
-  "exception_message":"foo", 
+"exception_message":"foo", 
 
-  "exception":"SOME.EXCEPTION", 
+"exception":"SOME.EXCEPTION", 
 
-  "message":"bar"
+"message":"bar"
 
 }
 
@@ -147,26 +138,47 @@ to decide what to do with an exception.
 
 6 Getting Data
 
-6.1 /get/contact?ce_id=[natural integer]
+6.1 /get/call[?id=call id]
+
+This interface returns the JSON document associated with a call. 
+If the id parameter is given, and the id actually exists in the 
+call queue, then the specific call is returned. If the id 
+parameter is not given, the call with the highest priority and 
+age is returned. If a call is returned it is also removed from 
+the queue. Example JSON document:
+
+{     
+
+"id":"08yvc18eIM",     
+
+"org_id":3 
+
+}
+
+If no call is found, an empty JSON document is returned:
+
+{}
+
+6.2 /get/contact?ce_id=positive integer
 
 This interface returns the JSON document associated with the 
 contact entity identified by ce_id. Example JSON document:
 
 {
 
-  "name":"Arthur Dent",
+"name":"Arthur Dent",
 
-  “db_columns”:
+“db_columns”:
 
-    {
+  {
 
-      "ce_id":1,
+  "ce_id":1,
 
-      "ce_name":"Arthur Dent",
+  "ce_name":"Arthur Dent",
 
-      “sip_uri”:”sip://arthurdent.somewhere”
+  “sip_uri”:”sip://arthurdent.somewhere”
 
-    }
+  }
 
 }
 
@@ -175,54 +187,60 @@ database:
 
 {}
 
-6.2 /get/contact_attributes?ce_id=[natural integer]
+6.3 /get/contact_attributes?ce_id=positive integer
 
 This interface returns the attributes associated with the ce_id 
 contact entity. Example JSON document:
 
 {
 
-  "attributes":
+"attributes":[
 
-  [
+  {
 
-    {
+  "cellphone":"555-777-888-999", 
 
-      "phone":"555-777-888", 
-
-      "db_columns":
-
-        {
-
-          "ce_id":1, 
-
-          "org_id":1
-
-        }, 
-
-      "email":"some@email.address",
-
-      "tags":["Ada","Slackware","Linux"]
-
-    },
+  "db_columns":
 
     {
 
-      "phone":"999-000-111", 
+    "ce_id":1, 
 
-      "db_columns":
+    "org_id":1
 
-        {
+    }, 
 
-          "ce_id":1, 
+  "email":"arthurdent42@somewhere.unknown.org",
 
-          "org_id":2
+  "tags":[
 
-        }, 
+    "Traveller",
 
-      "email":"some.other@email.address"
+    "Towel",
 
-    }
+    "Heart"
+
+    ]
+
+  },
+
+  {
+
+  "phone":"999-000-111", 
+
+  "db_columns":
+
+    {
+
+    "ce_id":1, 
+
+    "org_id":2
+
+    }, 
+
+  "email":"some.other@email.address"
+
+  }
 
   ]
 
@@ -240,30 +258,108 @@ following JSON document is returned:
 
 {
 
-  "attributes":[]
+"attributes":[]
 
 }
 
+6.4 /get/contact_full?ce_id=positive integer
 
+This interface returns the full data associated with ce_id, 
+meaning it combines the data from /get/contact and 
+/get/contact_attributes. Example JSON document:
 
-6.3 /get/organization?org_id=[natural_integer]
+{     
+
+"attributes":[         
+
+  {             
+
+  "cellphone":"555-777-888-999",
+
+  "db_columns": 
+
+    {                 
+
+    "ce_id":1,                 
+
+    "org_id":1             
+
+    },             
+
+  "email":"arthurdent42@somewhere.unknown.org",
+
+  "tags":[
+
+    "Traveller",
+
+    "Towel",
+
+    "Heart"
+
+    ]        
+
+  },         
+
+  {             
+
+  "cellphone":"333-666-111-222",             
+
+  "db_columns": 
+
+    {                 
+
+    "ce_id":1,                 
+
+    "org_id":2             
+
+    },             
+
+  "email":"some.other@email.address"
+
+  }     
+
+  ],     
+
+  "name":"Arthur Dent",     
+
+  "db_columns": 
+
+    {         
+
+    "is_human":true,         
+
+    "ce_id":1,         
+
+    "ce_name":"Arthur Dent"     
+
+    },     
+
+  "type":"human" 
+
+}
+
+An empty JSON document is returned if ce_id does not exist:
+
+{}
+
+6.5 /get/organization?org_id=positive integer
 
 This interface returns the data associated with the org_id 
 organization. Example JSON:
 
 {
 
-  "name":"AdaHeads K/S", 
+"name":"AdaHeads K/S", 
 
-  "db_columns":
+"db_columns":
 
   {
 
-    "org_name":"AdaHeads K/S", 
+  "org_name":"AdaHeads K/S", 
 
-    "identifier":"sip://adaheads", 
+  "identifier":"sip://adaheads", 
 
-    "org_id":1
+  "org_id":1
 
   }
 
@@ -274,52 +370,50 @@ found in the database:
 
 {}
 
-6.4 /get/org_contacts?org_id=[natural integer]
+6.6 /get/org_contacts?org_id=positive integer
 
 This interface returns all the contact entities associated with 
 org_id. Example JSON:
 
 {
 
-  "contacts":
+"contacts":[
 
-  [
+  {
 
-    {
+  "name":"Zaphod B.", 
 
-      "name":"Zaphod B.", 
-
-      "db_columns":
-
-      {
-
-        "ce_id":4, 
-
-        "org_id":2, 
-
-        "ce_name":"Zaphod B."
-
-      }
-
-    }, 
+  "db_columns":
 
     {
 
-      "name":"Tricia Takanawa", 
+    "ce_id":4, 
 
-      "db_columns":
+    "org_id":1, 
 
-      {
-
-        "ce_id":1, 
-
-        "org_id":2, 
-
-        "ce_name":"Tricia Takanawa"
-
-      }
+    "ce_name":"Zaphod B."
 
     }
+
+  }, 
+
+  {
+
+  "name":"Arthur Dent", 
+
+  "db_columns":
+
+    {
+
+    "ce_id":1, 
+
+    "org_id":1, 
+
+    "ce_name":"Arthur Dent"
+
+    }
+
+  }
 
   ]
 
@@ -331,58 +425,64 @@ given org_id the following JSON document is returned:
 
 {
 
-  "contacts":[]
+"contacts":[]
 
 }
 
-6.5 /get/org_contacts_attributes?org_id=[natural integer]
+6.7 /get/org_contacts_attributes?org_id=positive integer
 
 This interface returns all the contact entity attribute sets 
 associated with org_id. Example JSON document:
 
 {
 
-  "attributes":
+"attributes":[
 
-  [
+  {
+
+  "cellphone":"555-777-888-999", 
+
+  "db_columns":
 
     {
 
-      "phone":"555-777-888", 
+    "ce_id":1, 
 
-      "db_columns":
-
-        {
-
-          "ce_id":1, 
-
-          "org_id":1
-
-        }, 
-
-      "email":"some@email.address",
-
-      "tags":["Ada","Slackware","Linux"]
+    "org_id":1
 
     }, 
 
+  "email":"arthurdent42@somewhere.unknown.org",
+
+  "tags":[
+
+    "Traveller",
+
+    "Towel",
+
+    "Heart"
+
+    ]
+
+  }, 
+
+  {
+
+  "cellphone":"444-555-777", 
+
+  "db_columns":
+
     {
 
-      "phone":"444-555-777", 
+    "ce_id":4, 
 
-      "db_columns":
+    "org_id":1
 
-        {
+    }, 
 
-          "ce_id":7, 
+  "email":"zb@somewhere.unknown.org"
 
-          "org_id":1
-
-        }, 
-
-      "email":"contact@me.here"
-
-    }
+  }
 
   ]
 
@@ -395,11 +495,125 @@ returned:
 
 {
 
-  "attributes":[]
+"attributes":[]
 
 }
 
-6.6 /get/queue
+6.8 /get/org_contacts_full?org_id=positive integer
+
+This interface returns the full contact data for all contacts 
+associated with org_id, meaning it combines the data from 
+/get/org_contact and /get/org_contact_attributes. Example JSON 
+document:
+
+{ 
+
+"contacts":[ 
+
+  {
+
+  "attributes": 
+
+    {
+
+    "cellphone":"555-777-888-999", 
+
+    "db_columns": 
+
+      { 
+
+      "ce_id":1,
+
+      "org_id":1 
+
+      }, 
+
+    "email":"arthurdent42@somewhere.unknown.org",
+
+    "tags":[
+
+      "Traveller",
+
+      "Towel",
+
+      "Heart”
+
+      ]
+
+    }, 
+
+  "name":"Arthur Dent",
+
+  "db_columns": 
+
+    { 
+
+    "is_human":true, 
+
+    "ce_id":1, 
+
+    "ce_name":"Arthur Dent" 
+
+    }, 
+
+  "type":"human"
+
+  }, 
+
+  { 
+
+  "attributes": 
+
+    { 
+
+    "cellphone":"444-555-777", 
+
+    "db_columns": 
+
+      { 
+
+      "ce_id":4, 
+
+      "org_id":1
+
+      }, 
+
+    "email":"zb@somewhere.unknown.org" 
+
+    }, 
+
+  "name":"Zaphod B.", 
+
+  "db_columns": 
+
+    { 
+
+    "is_human":true, 
+
+    "ce_id":4, 
+
+    "ce_name":"Zaphod B." 
+
+    },
+
+  "type":"human"
+
+  }
+
+  ] 
+
+}
+
+If there are no contacts associated with org_id the following 
+JSON document is returned:
+
+{
+
+"contacts":[]
+
+}
+
+6.9 /get/queue
 
 This interface returns the current call queue. This is updated 
 once each second, so polling the /get/queue interface more often 
@@ -410,69 +624,63 @@ example:
 
 will return a JSON string like this:
 
-{     
+{
 
-  "normal": 
+"normal":[
 
-    [         
+  {
 
-      {             
+  "UTC_start_date":"2012-02-22 14:23:30",
 
-        "UTC_start_date":"2012-02-22 14:23:30",
+  "id":"GDhcf2VBww",
 
-        "id":"GDhcf2VBww",               
+  "unix_timestamp":"1329920610",
 
-        "unix_timestamp":"1329920610",             
+  "callee":5,
 
-        "callee":5,             
+  "caller":"d7sIp1kR"
 
-        "caller":"d7sIp1kR"         
+  }
 
-      }
+  ],
 
-    ],
+"high":[
 
-  "high": 
+  {
 
-    [         
+  "UTC_start_date":"2012-02-22 14:23:11",
 
-      {              
+  "id":"bRbYsMUVqx",
 
-        "UTC_start_date":"2012-02-22 14:23:11",
+  "unix_timestamp":"1329920591",
 
-        "id":"bRbYsMUVqx",             
+  "callee":3,
 
-        "unix_timestamp":"1329920591",                 
+  "caller":"oCgDF7ua"
 
-        "callee":3,             
+  }
 
-        "caller":"oCgDF7ua"         
+  ],
 
-      }
+"low":[
 
-    ],
+  {
 
-  "low": 
+  "UTC_start_date":"2012-02-22 14:23:17",
 
-    [         
+  "id":"VV8BFqGpqG",
 
-      {             
+  "unix_timestamp":"1329920597",
 
-        "UTC_start_date":"2012-02-22 14:23:17",            
+  "callee":9,
 
-       "id":"VV8BFqGpqG",             
+  "caller":"ZQsRogwB"
 
-        "unix_timestamp":"1329920597",              
+  }
 
-        "callee":9,             
+  ],
 
-       "caller":"ZQsRogwB"         
-
-      }
-
-    ],
-
-  “length”:3
+“length”:3
 
 }
 
@@ -483,26 +691,24 @@ an org_id. An empty queue returns the following JSON document:
 
 {
 
-  "normal":[], 
+"normal":[], 
 
-  "length":0, 
+"length":0, 
 
-  "high":[], 
+"high":[], 
 
-  "low":[]
+"low":[]
 
 }
 
-6.7 /get/queue_length
+6.10 /get/queue_length
 
 This interface returns the length of the current call queue. 
 Example JSON document:
 
 {
 
-  "length":7
+"length":7
 
 }
-
-
 

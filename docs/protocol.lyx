@@ -96,8 +96,8 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-Alice acts as the connector between one or more NAME_OF_PRODUCT clients,
- a PostgreSQL data store and one ore more PBX'es.
+Alice acts as the connector between one or more Bob clients, a PostgreSQL
+ data store and one ore more PBX'es.
  Her main task is to get and set data via a HTTP/JSON based protocol.
 \end_layout
 
@@ -138,7 +138,7 @@ The Same Origin Policy - CORS and JSONP
 \end_layout
 
 \begin_layout Standard
-Same Origin Policy is a security feature found in the JavaScript implementation
+Same Origin Policy is a security feature found in the Javascript implementation
  in most browser.
  It prevents you from making requests to pages on a different domain, another
  subdomain or through a different protocol.
@@ -171,7 +171,7 @@ The Data Model
 
 \begin_layout Standard
 Instead of using only a relational or document based model, we've opted
- for a mixture.
+ for a mix.
  Data that is relational in nature is stored in columns in a relational
  database, whereas everything else is stored in a JSON document.
  When a client requests a specific type of data Alice combines these two
@@ -179,20 +179,19 @@ Instead of using only a relational or document based model, we've opted
 \end_layout
 
 \begin_layout Standard
-A benefit of this is that the client software easily can add new fields,
- simply by expanding on the JSON document.
+A benefit of this is that the client software easily can add new fields
+ and data structures, simply by expanding on the JSON document.
  If we take the 
 \emph on
 /get/contact
 \emph default
- interface as an example, it might return a JSON looking like this:
+ interface as an example, it might return a JSON document looking like this:
 \end_layout
 
 \begin_layout LyX-Code
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "name":"Arthur Dent",
 \end_layout
@@ -305,7 +304,6 @@ db_columns
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "ce_id":1,
 \end_layout
@@ -333,12 +331,10 @@ sip://arthurdent.somewhere
 
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
 
-\end_deeper
 \end_deeper
 \begin_layout LyX-Code
 }
@@ -400,7 +396,9 @@ dislikes
 The strength of this model is that new fields can be added to a contact
  entity on the fly, without needing any changes to Alice or the database.
  Changes to Alice and/or the database itself is only necessary if the new
- field must be searchable by Alice.
+ field must be searchable by Alice, for example in the case of a new interface,
+ where some given parameter is being used to search for specific rows of
+ data.
 \end_layout
 
 \begin_layout Standard
@@ -423,7 +421,6 @@ When bad things happen an exception is raised and an error JSON document
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "exception_message":"foo", 
 \end_layout
@@ -436,7 +433,6 @@ When bad things happen an exception is raised and an error JSON document
 "message":"bar"
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
@@ -478,7 +474,6 @@ id
 {     
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "id":"08yvc18eIM",     
 \end_layout
@@ -487,7 +482,6 @@ id
 "org_id":3 
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
@@ -518,7 +512,6 @@ ce_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "name":"Arthur Dent",
 \end_layout
@@ -539,7 +532,6 @@ db_columns
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "ce_id":1,
 \end_layout
@@ -567,12 +559,10 @@ sip://arthurdent.somewhere
 
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
 
-\end_deeper
 \end_deeper
 \begin_layout LyX-Code
 }
@@ -607,13 +597,8 @@ ce_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
-"attributes":
-\end_layout
-
-\begin_layout LyX-Code
-[
+"attributes":[
 \end_layout
 
 \begin_deeper
@@ -621,9 +606,8 @@ ce_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
-"phone":"555-777-888", 
+"cellphone":"555-777-888-999", 
 \end_layout
 
 \begin_layout LyX-Code
@@ -635,7 +619,6 @@ ce_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "ce_id":1, 
 \end_layout
@@ -644,18 +627,34 @@ ce_id
 "org_id":1
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }, 
 \end_layout
 
 \end_deeper
 \begin_layout LyX-Code
-"email":"some@email.address",
+"email":"arthurdent42@somewhere.unknown.org",
 \end_layout
 
 \begin_layout LyX-Code
-"tags":["Ada","Slackware","Linux"]
+"tags":[
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"Traveller",
+\end_layout
+
+\begin_layout LyX-Code
+"Towel",
+\end_layout
+
+\begin_layout LyX-Code
+"Heart"
+\end_layout
+
+\begin_layout LyX-Code
+]
 \end_layout
 
 \end_deeper
@@ -667,7 +666,6 @@ ce_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "phone":"999-000-111", 
 \end_layout
@@ -681,7 +679,6 @@ ce_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "ce_id":1, 
 \end_layout
@@ -690,7 +687,6 @@ ce_id
 "org_id":2
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }, 
 \end_layout
@@ -700,12 +696,10 @@ ce_id
 "email":"some.other@email.address"
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 ]
 \end_layout
@@ -739,12 +733,10 @@ If there are no attributes associated with a contact entity, the following
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "attributes":[]
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
@@ -774,13 +766,8 @@ ce_id
 {     
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
-"attributes": 
-\end_layout
-
-\begin_layout LyX-Code
-[         
+"attributes":[         
 \end_layout
 
 \begin_deeper
@@ -788,9 +775,8 @@ ce_id
 {             
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
-"phone":"60431992",
+"cellphone":"555-777-888-999",
 \end_layout
 
 \begin_layout LyX-Code
@@ -802,7 +788,6 @@ ce_id
 {                 
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "ce_id":1,                 
 \end_layout
@@ -811,14 +796,34 @@ ce_id
 "org_id":1             
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 },             
 \end_layout
 
 \end_deeper
 \begin_layout LyX-Code
-"email":"tl@adaheads.com"         
+"email":"arthurdent42@somewhere.unknown.org",
+\end_layout
+
+\begin_layout LyX-Code
+"tags":[
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"Traveller",
+\end_layout
+
+\begin_layout LyX-Code
+"Towel",
+\end_layout
+
+\begin_layout LyX-Code
+"Heart"
+\end_layout
+
+\begin_layout LyX-Code
+]        
 \end_layout
 
 \end_deeper
@@ -830,9 +835,8 @@ ce_id
 {             
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
-"phone":"33488201",             
+"cellphone":"333-666-111-222",             
 \end_layout
 
 \begin_layout LyX-Code
@@ -844,49 +848,6 @@ ce_id
 {                 
 \end_layout
 
-\begin_deeper
-\begin_layout LyX-Code
-"ce_id":1,                 
-\end_layout
-
-\begin_layout LyX-Code
-"org_id":3             
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-},             
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-"email":"thomas@loecke.dk"         
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-},         
-\end_layout
-
-\begin_layout LyX-Code
-{             
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"phone":"88329100",             
-\end_layout
-
-\begin_layout LyX-Code
-"db_columns": 
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-{                 
-\end_layout
-
-\begin_deeper
 \begin_layout LyX-Code
 "ce_id":1,                 
 \end_layout
@@ -895,54 +856,25 @@ ce_id
 "org_id":2             
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 },             
 \end_layout
 
 \end_deeper
 \begin_layout LyX-Code
-"email":"thomas@responsum.dk",             
+"email":"some.other@email.address"
 \end_layout
 
-\begin_layout LyX-Code
-"tags": 
-\end_layout
-
-\begin_layout LyX-Code
-[                 
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"Ada",                 
-\end_layout
-
-\begin_layout LyX-Code
-"Slackware",                 
-\end_layout
-
-\begin_layout LyX-Code
-"Linux"             
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-]         
-\end_layout
-
-\end_deeper
 \begin_layout LyX-Code
 }     
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 ],     
 \end_layout
 
 \begin_layout LyX-Code
-"name":"Thomas Løcke",     
+"name":"Arthur Dent",     
 \end_layout
 
 \begin_layout LyX-Code
@@ -954,7 +886,6 @@ ce_id
 {         
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "is_human":true,         
 \end_layout
@@ -964,17 +895,16 @@ ce_id
 \end_layout
 
 \begin_layout LyX-Code
-"ce_name":"Thomas Løcke"     
+"ce_name":"Arthur Dent"     
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 },     
 \end_layout
 
 \end_deeper
 \begin_layout LyX-Code
-"type": "human" 
+"type":"human" 
 \end_layout
 
 \end_deeper
@@ -1011,7 +941,6 @@ org_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "name":"AdaHeads K/S", 
 \end_layout
@@ -1020,11 +949,11 @@ org_id
 "db_columns":
 \end_layout
 
+\begin_deeper
 \begin_layout LyX-Code
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "org_name":"AdaHeads K/S", 
 \end_layout
@@ -1037,7 +966,6 @@ org_id
 "org_id":1
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
@@ -1076,13 +1004,8 @@ org_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
-"contacts":
-\end_layout
-
-\begin_layout LyX-Code
-[
+"contacts":[
 \end_layout
 
 \begin_deeper
@@ -1090,7 +1013,6 @@ org_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "name":"Zaphod B.", 
 \end_layout
@@ -1099,24 +1021,23 @@ org_id
 "db_columns":
 \end_layout
 
+\begin_deeper
 \begin_layout LyX-Code
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "ce_id":4, 
 \end_layout
 
 \begin_layout LyX-Code
-"org_id":2, 
+"org_id":1, 
 \end_layout
 
 \begin_layout LyX-Code
 "ce_name":"Zaphod B."
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
@@ -1130,30 +1051,33 @@ org_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
-"name":"Tricia Takanawa", 
+"name":"Arthur Dent", 
 \end_layout
 
 \begin_layout LyX-Code
 "db_columns":
 \end_layout
 
+\begin_deeper
 \begin_layout LyX-Code
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "ce_id":1, 
 \end_layout
 
 \begin_layout LyX-Code
-"org_id":2, 
+"org_id":1, 
 \end_layout
 
 \begin_layout LyX-Code
-"ce_name":"Tricia Takanawa"
+"ce_name":"Arthur Dent"
+\end_layout
+
+\begin_layout LyX-Code
+}
 \end_layout
 
 \end_deeper
@@ -1161,12 +1085,6 @@ org_id
 }
 \end_layout
 
-\end_deeper
-\begin_layout LyX-Code
-}
-\end_layout
-
-\end_deeper
 \begin_layout LyX-Code
 ]
 \end_layout
@@ -1193,12 +1111,10 @@ org_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "contacts":[]
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
@@ -1221,13 +1137,8 @@ org_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
-"attributes":
-\end_layout
-
-\begin_layout LyX-Code
-[
+"attributes":[
 \end_layout
 
 \begin_deeper
@@ -1235,9 +1146,8 @@ org_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
-"phone":"555-777-888", 
+"cellphone":"555-777-888-999", 
 \end_layout
 
 \begin_layout LyX-Code
@@ -1249,7 +1159,6 @@ org_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "ce_id":1, 
 \end_layout
@@ -1258,18 +1167,34 @@ org_id
 "org_id":1
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }, 
 \end_layout
 
 \end_deeper
 \begin_layout LyX-Code
-"email":"some@email.address",
+"email":"arthurdent42@somewhere.unknown.org",
 \end_layout
 
 \begin_layout LyX-Code
-"tags":["Ada","Slackware","Linux"]
+"tags":[
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+"Traveller",
+\end_layout
+
+\begin_layout LyX-Code
+"Towel",
+\end_layout
+
+\begin_layout LyX-Code
+"Heart"
+\end_layout
+
+\begin_layout LyX-Code
+]
 \end_layout
 
 \end_deeper
@@ -1281,9 +1206,8 @@ org_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
-"phone":"444-555-777", 
+"cellphone":"444-555-777", 
 \end_layout
 
 \begin_layout LyX-Code
@@ -1295,31 +1219,27 @@ org_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
-"ce_id":7, 
+"ce_id":4, 
 \end_layout
 
 \begin_layout LyX-Code
 "org_id":1
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }, 
 \end_layout
 
 \end_deeper
 \begin_layout LyX-Code
-"email":"contact@me.here"
+"email":"zb@somewhere.unknown.org"
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 ]
 \end_layout
@@ -1347,12 +1267,10 @@ attributes
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "attributes":[]
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
@@ -1384,7 +1302,7 @@ org_id
 \end_layout
 
 \begin_layout Quotation
-"contacts": [ 
+"contacts":[ 
 \end_layout
 
 \begin_deeper
@@ -1402,7 +1320,7 @@ org_id
 \end_layout
 
 \begin_layout Quotation
-"phone":"555-777", 
+"cellphone":"555-777-888-999", 
 \end_layout
 
 \begin_layout Quotation
@@ -1428,17 +1346,42 @@ org_id
 
 \end_deeper
 \begin_layout Quotation
-"email":"abc@def" 
+"email":"arthurdent42@somewhere.unknown.org",
 \end_layout
 
+\begin_layout Quotation
+"tags":[
+\end_layout
+
+\begin_deeper
+\begin_layout Quotation
+"Traveller",
+\end_layout
+
+\begin_layout Quotation
+"Towel",
+\end_layout
+
+\begin_layout Quotation
+"Heart
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Quotation
+]
+\end_layout
+
+\end_deeper
 \begin_layout Quotation
 }, 
 \end_layout
 
 \end_deeper
 \begin_layout Quotation
-"name":"Mr.
- Alphabet",
+"name":"Arthur Dent",
 \end_layout
 
 \begin_layout Quotation
@@ -1459,19 +1402,18 @@ org_id
 \end_layout
 
 \begin_layout Quotation
-"ce_name":"Mr.
- Alphabet" 
+"ce_name":"Arthur Dent" 
 \end_layout
 
 \begin_layout Quotation
 }, 
 \end_layout
 
+\end_deeper
 \begin_layout Quotation
-"type":"human" 
+"type":"human"
 \end_layout
 
-\end_deeper
 \begin_layout Quotation
 }, 
 \end_layout
@@ -1484,52 +1426,48 @@ org_id
 "attributes": 
 \end_layout
 
+\begin_deeper
 \begin_layout Quotation
 { 
 \end_layout
 
-\begin_deeper
 \begin_layout Quotation
-"phone":"345345", 
+"cellphone":"444-555-777", 
 \end_layout
 
 \begin_layout Quotation
 "db_columns": 
 \end_layout
 
-\end_deeper
+\begin_deeper
 \begin_layout Quotation
 { 
 \end_layout
 
-\begin_deeper
 \begin_layout Quotation
-"ce_id":3, 
+"ce_id":4, 
 \end_layout
 
-\begin_deeper
 \begin_layout Quotation
 "org_id":1
 \end_layout
 
-\begin_deeper
-\begin_layout Quotation
-}, 
-\end_layout
-
-\begin_deeper
-\begin_layout Quotation
-"email":"foo@bar" 
-\end_layout
-
-\end_deeper
 \begin_layout Quotation
 }, 
 \end_layout
 
 \end_deeper
 \begin_layout Quotation
-"name":"Foo Smith", 
+"email":"zb@somewhere.unknown.org" 
+\end_layout
+
+\begin_layout Quotation
+}, 
+\end_layout
+
+\end_deeper
+\begin_layout Quotation
+"name":"Zaphod B.", 
 \end_layout
 
 \begin_layout Quotation
@@ -1541,101 +1479,6 @@ org_id
 { 
 \end_layout
 
-\begin_deeper
-\begin_layout Quotation
-"is_human":true, 
-\end_layout
-
-\begin_layout Quotation
-"ce_id":3, 
-\end_layout
-
-\begin_layout Quotation
-"ce_name":"Foo Smith" 
-\end_layout
-
-\end_deeper
-\begin_layout Quotation
-}, 
-\end_layout
-
-\end_deeper
-\begin_layout Quotation
-"type":"human" 
-\end_layout
-
-\end_deeper
-\begin_layout Quotation
-}, 
-\end_layout
-
-\begin_layout Quotation
-{ 
-\end_layout
-
-\begin_deeper
-\begin_layout Quotation
-"attributes": 
-\end_layout
-
-\begin_deeper
-\begin_layout Quotation
-{ 
-\end_layout
-
-\begin_deeper
-\begin_layout Quotation
-"phone":"555-78787878", 
-\end_layout
-
-\begin_layout Quotation
-"db_columns": 
-\end_layout
-
-\begin_deeper
-\begin_layout Quotation
-{ 
-\end_layout
-
-\begin_deeper
-\begin_layout Quotation
-"ce_id":4, 
-\end_layout
-
-\begin_layout Quotation
-"org_id":1 
-\end_layout
-
-\end_deeper
-\begin_layout Quotation
-}, 
-\end_layout
-
-\end_deeper
-\begin_layout Quotation
-"email":"Bar Johnson"
-\end_layout
-
-\end_deeper
-\begin_layout Quotation
-}, 
-\end_layout
-
-\end_deeper
-\begin_layout Quotation
-"name":"Bar Johnson", 
-\end_layout
-
-\begin_layout Quotation
-"db_columns": 
-\end_layout
-
-\begin_deeper
-\begin_layout Quotation
-{ 
-\end_layout
-
-\begin_deeper
 \begin_layout Quotation
 "is_human":true, 
 \end_layout
@@ -1645,25 +1488,22 @@ org_id
 \end_layout
 
 \begin_layout Quotation
-"ce_name":"Bar Johnson" 
+"ce_name":"Zaphod B." 
+\end_layout
+
+\begin_layout Quotation
+},
 \end_layout
 
 \end_deeper
 \begin_layout Quotation
-}, 
+"type":"human"
 \end_layout
 
-\end_deeper
 \begin_layout Quotation
-"type":"human" 
+}
 \end_layout
 
-\end_deeper
-\begin_layout Quotation
-}, 
-\end_layout
-
-\end_deeper
 \begin_layout Quotation
 ] 
 \end_layout
@@ -1685,12 +1525,10 @@ org_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "contacts":[]
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
@@ -1715,152 +1553,123 @@ will return a JSON string like this:
 \end_layout
 
 \begin_layout LyX-Code
-{     
+{
+\end_layout
+
+\begin_layout LyX-Code
+"normal":[
 \end_layout
 
 \begin_deeper
 \begin_layout LyX-Code
-"normal": 
+{
+\end_layout
+
+\begin_layout LyX-Code
+"UTC_start_date":"2012-02-22 14:23:30",
+\end_layout
+
+\begin_layout LyX-Code
+"id":"GDhcf2VBww",
+\end_layout
+
+\begin_layout LyX-Code
+"unix_timestamp":"1329920610",
+\end_layout
+
+\begin_layout LyX-Code
+"callee":5,
+\end_layout
+
+\begin_layout LyX-Code
+"caller":"d7sIp1kR"
+\end_layout
+
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout LyX-Code
+],
 \end_layout
 
 \end_deeper
 \begin_layout LyX-Code
-    [         
+"high":[
 \end_layout
 
 \begin_deeper
 \begin_layout LyX-Code
-    {             
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-    "UTC_start_date":"2012-02-22 14:23:30",
+{
 \end_layout
 
 \begin_layout LyX-Code
-    "id":"GDhcf2VBww",               
+"UTC_start_date":"2012-02-22 14:23:11",
 \end_layout
 
 \begin_layout LyX-Code
-    "unix_timestamp":"1329920610",             
+"id":"bRbYsMUVqx",
 \end_layout
 
 \begin_layout LyX-Code
-    "callee":5,             
+"unix_timestamp":"1329920591",
 \end_layout
 
 \begin_layout LyX-Code
-    "caller":"d7sIp1kR"         
+"callee":3,
+\end_layout
+
+\begin_layout LyX-Code
+"caller":"oCgDF7ua"
+\end_layout
+
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout LyX-Code
+],
 \end_layout
 
 \end_deeper
 \begin_layout LyX-Code
-    }
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-    ],
+"low":[
 \end_layout
 
 \begin_deeper
 \begin_layout LyX-Code
-"high": 
+{
+\end_layout
+
+\begin_layout LyX-Code
+"UTC_start_date":"2012-02-22 14:23:17",
+\end_layout
+
+\begin_layout LyX-Code
+"id":"VV8BFqGpqG",
+\end_layout
+
+\begin_layout LyX-Code
+"unix_timestamp":"1329920597",
+\end_layout
+
+\begin_layout LyX-Code
+"callee":9,
+\end_layout
+
+\begin_layout LyX-Code
+"caller":"ZQsRogwB"
+\end_layout
+
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout LyX-Code
+],
 \end_layout
 
 \end_deeper
-\begin_layout LyX-Code
-    [         
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-    {              
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-    "UTC_start_date":"2012-02-22 14:23:11",
-\end_layout
-
-\begin_layout LyX-Code
-    "id":"bRbYsMUVqx",             
-\end_layout
-
-\begin_layout LyX-Code
-    "unix_timestamp":"1329920591",                 
-\end_layout
-
-\begin_layout LyX-Code
-    "callee":3,             
-\end_layout
-
-\begin_layout LyX-Code
-    "caller":"oCgDF7ua"         
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-    }
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-    ],
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"low": 
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-    [         
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-    {             
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-    "UTC_start_date":"2012-02-22 14:23:17",            
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
- "id":"VV8BFqGpqG",             
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-    "unix_timestamp":"1329920597",              
-\end_layout
-
-\begin_layout LyX-Code
-    "callee":9,             
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
- "caller":"ZQsRogwB"         
-\end_layout
-
-\end_deeper
-\end_deeper
-\begin_layout LyX-Code
-    }
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-    ],
-\end_layout
-
-\begin_deeper
 \begin_layout LyX-Code
 \begin_inset Quotes eld
 \end_inset
@@ -1872,7 +1681,6 @@ length
 :3
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
@@ -1913,7 +1721,6 @@ org_id
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "normal":[], 
 \end_layout
@@ -1930,7 +1737,6 @@ org_id
 "low":[]
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }
 \end_layout
@@ -1948,18 +1754,12 @@ This interface returns the length of the current call queue.
 {
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 "length":7
 \end_layout
 
-\end_deeper
 \begin_layout LyX-Code
 }
-\end_layout
-
-\begin_layout Standard
-
 \end_layout
 
 \end_body

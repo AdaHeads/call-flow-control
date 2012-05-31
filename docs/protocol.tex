@@ -1,4 +1,4 @@
-%% LyX 2.0.0 created this file.  For more info, see http://www.lyx.org/.
+%% LyX 2.0.3 created this file.  For more info, see http://www.lyx.org/.
 %% Do not edit unless you really know what you are doing.
 \documentclass[12pt,english]{article}
 \usepackage{mathptmx}
@@ -38,9 +38,9 @@
 
 \section{Introduction}
 
-Alice acts as the connector between one or more NAME\_OF\_PRODUCT
-clients, a PostgreSQL data store and one ore more PBX'es. Her main
-task is to get and set data via a HTTP/JSON based protocol.
+Alice acts as the connector between one or more Bob clients, a PostgreSQL
+data store and one ore more PBX'es. Her main task is to get and set
+data via a HTTP/JSON based protocol.
 
 
 \section{The Protocol}
@@ -66,7 +66,7 @@ are returned as normal for HTTP servers.
 
 \section{The Same Origin Policy - CORS and JSONP}
 
-Same Origin Policy is a security feature found in the JavaScript implementation
+Same Origin Policy is a security feature found in the Javascript implementation
 in most browser. It prevents you from making requests to pages on
 a different domain, another subdomain or through a different protocol.
 The consequence of this is that you cannot query Alice from a client
@@ -76,7 +76,7 @@ can be a pain.
 The solutions to this problem is something called Cross-Origin Resource
 Sharing (CORS) and the JSONP standard. Both of these are supported
 out of the box by jQuery and probably also by other Javascript frameworks.
-The {}``correct'' and preferred method to use for cross domain access
+The ``correct'' and preferred method to use for cross domain access
 is CORS. Only use JSONP if CORS for some reason or another isn't supported
 by your platform.
 
@@ -84,39 +84,39 @@ by your platform.
 \section{The Data Model}
 
 Instead of using only a relational or document based model, we've
-opted for a mixture. Data that is relational in nature is stored in
-columns in a relational database, whereas everything else is stored
-in a JSON document. When a client requests a specific type of data
-Alice combines these two storage models into a final JSON document.
+opted for a mix. Data that is relational in nature is stored in columns
+in a relational database, whereas everything else is stored in a JSON
+document. When a client requests a specific type of data Alice combines
+these two storage models into a final JSON document.
 
-A benefit of this is that the client software easily can add new fields,
-simply by expanding on the JSON document. If we take the \emph{/get/contact}
-interface as an example, it might return a JSON looking like this:
+A benefit of this is that the client software easily can add new fields
+and data structures, simply by expanding on the JSON document. If
+we take the \emph{/get/contact} interface as an example, it might
+return a JSON document looking like this:
 \begin{lyxcode}
 \{
-\begin{lyxcode}
+
 \textquotedbl{}name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},
 
-{}``items'':{[}''towel'',''heart~of~gold'',''dressing~gown''{]},
+``items'':{[}''towel'',''heart~of~gold'',''dressing~gown''{]},
 
-{}``emailaddress'':''arthurdent42@somewhere.unknown.org'',
+``emailaddress'':''arthurdent42@somewhere.unknown.org'',
 
-{}``cellphone'':''555-777-888-999'',
+``cellphone'':''555-777-888-999'',
 
-{}``dislikes'':''Vogons'',
+``dislikes'':''Vogons'',
 
-{}``db\_columns'':
+``db\_columns'':
 \begin{lyxcode}
 \{
-\begin{lyxcode}
+
 \textquotedbl{}ce\_id\textquotedbl{}:1,
 
 \textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},
 
-{}``sip\_uri'':''sip://arthurdent.somewhere''
-\end{lyxcode}
+``sip\_uri'':''sip://arthurdent.somewhere''
+
 \}
-\end{lyxcode}
 \end{lyxcode}
 \}
 \end{lyxcode}
@@ -135,7 +135,9 @@ why. Things put here are only searchable by the client.
 The strength of this model is that new fields can be added to a contact
 entity on the fly, without needing any changes to Alice or the database.
 Changes to Alice and/or the database itself is only necessary if the
-new field must be searchable by Alice.
+new field must be searchable by Alice, for example in the case of
+a new interface, where some given parameter is being used to search
+for specific rows of data.
 
 The weakness of this model is of course that a poorly designed/build
 client can end up with some very bad JSON. We believe the strength
@@ -148,13 +150,13 @@ When bad things happen an exception is raised and an error JSON document
 returned. These have the following format:
 \begin{lyxcode}
 \{
-\begin{lyxcode}
+
 \textquotedbl{}exception\_message\textquotedbl{}:\textquotedbl{}foo\textquotedbl{},~
 
 \textquotedbl{}exception\textquotedbl{}:\textquotedbl{}SOME.EXCEPTION\textquotedbl{},~
 
 \textquotedbl{}message\textquotedbl{}:\textquotedbl{}bar\textquotedbl{}
-\end{lyxcode}
+
 \}
 \end{lyxcode}
 All exceptions have this format. It is entirely up to the client to
@@ -174,11 +176,11 @@ is returned. If a call is returned it is also removed from the queue.
 Example JSON document:
 \begin{lyxcode}
 \{~~~~~
-\begin{lyxcode}
+
 \textquotedbl{}id\textquotedbl{}:\textquotedbl{}08yvc18eIM\textquotedbl{},~~~~~
 
 \textquotedbl{}org\_id\textquotedbl{}:3~
-\end{lyxcode}
+
 \}
 \end{lyxcode}
 If no call is found, an empty JSON document is returned:
@@ -192,21 +194,20 @@ This interface returns the JSON document associated with the contact
 entity identified by \emph{ce\_id}. Example JSON document:
 \begin{lyxcode}
 \{
-\begin{lyxcode}
+
 \textquotedbl{}name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},
 
-{}``db\_columns'':
+``db\_columns'':
 \begin{lyxcode}
 \{
-\begin{lyxcode}
+
 \textquotedbl{}ce\_id\textquotedbl{}:1,
 
 \textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},
 
-{}``sip\_uri'':''sip://arthurdent.somewhere''
-\end{lyxcode}
+``sip\_uri'':''sip://arthurdent.somewhere''
+
 \}
-\end{lyxcode}
 \end{lyxcode}
 \}
 \end{lyxcode}
@@ -222,49 +223,55 @@ This interface returns the attributes associated with the \emph{ce\_id}
 contact entity. Example JSON document:
 \begin{lyxcode}
 \{
-\begin{lyxcode}
-\textquotedbl{}attributes\textquotedbl{}:
 
-{[}
+\textquotedbl{}attributes\textquotedbl{}:{[}
 \begin{lyxcode}
 \{
-\begin{lyxcode}
-\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}555-777-888\textquotedbl{},~
+
+\textquotedbl{}cellphone\textquotedbl{}:\textquotedbl{}555-777-888-999\textquotedbl{},~
 
 \textquotedbl{}db\_columns\textquotedbl{}:
 \begin{lyxcode}
 \{
-\begin{lyxcode}
+
 \textquotedbl{}ce\_id\textquotedbl{}:1,~
 
 \textquotedbl{}org\_id\textquotedbl{}:1
-\end{lyxcode}
+
 \},~
 \end{lyxcode}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}some@email.address\textquotedbl{},
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}arthurdent42@somewhere.unknown.org\textquotedbl{},
 
-\textquotedbl{}tags\textquotedbl{}:{[}\textquotedbl{}Ada\textquotedbl{},\textquotedbl{}Slackware\textquotedbl{},\textquotedbl{}Linux\textquotedbl{}{]}
+\textquotedbl{}tags\textquotedbl{}:{[}
+\begin{lyxcode}
+\textquotedbl{}Traveller\textquotedbl{},
+
+\textquotedbl{}Towel\textquotedbl{},
+
+\textquotedbl{}Heart\textquotedbl{}
+
+{]}
 \end{lyxcode}
 \},
 
 \{
-\begin{lyxcode}
+
 \textquotedbl{}phone\textquotedbl{}:\textquotedbl{}999-000-111\textquotedbl{},~
 
 \textquotedbl{}db\_columns\textquotedbl{}:
 \begin{lyxcode}
 \{
-\begin{lyxcode}
+
 \textquotedbl{}ce\_id\textquotedbl{}:1,~
 
 \textquotedbl{}org\_id\textquotedbl{}:2
-\end{lyxcode}
+
 \},~
 \end{lyxcode}
 \textquotedbl{}email\textquotedbl{}:\textquotedbl{}some.other@email.address\textquotedbl{}
-\end{lyxcode}
+
 \}
-\end{lyxcode}
+
 {]}
 \end{lyxcode}
 \}
@@ -280,9 +287,9 @@ If there are no attributes associated with a contact entity, the following
 JSON document is returned:
 \begin{lyxcode}
 \{
-\begin{lyxcode}
+
 \textquotedbl{}attributes\textquotedbl{}:{[}{]}
-\end{lyxcode}
+
 \}
 \end{lyxcode}
 
@@ -293,94 +300,72 @@ meaning it combines the data from \emph{/get/contact} and \emph{/get/contact\_at
 Example JSON document:
 \begin{lyxcode}
 \{~~~~~
-\begin{lyxcode}
-\textquotedbl{}attributes\textquotedbl{}:~
 
-{[}~~~~~~~~~
+\textquotedbl{}attributes\textquotedbl{}:{[}~~~~~~~~~
 \begin{lyxcode}
 \{~~~~~~~~~~~~~
-\begin{lyxcode}
-\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}60431992\textquotedbl{},
+
+\textquotedbl{}cellphone\textquotedbl{}:\textquotedbl{}555-777-888-999\textquotedbl{},
 
 \textquotedbl{}db\_columns\textquotedbl{}:~
 \begin{lyxcode}
 \{~~~~~~~~~~~~~~~~~
-\begin{lyxcode}
+
 \textquotedbl{}ce\_id\textquotedbl{}:1,~~~~~~~~~~~~~~~~~
 
 \textquotedbl{}org\_id\textquotedbl{}:1~~~~~~~~~~~~~
-\end{lyxcode}
+
 \},~~~~~~~~~~~~~
 \end{lyxcode}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}tl@adaheads.com\textquotedbl{}~~~~~~~~~
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}arthurdent42@somewhere.unknown.org\textquotedbl{},
+
+\textquotedbl{}tags\textquotedbl{}:{[}
+\begin{lyxcode}
+\textquotedbl{}Traveller\textquotedbl{},
+
+\textquotedbl{}Towel\textquotedbl{},
+
+\textquotedbl{}Heart\textquotedbl{}
+
+{]}~~~~~~~~
 \end{lyxcode}
 \},~~~~~~~~~
 
 \{~~~~~~~~~~~~~
-\begin{lyxcode}
-\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}33488201\textquotedbl{},~~~~~~~~~~~~~
+
+\textquotedbl{}cellphone\textquotedbl{}:\textquotedbl{}333-666-111-222\textquotedbl{},~~~~~~~~~~~~~
 
 \textquotedbl{}db\_columns\textquotedbl{}:~
 \begin{lyxcode}
 \{~~~~~~~~~~~~~~~~~
-\begin{lyxcode}
-\textquotedbl{}ce\_id\textquotedbl{}:1,~~~~~~~~~~~~~~~~~
 
-\textquotedbl{}org\_id\textquotedbl{}:3~~~~~~~~~~~~~
-\end{lyxcode}
-\},~~~~~~~~~~~~~
-\end{lyxcode}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}thomas@loecke.dk\textquotedbl{}~~~~~~~~~
-\end{lyxcode}
-\},~~~~~~~~~
-
-\{~~~~~~~~~~~~~
-\begin{lyxcode}
-\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}88329100\textquotedbl{},~~~~~~~~~~~~~
-
-\textquotedbl{}db\_columns\textquotedbl{}:~
-\begin{lyxcode}
-\{~~~~~~~~~~~~~~~~~
-\begin{lyxcode}
 \textquotedbl{}ce\_id\textquotedbl{}:1,~~~~~~~~~~~~~~~~~
 
 \textquotedbl{}org\_id\textquotedbl{}:2~~~~~~~~~~~~~
-\end{lyxcode}
+
 \},~~~~~~~~~~~~~
 \end{lyxcode}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}thomas@responsum.dk\textquotedbl{},~~~~~~~~~~~~~
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}some.other@email.address\textquotedbl{}
 
-\textquotedbl{}tags\textquotedbl{}:~
-
-{[}~~~~~~~~~~~~~~~~~
-\begin{lyxcode}
-\textquotedbl{}Ada\textquotedbl{},~~~~~~~~~~~~~~~~~
-
-\textquotedbl{}Slackware\textquotedbl{},~~~~~~~~~~~~~~~~~
-
-\textquotedbl{}Linux\textquotedbl{}~~~~~~~~~~~~~
-\end{lyxcode}
-{]}~~~~~~~~~
-\end{lyxcode}
 \}~~~~~
-\end{lyxcode}
+
 {]},~~~~~
 
-\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Thomas~Løcke\textquotedbl{},~~~~~
+\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},~~~~~
 
 \textquotedbl{}db\_columns\textquotedbl{}:~
 \begin{lyxcode}
 \{~~~~~~~~~
-\begin{lyxcode}
+
 \textquotedbl{}is\_human\textquotedbl{}:true,~~~~~~~~~
 
 \textquotedbl{}ce\_id\textquotedbl{}:1,~~~~~~~~~
 
-\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Thomas~Løcke\textquotedbl{}~~~~~
-\end{lyxcode}
+\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{}~~~~~
+
 \},~~~~~
 \end{lyxcode}
-\textquotedbl{}type\textquotedbl{}:~\textquotedbl{}human\textquotedbl{}~
+\textquotedbl{}type\textquotedbl{}:\textquotedbl{}human\textquotedbl{}~
 \end{lyxcode}
 \}
 \end{lyxcode}
@@ -395,19 +380,19 @@ This interface returns the data associated with the \emph{org\_id}
 organization. Example JSON:
 \begin{lyxcode}
 \{
-\begin{lyxcode}
+
 \textquotedbl{}name\textquotedbl{}:\textquotedbl{}AdaHeads~K/S\textquotedbl{},~
 
 \textquotedbl{}db\_columns\textquotedbl{}:
-
-\{
 \begin{lyxcode}
+\{
+
 \textquotedbl{}org\_name\textquotedbl{}:\textquotedbl{}AdaHeads~K/S\textquotedbl{},~
 
 \textquotedbl{}identifier\textquotedbl{}:\textquotedbl{}sip://adaheads\textquotedbl{},~
 
 \textquotedbl{}org\_id\textquotedbl{}:1
-\end{lyxcode}
+
 \}
 \end{lyxcode}
 \}
@@ -424,47 +409,45 @@ This interface returns all the contact entities associated with \emph{org\_id}.
 Example JSON:
 \begin{lyxcode}
 \{
-\begin{lyxcode}
-\textquotedbl{}contacts\textquotedbl{}:
 
-{[}
+\textquotedbl{}contacts\textquotedbl{}:{[}
 \begin{lyxcode}
 \{
-\begin{lyxcode}
+
 \textquotedbl{}name\textquotedbl{}:\textquotedbl{}Zaphod~B.\textquotedbl{},~
 
 \textquotedbl{}db\_columns\textquotedbl{}:
-
-\{
 \begin{lyxcode}
+\{
+
 \textquotedbl{}ce\_id\textquotedbl{}:4,~
 
-\textquotedbl{}org\_id\textquotedbl{}:2,~
+\textquotedbl{}org\_id\textquotedbl{}:1,~
 
 \textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Zaphod~B.\textquotedbl{}
-\end{lyxcode}
+
 \}
 \end{lyxcode}
 \},~
 
 \{
-\begin{lyxcode}
-\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Tricia~Takanawa\textquotedbl{},~
+
+\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},~
 
 \textquotedbl{}db\_columns\textquotedbl{}:
-
-\{
 \begin{lyxcode}
+\{
+
 \textquotedbl{}ce\_id\textquotedbl{}:1,~
 
-\textquotedbl{}org\_id\textquotedbl{}:2,~
+\textquotedbl{}org\_id\textquotedbl{}:1,~
 
-\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Tricia~Takanawa\textquotedbl{}
-\end{lyxcode}
+\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{}
+
 \}
 \end{lyxcode}
 \}
-\end{lyxcode}
+
 {]}
 \end{lyxcode}
 \}
@@ -474,9 +457,9 @@ contact entities. If no contact entities are associated with the given
 \emph{org\_id} the following JSON document is returned:
 \begin{lyxcode}
 \{
-\begin{lyxcode}
+
 \textquotedbl{}contacts\textquotedbl{}:{[}{]}
-\end{lyxcode}
+
 \}
 \end{lyxcode}
 
@@ -486,49 +469,55 @@ This interface returns all the contact entity attribute sets associated
 with \emph{org\_id}. Example JSON document:
 \begin{lyxcode}
 \{
-\begin{lyxcode}
-\textquotedbl{}attributes\textquotedbl{}:
 
-{[}
+\textquotedbl{}attributes\textquotedbl{}:{[}
 \begin{lyxcode}
 \{
-\begin{lyxcode}
-\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}555-777-888\textquotedbl{},~
+
+\textquotedbl{}cellphone\textquotedbl{}:\textquotedbl{}555-777-888-999\textquotedbl{},~
 
 \textquotedbl{}db\_columns\textquotedbl{}:
 \begin{lyxcode}
 \{
-\begin{lyxcode}
+
 \textquotedbl{}ce\_id\textquotedbl{}:1,~
 
 \textquotedbl{}org\_id\textquotedbl{}:1
-\end{lyxcode}
+
 \},~
 \end{lyxcode}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}some@email.address\textquotedbl{},
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}arthurdent42@somewhere.unknown.org\textquotedbl{},
 
-\textquotedbl{}tags\textquotedbl{}:{[}\textquotedbl{}Ada\textquotedbl{},\textquotedbl{}Slackware\textquotedbl{},\textquotedbl{}Linux\textquotedbl{}{]}
+\textquotedbl{}tags\textquotedbl{}:{[}
+\begin{lyxcode}
+\textquotedbl{}Traveller\textquotedbl{},
+
+\textquotedbl{}Towel\textquotedbl{},
+
+\textquotedbl{}Heart\textquotedbl{}
+
+{]}
 \end{lyxcode}
 \},~
 
 \{
-\begin{lyxcode}
-\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}444-555-777\textquotedbl{},~
+
+\textquotedbl{}cellphone\textquotedbl{}:\textquotedbl{}444-555-777\textquotedbl{},~
 
 \textquotedbl{}db\_columns\textquotedbl{}:
 \begin{lyxcode}
 \{
-\begin{lyxcode}
-\textquotedbl{}ce\_id\textquotedbl{}:7,~
+
+\textquotedbl{}ce\_id\textquotedbl{}:4,~
 
 \textquotedbl{}org\_id\textquotedbl{}:1
-\end{lyxcode}
+
 \},~
 \end{lyxcode}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}contact@me.here\textquotedbl{}
-\end{lyxcode}
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}zb@somewhere.unknown.org\textquotedbl{}
+
 \}
-\end{lyxcode}
+
 {]}
 \end{lyxcode}
 \}
@@ -538,9 +527,9 @@ an \emph{org\_id} the \emph{attributes} JSON node contains an array.
 If there are no attribute sets, the following JSON document is returned:
 \begin{lyxcode}
 \{
-\begin{lyxcode}
+
 \textquotedbl{}attributes\textquotedbl{}:{[}{]}
-\end{lyxcode}
+
 \}
 \end{lyxcode}
 
@@ -551,131 +540,99 @@ with \emph{org\_id}, meaning it combines the data from \emph{/get/org\_contact}
 and \emph{/get/org\_contact\_attributes}. Example JSON document:
 \begin{quotation}
 \{ 
-\begin{quotation}
-\textquotedbl{}contacts\textquotedbl{}: 
 
-{[} 
+\textquotedbl{}contacts\textquotedbl{}:{[} 
 \begin{quotation}
-\{ 
-\begin{quotation}
+\{
+
 \textquotedbl{}attributes\textquotedbl{}: 
 \begin{quotation}
-\{ 
-\begin{quotation}
-\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}555-777\textquotedbl{}, 
+\{
+
+\textquotedbl{}cellphone\textquotedbl{}:\textquotedbl{}555-777-888-999\textquotedbl{}, 
 
 \textquotedbl{}db\_columns\textquotedbl{}: 
 \begin{quotation}
 \{ 
-\begin{quotation}
+
 \textquotedbl{}ce\_id\textquotedbl{}:1,
 
 \textquotedbl{}org\_id\textquotedbl{}:1 
+
+\}, 
+\end{quotation}
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}arthurdent42@somewhere.unknown.org\textquotedbl{},
+
+\textquotedbl{}tags\textquotedbl{}:{[}
+\begin{quotation}
+\textquotedbl{}Traveller\textquotedbl{},
+
+\textquotedbl{}Towel\textquotedbl{},
+
+\textquotedbl{}Heart''
+
+{]}
 \end{quotation}
 \}, 
 \end{quotation}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}abc@def\textquotedbl{} 
-\end{quotation}
-\}, 
-\end{quotation}
-\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Mr. Alphabet\textquotedbl{},
+\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Arthur Dent\textquotedbl{},
 
 \textquotedbl{}db\_columns\textquotedbl{}: 
 \begin{quotation}
 \{ 
-\begin{quotation}
+
 \textquotedbl{}is\_human\textquotedbl{}:true, 
 
 \textquotedbl{}ce\_id\textquotedbl{}:1, 
 
-\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Mr. Alphabet\textquotedbl{} 
-\end{quotation}
+\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Arthur Dent\textquotedbl{} 
+
 \}, 
 \end{quotation}
-\textquotedbl{}type\textquotedbl{}:\textquotedbl{}human\textquotedbl{} 
-\end{quotation}
+\textquotedbl{}type\textquotedbl{}:\textquotedbl{}human\textquotedbl{}
+
 \}, 
 
 \{ 
-\begin{quotation}
+
 \textquotedbl{}attributes\textquotedbl{}: 
 \begin{quotation}
 \{ 
-\begin{quotation}
-\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}345345\textquotedbl{}, 
+
+\textquotedbl{}cellphone\textquotedbl{}:\textquotedbl{}444-555-777\textquotedbl{}, 
 
 \textquotedbl{}db\_columns\textquotedbl{}: 
 \begin{quotation}
 \{ 
-\begin{quotation}
-\textquotedbl{}ce\_id\textquotedbl{}:3, 
+
+\textquotedbl{}ce\_id\textquotedbl{}:4, 
 
 \textquotedbl{}org\_id\textquotedbl{}:1
-\end{quotation}
+
 \}, 
 \end{quotation}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}foo@bar\textquotedbl{} 
-\end{quotation}
+\textquotedbl{}email\textquotedbl{}:\textquotedbl{}zb@somewhere.unknown.org\textquotedbl{} 
+
 \}, 
 \end{quotation}
-\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Foo Smith\textquotedbl{}, 
+\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Zaphod B.\textquotedbl{}, 
 
 \textquotedbl{}db\_columns\textquotedbl{}: 
 \begin{quotation}
 \{ 
-\begin{quotation}
-\textquotedbl{}is\_human\textquotedbl{}:true, 
 
-\textquotedbl{}ce\_id\textquotedbl{}:3, 
-
-\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Foo Smith\textquotedbl{} 
-\end{quotation}
-\}, 
-\end{quotation}
-\textquotedbl{}type\textquotedbl{}:\textquotedbl{}human\textquotedbl{} 
-\end{quotation}
-\}, 
-
-\{ 
-\begin{quotation}
-\textquotedbl{}attributes\textquotedbl{}: 
-\begin{quotation}
-\{ 
-\begin{quotation}
-\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}555-78787878\textquotedbl{}, 
-
-\textquotedbl{}db\_columns\textquotedbl{}: 
-\begin{quotation}
-\{ 
-\begin{quotation}
-\textquotedbl{}ce\_id\textquotedbl{}:4, 
-
-\textquotedbl{}org\_id\textquotedbl{}:1 
-\end{quotation}
-\}, 
-\end{quotation}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}Bar Johnson\textquotedbl{}
-\end{quotation}
-\}, 
-\end{quotation}
-\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Bar Johnson\textquotedbl{}, 
-
-\textquotedbl{}db\_columns\textquotedbl{}: 
-\begin{quotation}
-\{ 
-\begin{quotation}
 \textquotedbl{}is\_human\textquotedbl{}:true, 
 
 \textquotedbl{}ce\_id\textquotedbl{}:4, 
 
-\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Bar Johnson\textquotedbl{} 
+\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Zaphod B.\textquotedbl{} 
+
+\},
 \end{quotation}
-\}, 
-\end{quotation}
-\textquotedbl{}type\textquotedbl{}:\textquotedbl{}human\textquotedbl{} 
-\end{quotation}
-\}, 
-\end{quotation}
+\textquotedbl{}type\textquotedbl{}:\textquotedbl{}human\textquotedbl{}
+
+\}
+
 {]} 
 \end{quotation}
 \}
@@ -684,9 +641,9 @@ If there are no contacts associated with \emph{org\_id} the following
 JSON document is returned:
 \begin{lyxcode}
 \{
-\begin{lyxcode}
+
 \textquotedbl{}contacts\textquotedbl{}:{[}{]}
-\end{lyxcode}
+
 \}
 \end{lyxcode}
 
@@ -700,71 +657,64 @@ each second is both wasteful and pointless. Calling for example:
 \end{lyxcode}
 will return a JSON string like this:
 \begin{lyxcode}
-\{~~~~~
-\begin{lyxcode}
-\textquotedbl{}normal\textquotedbl{}:~
-\end{lyxcode}
-~~~~{[}~~~~~~~~~
-\begin{lyxcode}
-~~~~\{~~~~~~~~~~~~~
-\begin{lyxcode}
-~~~~\textquotedbl{}UTC\_start\_date\textquotedbl{}:\textquotedbl{}2012-02-22~14:23:30\textquotedbl{},
+\{
 
-~~~~\textquotedbl{}id\textquotedbl{}:\textquotedbl{}GDhcf2VBww\textquotedbl{},~~~~~~~~~~~~~~~
+\textquotedbl{}normal\textquotedbl{}:{[}
+\begin{lyxcode}
+\{
 
-~~~~\textquotedbl{}unix\_timestamp\textquotedbl{}:\textquotedbl{}1329920610\textquotedbl{},~~~~~~~~~~~~~
+\textquotedbl{}UTC\_start\_date\textquotedbl{}:\textquotedbl{}2012-02-22~14:23:30\textquotedbl{},
 
-~~~~\textquotedbl{}callee\textquotedbl{}:5,~~~~~~~~~~~~~
+\textquotedbl{}id\textquotedbl{}:\textquotedbl{}GDhcf2VBww\textquotedbl{},
 
-~~~~\textquotedbl{}caller\textquotedbl{}:\textquotedbl{}d7sIp1kR\textquotedbl{}~~~~~~~~~
-\end{lyxcode}
-~~~~\}
-\end{lyxcode}
-~~~~{]},
-\begin{lyxcode}
-\textquotedbl{}high\textquotedbl{}:~
-\end{lyxcode}
-~~~~{[}~~~~~~~~~
-\begin{lyxcode}
-~~~~\{~~~~~~~~~~~~~~
-\begin{lyxcode}
-~~~~\textquotedbl{}UTC\_start\_date\textquotedbl{}:\textquotedbl{}2012-02-22~14:23:11\textquotedbl{},
+\textquotedbl{}unix\_timestamp\textquotedbl{}:\textquotedbl{}1329920610\textquotedbl{},
 
-~~~~\textquotedbl{}id\textquotedbl{}:\textquotedbl{}bRbYsMUVqx\textquotedbl{},~~~~~~~~~~~~~
+\textquotedbl{}callee\textquotedbl{}:5,
 
-~~~~\textquotedbl{}unix\_timestamp\textquotedbl{}:\textquotedbl{}1329920591\textquotedbl{},~~~~~~~~~~~~~~~~~
+\textquotedbl{}caller\textquotedbl{}:\textquotedbl{}d7sIp1kR\textquotedbl{}
 
-~~~~\textquotedbl{}callee\textquotedbl{}:3,~~~~~~~~~~~~~
+\}
 
-~~~~\textquotedbl{}caller\textquotedbl{}:\textquotedbl{}oCgDF7ua\textquotedbl{}~~~~~~~~~
+{]},
 \end{lyxcode}
-~~~~\}
-\end{lyxcode}
-~~~~{]},
+\textquotedbl{}high\textquotedbl{}:{[}
 \begin{lyxcode}
-\textquotedbl{}low\textquotedbl{}:~
-\end{lyxcode}
-~~~~{[}~~~~~~~~~
-\begin{lyxcode}
-~~~~\{~~~~~~~~~~~~~
-\begin{lyxcode}
-~~~~\textquotedbl{}UTC\_start\_date\textquotedbl{}:\textquotedbl{}2012-02-22~14:23:17\textquotedbl{},~~~~~~~~~~~~
-\begin{lyxcode}
-~\textquotedbl{}id\textquotedbl{}:\textquotedbl{}VV8BFqGpqG\textquotedbl{},~~~~~~~~~~~~~
-\end{lyxcode}
-~~~~\textquotedbl{}unix\_timestamp\textquotedbl{}:\textquotedbl{}1329920597\textquotedbl{},~~~~~~~~~~~~~~
+\{
 
-~~~~\textquotedbl{}callee\textquotedbl{}:9,~~~~~~~~~~~~~
+\textquotedbl{}UTC\_start\_date\textquotedbl{}:\textquotedbl{}2012-02-22~14:23:11\textquotedbl{},
+
+\textquotedbl{}id\textquotedbl{}:\textquotedbl{}bRbYsMUVqx\textquotedbl{},
+
+\textquotedbl{}unix\_timestamp\textquotedbl{}:\textquotedbl{}1329920591\textquotedbl{},
+
+\textquotedbl{}callee\textquotedbl{}:3,
+
+\textquotedbl{}caller\textquotedbl{}:\textquotedbl{}oCgDF7ua\textquotedbl{}
+
+\}
+
+{]},
+\end{lyxcode}
+\textquotedbl{}low\textquotedbl{}:{[}
 \begin{lyxcode}
-~\textquotedbl{}caller\textquotedbl{}:\textquotedbl{}ZQsRogwB\textquotedbl{}~~~~~~~~~
+\{
+
+\textquotedbl{}UTC\_start\_date\textquotedbl{}:\textquotedbl{}2012-02-22~14:23:17\textquotedbl{},
+
+\textquotedbl{}id\textquotedbl{}:\textquotedbl{}VV8BFqGpqG\textquotedbl{},
+
+\textquotedbl{}unix\_timestamp\textquotedbl{}:\textquotedbl{}1329920597\textquotedbl{},
+
+\textquotedbl{}callee\textquotedbl{}:9,
+
+\textquotedbl{}caller\textquotedbl{}:\textquotedbl{}ZQsRogwB\textquotedbl{}
+
+\}
+
+{]},
 \end{lyxcode}
-\end{lyxcode}
-~~~~\}
-\end{lyxcode}
-~~~~{]},
-\begin{lyxcode}
-{}``length'':3
-\end{lyxcode}
+``length'':3
+
 \}
 \end{lyxcode}
 The \emph{normal}, \emph{low} and \emph{high} nodes represent priority
@@ -774,7 +724,7 @@ maps to an \emph{org\_id}. An empty queue returns the following JSON
 document:
 \begin{lyxcode}
 \{
-\begin{lyxcode}
+
 \textquotedbl{}normal\textquotedbl{}:{[}{]},~
 
 \textquotedbl{}length\textquotedbl{}:0,~
@@ -782,7 +732,7 @@ document:
 \textquotedbl{}high\textquotedbl{}:{[}{]},~
 
 \textquotedbl{}low\textquotedbl{}:{[}{]}
-\end{lyxcode}
+
 \}
 \end{lyxcode}
 
@@ -792,10 +742,9 @@ This interface returns the length of the current call queue. Example
 JSON document:
 \begin{lyxcode}
 \{
-\begin{lyxcode}
+
 \textquotedbl{}length\textquotedbl{}:7
-\end{lyxcode}
-\}
-\end{lyxcode}
+
+\}\end{lyxcode}
 
 \end{document}
