@@ -89,9 +89,9 @@ JSON_Size_Small 10_000
 #            Database            #
 ##################################
 
-DB_Host pg.adaheads.com
+DB_Host pg1.adaheads.com
 # String.
-# Default: pg.adaheads.com
+# Default: pg1.adaheads.com
 #
 # The database host.
 
