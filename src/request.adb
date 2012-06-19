@@ -26,7 +26,10 @@ with AWS.Messages;
 with AWS.Parameters;
 with AWS.Response.Set;
 with AWS.URL;
+with AWS.Utils;
+with Cache;
 with Call_Queue;
+with Common;
 with Errors;
 with Storage.Read;
 
@@ -93,15 +96,14 @@ package body Request is
    --------------------------
 
    function Add_JSONP_Callback
-     (Content  : in String;
-      Request  : in AWS.Status.Data)
+     (Content : in String;
+      Request : in AWS.Status.Data)
       return String
    is
       use Ada.Strings;
       use AWS.Status;
 
       P             : constant AWS.Parameters.List := Parameters (Request);
-
       JSON_Callback : constant String :=
                         Fixed.Trim (P.Get ("jsoncallback"), Both);
    begin
@@ -154,14 +156,14 @@ package body Request is
       Id : constant String              := P.Get ("id");
    begin
       return Build_JSON_Response
-        (Request => Request,
+        (Request     => Request,
          Content     => Call_Queue.Get_Call (Id));
 
    exception
       when Event : others =>
          return Build_JSON_Response
            (Request => Request,
-            Content     => Exception_Handler
+            Content => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
    end Call;
@@ -176,21 +178,39 @@ package body Request is
    is
       use AWS.Status;
       use AWS.URL;
+      use AWS.Utils;
+      use Cache;
+      use Common;
       use Errors;
-      use Storage.Read;
 
-      P      : constant AWS.Parameters.List := Parameters (Request);
-      Ce_Id  : constant String              := P.Get ("ce_id");
+      P     : constant AWS.Parameters.List := Parameters (Request);
+      Ce_Id : constant String              := P.Get ("ce_id");
+
+      Valid : Boolean := False;
+      Value : JSON_Small.Bounded_String;
    begin
+      Contact_Cache.Read (Key      => Ce_Id,
+                          Is_Valid => Valid,
+                          Value    => Value);
+
+      if not Valid then
+         if not Is_Number (Ce_Id) then
+            raise GET_Parameter_Error with
+              "ce_id must be a valid natural integer";
+         end if;
+
+         Value := Storage.Read.Get_Contact (Ce_Id);
+      end if;
+
       return Build_JSON_Response
         (Request => Request,
-         Content     => Get_Contact (Ce_Id));
+         Content => JSON_Small.To_String (Value));
 
    exception
       when Event : others =>
          return Build_JSON_Response
            (Request => Request,
-            Content     => Exception_Handler
+            Content => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
    end Contact;
@@ -205,21 +225,39 @@ package body Request is
    is
       use AWS.Status;
       use AWS.URL;
+      use AWS.Utils;
+      use Cache;
+      use Common;
       use Errors;
-      use Storage.Read;
 
-      P      : constant AWS.Parameters.List := Parameters (Request);
-      Ce_Id  : constant String              := P.Get ("ce_id");
+      P     : constant AWS.Parameters.List := Parameters (Request);
+      Ce_Id : constant String              := P.Get ("ce_id");
+
+      Valid : Boolean := False;
+      Value : JSON_Small.Bounded_String;
    begin
+      Contact_Attributes_Cache.Read (Key      => Ce_Id,
+                                     Is_Valid => Valid,
+                                     Value    => Value);
+
+      if not Valid then
+         if not Is_Number (Ce_Id) then
+            raise GET_Parameter_Error with
+              "ce_id must be a valid natural integer";
+         end if;
+
+         Value := Storage.Read.Get_Contact_Attributes (Ce_Id);
+      end if;
+
       return Build_JSON_Response
-        (Request => Request,
-         Content     => Get_Contact_Attributes (Ce_Id));
+        (Request     => Request,
+         Content     => JSON_Small.To_String (Value));
 
    exception
       when Event : others =>
          return Build_JSON_Response
            (Request => Request,
-            Content     => Exception_Handler
+            Content => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
    end Contact_Attributes;
@@ -234,21 +272,39 @@ package body Request is
    is
       use AWS.Status;
       use AWS.URL;
+      use AWS.Utils;
+      use Cache;
+      use Common;
       use Errors;
-      use Storage.Read;
 
-      P      : constant AWS.Parameters.List := Parameters (Request);
-      Ce_Id  : constant String              := P.Get ("ce_id");
+      P     : constant AWS.Parameters.List := Parameters (Request);
+      Ce_Id : constant String              := P.Get ("ce_id");
+
+      Valid : Boolean := False;
+      Value : JSON_Small.Bounded_String;
    begin
+      Contact_Full_Cache.Read (Key      => Ce_Id,
+                               Is_Valid => Valid,
+                               Value    => Value);
+
+      if not Valid then
+         if not Is_Number (Ce_Id) then
+            raise GET_Parameter_Error with
+              "ce_id must be a valid natural integer";
+         end if;
+
+         Value := Storage.Read.Get_Contact_Full (Ce_Id);
+      end if;
+
       return Build_JSON_Response
-        (Request => Request,
-         Content     => Get_Contact_Full (Ce_Id));
+        (Request     => Request,
+         Content     => JSON_Small.To_String (Value));
 
    exception
       when Event : others =>
          return Build_JSON_Response
            (Request => Request,
-            Content     => Exception_Handler
+            Content => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
    end Contact_Full;
@@ -263,21 +319,39 @@ package body Request is
    is
       use AWS.Status;
       use AWS.URL;
+      use AWS.Utils;
+      use Cache;
+      use Common;
       use Errors;
-      use Storage.Read;
 
       P      : constant AWS.Parameters.List := Parameters (Request);
       Org_Id : constant String              := P.Get ("org_id");
+
+      Valid  : Boolean := False;
+      Value  : JSON_Large.Bounded_String;
    begin
+      Org_Contacts_Cache.Read (Key      => Org_Id,
+                               Is_Valid => Valid,
+                               Value    => Value);
+
+      if not Valid then
+         if not Is_Number (Org_Id) then
+            raise GET_Parameter_Error with
+              "org_id must be a valid natural integer";
+         end if;
+
+         Value := Storage.Read.Get_Org_Contacts (Org_Id);
+      end if;
+
       return Build_JSON_Response
-        (Request => Request,
-         Content     => Get_Org_Contacts (Org_Id));
+        (Request     => Request,
+         Content     => JSON_Large.To_String (Value));
 
    exception
       when Event : others =>
          return Build_JSON_Response
            (Request => Request,
-            Content     => Exception_Handler
+            Content => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
    end Org_Contacts;
@@ -292,21 +366,39 @@ package body Request is
    is
       use AWS.Status;
       use AWS.URL;
+      use AWS.Utils;
+      use Cache;
+      use Common;
       use Errors;
-      use Storage.Read;
 
       P      : constant AWS.Parameters.List := Parameters (Request);
       Org_Id : constant String              := P.Get ("org_id");
+
+      Valid  : Boolean := False;
+      Value  : JSON_Large.Bounded_String;
    begin
+      Org_Contacts_Attributes_Cache.Read (Key      => Org_Id,
+                                          Is_Valid => Valid,
+                                          Value    => Value);
+
+      if not Valid then
+         if not Is_Number (Org_Id) then
+            raise GET_Parameter_Error with
+              "org_id must be a valid natural integer";
+         end if;
+
+         Value := Storage.Read.Get_Org_Contacts_Attributes (Org_Id);
+      end if;
+
       return Build_JSON_Response
-        (Request => Request,
-         Content     => Get_Org_Contacts_Attributes (Org_Id));
+        (Request     => Request,
+         Content     => JSON_Large.To_String (Value));
 
    exception
       when Event : others =>
          return Build_JSON_Response
            (Request => Request,
-            Content     => Exception_Handler
+            Content => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
    end Org_Contacts_Attributes;
@@ -321,21 +413,39 @@ package body Request is
    is
       use AWS.Status;
       use AWS.URL;
+      use AWS.Utils;
+      use Cache;
+      use Common;
       use Errors;
-      use Storage.Read;
 
       P      : constant AWS.Parameters.List := Parameters (Request);
       Org_Id : constant String              := P.Get ("org_id");
+
+      Valid  : Boolean := False;
+      Value  : JSON_Large.Bounded_String;
    begin
+      Org_Contacts_Full_Cache.Read (Key      => Org_Id,
+                                    Is_Valid => Valid,
+                                    Value    => Value);
+
+      if not Valid then
+         if not Is_Number (Org_Id) then
+            raise GET_Parameter_Error with
+              "org_id must be a valid natural integer";
+         end if;
+
+         Value := Storage.Read.Get_Org_Contacts_Full (Org_Id);
+      end if;
+
       return Build_JSON_Response
         (Request => Request,
-         Content     => Get_Org_Contacts_Full (Org_Id));
+         Content => JSON_Large.To_String (Value));
 
    exception
       when Event : others =>
          return Build_JSON_Response
            (Request => Request,
-            Content     => Exception_Handler
+            Content => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
    end Org_Contacts_Full;
@@ -350,21 +460,39 @@ package body Request is
    is
       use AWS.Status;
       use AWS.URL;
+      use AWS.Utils;
+      use Cache;
+      use Common;
       use Errors;
-      use Storage.Read;
 
       P      : constant AWS.Parameters.List := Parameters (Request);
       Org_Id : constant String              := P.Get ("org_id");
+
+      Valid  : Boolean := False;
+      Value  : JSON_Small.Bounded_String;
    begin
+      Organization_Cache.Read (Key      => Org_Id,
+                               Is_Valid => Valid,
+                               Value    => Value);
+
+      if not Valid then
+         if not Is_Number (Org_Id) then
+            raise GET_Parameter_Error with
+              "org_id must be a valid natural integer";
+         end if;
+
+         Value := Storage.Read.Get_Organization (Org_Id);
+      end if;
+
       return Build_JSON_Response
         (Request => Request,
-         Content     => Get_Organization (Org_Id));
+         Content => JSON_Small.To_String (Value));
 
    exception
       when Event : others =>
          return Build_JSON_Response
            (Request => Request,
-            Content     => Exception_Handler
+            Content => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))));
    end Organization;
@@ -380,7 +508,7 @@ package body Request is
    begin
       return Build_JSON_Response
         (Request => Request,
-         Content     => Call_Queue.Get);
+         Content => Call_Queue.Get);
    end Queue;
 
    --------------------
@@ -393,7 +521,7 @@ package body Request is
    is
    begin
       return Build_JSON_Response (Request => Request,
-                                  Content     => Call_Queue.Length);
+                                  Content => Call_Queue.Length);
    end Queue_Length;
 
 end Request;

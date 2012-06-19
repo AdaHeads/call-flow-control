@@ -27,7 +27,7 @@ with Yolk.Utilities;
 
 package My_Configuration is
 
-   use Yolk.Utilities;
+   package Util renames Yolk.Utilities;
 
    type Keys is (Cache_Max_Element_Age,
                  Cache_Size_Contact,
@@ -58,51 +58,51 @@ package My_Configuration is
 
    Default_Values : constant Defaults_Array :=
                       (Cache_Max_Element_Age
-                       => TUS ("86_400"),
+                       => Util.TUS ("86_400"),
                        Cache_Size_Contact
-                       => TUS ("10_000"),
+                       => Util.TUS ("10_000"),
                        Cache_Size_Organization
-                       => TUS ("1_000"),
+                       => Util.TUS ("1_000"),
                        DB_Host
-                       => TUS ("pg.adaheads.com"),
+                       => Util.TUS ("pg.adaheads.com"),
                        DB_Name
-                       => TUS ("customers"),
+                       => Util.TUS ("customers"),
                        DB_User
-                       => TUS ("alice"),
+                       => Util.TUS ("alice"),
                        DB_Password
-                       => TUS ("secret"),
+                       => Util.TUS ("secret"),
                        DB2_Host
-                       => TUS ("pg2.adaheads.com"),
+                       => Util.TUS ("pg2.adaheads.com"),
                        DB2_Name
-                       => TUS ("customers"),
+                       => Util.TUS ("customers"),
                        DB2_User
-                       => TUS ("alice"),
+                       => Util.TUS ("alice"),
                        DB2_Password
-                       => TUS ("secret"),
+                       => Util.TUS ("secret"),
                        Handler_Get_Call
-                       => TUS ("/get/call"),
+                       => Util.TUS ("/get/call"),
                        Handler_Get_Contact
-                       => TUS ("/get/contact"),
+                       => Util.TUS ("/get/contact"),
                        Handler_Get_Contact_Attributes
-                       => TUS ("/get/contact_attributes"),
+                       => Util.TUS ("/get/contact_attributes"),
                        Handler_Get_Contact_Full
-                       => TUS ("/get/contact_full"),
+                       => Util.TUS ("/get/contact_full"),
                        Handler_Get_Org_Contacts
-                       => TUS ("/get/org_contacts"),
+                       => Util.TUS ("/get/org_contacts"),
                        Handler_Get_Org_Contacts_Attributes
-                       => TUS ("/get/org_contacts_attributes"),
+                       => Util.TUS ("/get/org_contacts_attributes"),
                        Handler_Get_Org_Contacts_Full
-                       => TUS ("/get/org_contacts_full"),
+                       => Util.TUS ("/get/org_contacts_full"),
                        Handler_Get_Organization
-                       => TUS ("/get/organization"),
+                       => Util.TUS ("/get/organization"),
                        Handler_Get_Queue
-                       => TUS ("/get/queue"),
+                       => Util.TUS ("/get/queue"),
                        Handler_Get_Queue_Length
-                       => TUS ("/get/queue_length"),
+                       => Util.TUS ("/get/queue_length"),
                        JSON_Size_Large
-                       => TUS ("100_000"),
+                       => Util.TUS ("100_000"),
                        JSON_Size_Small
-                       => TUS ("10_000"));
+                       => Util.TUS ("10_000"));
 
    package Config is new Yolk.Config_File_Parser
      (Key_Type            => Keys,

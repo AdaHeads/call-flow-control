@@ -35,20 +35,17 @@ with Yolk.Utilities;
 
 package body Call_Queue is
 
-   use Ada.Containers;
-   use Ada.Numerics;
-   use Ada.Strings.Unbounded;
-   use GNATCOLL.JSON;
-   use Yolk.Utilities;
+   package Util renames Yolk.Utilities;
 
    type Priority_Level is (Low, Normal, High);
 
-   package Random_Priority is new Discrete_Random (Priority_Level);
+   package Random_Priority is new
+     Ada.Numerics.Discrete_Random (Priority_Level);
    --  HERE FOR TESTING PURPOSES.
    --  This is used by the PBX_Queue_Monitor task to generate random calls.
 
    subtype Org_Id is Natural range 1 .. 5;
-   package Random_Organization is new Discrete_Random (Org_Id);
+   package Random_Organization is new Ada.Numerics.Discrete_Random (Org_Id);
    --  HERE FOR TESTING PURPOSES.
    --  This is just to be able to randomnly grab an organization so it can be
    --  added as the callee in a Call record.
@@ -78,7 +75,7 @@ package body Call_Queue is
    --  Return True if Left is < the Right. This sorts the calls in the ordered
    --  queue maps according to the Call.Timestamp_UTC component.
 
-   package Ordered_Call_Queue_Map is new Ordered_Maps
+   package Ordered_Call_Queue_Map is new Ada.Containers.Ordered_Maps
      (Key_Type     => Ada.Calendar.Time,
       Element_Type => Call,
       "<"          => Sort_Elements,
@@ -89,7 +86,7 @@ package body Call_Queue is
    type Queue_Maps_Array is array (Priority_Level) of
      Ordered_Call_Queue_Map.Map;
 
-   type Queue_JSON_Array is array (Priority_Level) of JSON_Array;
+   type Queue_JSON_Array is array (Priority_Level) of GNATCOLL.JSON.JSON_Array;
 
    protected Queue is
       procedure Add
@@ -125,28 +122,30 @@ package body Call_Queue is
       --  Remove a call from the queue.
 
       procedure Remove_First
-        (Removed_Call_Id :    out Call_Id;
-         Removed_Org_Id  :    out Natural);
+        (Removed_Call_Id : out Call_Id;
+         Removed_Org_Id  : out Natural);
       --  Remove the first call in the queue. Removed_Call_Id contains the Id
       --  of the removed call and Removed_Org_Id is the Id of the callee.
       --  If there are no calls to remove, an empty string and a 0 is returned.
    private
-      JSON_Needs_Building : Boolean := True;
+      Rebuild_JSON : Boolean := True;
       --  This is set to False whenever a Call is added or removed from the
       --  queues.
 
-      JSON                : JSON_Value := JSON_Null;
+      JSON          : GNATCOLL.JSON.JSON_Value :=  GNATCOLL.JSON.JSON_Null;
       --  This holds the current JSON_Value object from which the
       --  JSON_String is constructed.
 
-      JSON_String         : Unbounded_String := TUS ("{}");
+      JSON_String    : Ada.Strings.Unbounded.Unbounded_String :=
+                         Util.TUS ("{}");
       --  The JSON returned in call to Get.
 
-      JSON_Arrays         : Queue_JSON_Array := (others => Empty_Array);
+      JSON_Arrays    : Queue_JSON_Array :=
+                         (others => GNATCOLL.JSON.Empty_Array);
       --  The JSON arrays containing the calls in the queue according to
       --  their priority.
 
-      Queue_Maps          : Queue_Maps_Array;
+      Queue_Maps     : Queue_Maps_Array;
       --  The queue maps.
    end Queue;
 
@@ -164,13 +163,13 @@ package body Call_Queue is
       Id_Array : array (Foo) of Call_Id := (others => "          ");
       --  Simulate up to a total of 30 calls in the queues.
 
-      C     : Foo := 0;
+      C        : Foo := 0;
       --  Basic counter variable.
 
-      G     : Random_Priority.Generator;
-      Org_G : Random_Organization.Generator;
-      OID   : Org_Id;
-      P     : Priority_Level;
+      G        : Random_Priority.Generator;
+      Org_G    : Random_Organization.Generator;
+      OID      : Org_Id;
+      P        : Priority_Level;
       --  Random priority levels on the generated calls.
    begin
       Random_Priority.Reset (G);
@@ -251,6 +250,8 @@ package body Call_Queue is
      (Id : in String)
       return String
    is
+      use GNATCOLL.JSON;
+
       JSON    : constant JSON_Value := Create_Object;
       Org_Id  : Natural := 0;
       Success : Boolean;
@@ -287,6 +288,8 @@ package body Call_Queue is
    function Length
      return String
    is
+      use GNATCOLL.JSON;
+
       JSON : constant JSON_Value := Create_Object;
    begin
       JSON.Set_Field ("length", Queue.Length);
@@ -319,7 +322,7 @@ package body Call_Queue is
                                                     Priority      => Priority,
                                                     Timestamp_UTC => Start));
 
-         JSON_Needs_Building := True;
+         Rebuild_JSON := True;
       end Add;
 
       ------------------
@@ -332,6 +335,8 @@ package body Call_Queue is
          use Ada.Calendar.Conversions;
          use Ada.Calendar.Formatting;
          use Ada.Strings.Fixed;
+         use GNATCOLL.JSON;
+         use Yolk.Utilities;
 
          procedure Go
            (Position : in Ordered_Call_Queue_Map.Cursor);
@@ -350,6 +355,7 @@ package body Call_Queue is
          procedure Go
            (Position : in Ordered_Call_Queue_Map.Cursor)
          is
+
             A_Call : Call;
             Value  : constant JSON_Value := Create_Object;
          begin
@@ -381,7 +387,7 @@ package body Call_Queue is
                Side   => Left);
          end Unix_Timestamp;
       begin
-         if JSON_Needs_Building then
+         if Rebuild_JSON then
             JSON := Create_Object;
 
             JSON.Set_Field ("length", Queue.Length);
@@ -406,13 +412,14 @@ package body Call_Queue is
 
       procedure Clear
       is
+         use Yolk.Utilities;
       begin
          for P in Queue_Maps'Range loop
             Queue_Maps (P).Clear;
          end loop;
 
          JSON_String := TUS ("{}");
-         JSON_Needs_Building := True;
+         Rebuild_JSON := True;
       end Clear;
 
       -----------
@@ -422,6 +429,7 @@ package body Call_Queue is
       function Get
         return String
       is
+         use Yolk.Utilities;
       begin
          return TS (JSON_String);
       end Get;
@@ -484,7 +492,7 @@ package body Call_Queue is
                if Elem.Id = Id then
                   Org_Id := Elem.Callee;
                   Success := True;
-                  JSON_Needs_Building := True;
+                  Rebuild_JSON := True;
 
                   Queue_Maps (P).Delete (C);
 
@@ -504,6 +512,7 @@ package body Call_Queue is
         (Removed_Call_Id :    out Call_Id;
          Removed_Org_Id  :    out Natural)
       is
+         use Ada.Containers;
       begin
          if Queue_Maps (High).Length > 0 then
             Removed_Call_Id := Queue_Maps (High).First_Element.Id;

@@ -36,7 +36,7 @@ package body My_Handlers is
      (RH : out AWS.Services.Dispatchers.URI.Handler)
    is
       use AWS.Dispatchers.Callback;
-      use Yolk;
+      --  use Yolk;
 
       package My renames My_Configuration;
    begin
@@ -46,7 +46,7 @@ package body My_Handlers is
 
       AWS.Services.Dispatchers.URI.Register_Default_Callback
         (Dispatcher => RH,
-         Action     => Create (Callback => Not_Found.Generate'Access));
+         Action     => Create (Callback => Yolk.Not_Found.Generate'Access));
       --  This dispatcher is called if the requested resource doesn't match any
       --  of the other dispatchers.
       --  It returns a generic 404 HTML page. The template for this 404 can be
