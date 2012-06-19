@@ -38,19 +38,39 @@ package body Storage is
      (DB_Conn_Pool, Null_Pool);
    --  Associates a specific task ID with a Database_Connection_Pool.
 
+   function DB_Port_String
+     (Port : in Natural)
+      return String;
+   --  Return the PostgreSQL port=n part of the connection string.
+
+   ----------------------
+   --  DB_Port_String  --
+   ----------------------
+
+   function DB_Port_String
+     (Port : in Natural)
+      return String
+   is
+      use Ada.Strings;
+   begin
+      return " port=" & Fixed.Trim (Natural'Image (Port), Both);
+   end DB_Port_String;
+
    DB_Descriptions : constant array (DB_Conn_Type) of
      GNATCOLL.SQL.Exec.Database_Description :=
        (Primary   => GNATCOLL.SQL.Postgres.Setup
             (Database      => My.Config.Get (My.DB_Name),
              User          => My.Config.Get (My.DB_User),
-             Host          => My.Config.Get (My.DB_Host),
+             Host          => My.Config.Get (My.DB_Host) &
+                                DB_Port_String (My.Config.Get (My.DB_Port)),
              Password      => My.Config.Get (My.DB_Password),
              SSL           => GNATCOLL.SQL.Postgres.Allow,
              Cache_Support => True),
         Secondary => GNATCOLL.SQL.Postgres.Setup
           (Database      => My.Config.Get (My.DB2_Name),
            User          => My.Config.Get (My.DB2_User),
-           Host          => My.Config.Get (My.DB2_Host) & " port=5433",
+           Host          => My.Config.Get (My.DB2_Host) &
+                              DB_Port_String (My.Config.Get (My.DB2_Port)),
            Password      => My.Config.Get (My.DB2_Password),
            SSL           => GNATCOLL.SQL.Postgres.Allow,
            Cache_Support => True));

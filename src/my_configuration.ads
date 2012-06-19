@@ -34,12 +34,14 @@ package My_Configuration is
                  Cache_Size_Organization,
                  DB_Host,
                  DB_Name,
-                 DB_User,
                  DB_Password,
+                 DB_Port,
+                 DB_User,
                  DB2_Host,
                  DB2_Name,
-                 DB2_User,
                  DB2_Password,
+                 DB2_Port,
+                 DB2_User,
                  Handler_Get_Call,
                  Handler_Get_Contact,
                  Handler_Get_Contact_Attributes,
@@ -67,18 +69,22 @@ package My_Configuration is
                        => Util.TUS ("pg.adaheads.com"),
                        DB_Name
                        => Util.TUS ("customers"),
-                       DB_User
-                       => Util.TUS ("alice"),
                        DB_Password
                        => Util.TUS ("secret"),
+                       DB_Port
+                       => Util.TUS ("5432"),
+                       DB_User
+                       => Util.TUS ("alice"),
                        DB2_Host
                        => Util.TUS ("pg2.adaheads.com"),
                        DB2_Name
                        => Util.TUS ("customers"),
-                       DB2_User
-                       => Util.TUS ("alice"),
                        DB2_Password
                        => Util.TUS ("secret"),
+                       DB2_Port
+                       => Util.TUS ("5433"),
+                       DB2_User
+                       => Util.TUS ("alice"),
                        Handler_Get_Call
                        => Util.TUS ("/get/call"),
                        Handler_Get_Contact

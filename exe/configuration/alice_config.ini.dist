@@ -101,17 +101,23 @@ DB_Name customers
 #
 # The database name.
 
-DB_User alice
-# String.
-# Default: alice
-#
-# The database user.
-
 DB_Password secret
 # String.
 # Default: secret
 #
 # The database password.
+
+DB2_Port 5432
+# Positive.
+# Default: 5432
+#
+# The database port.
+
+DB_User alice
+# String.
+# Default: alice
+#
+# The database user.
 
 DB2_Host pg2.adaheads.com
 # String.
@@ -125,17 +131,23 @@ DB2_Name customers
 #
 # The readonly backup database name.
 
-DB2_User alice
-# String.
-# Default: alice
-#
-# The readonly backup database user.
-
 DB2_Password secret
 # String.
 # Default: secret
 #
 # The readonly backup database password.
+
+DB2_Port 5433
+# Positive.
+# Default: 5433
+#
+# The database port.
+
+DB2_User alice
+# String.
+# Default: alice
+#
+# The readonly backup database user.
 
 ##################################
 #        Resource handlers       #

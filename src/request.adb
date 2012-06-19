@@ -250,8 +250,8 @@ package body Request is
       end if;
 
       return Build_JSON_Response
-        (Request     => Request,
-         Content     => JSON_Small.To_String (Value));
+        (Request => Request,
+         Content => JSON_Small.To_String (Value));
 
    exception
       when Event : others =>
@@ -297,8 +297,8 @@ package body Request is
       end if;
 
       return Build_JSON_Response
-        (Request     => Request,
-         Content     => JSON_Small.To_String (Value));
+        (Request => Request,
+         Content => JSON_Small.To_String (Value));
 
    exception
       when Event : others =>
@@ -391,8 +391,8 @@ package body Request is
       end if;
 
       return Build_JSON_Response
-        (Request     => Request,
-         Content     => JSON_Large.To_String (Value));
+        (Request => Request,
+         Content => JSON_Large.To_String (Value));
 
    exception
       when Event : others =>
