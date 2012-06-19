@@ -21,50 +21,52 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Common;
+
 package Storage.Read is
 
    function Get_Contact
-     (Ce_Id  : in String)
-      return String;
+     (Ce_Id : in String)
+      return Common.JSON_Small.Bounded_String;
    --  Return a Contact JSON string. This contains the data for ONE contact
    --  entity.
 
    function Get_Contact_Attributes
-     (Ce_Id  : in String)
-      return String;
+     (Ce_Id : in String)
+      return Common.JSON_Small.Bounded_String;
    --  Return a Contact_Attributes JSON string. This contains attributes for
    --  ONE contact entity. Note that one contact entity can have several
    --  different attribute sets, depending on the organization the contact
    --  belongs to.
 
    function Get_Contact_Full
-     (Ce_Id  : in String)
-      return String;
+     (Ce_Id : in String)
+      return Common.JSON_Small.Bounded_String;
    --  Return a Contact JSON string with Attributes. This contains the data for
    --  ONE contact entity.
 
    function Get_Org_Contacts
      (Org_Id : in String)
-      return String;
+      return Common.JSON_Large.Bounded_String;
    --  Return a Contacts JSON string. This contains all the contactentities
    --  belonging to Org_Id.
 
    function Get_Org_Contacts_Attributes
-     (Org_Id  : in String)
-      return String;
+     (Org_Id : in String)
+      return Common.JSON_Large.Bounded_String;
    --  Return a Contacts_Attributes JSON string. This contains all the
    --  contactentity attributes that relates to the given Org_Id, meaning one
    --  set of attributes per contactentity that relates to Org_Id.
 
    function Get_Org_Contacts_Full
      (Org_Id : in String)
-      return String;
+      return Common.JSON_Large.Bounded_String;
    --  Return a Contacts JSON string with Attributes. This contains all the
    --  contact entities belonging to Org_Id.
 
    function Get_Organization
      (Org_Id : in String)
-      return String;
+      return Common.JSON_Small.Bounded_String;
    --  Return an Organization JSON string. This contains the data for ONE
    --  organization.
 

@@ -21,79 +21,45 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Utils;
+with Cache;
 with Errors;
 with JSONIFY;
-with Queries;
+with Storage.Queries;
 
 package body Storage.Read is
 
    procedure Failed_Query
-     (Connection_Pool : in out Database_Connection_Pool;
-      Connection_Type : in     Database_Connection_Type);
+     (Connection_Pool : in out DB_Conn_Pool;
+      Connection_Type : in     DB_Conn_Type);
    --  If a query fails:
    --    1. Set the connection state to Failed.
    --    2. Raise the Database_Error exception if
    --         Connection_Type = Database_Connection_Type'Last
    --    3. If 2 is not True, Output a message to the Error log trace.
 
-   function Get_Contact_From_DB
-     (Ce_Id : in String)
-      return JSON_Small.Bounded_String;
-   --  Get the Ce_Id contact entity from persistent storage.
-
-   function Get_Contact_Attributes_From_DB
-     (Ce_Id  : in String)
-      return JSON_Small.Bounded_String;
-   --  Get the Ce_Id contact entity attributes from persistent storage.
-
-   function Get_Contact_Full_From_DB
-     (Ce_Id : in String)
-      return JSON_Small.Bounded_String;
-   --  Get the Ce_Id contact entity with Attributes from persistent storage.
-
-   function Get_Org_Contacts_From_DB
-     (Org_Id : in String)
-      return JSON_Large.Bounded_String;
-   --  Get the Org_Id contact entities from persistent storage.
-
-   function Get_Org_Contacts_Attributes_From_DB
-     (Org_Id : in String)
-      return JSON_Large.Bounded_String;
-   --  Get the Org_Id contact entity attributes from persistent storage.
-
-   function Get_Org_Contacts_Full_From_DB
-     (Org_Id : in String)
-      return JSON_Large.Bounded_String;
-   --  Get the Org_Id contact entities from persistent storage.
-
-   function Get_Organization_From_DB
-     (Org_Id : in String)
-      return JSON_Small.Bounded_String;
-   --  Get the Org_Id organization from persistent storage.
-
    --------------------
    --  Failed_Query  --
    --------------------
 
    procedure Failed_Query
-     (Connection_Pool : in out Database_Connection_Pool;
-      Connection_Type : in     Database_Connection_Type)
+     (Connection_Pool : in out DB_Conn_Pool;
+      Connection_Type : in     DB_Conn_Type)
    is
       use Errors;
+      use GNATCOLL.SQL;
 
       Trimmed_DB_Error : constant String
         := Trim (Exec.Error (Connection_Pool (Connection_Type).Host));
 
       Connection       : constant String
-        := Database_Connection_Type'Image (Connection_Type);
+        := DB_Conn_Type'Image (Connection_Type);
 
       Message : constant String :=  Trimmed_DB_Error &  "-" & Connection;
    begin
       Connection_Pool (Connection_Type).State := Failed;
       Register_Failed_DB_Connection (Pool => Connection_Pool);
 
-      if Connection_Type = Database_Connection_Type'Last then
+      if Connection_Type = DB_Conn_Type'Last then
          raise Database_Error with Message;
       else
          Error_Handler (Message);
@@ -105,125 +71,28 @@ package body Storage.Read is
    -------------------
 
    function Get_Contact
-     (Ce_Id  : in String)
-      return String
-   is
-      use AWS.Utils;
-      use Errors;
-
-      Valid : Boolean := False;
-      Value : JSON_Small.Bounded_String;
-   begin
-      Contact_Cache.Read (Key      => Ce_Id,
-                          Is_Valid => Valid,
-                          Value    => Value);
-
-      if not Valid then
-         if not Is_Number (Ce_Id) then
-            raise GET_Parameter_Error with
-              "ce_id must be a valid natural integer";
-         end if;
-
-         Value := Get_Contact_From_DB (Ce_Id);
-      end if;
-
-      return JSON_Small.To_String (Value);
-   end Get_Contact;
-
-   ------------------------------
-   --  Get_Contact_Attributes  --
-   ------------------------------
-
-   function Get_Contact_Attributes
-     (Ce_Id  : in String)
-      return String
-   is
-      use AWS.Utils;
-      use Errors;
-
-      Valid : Boolean := False;
-      Value : JSON_Small.Bounded_String;
-   begin
-      Contact_Attributes_Cache.Read (Key      => Ce_Id,
-                                     Is_Valid => Valid,
-                                     Value    => Value);
-
-      if not Valid then
-         if not Is_Number (Ce_Id) then
-            raise GET_Parameter_Error with
-              "ce_id must be a valid natural integer";
-         end if;
-
-         Value := Get_Contact_Attributes_From_DB (Ce_Id);
-      end if;
-
-      return JSON_Small.To_String (Value);
-   end Get_Contact_Attributes;
-
-   --------------------------------------
-   --  Get_Contact_Attributes_From_DB  --
-   --------------------------------------
-
-   function Get_Contact_Attributes_From_DB
      (Ce_Id : in String)
-      return JSON_Small.Bounded_String
+      return Common.JSON_Small.Bounded_String
    is
+      use Cache;
+      use Common;
       use Errors;
       use GNATCOLL.SQL.Exec;
 
-      Cursor         : Forward_Cursor;
-      DB_Connections : Database_Connection_Pool := Get_DB_Connections;
+      C              : Queries.Contact_Cursor;
+      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
       Value          : JSON_Small.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
-         Cursor.Fetch (DB_Connections (k).Host,
-                       Queries.P_Get_Contact_Attributes,
-                       Params => (1 => +Natural'Value (Ce_Id)));
+         C.Fetch (DB_Connections (k).Host,
+                  Queries.Contact_Query,
+                  Params => (1 => +Natural'Value (Ce_Id)));
 
          if DB_Connections (k).Host.Success then
-            JSONIFY.Contact_Attributes (Cursor, Value);
+            JSONIFY.Contact (C, Value);
 
-            if Cursor.Processed_Rows > 0 then
-               Contact_Attributes_Cache.Write (Key   => Ce_Id,
-                                               Value => Value);
-            end if;
-
-            exit Fetch_Data;
-         else
-            Failed_Query (Connection_Pool => DB_Connections,
-                          Connection_Type => k);
-         end if;
-      end loop Fetch_Data;
-
-      return Value;
-   end Get_Contact_Attributes_From_DB;
-
-   ---------------------------
-   --  Get_Contact_From_DB  --
-   ---------------------------
-
-   function Get_Contact_From_DB
-     (Ce_Id : in String)
-      return JSON_Small.Bounded_String
-   is
-      use Errors;
-      use GNATCOLL.SQL.Exec;
-
-      Cursor         : Forward_Cursor;
-      DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      Value          : JSON_Small.Bounded_String;
-   begin
-      Fetch_Data :
-      for k in DB_Connections'Range loop
-         Cursor.Fetch (DB_Connections (k).Host,
-                       Queries.P_Get_Contact,
-                       Params => (1 => +Natural'Value (Ce_Id)));
-
-         if DB_Connections (k).Host.Success then
-            JSONIFY.Contact (Cursor, Value);
-
-            if Cursor.Processed_Rows > 0 then
+            if C.Processed_Rows > 0 then
                Contact_Cache.Write (Key   => Ce_Id,
                                     Value => Value);
             end if;
@@ -236,57 +105,70 @@ package body Storage.Read is
       end loop Fetch_Data;
 
       return Value;
-   end Get_Contact_From_DB;
+   end Get_Contact;
+
+   ------------------------------
+   --  Get_Contact_Attributes  --
+   ------------------------------
+
+   function Get_Contact_Attributes
+     (Ce_Id : in String)
+      return Common.JSON_Small.Bounded_String
+   is
+      use Cache;
+      use Common;
+      use Errors;
+      use GNATCOLL.SQL.Exec;
+
+      C              : Queries.Contact_Attributes_Cursor;
+      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
+      Value          : JSON_Small.Bounded_String;
+   begin
+      Fetch_Data :
+      for k in DB_Connections'Range loop
+         C.Fetch (DB_Connections (k).Host,
+                  Queries.Contact_Attributes_Query,
+                  Params => (1 => +Natural'Value (Ce_Id)));
+
+         if DB_Connections (k).Host.Success then
+            JSONIFY.Contact_Attributes (C, Value);
+
+            if C.Processed_Rows > 0 then
+               Contact_Attributes_Cache.Write (Key   => Ce_Id,
+                                               Value => Value);
+            end if;
+
+            exit Fetch_Data;
+         else
+            Failed_Query (Connection_Pool => DB_Connections,
+                          Connection_Type => k);
+         end if;
+      end loop Fetch_Data;
+
+      return Value;
+   end Get_Contact_Attributes;
 
    ------------------------
    --  Get_Contact_Full  --
    ------------------------
 
    function Get_Contact_Full
-     (Ce_Id  : in String)
-      return String
-   is
-      use AWS.Utils;
-      use Errors;
-
-      Valid : Boolean := False;
-      Value : JSON_Small.Bounded_String;
-   begin
-      Contact_Full_Cache.Read (Key      => Ce_Id,
-                               Is_Valid => Valid,
-                               Value    => Value);
-
-      if not Valid then
-         if not Is_Number (Ce_Id) then
-            raise GET_Parameter_Error with
-              "ce_id must be a valid natural integer";
-         end if;
-
-         Value := Get_Contact_Full_From_DB (Ce_Id);
-      end if;
-
-      return JSON_Small.To_String (Value);
-   end Get_Contact_Full;
-
-   --------------------------------
-   --  Get_Contact_Full_From_DB  --
-   --------------------------------
-
-   function Get_Contact_Full_From_DB
      (Ce_Id : in String)
-      return JSON_Small.Bounded_String
+      return Common.JSON_Small.Bounded_String
    is
+      use Cache;
+      use Common;
       use Errors;
       use GNATCOLL.SQL.Exec;
 
-      Cursor         : Forward_Cursor;
-      DB_Connections : Database_Connection_Pool := Get_DB_Connections;
+      Cursor         : Queries.Contact_Full_Cursor;
+      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
       Value          : JSON_Small.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
          Cursor.Fetch (DB_Connections (k).Host,
-                       Queries.P_Get_Contact_Full,
+                       Queries.Contact_Full_Query,
                        Params => (1 => +Natural'Value (Ce_Id)));
 
          if DB_Connections (k).Host.Success then
@@ -305,7 +187,7 @@ package body Storage.Read is
       end loop Fetch_Data;
 
       return Value;
-   end Get_Contact_Full_From_DB;
+   end Get_Contact_Full;
 
    ------------------------
    --  Get_Org_Contacts  --
@@ -313,118 +195,21 @@ package body Storage.Read is
 
    function Get_Org_Contacts
      (Org_Id : in String)
-      return String
+      return Common.JSON_Large.Bounded_String
    is
-      use AWS.Utils;
-      use Errors;
-
-      Valid : Boolean := False;
-      Value : JSON_Large.Bounded_String;
-   begin
-      Org_Contacts_Cache.Read (Key      => Org_Id,
-                               Is_Valid => Valid,
-                               Value    => Value);
-
-      if not Valid then
-         if not Is_Number (Org_Id) then
-            raise GET_Parameter_Error with
-              "org_id must be a valid natural integer";
-         end if;
-
-         Value := Get_Org_Contacts_From_DB (Org_Id);
-      end if;
-
-      return JSON_Large.To_String (Value);
-   end Get_Org_Contacts;
-
-   -----------------------------------
-   --  Get_Org_Contacts_Attributes  --
-   -----------------------------------
-
-   function Get_Org_Contacts_Attributes
-     (Org_Id : in String)
-      return String
-   is
-      use AWS.Utils;
-      use Errors;
-
-      Valid : Boolean := False;
-      Value : JSON_Large.Bounded_String;
-   begin
-      Org_Contacts_Attributes_Cache.Read (Key      => Org_Id,
-                                          Is_Valid => Valid,
-                                          Value    => Value);
-
-      if not Valid then
-         if not Is_Number (Org_Id) then
-            raise GET_Parameter_Error with
-              "org_id must be a valid natural integer";
-         end if;
-
-         Value := Get_Org_Contacts_Attributes_From_DB (Org_Id);
-      end if;
-
-      return JSON_Large.To_String (Value);
-   end Get_Org_Contacts_Attributes;
-
-   -------------------------------------------
-   --  Get_Org_Contacts_Attributes_From_DB  --
-   -------------------------------------------
-
-   function Get_Org_Contacts_Attributes_From_DB
-     (Org_Id : in String)
-      return JSON_Large.Bounded_String
-   is
+      use Cache;
+      use Common;
       use Errors;
       use GNATCOLL.SQL.Exec;
 
-      Cursor         : Forward_Cursor;
-      DB_Connections : Database_Connection_Pool := Get_DB_Connections;
+      Cursor         : Queries.Org_Contacts_Cursor;
+      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
       Value          : JSON_Large.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
          Cursor.Fetch (DB_Connections (k).Host,
-                       Queries.P_Get_Org_Contacts_Attributes,
-                       Params => (1 => +Natural'Value (Org_Id)));
-
-         if DB_Connections (k).Host.Success then
-            JSONIFY.Org_Contacts_Attributes (Cursor, Value);
-
-            if Cursor.Processed_Rows > 0 then
-               Org_Contacts_Attributes_Cache.Write (Key   => Org_Id,
-                                                    Value => Value);
-            end if;
-
-            exit Fetch_Data;
-         else
-            Failed_Query (Connection_Pool => DB_Connections,
-                          Connection_Type => k);
-         end if;
-      end loop Fetch_Data;
-
-      return Value;
-   end Get_Org_Contacts_Attributes_From_DB;
-
-   --------------------------------
-   --  Get_Org_Contacts_From_DB  --
-   --------------------------------
-
-   function Get_Org_Contacts_From_DB
-     (Org_Id : in String)
-      return JSON_Large.Bounded_String
-   is
-      use Errors;
-      use GNATCOLL.SQL.Exec;
-
-      Cursor         : Forward_Cursor;
-      DB_Connections : Database_Connection_Pool := Get_DB_Connections;
-      Value          : JSON_Large.Bounded_String;
-   begin
-      Fetch_Data :
-      for k in DB_Connections'Range loop
-         Cursor.Fetch (DB_Connections (k).Host,
-                       Queries.P_Get_Org_Contacts,
+                       Queries.Org_Contacts_Query,
                        Params => (1 => +Natural'Value (Org_Id)));
 
          if DB_Connections (k).Host.Success then
@@ -443,7 +228,48 @@ package body Storage.Read is
       end loop Fetch_Data;
 
       return Value;
-   end Get_Org_Contacts_From_DB;
+   end Get_Org_Contacts;
+
+   -----------------------------------
+   --  Get_Org_Contacts_Attributes  --
+   -----------------------------------
+
+   function Get_Org_Contacts_Attributes
+     (Org_Id : in String)
+      return Common.JSON_Large.Bounded_String
+   is
+      use Cache;
+      use Common;
+      use Errors;
+      use GNATCOLL.SQL.Exec;
+
+      Cursor         : Queries.Org_Contacts_Attributes_Cursor;
+      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
+      Value          : JSON_Large.Bounded_String;
+   begin
+      Fetch_Data :
+      for k in DB_Connections'Range loop
+         Cursor.Fetch (DB_Connections (k).Host,
+                       Queries.Org_Contacts_Attributes_Query,
+                       Params => (1 => +Natural'Value (Org_Id)));
+
+         if DB_Connections (k).Host.Success then
+            JSONIFY.Org_Contacts_Attributes (Cursor, Value);
+
+            if Cursor.Processed_Rows > 0 then
+               Org_Contacts_Attributes_Cache.Write (Key   => Org_Id,
+                                                    Value => Value);
+            end if;
+
+            exit Fetch_Data;
+         else
+            Failed_Query (Connection_Pool => DB_Connections,
+                          Connection_Type => k);
+         end if;
+      end loop Fetch_Data;
+
+      return Value;
+   end Get_Org_Contacts_Attributes;
 
    -----------------------------
    --  Get_Org_Contacts_Full  --
@@ -451,49 +277,21 @@ package body Storage.Read is
 
    function Get_Org_Contacts_Full
      (Org_Id : in String)
-      return String
+      return Common.JSON_Large.Bounded_String
    is
-      use AWS.Utils;
-      use Errors;
-
-      Valid : Boolean := False;
-      Value : JSON_Large.Bounded_String;
-   begin
-      Org_Contacts_Full_Cache.Read (Key      => Org_Id,
-                                    Is_Valid => Valid,
-                                    Value    => Value);
-
-      if not Valid then
-         if not Is_Number (Org_Id) then
-            raise GET_Parameter_Error with
-              "org_id must be a valid natural integer";
-         end if;
-
-         Value := Get_Org_Contacts_Full_From_DB (Org_Id);
-      end if;
-
-      return JSON_Large.To_String (Value);
-   end Get_Org_Contacts_Full;
-
-   -------------------------------------
-   --  Get_Org_Contacts_Full_From_DB  --
-   -------------------------------------
-
-   function Get_Org_Contacts_Full_From_DB
-     (Org_Id : in String)
-      return JSON_Large.Bounded_String
-   is
+      use Cache;
+      use Common;
       use Errors;
       use GNATCOLL.SQL.Exec;
 
-      Cursor         : Forward_Cursor;
-      DB_Connections : Database_Connection_Pool := Get_DB_Connections;
+      Cursor         : Queries.Org_Contacts_Full_Cursor;
+      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
       Value          : JSON_Large.Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
          Cursor.Fetch (DB_Connections (k).Host,
-                       Queries.P_Get_Org_Contacts_Full,
+                       Queries.Org_Contacts_Full_Query,
                        Params => (1 => +Natural'Value (Org_Id)));
 
          if DB_Connections (k).Host.Success then
@@ -512,7 +310,7 @@ package body Storage.Read is
       end loop Fetch_Data;
 
       return Value;
-   end Get_Org_Contacts_Full_From_DB;
+   end Get_Org_Contacts_Full;
 
    ------------------------
    --  Get_Organization  --
@@ -520,50 +318,22 @@ package body Storage.Read is
 
    function Get_Organization
      (Org_Id : in String)
-      return String
+      return Common.JSON_Small.Bounded_String
    is
-      use AWS.Utils;
-      use Errors;
-
-      Valid : Boolean := False;
-      Value : JSON_Small.Bounded_String;
-   begin
-      Organization_Cache.Read (Key      => Org_Id,
-                               Is_Valid => Valid,
-                               Value    => Value);
-
-      if not Valid then
-         if not Is_Number (Org_Id) then
-            raise GET_Parameter_Error with
-              "org_id must be a valid Natural integer";
-         end if;
-
-         Value := Get_Organization_From_DB (Org_Id);
-      end if;
-
-      return JSON_Small.To_String (Value);
-   end Get_Organization;
-
-   --------------------------------
-   --  Get_Organization_From_DB  --
-   --------------------------------
-
-   function Get_Organization_From_DB
-     (Org_Id : in String)
-      return JSON_Small.Bounded_String
-   is
+      use Cache;
+      use Common;
       use Errors;
       use GNATCOLL.SQL.Exec;
 
-      Cursor         : Forward_Cursor;
-      DB_Connections : Database_Connection_Pool := Get_DB_Connections;
+      Cursor         : Queries.Organization_Cursor;
+      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
       Value          : JSON_Small.Bounded_String :=
                          JSON_Small.Null_Bounded_String;
    begin
       Fetch_Data :
       for k in DB_Connections'Range loop
          Cursor.Fetch (DB_Connections (k).Host,
-                       Queries.P_Get_Organization,
+                       Queries.Organization_Query,
                        Params => (1 => +Natural'Value (Org_Id)));
 
          if DB_Connections (k).Host.Success then
@@ -582,6 +352,6 @@ package body Storage.Read is
       end loop Fetch_Data;
 
       return Value;
-   end Get_Organization_From_DB;
+   end Get_Organization;
 
 end Storage.Read;

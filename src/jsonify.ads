@@ -22,38 +22,43 @@
 -------------------------------------------------------------------------------
 
 with Common;
-with GNATCOLL.SQL.Exec;
+with Storage.Queries;
 
 package JSONIFY is
 
-   use Common;
-
    procedure Contact
-     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      Value  : in out JSON_Small.Bounded_String);
+     (C     : in     Storage.Queries.Contact_Cursor;
+      Value : in out Common.JSON_Small.Bounded_String);
+   --  TODO: Write comment
 
    procedure Contact_Attributes
-     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      Value  : in out JSON_Small.Bounded_String);
+     (C     : in out Storage.Queries.Contact_Attributes_Cursor;
+      Value : in out Common.JSON_Small.Bounded_String);
+   --  TODO: Write comment
 
    procedure Contact_Full
-     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      Value  : in out JSON_Small.Bounded_String);
+     (C     : in out Storage.Queries.Contact_Full_Cursor;
+      Value : in out Common.JSON_Small.Bounded_String);
+   --  TODO: Write comment
 
    procedure Org_Contacts
-     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      Value  : in out JSON_Large.Bounded_String);
+     (C     : in out Storage.Queries.Org_Contacts_Cursor;
+      Value : in out Common.JSON_Large.Bounded_String);
+   --  TODO: Write comment
 
    procedure Org_Contacts_Attributes
-     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      Value  : in out JSON_Large.Bounded_String);
+     (C     : in out Storage.Queries.Org_Contacts_Attributes_Cursor;
+      Value : in out Common.JSON_Large.Bounded_String);
+   --  TODO: Write comment
 
    procedure Org_Contacts_Full
-     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      Value  : in out JSON_Large.Bounded_String);
+     (C     : in out Storage.Queries.Org_Contacts_Full_Cursor;
+      Value : in out Common.JSON_Large.Bounded_String);
+   --  TODO: Write comment
 
    procedure Organization
-     (Cursor : in out GNATCOLL.SQL.Exec.Forward_Cursor;
-      Value  : in out JSON_Small.Bounded_String);
+     (C     : in     Storage.Queries.Organization_Cursor;
+      Value : in out Common.JSON_Small.Bounded_String);
+   --  TODO: Write comment
 
 end JSONIFY;

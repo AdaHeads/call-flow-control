@@ -25,31 +25,34 @@ with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
 with Ada.Task_Attributes;
 with GNATCOLL.SQL.Postgres;
+with My_Configuration;
 
 package body Storage is
 
-   Null_Pool : constant Database_Connection_Pool :=
+   package My renames My_Configuration;
+
+   Null_Pool : constant DB_Conn_Pool :=
                  (others => Null_Database_Connection);
 
    package Task_Association is new Ada.Task_Attributes
-     (Database_Connection_Pool, Null_Pool);
+     (DB_Conn_Pool, Null_Pool);
    --  Associates a specific task ID with a Database_Connection_Pool.
 
-   DB_Descriptions : constant array (Database_Connection_Type) of
-     Exec.Database_Description :=
-       (Primary   => Postgres.Setup
-            (Database      => Config.Get (DB_Name),
-             User          => Config.Get (DB_User),
-             Host          => Config.Get (DB_Host),
-             Password      => Config.Get (DB_Password),
-             SSL           => Postgres.Allow,
+   DB_Descriptions : constant array (DB_Conn_Type) of
+     GNATCOLL.SQL.Exec.Database_Description :=
+       (Primary   => GNATCOLL.SQL.Postgres.Setup
+            (Database      => My.Config.Get (My.DB_Name),
+             User          => My.Config.Get (My.DB_User),
+             Host          => My.Config.Get (My.DB_Host),
+             Password      => My.Config.Get (My.DB_Password),
+             SSL           => GNATCOLL.SQL.Postgres.Allow,
              Cache_Support => True),
-        Secondary => Postgres.Setup
-          (Database      => Config.Get (DB2_Name),
-           User          => Config.Get (DB2_User),
-           Host          => Config.Get (DB2_Host),
-           Password      => Config.Get (DB2_Password),
-           SSL           => Postgres.Allow,
+        Secondary => GNATCOLL.SQL.Postgres.Setup
+          (Database      => My.Config.Get (My.DB2_Name),
+           User          => My.Config.Get (My.DB2_User),
+           Host          => My.Config.Get (My.DB2_Host) & " port=5433",
+           Password      => My.Config.Get (My.DB2_Password),
+           SSL           => GNATCOLL.SQL.Postgres.Allow,
            Cache_Support => True));
 
    --------------------------
@@ -57,11 +60,11 @@ package body Storage is
    --------------------------
 
    function Get_DB_Connections
-     return Database_Connection_Pool
+     return DB_Conn_Pool
    is
       use GNATCOLL.SQL.Exec;
 
-      Connection_Pool : Database_Connection_Pool := Task_Association.Value;
+      Connection_Pool : DB_Conn_Pool := Task_Association.Value;
    begin
       for k in Connection_Pool'Range loop
          case Connection_Pool (k).State is
@@ -75,8 +78,8 @@ package body Storage is
                   Connection_Pool (k).State := Failed;
                end if;
             when Initialized =>
-               Exec.Reset_Connection (Connection_Pool (k).Host,
-                                      Database_Connection_Type'Image (k));
+               Reset_Connection (Connection_Pool (k).Host,
+                                 DB_Conn_Type'Image (k));
          end case;
       end loop;
 
@@ -90,7 +93,7 @@ package body Storage is
    ------------------------------------
 
    procedure Register_Failed_DB_Connection
-     (Pool : in Database_Connection_Pool)
+     (Pool : in DB_Conn_Pool)
    is
    begin
       Task_Association.Set_Value (Pool);

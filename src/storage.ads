@@ -21,103 +21,33 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Common;
 with GNATCOLL.SQL.Exec;
-with My_Configuration;
-with Yolk.Cache.String_Keys;
 
 package Storage is
 
-   use Common;
-   use GNATCOLL.SQL;
-   use My_Configuration;
-
-   type Database_Connection_Type is (Primary, Secondary);
+   type DB_Conn_Type is (Primary, Secondary);
    --  The Primary connection is READ/WRITE while the Secondary is READ, so for
    --  SELECT queries both can be used, whereas INSERT/UPDATE/DELETE will only
    --  work with the Primary connection.
 
-   type Database_Connection_State is (Uninitialized, Initialized, Failed);
+   type DB_Conn_State is (Uninitialized, Initialized, Failed);
    --  The state of a database connection.
    --    Uninitialized : The connection has never been used.
    --    Initialized   : The connection has been connected to the database.
    --    Failed        : The connection failed.
 
-   type Database_Connection is
+   type DB_Conn is
       record
-         Host  : Exec.Database_Connection;
-         State : Database_Connection_State;
+         Host  : GNATCOLL.SQL.Exec.Database_Connection;
+         State : DB_Conn_State;
       end record;
 
-   Null_Database_Connection : constant Database_Connection
-     := (null, Uninitialized);
+   Null_Database_Connection : constant DB_Conn := (null, Uninitialized);
 
-   type Database_Connection_Pool is array (Database_Connection_Type) of
-     Database_Connection;
-
-   package Contact_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => JSON_Small.Bounded_String,
-      Cleanup_Size      => Config.Get (Cache_Size_Contact) + 1,
-      Cleanup_On_Write  => True,
-      Max_Element_Age   => Config.Get (Cache_Max_Element_Age),
-      Reserved_Capacity => Config.Get (Cache_Size_Contact));
-   --  Cache for individual contact JSON objects.
-
-   package Contact_Full_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => JSON_Small.Bounded_String,
-      Cleanup_Size      => Config.Get (Cache_Size_Contact) + 1,
-      Cleanup_On_Write  => True,
-      Max_Element_Age   => Config.Get (Cache_Max_Element_Age),
-      Reserved_Capacity => Config.Get (Cache_Size_Contact));
-   --  Cache for individual contact JSON objects. The contact JSON document
-   --  SHOULD be complete with attributes.
-
-   package Contact_Attributes_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => JSON_Small.Bounded_String,
-      Cleanup_Size      => Config.Get (Cache_Size_Contact) + 1,
-      Cleanup_On_Write  => True,
-      Max_Element_Age   => Config.Get (Cache_Max_Element_Age),
-      Reserved_Capacity => Config.Get (Cache_Size_Contact));
-   --  Cache for individual contact attributes JSON objects.
-
-   package Org_Contacts_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => JSON_Large.Bounded_String,
-      Cleanup_Size      => Config.Get (Cache_Size_Organization) + 1,
-      Cleanup_On_Write  => True,
-      Max_Element_Age   => Config.Get (Cache_Max_Element_Age),
-      Reserved_Capacity => Config.Get (Cache_Size_Organization));
-   --  Cache for groups of contact JSON objects. The groups SHOULD be based on
-   --  the organization the contacts belong to.
-
-   package Org_Contacts_Full_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => JSON_Large.Bounded_String,
-      Cleanup_Size      => Config.Get (Cache_Size_Organization) + 1,
-      Cleanup_On_Write  => True,
-      Max_Element_Age   => Config.Get (Cache_Max_Element_Age),
-      Reserved_Capacity => Config.Get (Cache_Size_Organization));
-   --  Cache for groups of contact JSON objects. The groups SHOULD be based on
-   --  the organization the contacts belong to and the contact JSON document
-   --  SHOULD be complete with attributes.
-
-   package Org_Contacts_Attributes_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => JSON_Large.Bounded_String,
-      Cleanup_Size      => Config.Get (Cache_Size_Organization) + 1,
-      Cleanup_On_Write  => True,
-      Max_Element_Age   => Config.Get (Cache_Max_Element_Age),
-      Reserved_Capacity => Config.Get (Cache_Size_Organization));
-   --  Cache for groups of contact attributes JSON objects. The groups SHOULD
-   --  be based on the organization the contacts belong to.
-
-   package Organization_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => JSON_Small.Bounded_String,
-      Cleanup_Size      => Config.Get (Cache_Size_Organization) + 1,
-      Cleanup_On_Write  => True,
-      Max_Element_Age   => Config.Get (Cache_Max_Element_Age),
-      Reserved_Capacity => Config.Get (Cache_Size_Organization));
-   --  Cache for individual organization JSON objects.
+   type DB_Conn_Pool is array (DB_Conn_Type) of DB_Conn;
 
    function Get_DB_Connections
-     return Database_Connection_Pool;
+     return DB_Conn_Pool;
    --  Return an array with the primary and secondary database connections.
    --
    --  IMPORTANT:
@@ -126,7 +56,7 @@ package Storage is
    --  update queries.
 
    procedure Register_Failed_DB_Connection
-     (Pool : in Database_Connection_Pool);
+     (Pool : in DB_Conn_Pool);
    --  If a specific connection fails, set it to Storage.Failed and register
    --  the Database_Connection_Pool object as failed.
    --
@@ -138,6 +68,8 @@ package Storage is
    function Trim
      (Source : in String)
       return String;
-   --  Trim Source string on both sides. This will clear away \n also.
+   --  Trim Source string on both sides. This will clear away \n also. This
+   --  function is here because the errors thrown by PostgreSQL is postfixed
+   --  with a \n which we must remove before sending the message to syslogd.
 
 end Storage;
