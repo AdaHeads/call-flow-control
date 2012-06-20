@@ -38,4 +38,9 @@ package Common is
    --  Used to hold JSON strings which are considered "small", ie. a single
    --  contact, organization or similar.
 
+   package JSON_Very_Small is new Ada.Strings.Bounded.Generic_Bounded_Length
+     (100);
+   --  Used to hold JSON strings which are considered "very small", for example
+   --  JSON strings with single numeric values or very few short JSON nodes.
+
 end Common;

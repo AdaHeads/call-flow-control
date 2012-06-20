@@ -38,8 +38,9 @@ package body Request is
    JSON_MIME_Type : constant String := "application/json; charset=utf-8";
 
    function Build_JSON_Response
-     (Request : in AWS.Status.Data;
-      Content : in String)
+     (Request     : in AWS.Status.Data;
+      Content     : in String;
+      Status_Code : in AWS.Messages.Status_Code)
       return AWS.Response.Data;
    --  Build the response and compress it if the client supports it. Also wraps
    --  JSON string in foo(JSON string) if the
@@ -119,8 +120,9 @@ package body Request is
    ---------------------------
 
    function Build_JSON_Response
-     (Request : in AWS.Status.Data;
-      Content : in String)
+     (Request     : in AWS.Status.Data;
+      Content     : in String;
+      Status_Code : in AWS.Messages.Status_Code)
       return AWS.Response.Data
    is
       use AWS.Messages;
@@ -132,6 +134,7 @@ package body Request is
    begin
       D :=  Build (Content_Type  => JSON_MIME_Type,
                    Message_Body  => Add_JSONP_Callback (Content, Request),
+                   Status_Code   => Status_Code,
                    Encoding      => Encoding,
                    Cache_Control => No_Cache);
 
@@ -152,20 +155,28 @@ package body Request is
       use AWS.URL;
       use Errors;
 
-      P  : constant AWS.Parameters.List := Parameters (Request);
-      Id : constant String              := P.Get ("id");
+      Status_Code : AWS.Messages.Status_Code := AWS.Messages.S200;
+      --  Assume success.
+
+      P           : constant AWS.Parameters.List := Parameters (Request);
+      Id          : constant String              := P.Get ("id");
+      Value       : Common.JSON_Very_Small.Bounded_String;
    begin
+      Call_Queue.Get_Call (Id, Status_Code, Value);
+
       return Build_JSON_Response
         (Request     => Request,
-         Content     => Call_Queue.Get_Call (Id));
+         Content     => Common.JSON_Very_Small.To_String (Value),
+         Status_Code => Status_Code);
 
    exception
       when Event : others =>
          return Build_JSON_Response
-           (Request => Request,
-            Content => Exception_Handler
+           (Request     => Request,
+            Content     => Exception_Handler
               (Event   => Event,
-               Message => "Requested resource: " & URL (URI (Request))));
+               Message => "Requested resource: " & URL (URI (Request))),
+            Status_Code => AWS.Messages.S400);
    end Call;
 
    ---------------
@@ -186,8 +197,11 @@ package body Request is
       P     : constant AWS.Parameters.List := Parameters (Request);
       Ce_Id : constant String              := P.Get ("ce_id");
 
-      Valid : Boolean := False;
-      Value : JSON_Small.Bounded_String;
+      Status_Code : AWS.Messages.Status_Code := AWS.Messages.S200;
+      --  Assume success.
+
+      Valid       : Boolean := False;
+      Value       : JSON_Small.Bounded_String;
    begin
       Contact_Cache.Read (Key      => Ce_Id,
                           Is_Valid => Valid,
@@ -199,20 +213,29 @@ package body Request is
               "ce_id must be a valid natural integer";
          end if;
 
-         Value := Storage.Read.Get_Contact (Ce_Id);
+         Storage.Read.Get_Contact (Ce_Id, Status_Code, Value);
       end if;
 
       return Build_JSON_Response
-        (Request => Request,
-         Content => JSON_Small.To_String (Value));
+        (Request     => Request,
+         Content     => JSON_Small.To_String (Value),
+         Status_Code => Status_Code);
 
    exception
+      when Event : Database_Error =>
+         return Build_JSON_Response
+           (Request     => Request,
+            Content     => Exception_Handler
+              (Event   => Event,
+               Message => "Requested resource: " & URL (URI (Request))),
+            Status_Code => AWS.Messages.S500);
       when Event : others =>
          return Build_JSON_Response
-           (Request => Request,
-            Content => Exception_Handler
+           (Request     => Request,
+            Content     => Exception_Handler
               (Event   => Event,
-               Message => "Requested resource: " & URL (URI (Request))));
+               Message => "Requested resource: " & URL (URI (Request))),
+            Status_Code => AWS.Messages.S400);
    end Contact;
 
    --------------------------
@@ -233,8 +256,11 @@ package body Request is
       P     : constant AWS.Parameters.List := Parameters (Request);
       Ce_Id : constant String              := P.Get ("ce_id");
 
-      Valid : Boolean := False;
-      Value : JSON_Small.Bounded_String;
+      Status_Code : AWS.Messages.Status_Code := AWS.Messages.S200;
+      --  Assume success.
+
+      Valid       : Boolean := False;
+      Value       : JSON_Small.Bounded_String;
    begin
       Contact_Attributes_Cache.Read (Key      => Ce_Id,
                                      Is_Valid => Valid,
@@ -246,20 +272,29 @@ package body Request is
               "ce_id must be a valid natural integer";
          end if;
 
-         Value := Storage.Read.Get_Contact_Attributes (Ce_Id);
+         Storage.Read.Get_Contact_Attributes (Ce_Id, Status_Code, Value);
       end if;
 
       return Build_JSON_Response
-        (Request => Request,
-         Content => JSON_Small.To_String (Value));
+        (Request     => Request,
+         Content     => JSON_Small.To_String (Value),
+         Status_Code => Status_Code);
 
    exception
+      when Event : Database_Error =>
+         return Build_JSON_Response
+           (Request     => Request,
+            Content     => Exception_Handler
+              (Event   => Event,
+               Message => "Requested resource: " & URL (URI (Request))),
+            Status_Code => AWS.Messages.S500);
       when Event : others =>
          return Build_JSON_Response
-           (Request => Request,
-            Content => Exception_Handler
+           (Request     => Request,
+            Content     => Exception_Handler
               (Event   => Event,
-               Message => "Requested resource: " & URL (URI (Request))));
+               Message => "Requested resource: " & URL (URI (Request))),
+            Status_Code => AWS.Messages.S400);
    end Contact_Attributes;
 
    --------------------
@@ -280,8 +315,11 @@ package body Request is
       P     : constant AWS.Parameters.List := Parameters (Request);
       Ce_Id : constant String              := P.Get ("ce_id");
 
-      Valid : Boolean := False;
-      Value : JSON_Small.Bounded_String;
+      Status_Code : AWS.Messages.Status_Code := AWS.Messages.S200;
+      --  Assume success.
+
+      Valid       : Boolean := False;
+      Value       : JSON_Small.Bounded_String;
    begin
       Contact_Full_Cache.Read (Key      => Ce_Id,
                                Is_Valid => Valid,
@@ -293,20 +331,29 @@ package body Request is
               "ce_id must be a valid natural integer";
          end if;
 
-         Value := Storage.Read.Get_Contact_Full (Ce_Id);
+         Storage.Read.Get_Contact_Full (Ce_Id, Status_Code, Value);
       end if;
 
       return Build_JSON_Response
-        (Request => Request,
-         Content => JSON_Small.To_String (Value));
+        (Request     => Request,
+         Content     => JSON_Small.To_String (Value),
+         Status_Code => Status_Code);
 
    exception
+      when Event : Database_Error =>
+         return Build_JSON_Response
+           (Request     => Request,
+            Content     => Exception_Handler
+              (Event   => Event,
+               Message => "Requested resource: " & URL (URI (Request))),
+            Status_Code => AWS.Messages.S500);
       when Event : others =>
          return Build_JSON_Response
-           (Request => Request,
-            Content => Exception_Handler
+           (Request     => Request,
+            Content     => Exception_Handler
               (Event   => Event,
-               Message => "Requested resource: " & URL (URI (Request))));
+               Message => "Requested resource: " & URL (URI (Request))),
+            Status_Code => AWS.Messages.S400);
    end Contact_Full;
 
    --------------------
@@ -327,6 +374,9 @@ package body Request is
       P      : constant AWS.Parameters.List := Parameters (Request);
       Org_Id : constant String              := P.Get ("org_id");
 
+      Status_Code : AWS.Messages.Status_Code := AWS.Messages.S200;
+      --  Assume success.
+
       Valid  : Boolean := False;
       Value  : JSON_Large.Bounded_String;
    begin
@@ -340,20 +390,29 @@ package body Request is
               "org_id must be a valid natural integer";
          end if;
 
-         Value := Storage.Read.Get_Org_Contacts (Org_Id);
+         Storage.Read.Get_Org_Contacts (Org_Id, Status_Code, Value);
       end if;
 
       return Build_JSON_Response
         (Request     => Request,
-         Content     => JSON_Large.To_String (Value));
+         Content     => JSON_Large.To_String (Value),
+         Status_Code => Status_Code);
 
    exception
+      when Event : Database_Error =>
+         return Build_JSON_Response
+           (Request     => Request,
+            Content     => Exception_Handler
+              (Event   => Event,
+               Message => "Requested resource: " & URL (URI (Request))),
+            Status_Code => AWS.Messages.S500);
       when Event : others =>
          return Build_JSON_Response
-           (Request => Request,
-            Content => Exception_Handler
+           (Request     => Request,
+            Content     => Exception_Handler
               (Event   => Event,
-               Message => "Requested resource: " & URL (URI (Request))));
+               Message => "Requested resource: " & URL (URI (Request))),
+            Status_Code => AWS.Messages.S400);
    end Org_Contacts;
 
    -------------------------------
@@ -374,6 +433,9 @@ package body Request is
       P      : constant AWS.Parameters.List := Parameters (Request);
       Org_Id : constant String              := P.Get ("org_id");
 
+      Status_Code : AWS.Messages.Status_Code := AWS.Messages.S200;
+      --  Assume success.
+
       Valid  : Boolean := False;
       Value  : JSON_Large.Bounded_String;
    begin
@@ -387,20 +449,29 @@ package body Request is
               "org_id must be a valid natural integer";
          end if;
 
-         Value := Storage.Read.Get_Org_Contacts_Attributes (Org_Id);
+         Storage.Read.Get_Org_Contacts_Attributes (Org_Id, Status_Code, Value);
       end if;
 
       return Build_JSON_Response
-        (Request => Request,
-         Content => JSON_Large.To_String (Value));
+        (Request     => Request,
+         Content     => JSON_Large.To_String (Value),
+         Status_Code => Status_Code);
 
    exception
+      when Event : Database_Error =>
+         return Build_JSON_Response
+           (Request     => Request,
+            Content     => Exception_Handler
+              (Event   => Event,
+               Message => "Requested resource: " & URL (URI (Request))),
+            Status_Code => AWS.Messages.S500);
       when Event : others =>
          return Build_JSON_Response
-           (Request => Request,
-            Content => Exception_Handler
+           (Request     => Request,
+            Content     => Exception_Handler
               (Event   => Event,
-               Message => "Requested resource: " & URL (URI (Request))));
+               Message => "Requested resource: " & URL (URI (Request))),
+            Status_Code => AWS.Messages.S400);
    end Org_Contacts_Attributes;
 
    -------------------------
@@ -421,6 +492,9 @@ package body Request is
       P      : constant AWS.Parameters.List := Parameters (Request);
       Org_Id : constant String              := P.Get ("org_id");
 
+      Status_Code : AWS.Messages.Status_Code := AWS.Messages.S200;
+      --  Assume success.
+
       Valid  : Boolean := False;
       Value  : JSON_Large.Bounded_String;
    begin
@@ -434,20 +508,29 @@ package body Request is
               "org_id must be a valid natural integer";
          end if;
 
-         Value := Storage.Read.Get_Org_Contacts_Full (Org_Id);
+         Storage.Read.Get_Org_Contacts_Full (Org_Id, Status_Code, Value);
       end if;
 
       return Build_JSON_Response
-        (Request => Request,
-         Content => JSON_Large.To_String (Value));
+        (Request     => Request,
+         Content     => JSON_Large.To_String (Value),
+         Status_Code => Status_Code);
 
    exception
+      when Event : Database_Error =>
+         return Build_JSON_Response
+           (Request     => Request,
+            Content     => Exception_Handler
+              (Event   => Event,
+               Message => "Requested resource: " & URL (URI (Request))),
+            Status_Code => AWS.Messages.S500);
       when Event : others =>
          return Build_JSON_Response
-           (Request => Request,
-            Content => Exception_Handler
+           (Request     => Request,
+            Content     => Exception_Handler
               (Event   => Event,
-               Message => "Requested resource: " & URL (URI (Request))));
+               Message => "Requested resource: " & URL (URI (Request))),
+            Status_Code => AWS.Messages.S400);
    end Org_Contacts_Full;
 
    --------------------
@@ -468,6 +551,9 @@ package body Request is
       P      : constant AWS.Parameters.List := Parameters (Request);
       Org_Id : constant String              := P.Get ("org_id");
 
+      Status_Code : AWS.Messages.Status_Code := AWS.Messages.S200;
+      --  Assume success.
+
       Valid  : Boolean := False;
       Value  : JSON_Small.Bounded_String;
    begin
@@ -481,20 +567,29 @@ package body Request is
               "org_id must be a valid natural integer";
          end if;
 
-         Value := Storage.Read.Get_Organization (Org_Id);
+         Storage.Read.Get_Organization (Org_Id, Status_Code, Value);
       end if;
 
       return Build_JSON_Response
-        (Request => Request,
-         Content => JSON_Small.To_String (Value));
+        (Request     => Request,
+         Content     => JSON_Small.To_String (Value),
+         Status_Code => Status_Code);
 
    exception
+      when Event : Database_Error =>
+         return Build_JSON_Response
+           (Request     => Request,
+            Content     => Exception_Handler
+              (Event   => Event,
+               Message => "Requested resource: " & URL (URI (Request))),
+            Status_Code => AWS.Messages.S500);
       when Event : others =>
          return Build_JSON_Response
-           (Request => Request,
-            Content => Exception_Handler
+           (Request     => Request,
+            Content     => Exception_Handler
               (Event   => Event,
-               Message => "Requested resource: " & URL (URI (Request))));
+               Message => "Requested resource: " & URL (URI (Request))),
+            Status_Code => AWS.Messages.S400);
    end Organization;
 
    -------------
@@ -507,8 +602,9 @@ package body Request is
    is
    begin
       return Build_JSON_Response
-        (Request => Request,
-         Content => Call_Queue.Get);
+        (Request     => Request,
+         Content     => Call_Queue.Get,
+         Status_Code => AWS.Messages.S200);
    end Queue;
 
    --------------------
@@ -521,7 +617,8 @@ package body Request is
    is
    begin
       return Build_JSON_Response (Request => Request,
-                                  Content => Call_Queue.Length);
+                                  Content     => Call_Queue.Length,
+                                  Status_Code => AWS.Messages.S200);
    end Queue_Length;
 
 end Request;
