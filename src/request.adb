@@ -155,11 +155,8 @@ package body Request is
       use AWS.URL;
       use Errors;
 
-      Status_Code : AWS.Messages.Status_Code := AWS.Messages.S200;
-      --  Assume success.
-
-      P           : constant AWS.Parameters.List := Parameters (Request);
-      Id          : constant String              := P.Get ("id");
+      Id          : constant String := Parameters (Request).Get ("id");
+      Status_Code : AWS.Messages.Status_Code;
       Value       : Common.JSON_Very_Small.Bounded_String;
    begin
       Call_Queue.Get_Call (Id, Status_Code, Value);
@@ -194,26 +191,24 @@ package body Request is
       use Common;
       use Errors;
 
-      P     : constant AWS.Parameters.List := Parameters (Request);
-      Ce_Id : constant String              := P.Get ("ce_id");
-
-      Status_Code : AWS.Messages.Status_Code := AWS.Messages.S200;
-      --  Assume success.
-
-      Valid       : Boolean := False;
+      Ce_Id       : constant String := Parameters (Request).Get ("ce_id");
+      Status_Code : AWS.Messages.Status_Code;
+      Valid       : Boolean;
       Value       : JSON_Small.Bounded_String;
    begin
       Contact_Cache.Read (Key      => Ce_Id,
                           Is_Valid => Valid,
                           Value    => Value);
 
-      if not Valid then
+      if Valid then
+         Status_Code := AWS.Messages.S200;
+      else
          if not Is_Number (Ce_Id) then
             raise GET_Parameter_Error with
               "ce_id must be a valid natural integer";
          end if;
 
-         Storage.Read.Get_Contact (Ce_Id, Status_Code, Value);
+         Storage.Read.Contact (Ce_Id, Status_Code, Value);
       end if;
 
       return Build_JSON_Response
@@ -253,26 +248,24 @@ package body Request is
       use Common;
       use Errors;
 
-      P     : constant AWS.Parameters.List := Parameters (Request);
-      Ce_Id : constant String              := P.Get ("ce_id");
-
-      Status_Code : AWS.Messages.Status_Code := AWS.Messages.S200;
-      --  Assume success.
-
-      Valid       : Boolean := False;
+      Ce_Id       : constant String := Parameters (Request).Get ("ce_id");
+      Status_Code : AWS.Messages.Status_Code;
+      Valid       : Boolean;
       Value       : JSON_Small.Bounded_String;
    begin
       Contact_Attributes_Cache.Read (Key      => Ce_Id,
                                      Is_Valid => Valid,
                                      Value    => Value);
 
-      if not Valid then
+      if Valid then
+         Status_Code := AWS.Messages.S200;
+      else
          if not Is_Number (Ce_Id) then
             raise GET_Parameter_Error with
               "ce_id must be a valid natural integer";
          end if;
 
-         Storage.Read.Get_Contact_Attributes (Ce_Id, Status_Code, Value);
+         Storage.Read.Contact_Attributes (Ce_Id, Status_Code, Value);
       end if;
 
       return Build_JSON_Response
@@ -312,26 +305,24 @@ package body Request is
       use Common;
       use Errors;
 
-      P     : constant AWS.Parameters.List := Parameters (Request);
-      Ce_Id : constant String              := P.Get ("ce_id");
-
-      Status_Code : AWS.Messages.Status_Code := AWS.Messages.S200;
-      --  Assume success.
-
-      Valid       : Boolean := False;
+      Ce_Id       : constant String := Parameters (Request).Get ("ce_id");
+      Status_Code : AWS.Messages.Status_Code;
+      Valid       : Boolean;
       Value       : JSON_Small.Bounded_String;
    begin
       Contact_Full_Cache.Read (Key      => Ce_Id,
                                Is_Valid => Valid,
                                Value    => Value);
 
-      if not Valid then
+      if Valid then
+         Status_Code := AWS.Messages.S200;
+      else
          if not Is_Number (Ce_Id) then
             raise GET_Parameter_Error with
               "ce_id must be a valid natural integer";
          end if;
 
-         Storage.Read.Get_Contact_Full (Ce_Id, Status_Code, Value);
+         Storage.Read.Contact_Full (Ce_Id, Status_Code, Value);
       end if;
 
       return Build_JSON_Response
@@ -371,26 +362,24 @@ package body Request is
       use Common;
       use Errors;
 
-      P      : constant AWS.Parameters.List := Parameters (Request);
-      Org_Id : constant String              := P.Get ("org_id");
-
-      Status_Code : AWS.Messages.Status_Code := AWS.Messages.S200;
-      --  Assume success.
-
-      Valid  : Boolean := False;
-      Value  : JSON_Large.Bounded_String;
+      Org_Id      : constant String := Parameters (Request).Get ("org_id");
+      Status_Code : AWS.Messages.Status_Code;
+      Valid       : Boolean;
+      Value       : JSON_Large.Bounded_String;
    begin
       Org_Contacts_Cache.Read (Key      => Org_Id,
                                Is_Valid => Valid,
                                Value    => Value);
 
-      if not Valid then
+      if Valid then
+         Status_Code := AWS.Messages.S200;
+      else
          if not Is_Number (Org_Id) then
             raise GET_Parameter_Error with
               "org_id must be a valid natural integer";
          end if;
 
-         Storage.Read.Get_Org_Contacts (Org_Id, Status_Code, Value);
+         Storage.Read.Org_Contacts (Org_Id, Status_Code, Value);
       end if;
 
       return Build_JSON_Response
@@ -430,26 +419,24 @@ package body Request is
       use Common;
       use Errors;
 
-      P      : constant AWS.Parameters.List := Parameters (Request);
-      Org_Id : constant String              := P.Get ("org_id");
-
-      Status_Code : AWS.Messages.Status_Code := AWS.Messages.S200;
-      --  Assume success.
-
-      Valid  : Boolean := False;
-      Value  : JSON_Large.Bounded_String;
+      Org_Id      : constant String := Parameters (Request).Get ("org_id");
+      Status_Code : AWS.Messages.Status_Code;
+      Valid       : Boolean;
+      Value       : JSON_Large.Bounded_String;
    begin
       Org_Contacts_Attributes_Cache.Read (Key      => Org_Id,
                                           Is_Valid => Valid,
                                           Value    => Value);
 
-      if not Valid then
+      if Valid then
+         Status_Code := AWS.Messages.S200;
+      else
          if not Is_Number (Org_Id) then
             raise GET_Parameter_Error with
               "org_id must be a valid natural integer";
          end if;
 
-         Storage.Read.Get_Org_Contacts_Attributes (Org_Id, Status_Code, Value);
+         Storage.Read.Org_Contacts_Attributes (Org_Id, Status_Code, Value);
       end if;
 
       return Build_JSON_Response
@@ -489,26 +476,24 @@ package body Request is
       use Common;
       use Errors;
 
-      P      : constant AWS.Parameters.List := Parameters (Request);
-      Org_Id : constant String              := P.Get ("org_id");
-
-      Status_Code : AWS.Messages.Status_Code := AWS.Messages.S200;
-      --  Assume success.
-
-      Valid  : Boolean := False;
-      Value  : JSON_Large.Bounded_String;
+      Org_Id      : constant String := Parameters (Request).Get ("org_id");
+      Status_Code : AWS.Messages.Status_Code;
+      Valid       : Boolean;
+      Value       : JSON_Large.Bounded_String;
    begin
       Org_Contacts_Full_Cache.Read (Key      => Org_Id,
                                     Is_Valid => Valid,
                                     Value    => Value);
 
-      if not Valid then
+      if Valid then
+         Status_Code := AWS.Messages.S200;
+      else
          if not Is_Number (Org_Id) then
             raise GET_Parameter_Error with
               "org_id must be a valid natural integer";
          end if;
 
-         Storage.Read.Get_Org_Contacts_Full (Org_Id, Status_Code, Value);
+         Storage.Read.Org_Contacts_Full (Org_Id, Status_Code, Value);
       end if;
 
       return Build_JSON_Response
@@ -548,26 +533,24 @@ package body Request is
       use Common;
       use Errors;
 
-      P      : constant AWS.Parameters.List := Parameters (Request);
-      Org_Id : constant String              := P.Get ("org_id");
-
-      Status_Code : AWS.Messages.Status_Code := AWS.Messages.S200;
-      --  Assume success.
-
-      Valid  : Boolean := False;
-      Value  : JSON_Small.Bounded_String;
+      Org_Id      : constant String := Parameters (Request).Get ("org_id");
+      Status_Code : AWS.Messages.Status_Code;
+      Valid       : Boolean;
+      Value       : JSON_Small.Bounded_String;
    begin
       Organization_Cache.Read (Key      => Org_Id,
                                Is_Valid => Valid,
                                Value    => Value);
 
-      if not Valid then
+      if Valid then
+         Status_Code := AWS.Messages.S200;
+      else
          if not Is_Number (Org_Id) then
             raise GET_Parameter_Error with
               "org_id must be a valid natural integer";
          end if;
 
-         Storage.Read.Get_Organization (Org_Id, Status_Code, Value);
+         Storage.Read.Organization (Org_Id, Status_Code, Value);
       end if;
 
       return Build_JSON_Response
@@ -616,9 +599,10 @@ package body Request is
       return AWS.Response.Data
    is
    begin
-      return Build_JSON_Response (Request => Request,
-                                  Content     => Call_Queue.Length,
-                                  Status_Code => AWS.Messages.S200);
+      return Build_JSON_Response
+        (Request     => Request,
+         Content     => Call_Queue.Length,
+         Status_Code => AWS.Messages.S200);
    end Queue_Length;
 
 end Request;

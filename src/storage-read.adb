@@ -37,6 +37,135 @@ package body Storage.Read is
    --         Connection_Type = Database_Connection_Type'Last
    --    3. If 2 is not True, Output a message to the Error log trace.
 
+   ---------------
+   --  Contact  --
+   ---------------
+
+   procedure Contact
+     (Ce_Id       : in     String;
+      Status_Code :    out AWS.Messages.Status_Code;
+      Value       :    out Common.JSON_Small.Bounded_String)
+   is
+      use Cache;
+      use GNATCOLL.SQL.Exec;
+
+      C              : Queries.Contact_Cursor;
+      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
+   begin
+      Status_Code := AWS.Messages.S500;
+
+      Fetch_Data :
+      for k in DB_Connections'Range loop
+         C.Fetch (DB_Connections (k).Host,
+                  Queries.Contact_Query,
+                  Params => (1 => +Natural'Value (Ce_Id)));
+
+         if DB_Connections (k).Host.Success then
+            JSONIFY.Contact (C, Value);
+
+            if C.Processed_Rows > 0 then
+               Contact_Cache.Write (Key   => Ce_Id,
+                                    Value => Value);
+
+               Status_Code := AWS.Messages.S200;
+            else
+               Status_Code := AWS.Messages.S404;
+            end if;
+
+            exit Fetch_Data;
+         else
+            Failed_Query (Connection_Pool => DB_Connections,
+                          Connection_Type => k);
+         end if;
+      end loop Fetch_Data;
+   end Contact;
+
+   --------------------------
+   --  Contact_Attributes  --
+   --------------------------
+
+   procedure Contact_Attributes
+     (Ce_Id       : in     String;
+      Status_Code :    out AWS.Messages.Status_Code;
+      Value       :    out Common.JSON_Small.Bounded_String)
+   is
+      use Cache;
+      use GNATCOLL.SQL.Exec;
+
+      C              : Queries.Contact_Attributes_Cursor;
+      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
+   begin
+      Status_Code := AWS.Messages.S500;
+
+      Fetch_Data :
+      for k in DB_Connections'Range loop
+         C.Fetch (DB_Connections (k).Host,
+                  Queries.Contact_Attributes_Query,
+                  Params => (1 => +Natural'Value (Ce_Id)));
+
+         if DB_Connections (k).Host.Success then
+            JSONIFY.Contact_Attributes (C, Value);
+
+            if C.Processed_Rows > 0 then
+               Contact_Attributes_Cache.Write (Key   => Ce_Id,
+                                               Value => Value);
+
+               Status_Code := AWS.Messages.S200;
+            else
+               Status_Code := AWS.Messages.S404;
+            end if;
+
+            exit Fetch_Data;
+         else
+            Failed_Query (Connection_Pool => DB_Connections,
+                          Connection_Type => k);
+         end if;
+      end loop Fetch_Data;
+   end Contact_Attributes;
+
+   --------------------
+   --  Contact_Full  --
+   --------------------
+
+   procedure Contact_Full
+     (Ce_Id       : in     String;
+      Status_Code :    out AWS.Messages.Status_Code;
+      Value       :    out Common.JSON_Small.Bounded_String)
+   is
+      use Cache;
+      use GNATCOLL.SQL.Exec;
+
+      Cursor         : Queries.Contact_Full_Cursor;
+      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
+   begin
+      Status_Code := AWS.Messages.S500;
+
+      Fetch_Data :
+      for k in DB_Connections'Range loop
+         Cursor.Fetch (DB_Connections (k).Host,
+                       Queries.Contact_Full_Query,
+                       Params => (1 => +Natural'Value (Ce_Id)));
+
+         if DB_Connections (k).Host.Success then
+            JSONIFY.Contact_Full (Cursor, Value);
+
+            if Cursor.Processed_Rows > 0 then
+               Contact_Full_Cache.Write (Key   => Ce_Id,
+                                         Value => Value);
+
+               Status_Code := AWS.Messages.S200;
+            else
+               Status_Code := AWS.Messages.S404;
+            end if;
+
+            exit Fetch_Data;
+         else
+            Failed_Query (Connection_Pool => DB_Connections,
+                          Connection_Type => k);
+         end if;
+      end loop Fetch_Data;
+   end Contact_Full;
+
    --------------------
    --  Failed_Query  --
    --------------------
@@ -66,133 +195,13 @@ package body Storage.Read is
       end if;
    end Failed_Query;
 
-   -------------------
-   --  Get_Contact  --
-   -------------------
+   --------------------
+   --  Org_Contacts  --
+   --------------------
 
-   procedure Get_Contact
-     (Ce_Id       : in     String;
-      Status_Code : in out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Small.Bounded_String)
-   is
-      use Cache;
-      use GNATCOLL.SQL.Exec;
-
-      C              : Queries.Contact_Cursor;
-      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
-   begin
-      Fetch_Data :
-      for k in DB_Connections'Range loop
-         C.Fetch (DB_Connections (k).Host,
-                  Queries.Contact_Query,
-                  Params => (1 => +Natural'Value (Ce_Id)));
-
-         if DB_Connections (k).Host.Success then
-            JSONIFY.Contact (C, Value);
-
-            if C.Processed_Rows > 0 then
-               Contact_Cache.Write (Key   => Ce_Id,
-                                    Value => Value);
-            else
-               Status_Code := AWS.Messages.S404;
-               --  No data processed. Set not found status code.
-            end if;
-
-            exit Fetch_Data;
-         else
-            Failed_Query (Connection_Pool => DB_Connections,
-                          Connection_Type => k);
-         end if;
-      end loop Fetch_Data;
-   end Get_Contact;
-
-   ------------------------------
-   --  Get_Contact_Attributes  --
-   ------------------------------
-
-   procedure Get_Contact_Attributes
-     (Ce_Id       : in     String;
-      Status_Code : in out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Small.Bounded_String)
-   is
-      use Cache;
-      use GNATCOLL.SQL.Exec;
-
-      C              : Queries.Contact_Attributes_Cursor;
-      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
-   begin
-      Fetch_Data :
-      for k in DB_Connections'Range loop
-         C.Fetch (DB_Connections (k).Host,
-                  Queries.Contact_Attributes_Query,
-                  Params => (1 => +Natural'Value (Ce_Id)));
-
-         if DB_Connections (k).Host.Success then
-            JSONIFY.Contact_Attributes (C, Value);
-
-            if C.Processed_Rows > 0 then
-               Contact_Attributes_Cache.Write (Key   => Ce_Id,
-                                               Value => Value);
-            else
-               Status_Code := AWS.Messages.S404;
-               --  No data processed. Set not found status code.
-            end if;
-
-            exit Fetch_Data;
-         else
-            Failed_Query (Connection_Pool => DB_Connections,
-                          Connection_Type => k);
-         end if;
-      end loop Fetch_Data;
-   end Get_Contact_Attributes;
-
-   ------------------------
-   --  Get_Contact_Full  --
-   ------------------------
-
-   procedure Get_Contact_Full
-     (Ce_Id       : in     String;
-      Status_Code : in out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Small.Bounded_String)
-   is
-      use Cache;
-      use GNATCOLL.SQL.Exec;
-
-      Cursor         : Queries.Contact_Full_Cursor;
-      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
-   begin
-      Fetch_Data :
-      for k in DB_Connections'Range loop
-         Cursor.Fetch (DB_Connections (k).Host,
-                       Queries.Contact_Full_Query,
-                       Params => (1 => +Natural'Value (Ce_Id)));
-
-         if DB_Connections (k).Host.Success then
-            JSONIFY.Contact_Full (Cursor, Value);
-
-            if Cursor.Processed_Rows > 0 then
-               Contact_Full_Cache.Write (Key   => Ce_Id,
-                                         Value => Value);
-            else
-               Status_Code := AWS.Messages.S404;
-               --  No data processed. Set not found status code.
-            end if;
-
-            exit Fetch_Data;
-         else
-            Failed_Query (Connection_Pool => DB_Connections,
-                          Connection_Type => k);
-         end if;
-      end loop Fetch_Data;
-   end Get_Contact_Full;
-
-   ------------------------
-   --  Get_Org_Contacts  --
-   ------------------------
-
-   procedure Get_Org_Contacts
+   procedure Org_Contacts
      (Org_Id      : in     String;
-      Status_Code : in out AWS.Messages.Status_Code;
+      Status_Code :    out AWS.Messages.Status_Code;
       Value       :    out Common.JSON_Large.Bounded_String)
    is
       use Cache;
@@ -201,6 +210,8 @@ package body Storage.Read is
       Cursor         : Queries.Org_Contacts_Cursor;
       DB_Connections : DB_Conn_Pool := Get_DB_Connections;
    begin
+      Status_Code := AWS.Messages.S500;
+
       Fetch_Data :
       for k in DB_Connections'Range loop
          Cursor.Fetch (DB_Connections (k).Host,
@@ -213,9 +224,10 @@ package body Storage.Read is
             if Cursor.Processed_Rows > 0 then
                Org_Contacts_Cache.Write (Key   => Org_Id,
                                          Value => Value);
+
+               Status_Code := AWS.Messages.S200;
             else
                Status_Code := AWS.Messages.S404;
-               --  No data processed. Set not found status code.
             end if;
 
             exit Fetch_Data;
@@ -224,15 +236,15 @@ package body Storage.Read is
                           Connection_Type => k);
          end if;
       end loop Fetch_Data;
-   end Get_Org_Contacts;
+   end Org_Contacts;
 
-   -----------------------------------
-   --  Get_Org_Contacts_Attributes  --
-   -----------------------------------
+   -------------------------------
+   --  Org_Contacts_Attributes  --
+   -------------------------------
 
-   procedure Get_Org_Contacts_Attributes
+   procedure Org_Contacts_Attributes
      (Org_Id      : in     String;
-      Status_Code : in out AWS.Messages.Status_Code;
+      Status_Code :    out AWS.Messages.Status_Code;
       Value       :    out Common.JSON_Large.Bounded_String)
    is
       use Cache;
@@ -241,6 +253,8 @@ package body Storage.Read is
       Cursor         : Queries.Org_Contacts_Attributes_Cursor;
       DB_Connections : DB_Conn_Pool := Get_DB_Connections;
    begin
+      Status_Code := AWS.Messages.S500;
+
       Fetch_Data :
       for k in DB_Connections'Range loop
          Cursor.Fetch (DB_Connections (k).Host,
@@ -253,9 +267,10 @@ package body Storage.Read is
             if Cursor.Processed_Rows > 0 then
                Org_Contacts_Attributes_Cache.Write (Key   => Org_Id,
                                                     Value => Value);
+
+               Status_Code := AWS.Messages.S200;
             else
                Status_Code := AWS.Messages.S404;
-               --  No data processed. Set not found status code.
             end if;
 
             exit Fetch_Data;
@@ -264,15 +279,15 @@ package body Storage.Read is
                           Connection_Type => k);
          end if;
       end loop Fetch_Data;
-   end Get_Org_Contacts_Attributes;
+   end Org_Contacts_Attributes;
 
-   -----------------------------
-   --  Get_Org_Contacts_Full  --
-   -----------------------------
+   -------------------------
+   --  Org_Contacts_Full  --
+   -------------------------
 
-   procedure Get_Org_Contacts_Full
+   procedure Org_Contacts_Full
      (Org_Id      : in     String;
-      Status_Code : in out AWS.Messages.Status_Code;
+      Status_Code :    out AWS.Messages.Status_Code;
       Value       :    out Common.JSON_Large.Bounded_String)
    is
       use Cache;
@@ -281,6 +296,8 @@ package body Storage.Read is
       Cursor         : Queries.Org_Contacts_Full_Cursor;
       DB_Connections : DB_Conn_Pool := Get_DB_Connections;
    begin
+      Status_Code := AWS.Messages.S500;
+
       Fetch_Data :
       for k in DB_Connections'Range loop
          Cursor.Fetch (DB_Connections (k).Host,
@@ -293,9 +310,10 @@ package body Storage.Read is
             if Cursor.Processed_Rows > 0 then
                Org_Contacts_Full_Cache.Write (Key   => Org_Id,
                                               Value => Value);
+
+               Status_Code := AWS.Messages.S200;
             else
                Status_Code := AWS.Messages.S404;
-               --  No data processed. Set not found status code.
             end if;
 
             exit Fetch_Data;
@@ -304,15 +322,15 @@ package body Storage.Read is
                           Connection_Type => k);
          end if;
       end loop Fetch_Data;
-   end Get_Org_Contacts_Full;
+   end Org_Contacts_Full;
 
-   ------------------------
-   --  Get_Organization  --
-   ------------------------
+   --------------------
+   --  Organization  --
+   --------------------
 
-   procedure Get_Organization
+   procedure Organization
      (Org_Id      : in     String;
-      Status_Code : in out AWS.Messages.Status_Code;
+      Status_Code :    out AWS.Messages.Status_Code;
       Value       :    out Common.JSON_Small.Bounded_String)
    is
       use Cache;
@@ -321,6 +339,8 @@ package body Storage.Read is
       Cursor         : Queries.Organization_Cursor;
       DB_Connections : DB_Conn_Pool := Get_DB_Connections;
    begin
+      Status_Code := AWS.Messages.S500;
+
       Fetch_Data :
       for k in DB_Connections'Range loop
          Cursor.Fetch (DB_Connections (k).Host,
@@ -333,9 +353,10 @@ package body Storage.Read is
             if Cursor.Processed_Rows > 0 then
                Organization_Cache.Write (Key   => Org_Id,
                                          Value => Value);
+
+               Status_Code := AWS.Messages.S200;
             else
                Status_Code := AWS.Messages.S404;
-               --  No data processed. Set not found status code.
             end if;
 
             exit Fetch_Data;
@@ -344,6 +365,6 @@ package body Storage.Read is
                           Connection_Type => k);
          end if;
       end loop Fetch_Data;
-   end Get_Organization;
+   end Organization;
 
 end Storage.Read;

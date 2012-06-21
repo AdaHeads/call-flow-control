@@ -248,7 +248,7 @@ package body Call_Queue is
 
    procedure Get_Call
      (Id          : in     String;
-      Status_Code : in out AWS.Messages.Status_Code;
+      Status_Code :    out AWS.Messages.Status_Code;
       Value       :    out Common.JSON_Very_Small.Bounded_String)
    is
       use GNATCOLL.JSON;
@@ -257,15 +257,18 @@ package body Call_Queue is
       Org_Id  : Natural := 0;
       Success : Boolean;
    begin
+      Status_Code := AWS.Messages.S500;
+
       if Id'Length > 0 then
          Queue.Remove (Id, Org_Id, Success);
 
          if Success then
             JSON.Set_Field ("id", Id);
             JSON.Set_Field ("org_id", Org_Id);
+
+            Status_Code := AWS.Messages.S200;
          else
             Status_Code := AWS.Messages.S404;
-            --  Call not found. Set 404 status code.
          end if;
       else
          declare
@@ -278,9 +281,10 @@ package body Call_Queue is
             if Org_Id > 0 then
                JSON.Set_Field ("id", CI);
                JSON.Set_Field ("org_id", Org_Id);
+
+               Status_Code := AWS.Messages.S200;
             else
                Status_Code := AWS.Messages.S404;
-               --  No call in queue. Set 404 status code.
             end if;
          end;
       end if;

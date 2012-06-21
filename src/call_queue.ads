@@ -33,7 +33,7 @@ package Call_Queue is
 
    procedure Get_Call
      (Id          : in     String;
-      Status_Code : in out AWS.Messages.Status_Code;
+      Status_Code :    out AWS.Messages.Status_Code;
       Value       :    out Common.JSON_Very_Small.Bounded_String);
    --  If Id exists, Value contains the data for the call with Id and
    --  Status_Code is 200.
