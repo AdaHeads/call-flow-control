@@ -59,32 +59,6 @@ Cache_Size_Organization 1_000
 # will be wasting a lot of CPU on the automatic cleanup functionality. On the
 # other hand setting it too high will waste a lot of memory.
 
-JSON_Size_Large 100_000
-# Positive.
-# Default: 100_000
-#
-# The maximum size of large JSON strings. This is basically a safety feature
-# to guard against massive JSON strings. If a JSON string exceeds this value,
-# then an exception is raised.
-#
-# NOTE:
-# JSON_Size_Large is used by Alice to set the size of a Bounded_String package
-# that is used for collections of contact entities, contact attributes and
-# other similar kinds of data.
-
-JSON_Size_Small 10_000
-# Positive.
-# Default: 10_000
-#
-# The maximum size of small JSON strings. This is basically a safety feature
-# to guard against massive JSON strings. If a JSON string exceeds this value,
-# then an exception is raised.
-#
-# NOTE:
-# JSON_Size_Small is used by Alice to set the size of a Bounded_String package
-# that is used for individual contact entities, contact attributes and other
-# typically single kinds of data.
-
 ##################################
 #            Database            #
 ##################################

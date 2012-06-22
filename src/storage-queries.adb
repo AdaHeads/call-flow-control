@@ -129,10 +129,11 @@ package body Storage.Queries is
      (C : in Contact_Cursor)
       return Contact_Row
    is
+      use Common;
       use Yolk.Utilities;
    begin
       return Contact_Row'
-        (JSON     => TUS (C.Value (0)),
+        (JSON     => To_JSON_String (C.Value (0)),
          Ce_Id    =>
            Pair_Natural'(Name  => TUS (C.Field_Name (1)),
                          Value => C.Integer_Value (1, Default => 0)),
@@ -152,10 +153,11 @@ package body Storage.Queries is
      (C : in Contact_Attributes_Cursor)
       return Contact_Attributes_Row
    is
+      use Common;
       use Yolk.Utilities;
    begin
       return Contact_Attributes_Row'
-        (JSON   => TUS (C.Value (0)),
+        (JSON   => To_JSON_String (C.Value (0)),
          Ce_Id  =>
            Pair_Natural'(Name  => TUS (C.Field_Name (1)),
                          Value => C.Integer_Value (1, Default => 0)),
@@ -172,10 +174,11 @@ package body Storage.Queries is
      (C : in Contact_Full_Cursor)
       return Contact_Full_Row
    is
+      use Common;
       use Yolk.Utilities;
    begin
       return Contact_Full_Row'
-        (JSON        => TUS (C.Value (0)),
+        (JSON        => To_JSON_String (C.Value (0)),
          Ce_Id       =>
            Pair_Natural'(Name  => TUS (C.Field_Name (1)),
                          Value => C.Integer_Value (1, Default => 0)),
@@ -185,7 +188,7 @@ package body Storage.Queries is
          Is_Human    =>
            Pair_Boolean'(Name  => TUS (C.Field_Name (3)),
                          Value => C.Boolean_Value (3)),
-         Attr_JSON   => TUS (C.Value (4)),
+         Attr_JSON   => To_JSON_String (C.Value (4)),
          Attr_Org_Id =>
            Pair_Natural'(Name  => TUS (C.Field_Name (5)),
                          Value => C.Integer_Value (5, Default => 0)),
@@ -202,10 +205,11 @@ package body Storage.Queries is
      (C : in Organization_Cursor)
       return Organization_Row
    is
+      use Common;
       use Yolk.Utilities;
    begin
       return Organization_Row'
-        (JSON       => TUS (C.Value (0)),
+        (JSON       => To_JSON_String (C.Value (0)),
          Org_Id     =>
            Pair_Natural'(Name  => TUS (C.Field_Name (1)),
                          Value => C.Integer_Value (1, Default => 0)),
@@ -225,10 +229,11 @@ package body Storage.Queries is
      (C : in Org_Contacts_Cursor)
       return Org_Contacts_Row
    is
+      use Common;
       use Yolk.Utilities;
    begin
       return Org_Contacts_Row'
-        (JSON     => TUS (C.Value (0)),
+        (JSON     => To_JSON_String (C.Value (0)),
          Ce_Id    =>
            Pair_Natural'(Name  => TUS (C.Field_Name (1)),
                          Value => C.Integer_Value (1, Default => 0)),
@@ -248,10 +253,11 @@ package body Storage.Queries is
      (C : in Org_Contacts_Attributes_Cursor)
       return Org_Contacts_Attributes_Row
    is
+      use Common;
       use Yolk.Utilities;
    begin
       return Org_Contacts_Attributes_Row'
-        (JSON   => TUS (C.Value (0)),
+        (JSON   => To_JSON_String (C.Value (0)),
          Ce_Id  =>
            Pair_Natural'(Name  => TUS (C.Field_Name (1)),
                          Value => C.Integer_Value (1, Default => 0)),
@@ -268,10 +274,11 @@ package body Storage.Queries is
      (C : in Org_Contacts_Full_Cursor)
       return Org_Contacts_Full_Row
    is
+      use Common;
       use Yolk.Utilities;
    begin
       return Org_Contacts_Full_Row'
-        (JSON        => TUS (C.Value (0)),
+        (JSON        => To_JSON_String (C.Value (0)),
          Ce_Id       =>
            Pair_Natural'(Name  => TUS (C.Field_Name (1)),
                          Value => C.Integer_Value (1, Default => 0)),
@@ -281,7 +288,7 @@ package body Storage.Queries is
          Is_Human    =>
            Pair_Boolean'(Name  => TUS (C.Field_Name (3)),
                          Value => C.Boolean_Value (3)),
-         Attr_JSON   => TUS (C.Value (4)),
+         Attr_JSON   => To_JSON_String (C.Value (4)),
          Attr_Org_Id =>
            Pair_Natural'(Name  => TUS (C.Field_Name (5)),
                          Value => C.Integer_Value (5, Default => 0)),

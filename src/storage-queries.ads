@@ -22,6 +22,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
+with Common;
 
 package Storage.Queries is
 
@@ -52,7 +53,7 @@ package Storage.Queries is
 
    type Contact_Row is
       record
-         JSON     : Ada.Strings.Unbounded.Unbounded_String;
+         JSON     : Common.JSON_String;
          Ce_Id    : Pair_Natural;
          Ce_Name  : Pair_String;
          Is_Human : Pair_Boolean;
@@ -74,7 +75,7 @@ package Storage.Queries is
 
    type Contact_Attributes_Row is
       record
-         JSON   : Ada.Strings.Unbounded.Unbounded_String;
+         JSON   : Common.JSON_String;
          Ce_Id  : Pair_Natural;
          Org_Id : Pair_Natural;
       end record;
@@ -95,11 +96,11 @@ package Storage.Queries is
 
    type Contact_Full_Row is
       record
-         JSON        : Ada.Strings.Unbounded.Unbounded_String;
+         JSON        : Common.JSON_String;
          Ce_Id       : Pair_Natural;
          Ce_Name     : Pair_String;
          Is_Human    : Pair_Boolean;
-         Attr_JSON   : Ada.Strings.Unbounded.Unbounded_String;
+         Attr_JSON   : Common.JSON_String;
          Attr_Org_Id : Pair_Natural;
          Attr_Ce_Id  : Pair_Natural;
       end record;
@@ -120,7 +121,7 @@ package Storage.Queries is
 
    type Organization_Row is
       record
-         JSON       : Ada.Strings.Unbounded.Unbounded_String;
+         JSON       : Common.JSON_String;
          Org_Id     : Pair_Natural;
          Org_Name   : Pair_String;
          Identifier : Pair_String;
@@ -142,7 +143,7 @@ package Storage.Queries is
 
    type Org_Contacts_Row is
       record
-         JSON     : Ada.Strings.Unbounded.Unbounded_String;
+         JSON     : Common.JSON_String;
          Ce_Id    : Pair_Natural;
          Ce_Name  : Pair_String;
          Is_Human : Pair_Boolean;
@@ -164,7 +165,7 @@ package Storage.Queries is
 
    type Org_Contacts_Attributes_Row is
       record
-         JSON   : Ada.Strings.Unbounded.Unbounded_String;
+         JSON   : Common.JSON_String;
          Ce_Id  : Pair_Natural;
          Org_Id : Pair_Natural;
       end record;
@@ -185,11 +186,11 @@ package Storage.Queries is
 
    type Org_Contacts_Full_Row is
       record
-         JSON        : Ada.Strings.Unbounded.Unbounded_String;
+         JSON        : Common.JSON_String;
          Ce_Id       : Pair_Natural;
          Ce_Name     : Pair_String;
          Is_Human    : Pair_Boolean;
-         Attr_JSON   : Ada.Strings.Unbounded.Unbounded_String;
+         Attr_JSON   : Common.JSON_String;
          Attr_Org_Id : Pair_Natural;
          Attr_Ce_Id  : Pair_Natural;
       end record;

@@ -44,7 +44,7 @@ package body Storage.Read is
    procedure Contact
      (Ce_Id       : in     String;
       Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Small.Bounded_String)
+      Value       :    out Common.JSON_String)
    is
       use Cache;
       use GNATCOLL.SQL.Exec;
@@ -87,7 +87,7 @@ package body Storage.Read is
    procedure Contact_Attributes
      (Ce_Id       : in     String;
       Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Small.Bounded_String)
+      Value       :    out Common.JSON_String)
    is
       use Cache;
       use GNATCOLL.SQL.Exec;
@@ -130,7 +130,7 @@ package body Storage.Read is
    procedure Contact_Full
      (Ce_Id       : in     String;
       Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Small.Bounded_String)
+      Value       :    out Common.JSON_String)
    is
       use Cache;
       use GNATCOLL.SQL.Exec;
@@ -202,7 +202,7 @@ package body Storage.Read is
    procedure Org_Contacts
      (Org_Id      : in     String;
       Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Large.Bounded_String)
+      Value       :    out Common.JSON_String)
    is
       use Cache;
       use GNATCOLL.SQL.Exec;
@@ -245,7 +245,7 @@ package body Storage.Read is
    procedure Org_Contacts_Attributes
      (Org_Id      : in     String;
       Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Large.Bounded_String)
+      Value       :    out Common.JSON_String)
    is
       use Cache;
       use GNATCOLL.SQL.Exec;
@@ -288,7 +288,7 @@ package body Storage.Read is
    procedure Org_Contacts_Full
      (Org_Id      : in     String;
       Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Large.Bounded_String)
+      Value       :    out Common.JSON_String)
    is
       use Cache;
       use GNATCOLL.SQL.Exec;
@@ -331,7 +331,7 @@ package body Storage.Read is
    procedure Organization
      (Org_Id      : in     String;
       Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Small.Bounded_String)
+      Value       :    out Common.JSON_String)
    is
       use Cache;
       use GNATCOLL.SQL.Exec;

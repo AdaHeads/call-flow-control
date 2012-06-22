@@ -28,37 +28,37 @@ package JSONIFY is
 
    procedure Contact
      (C     : in     Storage.Queries.Contact_Cursor;
-      Value : in out Common.JSON_Small.Bounded_String);
+      Value : in out Common.JSON_String);
    --  TODO: Write comment
 
    procedure Contact_Attributes
      (C     : in out Storage.Queries.Contact_Attributes_Cursor;
-      Value : in out Common.JSON_Small.Bounded_String);
+      Value : in out Common.JSON_String);
    --  TODO: Write comment
 
    procedure Contact_Full
      (C     : in out Storage.Queries.Contact_Full_Cursor;
-      Value : in out Common.JSON_Small.Bounded_String);
+      Value : in out Common.JSON_String);
    --  TODO: Write comment
 
    procedure Org_Contacts
      (C     : in out Storage.Queries.Org_Contacts_Cursor;
-      Value : in out Common.JSON_Large.Bounded_String);
+      Value : in out Common.JSON_String);
    --  TODO: Write comment
 
    procedure Org_Contacts_Attributes
      (C     : in out Storage.Queries.Org_Contacts_Attributes_Cursor;
-      Value : in out Common.JSON_Large.Bounded_String);
+      Value : in out Common.JSON_String);
    --  TODO: Write comment
 
    procedure Org_Contacts_Full
      (C     : in out Storage.Queries.Org_Contacts_Full_Cursor;
-      Value : in out Common.JSON_Large.Bounded_String);
+      Value : in out Common.JSON_String);
    --  TODO: Write comment
 
    procedure Organization
      (C     : in     Storage.Queries.Organization_Cursor;
-      Value : in out Common.JSON_Small.Bounded_String);
+      Value : in out Common.JSON_String);
    --  TODO: Write comment
 
 end JSONIFY;

@@ -29,7 +29,7 @@ package Storage.Read is
    procedure Contact
      (Ce_Id       : in     String;
       Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Small.Bounded_String);
+      Value       :    out Common.JSON_String);
    --  If Ce_Id exists, Value contains the data for ONE contact entity and
    --  Status_Code is 200.
    --  If Ce_Id does not exist, Value is an empty JSON string {} and
@@ -39,7 +39,7 @@ package Storage.Read is
    procedure Contact_Attributes
      (Ce_Id       : in     String;
       Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Small.Bounded_String);
+      Value       :    out Common.JSON_String);
    --  If Ce_Id exists, Value contains the attributes for ONE contact entity
    --  and Status_Code is 200.
    --  If Ce_Id does not exist, Value is an empty JSON string {} and
@@ -52,7 +52,7 @@ package Storage.Read is
    procedure Contact_Full
      (Ce_Id       : in     String;
       Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Small.Bounded_String);
+      Value       :    out Common.JSON_String);
    --  If Ce_Id exists, Value contains the data and attributes for ONE contact
    --   entity and Status_Code is 200.
    --  If Ce_Id does not exist, Value is an empty JSON string {} and
@@ -62,7 +62,7 @@ package Storage.Read is
    procedure Org_Contacts
      (Org_Id      : in     String;
       Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Large.Bounded_String);
+      Value       :    out Common.JSON_String);
    --  If Org_Id exists, Value contains ALL contact entities associated with
    --  Org_Id and Status_Code is 200.
    --  If Org_Id does not exist, Value is an empty JSON string {} and
@@ -72,7 +72,7 @@ package Storage.Read is
    procedure Org_Contacts_Attributes
      (Org_Id      : in     String;
       Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Large.Bounded_String);
+      Value       :    out Common.JSON_String);
    --  If Org_Id exists, Value contains ALL contact entity attributes
    --  associated with Org_Id and Status_Code is 200.
    --  If Org_Id does not exist, Value is an empty JSON string {} and
@@ -82,7 +82,7 @@ package Storage.Read is
    procedure Org_Contacts_Full
      (Org_Id      : in     String;
       Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Large.Bounded_String);
+      Value       :    out Common.JSON_String);
    --  If Org_Id exists, Value contains ALL contact entity data and attributes
    --  associated with Org_Id and Status_Code is 200.
    --  If Org_Id does not exist, Value is an empty JSON string {} and
@@ -92,7 +92,7 @@ package Storage.Read is
    procedure Organization
      (Org_Id      : in     String;
       Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Small.Bounded_String);
+      Value       :    out Common.JSON_String);
    --  If Org_Id exists, Value contains the Organization JSON string associated
    --  with Org_Id and Status_Code is 200.
    --  If Org_Id does not exist, Value is an empty JSON string {} and

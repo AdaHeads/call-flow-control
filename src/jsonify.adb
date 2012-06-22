@@ -32,7 +32,7 @@ package body JSONIFY is
 
    procedure Contact
      (C     : in     Storage.Queries.Contact_Cursor;
-      Value : in out Common.JSON_Small.Bounded_String)
+      Value : in out Common.JSON_String)
    is
       use Common;
       use GNATCOLL.JSON;
@@ -44,7 +44,7 @@ package body JSONIFY is
       if C.Has_Row then
          DB_Columns := Create_Object;
 
-         J := GNATCOLL.JSON.Read (TS (C.Element.JSON), "json.error");
+         J := GNATCOLL.JSON.Read (To_String (C.Element.JSON), "json.error");
 
          DB_Columns.Set_Field (TS (C.Element.Ce_Id.Name),
                                C.Element.Ce_Id.Value);
@@ -64,7 +64,7 @@ package body JSONIFY is
          J.Set_Field ("db_columns", DB_Columns);
       end if;
 
-      Value := JSON_Small.To_Bounded_String (J.Write);
+      Value := To_JSON_String (J.Write);
    end Contact;
 
    --------------------------
@@ -73,7 +73,7 @@ package body JSONIFY is
 
    procedure Contact_Attributes
      (C     : in out Storage.Queries.Contact_Attributes_Cursor;
-      Value : in out Common.JSON_Small.Bounded_String)
+      Value : in out Common.JSON_String)
    is
       use Common;
       use GNATCOLL.JSON;
@@ -88,7 +88,7 @@ package body JSONIFY is
          DB_Columns := Create_Object;
          DB_JSON    := Create_Object;
 
-         DB_JSON := GNATCOLL.JSON.Read (TS (C.Element.JSON),
+         DB_JSON := GNATCOLL.JSON.Read (To_String (C.Element.JSON),
                                         "db_json.json.error");
 
          DB_Columns.Set_Field (TS (C.Element.Ce_Id.Name),
@@ -106,7 +106,7 @@ package body JSONIFY is
 
       J.Set_Field ("attributes", Attr_Array);
 
-      Value := JSON_Small.To_Bounded_String (J.Write);
+      Value := To_JSON_String (J.Write);
    end Contact_Attributes;
 
    --------------------
@@ -115,7 +115,7 @@ package body JSONIFY is
 
    procedure Contact_Full
      (C     : in out Storage.Queries.Contact_Full_Cursor;
-      Value : in out Common.JSON_Small.Bounded_String)
+      Value : in out Common.JSON_String)
    is
       use Common;
       use GNATCOLL.JSON;
@@ -133,7 +133,7 @@ package body JSONIFY is
          --  building code for the same data over and over.
          DB_Columns := Create_Object;
 
-         J := GNATCOLL.JSON.Read (TS (C.Element.JSON), "json.error");
+         J := GNATCOLL.JSON.Read (To_String (C.Element.JSON), "json.error");
 
          DB_Columns.Set_Field (TS (C.Element.Ce_Id.Name),
                                C.Element.Ce_Id.Value);
@@ -153,12 +153,13 @@ package body JSONIFY is
          J.Set_Field ("db_columns", DB_Columns);
 
          while C.Has_Row loop
-            if TS (C.Element.Attr_JSON) /= "" then
+            if To_String (C.Element.Attr_JSON) /= "" then
                Attr_JSON := Create_Object;
                Attr_DB_Columns := Create_Object;
 
-               Attr_JSON := GNATCOLL.JSON.Read (TS (C.Element.Attr_JSON),
-                                                "attr.json.error");
+               Attr_JSON := GNATCOLL.JSON.Read
+                 (To_String (C.Element.Attr_JSON),
+                  "attr.json.error");
 
                Attr_DB_Columns.Set_Field (TS (C.Element.Attr_Org_Id.Name),
                                           C.Element.Attr_Org_Id.Value);
@@ -177,7 +178,7 @@ package body JSONIFY is
          J.Set_Field ("attributes", Attr_Array);
       end if;
 
-      Value := JSON_Small.To_Bounded_String (J.Write);
+      Value := To_JSON_String (J.Write);
    end Contact_Full;
 
    --------------------
@@ -186,7 +187,7 @@ package body JSONIFY is
 
    procedure Org_Contacts
      (C     : in out Storage.Queries.Org_Contacts_Cursor;
-      Value : in out Common.JSON_Large.Bounded_String)
+      Value : in out Common.JSON_String)
    is
       use Common;
       use GNATCOLL.JSON;
@@ -201,7 +202,7 @@ package body JSONIFY is
          DB_Columns := Create_Object;
          DB_JSON    := Create_Object;
 
-         DB_JSON := GNATCOLL.JSON.Read (TS (C.Element.JSON),
+         DB_JSON := GNATCOLL.JSON.Read (To_String (C.Element.JSON),
                                         "db_json.json.error");
 
          DB_Columns.Set_Field (TS (C.Element.Ce_Id.Name),
@@ -228,7 +229,7 @@ package body JSONIFY is
 
       J.Set_Field ("contacts", Contact_Array);
 
-      Value := JSON_Large.To_Bounded_String (J.Write);
+      Value := To_JSON_String (J.Write);
    end Org_Contacts;
 
    -------------------------------
@@ -237,7 +238,7 @@ package body JSONIFY is
 
    procedure Org_Contacts_Attributes
      (C     : in out Storage.Queries.Org_Contacts_Attributes_Cursor;
-      Value : in out Common.JSON_Large.Bounded_String)
+      Value : in out Common.JSON_String)
    is
       use Common;
       use GNATCOLL.JSON;
@@ -252,7 +253,7 @@ package body JSONIFY is
          DB_Columns := Create_Object;
          DB_JSON    := Create_Object;
 
-         DB_JSON := GNATCOLL.JSON.Read (TS (C.Element.JSON),
+         DB_JSON := GNATCOLL.JSON.Read (To_String (C.Element.JSON),
                                         "db_json.json.error");
 
          DB_Columns.Set_Field (TS (C.Element.Ce_Id.Name),
@@ -270,7 +271,7 @@ package body JSONIFY is
 
       J.Set_Field ("attributes", Attr_Array);
 
-      Value := JSON_Large.To_Bounded_String (J.Write);
+      Value := To_JSON_String (J.Write);
    end Org_Contacts_Attributes;
 
    -------------------------
@@ -279,7 +280,7 @@ package body JSONIFY is
 
    procedure Org_Contacts_Full
      (C     : in out Storage.Queries.Org_Contacts_Full_Cursor;
-      Value : in out Common.JSON_Large.Bounded_String)
+      Value : in out Common.JSON_String)
    is
       use Common;
       use GNATCOLL.JSON;
@@ -296,7 +297,7 @@ package body JSONIFY is
          Contact_JSON := Create_Object;
          DB_Columns := Create_Object;
 
-         Contact_JSON := GNATCOLL.JSON.Read (TS (C.Element.JSON),
+         Contact_JSON := GNATCOLL.JSON.Read (To_String (C.Element.JSON),
                                              "contact_json.json.error");
 
          DB_Columns.Set_Field (TS (C.Element.Ce_Id.Name),
@@ -319,8 +320,8 @@ package body JSONIFY is
          Attr_JSON := Create_Object;
          Attr_DB_Columns := Create_Object;
 
-         if TS (C.Element.Attr_JSON) /= "" then
-            Attr_JSON := GNATCOLL.JSON.Read (TS (C.Element.Attr_JSON),
+         if To_String (C.Element.Attr_JSON) /= "" then
+            Attr_JSON := GNATCOLL.JSON.Read (To_String (C.Element.Attr_JSON),
                                              "attr.json.error");
 
             Attr_DB_Columns.Set_Field (TS (C.Element.Attr_Org_Id.Name),
@@ -341,7 +342,7 @@ package body JSONIFY is
 
       J.Set_Field ("contacts", Contact_Array);
 
-      Value := JSON_Large.To_Bounded_String (J.Write);
+      Value := To_JSON_String (J.Write);
    end Org_Contacts_Full;
 
    --------------------
@@ -350,7 +351,7 @@ package body JSONIFY is
 
    procedure Organization
      (C     : in     Storage.Queries.Organization_Cursor;
-      Value : in out Common.JSON_Small.Bounded_String)
+      Value : in out Common.JSON_String)
    is
       use Common;
       use GNATCOLL.JSON;
@@ -362,7 +363,7 @@ package body JSONIFY is
       if C.Has_Row then
          DB_Columns := Create_Object;
 
-         J := GNATCOLL.JSON.Read (TS (C.Element.JSON), "json.error");
+         J := GNATCOLL.JSON.Read (To_String (C.Element.JSON), "json.error");
 
          DB_Columns.Set_Field (TS (C.Element.Org_Id.Name),
                                C.Element.Org_Id.Value);
@@ -376,7 +377,7 @@ package body JSONIFY is
          J.Set_Field ("db_columns", DB_Columns);
       end if;
 
-      Value := JSON_Small.To_Bounded_String (J.Write);
+      Value := To_JSON_String (J.Write);
    end Organization;
 
 end JSONIFY;

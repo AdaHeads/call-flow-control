@@ -51,9 +51,7 @@ package My_Configuration is
                  Handler_Get_Org_Contacts_Full,
                  Handler_Get_Organization,
                  Handler_Get_Queue,
-                 Handler_Get_Queue_Length,
-                 JSON_Size_Large,
-                 JSON_Size_Small);
+                 Handler_Get_Queue_Length);
 
    type Defaults_Array is array (Keys) of
      Ada.Strings.Unbounded.Unbounded_String;
@@ -104,11 +102,7 @@ package My_Configuration is
                        Handler_Get_Queue
                        => Util.TUS ("/get/queue"),
                        Handler_Get_Queue_Length
-                       => Util.TUS ("/get/queue_length"),
-                       JSON_Size_Large
-                       => Util.TUS ("100_000"),
-                       JSON_Size_Small
-                       => Util.TUS ("10_000"));
+                       => Util.TUS ("/get/queue_length"));
 
    package Config is new Yolk.Config_File_Parser
      (Key_Type            => Keys,

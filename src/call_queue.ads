@@ -26,15 +26,14 @@ with AWS.Messages;
 
 package Call_Queue is
 
-   function Get
-     return String;
+   function Get return Common.JSON_String;
    --  Return a JSON String containing the length of the queue and all the
    --  calls waiting in the queue.
 
    procedure Get_Call
      (Id          : in     String;
       Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Very_Small.Bounded_String);
+      Value       :    out Common.JSON_String);
    --  If Id exists, Value contains the data for the call with Id and
    --  Status_Code is 200.
    --  If Id does not exist, Value is an empty JSON string {} and Status_Code
@@ -45,8 +44,7 @@ package Call_Queue is
    --  String {} and Status_Code is 404.
    --  When a call is found and returned, it is also deleted from the queue.
 
-   function Length
-     return String;
+   function Length return Common.JSON_String;
    --  Return a JSON String containing simply the length of the queue.
 
 end Call_Queue;

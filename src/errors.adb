@@ -49,10 +49,11 @@ package body Errors is
    function Exception_Handler
      (Event   : in Ada.Exceptions.Exception_Occurrence;
       Message : in String)
-      return String
+      return Common.JSON_String
    is
       use Ada.Exceptions;
       use Ada.Task_Identification;
+      use Common;
       use GNATCOLL.JSON;
       use Yolk.Log;
 
@@ -70,7 +71,7 @@ package body Errors is
                              Field      => E_Msg);
       JSON.Set_Field (Field_Name => "message",
                              Field      => Message);
-      return JSON.Write;
+      return To_JSON_String (JSON.Write);
    end Exception_Handler;
 
 end Errors;

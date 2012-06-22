@@ -23,7 +23,6 @@
 
 with Ada.Strings.Fixed;
 with AWS.Messages;
-with AWS.Parameters;
 with AWS.Response.Set;
 with AWS.URL;
 with AWS.Utils;
@@ -39,7 +38,7 @@ package body Request is
 
    function Build_JSON_Response
      (Request     : in AWS.Status.Data;
-      Content     : in String;
+      Content     : in Common.JSON_String;
       Status_Code : in AWS.Messages.Status_Code)
       return AWS.Response.Data;
    --  Build the response and compress it if the client supports it. Also wraps
@@ -58,9 +57,9 @@ package body Request is
    --  simple CORS support in Alice.
 
    function Add_JSONP_Callback
-     (Content : in String;
+     (Content : in Common.JSON_String;
       Request : in AWS.Status.Data)
-      return String;
+      return Common.JSON_String;
    --  Wrap Content in jsoncallback(Content) if the jsoncallback parameter
    --  is given in the Request. jsonpcallback is replaced with the actual value
    --  of the jsoncallback parameter.
@@ -97,19 +96,22 @@ package body Request is
    --------------------------
 
    function Add_JSONP_Callback
-     (Content : in String;
+     (Content : in Common.JSON_String;
       Request : in AWS.Status.Data)
-      return String
+      return Common.JSON_String
    is
       use Ada.Strings;
       use AWS.Status;
+      use Common;
 
-      P             : constant AWS.Parameters.List := Parameters (Request);
-      JSON_Callback : constant String :=
-                        Fixed.Trim (P.Get ("jsoncallback"), Both);
+      JSON_Callback : constant String := Fixed.Trim
+        (Parameters (Request).Get ("jsoncallback"), Both);
    begin
       if JSON_Callback'Length > 0 then
-         return JSON_Callback & "(" & Content & ")";
+         return To_JSON_String (JSON_Callback)
+           & To_JSON_String ("(")
+           & Content
+           & To_JSON_String (")");
       end if;
 
       return Content;
@@ -121,19 +123,21 @@ package body Request is
 
    function Build_JSON_Response
      (Request     : in AWS.Status.Data;
-      Content     : in String;
+      Content     : in Common.JSON_String;
       Status_Code : in AWS.Messages.Status_Code)
       return AWS.Response.Data
    is
       use AWS.Messages;
       use AWS.Response;
       use AWS.Status;
+      use Common;
 
       D        : AWS.Response.Data;
       Encoding : constant Content_Encoding := Preferred_Coding (Request);
    begin
       D :=  Build (Content_Type  => JSON_MIME_Type,
-                   Message_Body  => Add_JSONP_Callback (Content, Request),
+                   Message_Body  =>
+                     To_String (Add_JSONP_Callback (Content, Request)),
                    Status_Code   => Status_Code,
                    Encoding      => Encoding,
                    Cache_Control => No_Cache);
@@ -153,17 +157,18 @@ package body Request is
    is
       use AWS.Status;
       use AWS.URL;
+      use Common;
       use Errors;
 
       Id          : constant String := Parameters (Request).Get ("id");
       Status_Code : AWS.Messages.Status_Code;
-      Value       : Common.JSON_Very_Small.Bounded_String;
+      Value       : JSON_String;
    begin
       Call_Queue.Get_Call (Id, Status_Code, Value);
 
       return Build_JSON_Response
         (Request     => Request,
-         Content     => Common.JSON_Very_Small.To_String (Value),
+         Content     => Value,
          Status_Code => Status_Code);
 
    exception
@@ -194,7 +199,7 @@ package body Request is
       Ce_Id       : constant String := Parameters (Request).Get ("ce_id");
       Status_Code : AWS.Messages.Status_Code;
       Valid       : Boolean;
-      Value       : JSON_Small.Bounded_String;
+      Value       : JSON_String;
    begin
       Contact_Cache.Read (Key      => Ce_Id,
                           Is_Valid => Valid,
@@ -213,7 +218,7 @@ package body Request is
 
       return Build_JSON_Response
         (Request     => Request,
-         Content     => JSON_Small.To_String (Value),
+         Content     => Value,
          Status_Code => Status_Code);
 
    exception
@@ -251,7 +256,7 @@ package body Request is
       Ce_Id       : constant String := Parameters (Request).Get ("ce_id");
       Status_Code : AWS.Messages.Status_Code;
       Valid       : Boolean;
-      Value       : JSON_Small.Bounded_String;
+      Value       : JSON_String;
    begin
       Contact_Attributes_Cache.Read (Key      => Ce_Id,
                                      Is_Valid => Valid,
@@ -270,7 +275,7 @@ package body Request is
 
       return Build_JSON_Response
         (Request     => Request,
-         Content     => JSON_Small.To_String (Value),
+         Content     => Value,
          Status_Code => Status_Code);
 
    exception
@@ -308,7 +313,7 @@ package body Request is
       Ce_Id       : constant String := Parameters (Request).Get ("ce_id");
       Status_Code : AWS.Messages.Status_Code;
       Valid       : Boolean;
-      Value       : JSON_Small.Bounded_String;
+      Value       : JSON_String;
    begin
       Contact_Full_Cache.Read (Key      => Ce_Id,
                                Is_Valid => Valid,
@@ -327,7 +332,7 @@ package body Request is
 
       return Build_JSON_Response
         (Request     => Request,
-         Content     => JSON_Small.To_String (Value),
+         Content     => Value,
          Status_Code => Status_Code);
 
    exception
@@ -365,7 +370,7 @@ package body Request is
       Org_Id      : constant String := Parameters (Request).Get ("org_id");
       Status_Code : AWS.Messages.Status_Code;
       Valid       : Boolean;
-      Value       : JSON_Large.Bounded_String;
+      Value       : JSON_String;
    begin
       Org_Contacts_Cache.Read (Key      => Org_Id,
                                Is_Valid => Valid,
@@ -384,7 +389,7 @@ package body Request is
 
       return Build_JSON_Response
         (Request     => Request,
-         Content     => JSON_Large.To_String (Value),
+         Content     => Value,
          Status_Code => Status_Code);
 
    exception
@@ -422,7 +427,7 @@ package body Request is
       Org_Id      : constant String := Parameters (Request).Get ("org_id");
       Status_Code : AWS.Messages.Status_Code;
       Valid       : Boolean;
-      Value       : JSON_Large.Bounded_String;
+      Value       : JSON_String;
    begin
       Org_Contacts_Attributes_Cache.Read (Key      => Org_Id,
                                           Is_Valid => Valid,
@@ -441,7 +446,7 @@ package body Request is
 
       return Build_JSON_Response
         (Request     => Request,
-         Content     => JSON_Large.To_String (Value),
+         Content     => Value,
          Status_Code => Status_Code);
 
    exception
@@ -479,7 +484,7 @@ package body Request is
       Org_Id      : constant String := Parameters (Request).Get ("org_id");
       Status_Code : AWS.Messages.Status_Code;
       Valid       : Boolean;
-      Value       : JSON_Large.Bounded_String;
+      Value       : JSON_String;
    begin
       Org_Contacts_Full_Cache.Read (Key      => Org_Id,
                                     Is_Valid => Valid,
@@ -498,7 +503,7 @@ package body Request is
 
       return Build_JSON_Response
         (Request     => Request,
-         Content     => JSON_Large.To_String (Value),
+         Content     => Value,
          Status_Code => Status_Code);
 
    exception
@@ -536,7 +541,7 @@ package body Request is
       Org_Id      : constant String := Parameters (Request).Get ("org_id");
       Status_Code : AWS.Messages.Status_Code;
       Valid       : Boolean;
-      Value       : JSON_Small.Bounded_String;
+      Value       : JSON_String;
    begin
       Organization_Cache.Read (Key      => Org_Id,
                                Is_Valid => Valid,
@@ -555,7 +560,7 @@ package body Request is
 
       return Build_JSON_Response
         (Request     => Request,
-         Content     => JSON_Small.To_String (Value),
+         Content     => Value,
          Status_Code => Status_Code);
 
    exception

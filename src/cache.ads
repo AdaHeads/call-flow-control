@@ -30,7 +30,7 @@ package Cache is
    package My renames My_Configuration;
 
    package Contact_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => Common.JSON_Small.Bounded_String,
+     (Element_Type      => Common.JSON_String,
       Cleanup_Size      => My.Config.Get (My.Cache_Size_Contact) + 1,
       Cleanup_On_Write  => True,
       Max_Element_Age   => My.Config.Get (My.Cache_Max_Element_Age),
@@ -38,7 +38,7 @@ package Cache is
    --  Cache for individual contact JSON objects.
 
    package Contact_Full_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => Common.JSON_Small.Bounded_String,
+     (Element_Type      => Common.JSON_String,
       Cleanup_Size      => My.Config.Get (My.Cache_Size_Contact) + 1,
       Cleanup_On_Write  => True,
       Max_Element_Age   => My.Config.Get (My.Cache_Max_Element_Age),
@@ -47,7 +47,7 @@ package Cache is
    --  SHOULD be complete with attributes.
 
    package Contact_Attributes_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => Common.JSON_Small.Bounded_String,
+     (Element_Type      => Common.JSON_String,
       Cleanup_Size      => My.Config.Get (My.Cache_Size_Contact) + 1,
       Cleanup_On_Write  => True,
       Max_Element_Age   => My.Config.Get (My.Cache_Max_Element_Age),
@@ -55,7 +55,7 @@ package Cache is
    --  Cache for individual contact attributes JSON objects.
 
    package Org_Contacts_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => Common.JSON_Large.Bounded_String,
+     (Element_Type      => Common.JSON_String,
       Cleanup_Size      => My.Config.Get (My.Cache_Size_Organization) + 1,
       Cleanup_On_Write  => True,
       Max_Element_Age   => My.Config.Get (My.Cache_Max_Element_Age),
@@ -64,7 +64,7 @@ package Cache is
    --  the organization the contacts belong to.
 
    package Org_Contacts_Full_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => Common.JSON_Large.Bounded_String,
+     (Element_Type      => Common.JSON_String,
       Cleanup_Size      => My.Config.Get (My.Cache_Size_Organization) + 1,
       Cleanup_On_Write  => True,
       Max_Element_Age   => My.Config.Get (My.Cache_Max_Element_Age),
@@ -74,7 +74,7 @@ package Cache is
    --  SHOULD be complete with attributes.
 
    package Org_Contacts_Attributes_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => Common.JSON_Large.Bounded_String,
+     (Element_Type      => Common.JSON_String,
       Cleanup_Size      => My.Config.Get (My.Cache_Size_Organization) + 1,
       Cleanup_On_Write  => True,
       Max_Element_Age   => My.Config.Get (My.Cache_Max_Element_Age),
@@ -83,7 +83,7 @@ package Cache is
    --  be based on the organization the contacts belong to.
 
    package Organization_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => Common.JSON_Small.Bounded_String,
+     (Element_Type      => Common.JSON_String,
       Cleanup_Size      => My.Config.Get (My.Cache_Size_Organization) + 1,
       Cleanup_On_Write  => True,
       Max_Element_Age   => My.Config.Get (My.Cache_Max_Element_Age),

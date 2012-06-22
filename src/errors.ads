@@ -22,6 +22,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Exceptions;
+with Common;
 
 package Errors is
 
@@ -39,7 +40,7 @@ package Errors is
    function Exception_Handler
      (Event   : in Ada.Exceptions.Exception_Occurrence;
       Message : in String)
-      return String;
+      return Common.JSON_String;
    --  Log exception messages to the Error trace and returns a JSON String
    --  containing the exception.
 

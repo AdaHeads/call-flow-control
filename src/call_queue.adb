@@ -26,16 +26,12 @@ with Ada.Calendar.Formatting;
 with Ada.Containers.Ordered_Maps;
 with Ada.Numerics.Discrete_Random;
 with Ada.Strings.Fixed;
-with Ada.Strings.Unbounded;
 with AWS.Utils;
 with Interfaces.C;
 with GNATCOLL.JSON;
 with Task_Controller;
-with Yolk.Utilities;
 
 package body Call_Queue is
-
-   package Util renames Yolk.Utilities;
 
    type Priority_Level is (Low, Normal, High);
 
@@ -103,8 +99,7 @@ package body Call_Queue is
       procedure Clear;
       --  Delete all calls from the queues.
 
-      function Get
-        return String;
+      function Get return Common.JSON_String;
       --  Return the queue JSON string.
 
       function Length
@@ -132,20 +127,19 @@ package body Call_Queue is
       --  This is set to False whenever a Call is added or removed from the
       --  queues.
 
-      JSON          : GNATCOLL.JSON.JSON_Value :=  GNATCOLL.JSON.JSON_Null;
+      JSON         : GNATCOLL.JSON.JSON_Value :=  GNATCOLL.JSON.JSON_Null;
       --  This holds the current JSON_Value object from which the
       --  JSON_String is constructed.
 
-      JSON_String    : Ada.Strings.Unbounded.Unbounded_String :=
-                         Util.TUS ("{}");
+      JSON_String  : Common.JSON_String := Common.To_JSON_String ("{}");
       --  The JSON returned in call to Get.
 
-      JSON_Arrays    : Queue_JSON_Array :=
-                         (others => GNATCOLL.JSON.Empty_Array);
+      JSON_Arrays  : Queue_JSON_Array :=
+                       (others => GNATCOLL.JSON.Empty_Array);
       --  The JSON arrays containing the calls in the queue according to
       --  their priority.
 
-      Queue_Maps     : Queue_Maps_Array;
+      Queue_Maps   : Queue_Maps_Array;
       --  The queue maps.
    end Queue;
 
@@ -236,7 +230,7 @@ package body Call_Queue is
    -----------
 
    function Get
-     return String
+     return Common.JSON_String
    is
    begin
       return Queue.Get;
@@ -249,8 +243,9 @@ package body Call_Queue is
    procedure Get_Call
      (Id          : in     String;
       Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_Very_Small.Bounded_String)
+      Value       :    out Common.JSON_String)
    is
+      use Common;
       use GNATCOLL.JSON;
 
       JSON    : constant JSON_Value := Create_Object;
@@ -289,23 +284,23 @@ package body Call_Queue is
          end;
       end if;
 
-      Value := Common.JSON_Very_Small.To_Bounded_String (JSON.Write);
+      Value := To_JSON_String (JSON.Write);
    end Get_Call;
 
    --------------
    --  Length  --
    --------------
 
-   function Length
-     return String
+   function Length return Common.JSON_String
    is
+      use Common;
       use GNATCOLL.JSON;
 
       JSON : constant JSON_Value := Create_Object;
    begin
       JSON.Set_Field ("length", Queue.Length);
 
-      return JSON.Write;
+      return To_JSON_String (JSON.Write);
    end Length;
 
    -------------
@@ -345,9 +340,8 @@ package body Call_Queue is
          use Ada.Calendar;
          use Ada.Calendar.Conversions;
          use Ada.Calendar.Formatting;
-         use Ada.Strings.Fixed;
+         use Common;
          use GNATCOLL.JSON;
-         use Yolk.Utilities;
 
          procedure Go
            (Position : in Ordered_Call_Queue_Map.Cursor);
@@ -413,7 +407,7 @@ package body Call_Queue is
             JSON.Set_Field ("normal", JSON_Arrays (Normal));
             JSON.Set_Field ("high", JSON_Arrays (High));
 
-            JSON_String := TUS (JSON.Write);
+            JSON_String := To_JSON_String (JSON.Write);
          end if;
       end Build_JSON;
 
@@ -423,13 +417,13 @@ package body Call_Queue is
 
       procedure Clear
       is
-         use Yolk.Utilities;
+         use Common;
       begin
          for P in Queue_Maps'Range loop
             Queue_Maps (P).Clear;
          end loop;
 
-         JSON_String := TUS ("{}");
+         JSON_String := To_JSON_String ("{}");
          Rebuild_JSON := True;
       end Clear;
 
@@ -438,11 +432,10 @@ package body Call_Queue is
       -----------
 
       function Get
-        return String
+        return Common.JSON_String
       is
-         use Yolk.Utilities;
       begin
-         return TS (JSON_String);
+         return JSON_String;
       end Get;
 
       --------------

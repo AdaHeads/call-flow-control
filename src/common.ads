@@ -21,26 +21,18 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Bounded;
+with Ada.Strings.Unbounded;
 with My_Configuration;
 
 package Common is
 
    package My renames My_Configuration;
 
-   package JSON_Large is new Ada.Strings.Bounded.Generic_Bounded_Length
-     (My.Config.Get (My.JSON_Size_Large));
-   --  Used to hold JSON strings which are considered "large", ie. collections
-   --  of contacts, attributes or similar.
+   type JSON_String is new Ada.Strings.Unbounded.Unbounded_String;
 
-   package JSON_Small is new Ada.Strings.Bounded.Generic_Bounded_Length
-     (My.Config.Get (My.JSON_Size_Small));
-   --  Used to hold JSON strings which are considered "small", ie. a single
-   --  contact, organization or similar.
-
-   package JSON_Very_Small is new Ada.Strings.Bounded.Generic_Bounded_Length
-     (100);
-   --  Used to hold JSON strings which are considered "very small", for example
-   --  JSON strings with single numeric values or very few short JSON nodes.
+   function To_JSON_String
+     (Source : in String)
+      return JSON_String
+      renames To_Unbounded_String;
 
 end Common;
