@@ -23,6 +23,7 @@
 
 with Cache;
 with Errors;
+with HTTP_Codes;
 with JSONIFY;
 with Storage.Queries;
 
@@ -48,11 +49,12 @@ package body Storage.Read is
    is
       use Cache;
       use GNATCOLL.SQL.Exec;
+      use HTTP_Codes;
 
       C              : Queries.Contact_Cursor;
       DB_Connections : DB_Conn_Pool := Get_DB_Connections;
    begin
-      Status_Code := AWS.Messages.S500;
+      Status_Code := Server_Error;
 
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -67,9 +69,9 @@ package body Storage.Read is
                Contact_Cache.Write (Key   => Ce_Id,
                                     Value => Value);
 
-               Status_Code := AWS.Messages.S200;
+               Status_Code := OK;
             else
-               Status_Code := AWS.Messages.S404;
+               Status_Code := Not_Found;
             end if;
 
             exit Fetch_Data;
@@ -91,11 +93,12 @@ package body Storage.Read is
    is
       use Cache;
       use GNATCOLL.SQL.Exec;
+      use HTTP_Codes;
 
       C              : Queries.Contact_Attributes_Cursor;
       DB_Connections : DB_Conn_Pool := Get_DB_Connections;
    begin
-      Status_Code := AWS.Messages.S500;
+      Status_Code := Server_Error;
 
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -110,9 +113,9 @@ package body Storage.Read is
                Contact_Attributes_Cache.Write (Key   => Ce_Id,
                                                Value => Value);
 
-               Status_Code := AWS.Messages.S200;
+               Status_Code := OK;
             else
-               Status_Code := AWS.Messages.S404;
+               Status_Code := Not_Found;
             end if;
 
             exit Fetch_Data;
@@ -134,11 +137,12 @@ package body Storage.Read is
    is
       use Cache;
       use GNATCOLL.SQL.Exec;
+      use HTTP_Codes;
 
       Cursor         : Queries.Contact_Full_Cursor;
       DB_Connections : DB_Conn_Pool := Get_DB_Connections;
    begin
-      Status_Code := AWS.Messages.S500;
+      Status_Code := Server_Error;
 
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -153,9 +157,9 @@ package body Storage.Read is
                Contact_Full_Cache.Write (Key   => Ce_Id,
                                          Value => Value);
 
-               Status_Code := AWS.Messages.S200;
+               Status_Code := OK;
             else
-               Status_Code := AWS.Messages.S404;
+               Status_Code := Not_Found;
             end if;
 
             exit Fetch_Data;
@@ -206,11 +210,12 @@ package body Storage.Read is
    is
       use Cache;
       use GNATCOLL.SQL.Exec;
+      use HTTP_Codes;
 
       Cursor         : Queries.Org_Contacts_Cursor;
       DB_Connections : DB_Conn_Pool := Get_DB_Connections;
    begin
-      Status_Code := AWS.Messages.S500;
+      Status_Code := Server_Error;
 
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -225,9 +230,9 @@ package body Storage.Read is
                Org_Contacts_Cache.Write (Key   => Org_Id,
                                          Value => Value);
 
-               Status_Code := AWS.Messages.S200;
+               Status_Code := OK;
             else
-               Status_Code := AWS.Messages.S404;
+               Status_Code := Not_Found;
             end if;
 
             exit Fetch_Data;
@@ -249,11 +254,12 @@ package body Storage.Read is
    is
       use Cache;
       use GNATCOLL.SQL.Exec;
+      use HTTP_Codes;
 
       Cursor         : Queries.Org_Contacts_Attributes_Cursor;
       DB_Connections : DB_Conn_Pool := Get_DB_Connections;
    begin
-      Status_Code := AWS.Messages.S500;
+      Status_Code := Server_Error;
 
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -268,9 +274,9 @@ package body Storage.Read is
                Org_Contacts_Attributes_Cache.Write (Key   => Org_Id,
                                                     Value => Value);
 
-               Status_Code := AWS.Messages.S200;
+               Status_Code := OK;
             else
-               Status_Code := AWS.Messages.S404;
+               Status_Code := Not_Found;
             end if;
 
             exit Fetch_Data;
@@ -292,11 +298,12 @@ package body Storage.Read is
    is
       use Cache;
       use GNATCOLL.SQL.Exec;
+      use HTTP_Codes;
 
       Cursor         : Queries.Org_Contacts_Full_Cursor;
       DB_Connections : DB_Conn_Pool := Get_DB_Connections;
    begin
-      Status_Code := AWS.Messages.S500;
+      Status_Code := Server_Error;
 
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -311,9 +318,9 @@ package body Storage.Read is
                Org_Contacts_Full_Cache.Write (Key   => Org_Id,
                                               Value => Value);
 
-               Status_Code := AWS.Messages.S200;
+               Status_Code := OK;
             else
-               Status_Code := AWS.Messages.S404;
+               Status_Code := Not_Found;
             end if;
 
             exit Fetch_Data;
@@ -335,11 +342,12 @@ package body Storage.Read is
    is
       use Cache;
       use GNATCOLL.SQL.Exec;
+      use HTTP_Codes;
 
       Cursor         : Queries.Organization_Cursor;
       DB_Connections : DB_Conn_Pool := Get_DB_Connections;
    begin
-      Status_Code := AWS.Messages.S500;
+      Status_Code := Server_Error;
 
       Fetch_Data :
       for k in DB_Connections'Range loop
@@ -354,9 +362,9 @@ package body Storage.Read is
                Organization_Cache.Write (Key   => Org_Id,
                                          Value => Value);
 
-               Status_Code := AWS.Messages.S200;
+               Status_Code := OK;
             else
-               Status_Code := AWS.Messages.S404;
+               Status_Code := Not_Found;
             end if;
 
             exit Fetch_Data;

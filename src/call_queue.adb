@@ -27,6 +27,7 @@ with Ada.Containers.Ordered_Maps;
 with Ada.Numerics.Discrete_Random;
 with Ada.Strings.Fixed;
 with AWS.Utils;
+with HTTP_Codes;
 with Interfaces.C;
 with GNATCOLL.JSON;
 with Task_Controller;
@@ -247,12 +248,13 @@ package body Call_Queue is
    is
       use Common;
       use GNATCOLL.JSON;
+      use HTTP_Codes;
 
       JSON    : constant JSON_Value := Create_Object;
       Org_Id  : Natural := 0;
       Success : Boolean;
    begin
-      Status_Code := AWS.Messages.S500;
+      Status_Code := Server_Error;
 
       if Id'Length > 0 then
          Queue.Remove (Id, Org_Id, Success);
@@ -261,9 +263,9 @@ package body Call_Queue is
             JSON.Set_Field ("id", Id);
             JSON.Set_Field ("org_id", Org_Id);
 
-            Status_Code := AWS.Messages.S200;
+            Status_Code := OK;
          else
-            Status_Code := AWS.Messages.S404;
+            Status_Code := Not_Found;
          end if;
       else
          declare
@@ -277,9 +279,9 @@ package body Call_Queue is
                JSON.Set_Field ("id", CI);
                JSON.Set_Field ("org_id", Org_Id);
 
-               Status_Code := AWS.Messages.S200;
+               Status_Code := OK;
             else
-               Status_Code := AWS.Messages.S404;
+               Status_Code := Not_Found;
             end if;
          end;
       end if;

@@ -30,6 +30,7 @@ with Cache;
 with Call_Queue;
 with Common;
 with Errors;
+with HTTP_Codes;
 with Storage.Read;
 
 package body Request is
@@ -159,6 +160,7 @@ package body Request is
       use AWS.URL;
       use Common;
       use Errors;
+      use HTTP_Codes;
 
       Id          : constant String := Parameters (Request).Get ("id");
       Status_Code : AWS.Messages.Status_Code;
@@ -178,7 +180,7 @@ package body Request is
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))),
-            Status_Code => AWS.Messages.S400);
+            Status_Code => Bad_Request);
    end Call;
 
    ---------------
@@ -195,6 +197,7 @@ package body Request is
       use Cache;
       use Common;
       use Errors;
+      use HTTP_Codes;
 
       Ce_Id       : constant String := Parameters (Request).Get ("ce_id");
       Status_Code : AWS.Messages.Status_Code;
@@ -206,7 +209,7 @@ package body Request is
                           Value    => Value);
 
       if Valid then
-         Status_Code := AWS.Messages.S200;
+         Status_Code := OK;
       else
          if not Is_Number (Ce_Id) then
             raise GET_Parameter_Error with
@@ -228,14 +231,14 @@ package body Request is
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))),
-            Status_Code => AWS.Messages.S500);
+            Status_Code => Server_Error);
       when Event : others =>
          return Build_JSON_Response
            (Request     => Request,
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))),
-            Status_Code => AWS.Messages.S400);
+            Status_Code => Bad_Request);
    end Contact;
 
    --------------------------
@@ -252,6 +255,7 @@ package body Request is
       use Cache;
       use Common;
       use Errors;
+      use HTTP_Codes;
 
       Ce_Id       : constant String := Parameters (Request).Get ("ce_id");
       Status_Code : AWS.Messages.Status_Code;
@@ -263,7 +267,7 @@ package body Request is
                                      Value    => Value);
 
       if Valid then
-         Status_Code := AWS.Messages.S200;
+         Status_Code := OK;
       else
          if not Is_Number (Ce_Id) then
             raise GET_Parameter_Error with
@@ -285,14 +289,14 @@ package body Request is
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))),
-            Status_Code => AWS.Messages.S500);
+            Status_Code => Server_Error);
       when Event : others =>
          return Build_JSON_Response
            (Request     => Request,
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))),
-            Status_Code => AWS.Messages.S400);
+            Status_Code => Bad_Request);
    end Contact_Attributes;
 
    --------------------
@@ -309,6 +313,7 @@ package body Request is
       use Cache;
       use Common;
       use Errors;
+      use HTTP_Codes;
 
       Ce_Id       : constant String := Parameters (Request).Get ("ce_id");
       Status_Code : AWS.Messages.Status_Code;
@@ -320,7 +325,7 @@ package body Request is
                                Value    => Value);
 
       if Valid then
-         Status_Code := AWS.Messages.S200;
+         Status_Code := OK;
       else
          if not Is_Number (Ce_Id) then
             raise GET_Parameter_Error with
@@ -342,14 +347,14 @@ package body Request is
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))),
-            Status_Code => AWS.Messages.S500);
+            Status_Code => Server_Error);
       when Event : others =>
          return Build_JSON_Response
            (Request     => Request,
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))),
-            Status_Code => AWS.Messages.S400);
+            Status_Code => Bad_Request);
    end Contact_Full;
 
    --------------------
@@ -366,6 +371,7 @@ package body Request is
       use Cache;
       use Common;
       use Errors;
+      use HTTP_Codes;
 
       Org_Id      : constant String := Parameters (Request).Get ("org_id");
       Status_Code : AWS.Messages.Status_Code;
@@ -377,7 +383,7 @@ package body Request is
                                Value    => Value);
 
       if Valid then
-         Status_Code := AWS.Messages.S200;
+         Status_Code := OK;
       else
          if not Is_Number (Org_Id) then
             raise GET_Parameter_Error with
@@ -399,14 +405,14 @@ package body Request is
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))),
-            Status_Code => AWS.Messages.S500);
+            Status_Code => Server_Error);
       when Event : others =>
          return Build_JSON_Response
            (Request     => Request,
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))),
-            Status_Code => AWS.Messages.S400);
+            Status_Code => Bad_Request);
    end Org_Contacts;
 
    -------------------------------
@@ -423,6 +429,7 @@ package body Request is
       use Cache;
       use Common;
       use Errors;
+      use HTTP_Codes;
 
       Org_Id      : constant String := Parameters (Request).Get ("org_id");
       Status_Code : AWS.Messages.Status_Code;
@@ -434,7 +441,7 @@ package body Request is
                                           Value    => Value);
 
       if Valid then
-         Status_Code := AWS.Messages.S200;
+         Status_Code := OK;
       else
          if not Is_Number (Org_Id) then
             raise GET_Parameter_Error with
@@ -456,14 +463,14 @@ package body Request is
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))),
-            Status_Code => AWS.Messages.S500);
+            Status_Code => Server_Error);
       when Event : others =>
          return Build_JSON_Response
            (Request     => Request,
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))),
-            Status_Code => AWS.Messages.S400);
+            Status_Code => Bad_Request);
    end Org_Contacts_Attributes;
 
    -------------------------
@@ -480,6 +487,7 @@ package body Request is
       use Cache;
       use Common;
       use Errors;
+      use HTTP_Codes;
 
       Org_Id      : constant String := Parameters (Request).Get ("org_id");
       Status_Code : AWS.Messages.Status_Code;
@@ -491,7 +499,7 @@ package body Request is
                                     Value    => Value);
 
       if Valid then
-         Status_Code := AWS.Messages.S200;
+         Status_Code := OK;
       else
          if not Is_Number (Org_Id) then
             raise GET_Parameter_Error with
@@ -513,14 +521,14 @@ package body Request is
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))),
-            Status_Code => AWS.Messages.S500);
+            Status_Code => Server_Error);
       when Event : others =>
          return Build_JSON_Response
            (Request     => Request,
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))),
-            Status_Code => AWS.Messages.S400);
+            Status_Code => Bad_Request);
    end Org_Contacts_Full;
 
    --------------------
@@ -537,6 +545,7 @@ package body Request is
       use Cache;
       use Common;
       use Errors;
+      use HTTP_Codes;
 
       Org_Id      : constant String := Parameters (Request).Get ("org_id");
       Status_Code : AWS.Messages.Status_Code;
@@ -548,7 +557,7 @@ package body Request is
                                Value    => Value);
 
       if Valid then
-         Status_Code := AWS.Messages.S200;
+         Status_Code := OK;
       else
          if not Is_Number (Org_Id) then
             raise GET_Parameter_Error with
@@ -570,14 +579,14 @@ package body Request is
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))),
-            Status_Code => AWS.Messages.S500);
+            Status_Code => Server_Error);
       when Event : others =>
          return Build_JSON_Response
            (Request     => Request,
             Content     => Exception_Handler
               (Event   => Event,
                Message => "Requested resource: " & URL (URI (Request))),
-            Status_Code => AWS.Messages.S400);
+            Status_Code => Bad_Request);
    end Organization;
 
    -------------
@@ -588,11 +597,12 @@ package body Request is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
+      use HTTP_Codes;
    begin
       return Build_JSON_Response
         (Request     => Request,
          Content     => Call_Queue.Get,
-         Status_Code => AWS.Messages.S200);
+         Status_Code => OK);
    end Queue;
 
    --------------------
@@ -603,11 +613,12 @@ package body Request is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
+      use HTTP_Codes;
    begin
       return Build_JSON_Response
         (Request     => Request,
          Content     => Call_Queue.Length,
-         Status_Code => AWS.Messages.S200);
+         Status_Code => OK);
    end Queue_Length;
 
 end Request;
