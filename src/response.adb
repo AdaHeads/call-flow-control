@@ -25,14 +25,14 @@
 --  with AWS.Utils;
 --  with Cache;
 with Ada.Strings.Fixed;
-with AWS.Parameters;
+--  with AWS.Parameters;
 with AWS.Response.Set;
 with AWS.URL;
---  with AWS.Utils;
+with AWS.Utils;
 --  with Cache;
 --  with Call_Queue;
---  with Common;
 with Errors;
+with HTTP_Codes;
 --  with Storage.Read;
 
 package body Response is
@@ -41,9 +41,9 @@ package body Response is
 
    function Build_JSON_Response
      (Request     : in AWS.Status.Data;
-      Content     : in String;
+      Content     : in Common.JSON_String;
       Status_Code : in AWS.Messages.Status_Code)
-         return AWS.Response.Data;
+      return AWS.Response.Data;
    --  Build the response and compress it if the client supports it. Also
    --  wraps JSON string in foo(JSON string) if the
    --      ?jsoncallback=foo
@@ -60,9 +60,9 @@ package body Response is
    --  to enable very simple CORS support in Alice.
 
    function Add_JSONP_Callback
-     (Content : in String;
+     (Content : in Common.JSON_String;
       Request : in AWS.Status.Data)
-         return String;
+      return Common.JSON_String;
    --  Wrap Content in jsoncallback(Content) if the jsoncallback parameter
    --  is given in the Request. jsonpcallback is replaced with the actual
    --  value of the jsoncallback parameter.
@@ -99,23 +99,42 @@ package body Response is
    --------------------------
 
    function Add_JSONP_Callback
-     (Content : in String;
+     (Content : in Common.JSON_String;
       Request : in AWS.Status.Data)
-         return String
+      return Common.JSON_String
    is
       use Ada.Strings;
       use AWS.Status;
+      use Common;
 
-      P             : constant AWS.Parameters.List := Parameters (Request);
-      JSON_Callback : constant String :=
-                        Fixed.Trim (P.Get ("jsoncallback"), Both);
+      JSON_Callback : constant String := Fixed.Trim
+        (Parameters (Request).Get ("jsoncallback"), Both);
    begin
       if JSON_Callback'Length > 0 then
-         return JSON_Callback & "(" & Content & ")";
+         return To_JSON_String (JSON_Callback)
+           & To_JSON_String ("(")
+           & Content
+           & To_JSON_String (")");
       end if;
 
       return Content;
    end Add_JSONP_Callback;
+
+   ---------------------------
+   --  Bad_Ce_Id_Parameter  --
+   ---------------------------
+
+   function Bad_Ce_Id_Parameter
+     (Request : in AWS.Status.Data)
+      return Boolean
+   is
+      use AWS.Status;
+      use AWS.Utils;
+
+      Ce_Id : constant String := Parameters (Request).Get ("ce_id");
+   begin
+      return not Is_Number (Ce_Id);
+   end Bad_Ce_Id_Parameter;
 
    ---------------------------
    --  Build_JSON_Response  --
@@ -123,19 +142,21 @@ package body Response is
 
    function Build_JSON_Response
      (Request     : in AWS.Status.Data;
-      Content     : in String;
+      Content     : in Common.JSON_String;
       Status_Code : in AWS.Messages.Status_Code)
-         return AWS.Response.Data
+      return AWS.Response.Data
    is
       use AWS.Messages;
       use AWS.Response;
       use AWS.Status;
+      use Common;
 
       D        : AWS.Response.Data;
       Encoding : constant Content_Encoding := Preferred_Coding (Request);
    begin
       D :=  Build (Content_Type  => JSON_MIME_Type,
-                   Message_Body  => Add_JSONP_Callback (Content, Request),
+                   Message_Body  =>
+                     To_String (Add_JSONP_Callback (Content, Request)),
                    Status_Code   => Status_Code,
                    Encoding      => Encoding,
                    Cache_Control => No_Cache);
@@ -145,57 +166,62 @@ package body Response is
       return D;
    end Build_JSON_Response;
 
-   function Get
-     (Request : in AWS.Status.Data)
-         return AWS.Response.Data
-   is
-      use AWS.Status;
-      use AWS.URL;
-      --  use AWS.Utils;
-      --  use Cache;
-      --  use Common;
-      use Errors;
+   package body Response_Generic is
 
-      Ce_Id       : constant String := Get_Key (Request);
-      Status_Code : AWS.Messages.Status_Code;
-      Valid       : Boolean;
-      Value       : JSON_Bounded_String;
-   begin
-      Read_Cache (Key      => Ce_Id,
-                  Is_Valid => Valid,
-                  Value    => Value);
+      function Get
+        (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+      is
+         use AWS.Status;
+         use AWS.URL;
+         --  use AWS.Utils;
+         --  use Cache;
+         use Common;
+         use Errors;
+         use HTTP_Codes;
 
-      if Valid then
-         Status_Code := AWS.Messages.S200;
-      else
-         if Bad_Parameters (Request) then
-            raise GET_Parameter_Error with
-              "ce_id must be a valid natural integer";
+         Ce_Id       : constant String := Get_Key (Request);
+         Status_Code : AWS.Messages.Status_Code;
+         Valid       : Boolean;
+         Value       : JSON_String;
+      begin
+         Read_Cache (Key      => Ce_Id,
+                     Is_Valid => Valid,
+                     Value    => Value);
+
+         if Valid then
+            Status_Code := OK;
+         else
+            if Bad_Parameters (Request) then
+               raise GET_Parameter_Error with
+                 "ce_id must be a valid natural integer";
+            end if;
+
+            Storage_Read (Ce_Id, Status_Code, Value);
          end if;
 
-         Storage_Read (Ce_Id, Status_Code, Value);
-      end if;
-
-      return Build_JSON_Response
-        (Request     => Request,
-         Content     => To_String (Value),
-         Status_Code => Status_Code);
-
-   exception
-      when Event : Database_Error =>
          return Build_JSON_Response
            (Request     => Request,
-            Content     => Exception_Handler
-              (Event   => Event,
-               Message => "Requested resource: " & URL (URI (Request))),
-            Status_Code => AWS.Messages.S500);
-      when Event : others =>
-         return Build_JSON_Response
-           (Request     => Request,
-            Content     => Exception_Handler
-              (Event   => Event,
-               Message => "Requested resource: " & URL (URI (Request))),
-            Status_Code => AWS.Messages.S400);
-   end Get;
+            Content     => Value,
+            Status_Code => Status_Code);
+
+      exception
+         when Event : Database_Error =>
+            return Build_JSON_Response
+              (Request     => Request,
+               Content     => Exception_Handler
+                 (Event   => Event,
+                  Message => "Requested resource: " & URL (URI (Request))),
+               Status_Code => Server_Error);
+         when Event : others =>
+            return Build_JSON_Response
+              (Request     => Request,
+               Content     => Exception_Handler
+                 (Event   => Event,
+                  Message => "Requested resource: " & URL (URI (Request))),
+               Status_Code => Bad_Request);
+      end Get;
+
+   end Response_Generic;
 
 end Response;

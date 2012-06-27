@@ -38,26 +38,24 @@ package Response.Contact is
    procedure Read_Cache
      (Key      : in     String;
       Is_Valid :    out Boolean;
-      Value    :    out Response_Generic.JSON_Bounded_String);
+      Value    :    out Common.JSON_String);
    --  TODO.
 
    procedure Storage_Read
-     (Key    : in String;
-      Status : out AWS.Messages.Status_Code;
-      Value  : out JSON_Bounded_String);
+     (Key    : in      String;
+      Status :     out AWS.Messages.Status_Code;
+      Value  :     out Common.JSON_String);
    --  TODO.
 
    function To_String
-     (Value : in JSON_Bounded_String)
+     (Value : in Common.JSON_String)
       return String;
    --  TODO.
 
    package Contact is new Response_Generic
-     (JSON_Bounded_String => Common.JSON_Small.Bounded_String,
-      Bad_Parameters      => Bad_Parameters,
+     (Bad_Parameters      => Bad_Ce_Id_Parameter,
       Get_Key             => Get_Key,
       Read_Cache          => Read_Cache,
-      Storage_Read        => Storage_Read,
-      To_String           => To_String);
+      Storage_Read        => Storage_Read);
 
 end Response.Contact;

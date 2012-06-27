@@ -24,43 +24,46 @@
 with AWS.Messages;
 with AWS.Response;
 with AWS.Status;
-
-generic
-
-   type JSON_Bounded_String is private;
-
-   with function Bad_Parameters
-     (Request : in AWS.Status.Data)
-         return Boolean;
-   --  TODO.
-
-   with function Get_Key
-     (Request : in AWS.Status.Data)
-         return String;
-   --  TODO.
-
-   with procedure Read_Cache
-     (Key      : in     String;
-      Is_Valid :    out Boolean;
-      Value    :    out JSON_Bounded_String);
-   --  TODO.
-
-   with procedure Storage_Read
-     (Key    : in String;
-      Status : out AWS.Messages.Status_Code;
-      Value  : out JSON_Bounded_String);
-   --  TODO.
-
-   with function To_String
-     (Value : in JSON_Bounded_String)
-         return String;
-   --  TODO.
+with Common;
 
 package Response is
 
-   function Get
+   function Bad_Ce_Id_Parameter
      (Request : in AWS.Status.Data)
-         return AWS.Response.Data;
+      return Boolean;
    --  TODO.
+
+   generic
+
+      with function Bad_Parameters
+        (Request : in AWS.Status.Data)
+      return Boolean;
+      --  TODO.
+
+      with function Get_Key
+        (Request : in AWS.Status.Data)
+      return String;
+      --  TODO.
+
+      with procedure Read_Cache
+        (Key      : in     String;
+         Is_Valid :    out Boolean;
+         Value    :    out Common.JSON_String);
+      --  TODO.
+
+      with procedure Storage_Read
+        (Key    : in String;
+         Status : out AWS.Messages.Status_Code;
+         Value  : out Common.JSON_String);
+      --  TODO.
+
+   package Response_Generic is
+
+      function Get
+        (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+      --  TODO.
+
+   end Response_Generic;
 
 end Response;
