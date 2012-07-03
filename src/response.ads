@@ -21,49 +21,53 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Messages;
 with AWS.Response;
 with AWS.Status;
 with Common;
+with Storage;
 
 package Response is
 
-   function Bad_Ce_Id_Parameter
+   procedure Check_Ce_Id_Parameter
      (Request : in AWS.Status.Data)
-      return Boolean;
-   --  TODO.
+   with inline;
+   --  Check if the request parameter ce_id is numeric. Raise
+   --  GET_Parameter_Error if not.
+
+   function Get_Ce_Id_Key
+     (Request : in AWS.Status.Data)
+      return String
+   with inline;
+   --  Return the value of the ce_id request parameter.
 
    generic
 
-      with function Bad_Parameters
-        (Request : in AWS.Status.Data)
-      return Boolean;
-      --  TODO.
+      with procedure Check_Request_Parameters
+        (Request : in AWS.Status.Data);
+      --  Check the validity of all required request parameters.
+      --  Must raise the Errors.GET_Parameter_Error exception if one or more
+      --  the request parameters aren't valid.
 
       with function Get_Key
         (Request : in AWS.Status.Data)
       return String;
-      --  TODO.
+      --  Return the key used to identify an object in a cache.
 
-      with procedure Read_Cache
+      with procedure Read_From_Cache
         (Key      : in     String;
          Is_Valid :    out Boolean;
          Value    :    out Common.JSON_String);
-      --  TODO.
+      --  Find Key in a cache.
 
-      with procedure Storage_Read
-        (Key    : in String;
-         Status : out AWS.Messages.Status_Code;
-         Value  : out Common.JSON_String);
-      --  TODO.
+      with package Store is new Storage.Generic_Read (<>);
+      --  This package enables reading data from persistent storage.
 
-   package Response_Generic is
+   package Generic_Read is
 
       function Get
         (Request : in AWS.Status.Data)
       return AWS.Response.Data;
-      --  TODO.
 
-   end Response_Generic;
+   end Generic_Read;
 
 end Response;

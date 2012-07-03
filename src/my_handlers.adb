@@ -22,6 +22,7 @@
 -------------------------------------------------------------------------------
 
 with AWS.Dispatchers.Callback;
+with Contact;
 with My_Configuration;
 with Request;
 with Yolk.Not_Found;
@@ -36,7 +37,6 @@ package body My_Handlers is
      (RH : out AWS.Services.Dispatchers.URI.Handler)
    is
       use AWS.Dispatchers.Callback;
-      --  use Yolk;
 
       package My renames My_Configuration;
    begin
@@ -69,8 +69,7 @@ package body My_Handlers is
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => My.Config.Get (My.Handler_Get_Contact),
-         Action     => Create
-           (Callback => Request.Contact'Access));
+         Action     => Contact.Read_Callback);
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,

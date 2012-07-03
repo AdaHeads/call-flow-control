@@ -21,29 +21,24 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  with AWS.URL;
---  with AWS.Utils;
---  with Cache;
 with Ada.Strings.Fixed;
---  with AWS.Parameters;
+with AWS.Messages;
 with AWS.Response.Set;
 with AWS.URL;
 with AWS.Utils;
---  with Cache;
---  with Call_Queue;
 with Errors;
 with HTTP_Codes;
---  with Storage.Read;
 
 package body Response is
 
    JSON_MIME_Type : constant String := "application/json; charset=utf-8";
 
    function Build_JSON_Response
-     (Request     : in AWS.Status.Data;
-      Content     : in Common.JSON_String;
-      Status_Code : in AWS.Messages.Status_Code)
-      return AWS.Response.Data;
+     (Request : in AWS.Status.Data;
+      Content : in Common.JSON_String;
+      Status  : in AWS.Messages.Status_Code)
+      return AWS.Response.Data
+   with inline;
    --  Build the response and compress it if the client supports it. Also
    --  wraps JSON string in foo(JSON string) if the
    --      ?jsoncallback=foo
@@ -51,7 +46,8 @@ package body Response is
 
    procedure Add_CORS_Headers
      (Request  : in     AWS.Status.Data;
-      Response : in out AWS.Response.Data);
+      Response : in out AWS.Response.Data)
+   with inline;
    --  If the client sends the Origin: header, add these two CORS headers:
    --    Access-Control-Allow-Origin
    --    Access-Control-Allow-Credentials
@@ -62,7 +58,8 @@ package body Response is
    function Add_JSONP_Callback
      (Content : in Common.JSON_String;
       Request : in AWS.Status.Data)
-      return Common.JSON_String;
+      return Common.JSON_String
+   with inline;
    --  Wrap Content in jsoncallback(Content) if the jsoncallback parameter
    --  is given in the Request. jsonpcallback is replaced with the actual
    --  value of the jsoncallback parameter.
@@ -121,29 +118,13 @@ package body Response is
    end Add_JSONP_Callback;
 
    ---------------------------
-   --  Bad_Ce_Id_Parameter  --
-   ---------------------------
-
-   function Bad_Ce_Id_Parameter
-     (Request : in AWS.Status.Data)
-      return Boolean
-   is
-      use AWS.Status;
-      use AWS.Utils;
-
-      Ce_Id : constant String := Parameters (Request).Get ("ce_id");
-   begin
-      return not Is_Number (Ce_Id);
-   end Bad_Ce_Id_Parameter;
-
-   ---------------------------
    --  Build_JSON_Response  --
    ---------------------------
 
    function Build_JSON_Response
-     (Request     : in AWS.Status.Data;
-      Content     : in Common.JSON_String;
-      Status_Code : in AWS.Messages.Status_Code)
+     (Request : in AWS.Status.Data;
+      Content : in Common.JSON_String;
+      Status  : in AWS.Messages.Status_Code)
       return AWS.Response.Data
    is
       use AWS.Messages;
@@ -157,7 +138,7 @@ package body Response is
       D :=  Build (Content_Type  => JSON_MIME_Type,
                    Message_Body  =>
                      To_String (Add_JSONP_Callback (Content, Request)),
-                   Status_Code   => Status_Code,
+                   Status_Code   => Status,
                    Encoding      => Encoding,
                    Cache_Control => No_Cache);
 
@@ -166,7 +147,30 @@ package body Response is
       return D;
    end Build_JSON_Response;
 
-   package body Response_Generic is
+   -------------------------------
+   --  Check_Ce_Id_Parameter  --
+   -------------------------------
+
+   procedure Check_Ce_Id_Parameter
+     (Request   : in AWS.Status.Data)
+   is
+      use AWS.Status;
+      use AWS.Utils;
+      use Errors;
+
+      P : constant String := Parameters (Request).Get ("ce_id");
+   begin
+      if not Is_Number (P) then
+         raise GET_Parameter_Error with
+           "ce_id must be a valid natural integer";
+      end if;
+   end Check_Ce_Id_Parameter;
+
+   --------------------
+   --  Generic_Read  --
+   --------------------
+
+   package body Generic_Read is
 
       function Get
         (Request : in AWS.Status.Data)
@@ -174,54 +178,61 @@ package body Response is
       is
          use AWS.Status;
          use AWS.URL;
-         --  use AWS.Utils;
-         --  use Cache;
          use Common;
          use Errors;
          use HTTP_Codes;
 
-         Ce_Id       : constant String := Get_Key (Request);
-         Status_Code : AWS.Messages.Status_Code;
-         Valid       : Boolean;
-         Value       : JSON_String;
+         Key    : constant String := Get_Key (Request);
+         Status : AWS.Messages.Status_Code;
+         Valid  : Boolean;
+         Value  : JSON_String;
       begin
-         Read_Cache (Key      => Ce_Id,
-                     Is_Valid => Valid,
-                     Value    => Value);
+         Read_From_Cache (Key      => Key,
+                          Is_Valid => Valid,
+                          Value    => Value);
 
          if Valid then
-            Status_Code := OK;
+            Status := OK;
          else
-            if Bad_Parameters (Request) then
-               raise GET_Parameter_Error with
-                 "ce_id must be a valid natural integer";
-            end if;
-
-            Storage_Read (Ce_Id, Status_Code, Value);
+            Check_Request_Parameters (Request);
+            Store.Read (Key, Request, Status, Value);
          end if;
 
          return Build_JSON_Response
-           (Request     => Request,
-            Content     => Value,
-            Status_Code => Status_Code);
+           (Request => Request,
+            Content => Value,
+            Status  => Status);
 
       exception
          when Event : Database_Error =>
             return Build_JSON_Response
-              (Request     => Request,
-               Content     => Exception_Handler
+              (Request => Request,
+               Content => Exception_Handler
                  (Event   => Event,
                   Message => "Requested resource: " & URL (URI (Request))),
-               Status_Code => Server_Error);
+               Status  => Server_Error);
          when Event : others =>
             return Build_JSON_Response
-              (Request     => Request,
-               Content     => Exception_Handler
+              (Request => Request,
+               Content => Exception_Handler
                  (Event   => Event,
                   Message => "Requested resource: " & URL (URI (Request))),
-               Status_Code => Bad_Request);
+               Status  => Bad_Request);
       end Get;
 
-   end Response_Generic;
+   end Generic_Read;
+
+   ---------------------
+   --  Get_Ce_Id_Key  --
+   ---------------------
+
+   function Get_Ce_Id_Key
+     (Request : in AWS.Status.Data)
+      return String
+   is
+      use AWS.Status;
+   begin
+      return Parameters (Request).Get ("ce_id");
+   end Get_Ce_Id_Key;
 
 end Response;

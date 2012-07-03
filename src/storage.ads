@@ -21,6 +21,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with AWS.Status;
+with AWS.Messages;
+with Common;
 with GNATCOLL.SQL.Exec;
 
 package Storage is
@@ -45,6 +48,15 @@ package Storage is
    Null_Database_Connection : constant DB_Conn := (null, Uninitialized);
 
    type DB_Conn_Pool is array (DB_Conn_Type) of DB_Conn;
+
+   procedure Failed_Query
+     (Connection_Pool : in out DB_Conn_Pool;
+      Connection_Type : in     DB_Conn_Type);
+   --  If a query fails:
+   --    1. Set the connection state to Failed.
+   --    2. Raise the Database_Error exception if
+   --         Connection_Type = Database_Connection_Type'Last
+   --    3. If 2 is not True, Output a message to the Error log trace.
 
    function Get_DB_Connections
      return DB_Conn_Pool;
@@ -71,5 +83,39 @@ package Storage is
    --  Trim Source string on both sides. This will clear away \n also. This
    --  function is here because the errors thrown by PostgreSQL is postfixed
    --  with a \n which we must remove before sending the message to syslogd.
+
+   generic
+
+      type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with private;
+
+      with function Query
+        return GNATCOLL.SQL.Exec.Prepared_Statement;
+      --  TODO: Write comment
+
+      with procedure JSONIFY
+        (C     : in     GNATCOLL.SQL.Exec.Forward_Cursor'Class;
+         Value : in out Common.JSON_String);
+      --  TODO: Write comment
+
+      with function Query_Parameters
+        (Request : in AWS.Status.Data)
+         return GNATCOLL.SQL.Exec.SQL_Parameters;
+      --  TODO: Write comment
+
+      with procedure Write_To_Cache
+        (Key   : in String;
+         Value : in Common.JSON_String);
+      --  TODO: Write comment
+
+   package Generic_Read is
+
+      procedure Read
+        (Key     : in      String;
+         Request : in      AWS.Status.Data;
+         Status  :     out AWS.Messages.Status_Code;
+         Value   :     out Common.JSON_String);
+      --  TODO: Write comment
+
+   end Generic_Read;
 
 end Storage;

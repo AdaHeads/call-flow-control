@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                             Response.Contact                              --
+--                                 Contact                                   --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,41 +21,39 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Unbounded;
+with AWS.Dispatchers.Callback;
 with Common;
+with GNATCOLL.SQL.Exec;
 
-package Response.Contact is
+package Contact is
 
-   function Bad_Parameters
-     (Request : AWS.Status.Data)
-      return Boolean;
-   --  TODO.
+   function Read_Callback
+     return AWS.Dispatchers.Callback.Handler;
+   --  Return a callback handler for the get/contact interface.
 
-   function Get_Key
-     (Request : in AWS.Status.Data)
-      return String;
-   --  TODO.
+private
 
-   procedure Read_Cache
-     (Key      : in     String;
-      Is_Valid :    out Boolean;
-      Value    :    out Common.JSON_String);
-   --  TODO.
+   use Ada.Strings.Unbounded;
 
-   procedure Storage_Read
-     (Key    : in      String;
-      Status :     out AWS.Messages.Status_Code;
-      Value  :     out Common.JSON_String);
-   --  TODO.
+   type Contact_Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with
+     null record;
 
-   function To_String
-     (Value : in Common.JSON_String)
-      return String;
-   --  TODO.
+   type Contact_Row is
+      record
+         JSON                 : Common.JSON_String;
+         Ce_Id                : Natural;
+         Ce_Id_Column_Name    : Unbounded_String;
+         Ce_Name              : Unbounded_String;
+         Ce_Name_Column_Name  : Unbounded_String;
+         Is_Human             : Boolean;
+         Is_Human_Column_Name : Unbounded_String;
+      end record;
 
-   package Contact is new Response_Generic
-     (Bad_Parameters      => Bad_Ce_Id_Parameter,
-      Get_Key             => Get_Key,
-      Read_Cache          => Read_Cache,
-      Storage_Read        => Storage_Read);
+   function Element
+     (C : in Contact_Cursor)
+      return Contact_Row;
+   --  Transform the low level index based Contact_Cursor into a more readable
+   --  Ada record.
 
-end Response.Contact;
+end Contact;

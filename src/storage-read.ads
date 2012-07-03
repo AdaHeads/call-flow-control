@@ -26,16 +26,6 @@ with Common;
 
 package Storage.Read is
 
-   procedure Contact
-     (Ce_Id       : in     String;
-      Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_String);
-   --  If Ce_Id exists, Value contains the data for ONE contact entity and
-   --  Status_Code is 200.
-   --  If Ce_Id does not exist, Value is an empty JSON string {} and
-   --  Status_Code is 404.
-   --  If Ce_Id isn't valid, Status_Code is 400.
-
    procedure Contact_Attributes
      (Ce_Id       : in     String;
       Status_Code :    out AWS.Messages.Status_Code;

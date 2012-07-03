@@ -22,65 +22,11 @@
 -------------------------------------------------------------------------------
 
 with Cache;
-with Errors;
 with HTTP_Codes;
 with JSONIFY;
 with Storage.Queries;
 
 package body Storage.Read is
-
-   procedure Failed_Query
-     (Connection_Pool : in out DB_Conn_Pool;
-      Connection_Type : in     DB_Conn_Type);
-   --  If a query fails:
-   --    1. Set the connection state to Failed.
-   --    2. Raise the Database_Error exception if
-   --         Connection_Type = Database_Connection_Type'Last
-   --    3. If 2 is not True, Output a message to the Error log trace.
-
-   ---------------
-   --  Contact  --
-   ---------------
-
-   procedure Contact
-     (Ce_Id       : in     String;
-      Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_String)
-   is
-      use Cache;
-      use GNATCOLL.SQL.Exec;
-      use HTTP_Codes;
-
-      C              : Queries.Contact_Cursor;
-      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
-   begin
-      Status_Code := Server_Error;
-
-      Fetch_Data :
-      for k in DB_Connections'Range loop
-         C.Fetch (DB_Connections (k).Host,
-                  Queries.Contact_Query,
-                  Params => (1 => +Natural'Value (Ce_Id)));
-
-         if DB_Connections (k).Host.Success then
-            JSONIFY.Contact (C, Value);
-
-            if C.Processed_Rows > 0 then
-               Contact_Cache.Write (Key   => Ce_Id,
-                                    Value => Value);
-
-               Status_Code := OK;
-            else
-               Status_Code := Not_Found;
-            end if;
-
-            exit Fetch_Data;
-         else
-            Failed_Query (Connection_Pool => DB_Connections,
-                          Connection_Type => k);
-         end if;
-      end loop Fetch_Data;
-   end Contact;
 
    --------------------------
    --  Contact_Attributes  --
@@ -169,35 +115,6 @@ package body Storage.Read is
          end if;
       end loop Fetch_Data;
    end Contact_Full;
-
-   --------------------
-   --  Failed_Query  --
-   --------------------
-
-   procedure Failed_Query
-     (Connection_Pool : in out DB_Conn_Pool;
-      Connection_Type : in     DB_Conn_Type)
-   is
-      use Errors;
-      use GNATCOLL.SQL;
-
-      Trimmed_DB_Error : constant String
-        := Trim (Exec.Error (Connection_Pool (Connection_Type).Host));
-
-      Connection       : constant String
-        := DB_Conn_Type'Image (Connection_Type);
-
-      Message : constant String :=  Trimmed_DB_Error &  "-" & Connection;
-   begin
-      Connection_Pool (Connection_Type).State := Failed;
-      Register_Failed_DB_Connection (Pool => Connection_Pool);
-
-      if Connection_Type = DB_Conn_Type'Last then
-         raise Database_Error with Message;
-      else
-         Error_Handler (Message);
-      end if;
-   end Failed_Query;
 
    --------------------
    --  Org_Contacts  --

@@ -29,14 +29,6 @@ package Cache is
 
    package My renames My_Configuration;
 
-   package Contact_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => Common.JSON_String,
-      Cleanup_Size      => My.Config.Get (My.Cache_Size_Contact) + 1,
-      Cleanup_On_Write  => True,
-      Max_Element_Age   => My.Config.Get (My.Cache_Max_Element_Age),
-      Reserved_Capacity => My.Config.Get (My.Cache_Size_Contact));
-   --  Cache for individual contact JSON objects.
-
    package Contact_Full_Cache is new Yolk.Cache.String_Keys
      (Element_Type      => Common.JSON_String,
       Cleanup_Size      => My.Config.Get (My.Cache_Size_Contact) + 1,

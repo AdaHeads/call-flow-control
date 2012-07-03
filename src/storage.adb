@@ -24,7 +24,9 @@
 with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
 with Ada.Task_Attributes;
+with Errors;
 with GNATCOLL.SQL.Postgres;
+with HTTP_Codes;
 with My_Configuration;
 
 package body Storage is
@@ -74,6 +76,85 @@ package body Storage is
            Password      => My.Config.Get (My.DB2_Password),
            SSL           => GNATCOLL.SQL.Postgres.Allow,
            Cache_Support => True));
+
+   --------------------
+   --  Failed_Query  --
+   --------------------
+
+   procedure Failed_Query
+     (Connection_Pool : in out DB_Conn_Pool;
+      Connection_Type : in     DB_Conn_Type)
+   is
+      use Errors;
+      use GNATCOLL.SQL;
+
+      Trimmed_DB_Error : constant String
+        := Trim (Exec.Error (Connection_Pool (Connection_Type).Host));
+
+      Connection       : constant String
+        := DB_Conn_Type'Image (Connection_Type);
+
+      Message : constant String :=  Trimmed_DB_Error &  "-" & Connection;
+   begin
+      Connection_Pool (Connection_Type).State := Failed;
+      Register_Failed_DB_Connection (Pool => Connection_Pool);
+
+      if Connection_Type = DB_Conn_Type'Last then
+         raise Database_Error with Message;
+      else
+         Error_Handler (Message);
+      end if;
+   end Failed_Query;
+
+   -----------------------
+   --  Generic_Storage  --
+   -----------------------
+
+   package body Generic_Read is
+
+      procedure Read
+        (Key              : in      String;
+         Request          : in      AWS.Status.Data;
+         Status           :     out AWS.Messages.Status_Code;
+         Value            :     out Common.JSON_String)
+      is
+         use GNATCOLL.SQL.Exec;
+         use HTTP_Codes;
+         use Storage;
+
+         C              : Cursor;
+         DB_Connections : DB_Conn_Pool := Get_DB_Connections;
+      begin
+         Status := Server_Error;
+         --  Assume the worst.
+
+         Fetch_Data :
+         for k in DB_Connections'Range loop
+            C.Fetch (DB_Connections (k).Host,
+                     Query,
+                     Params => Query_Parameters (Request));
+
+            if DB_Connections (k).Host.Success then
+               JSONIFY (C, Value);
+
+               if C.Processed_Rows > 0 then
+                  Write_To_Cache (Key   => Key,
+                                  Value => Value);
+
+                  Status := OK;
+               else
+                  Status := Not_Found;
+               end if;
+
+               exit Fetch_Data;
+            else
+               Storage.Failed_Query (Connection_Pool => DB_Connections,
+                                     Connection_Type => k);
+            end if;
+         end loop Fetch_Data;
+      end Read;
+
+   end Generic_Read;
 
    --------------------------
    --  Get_DB_Connections  --

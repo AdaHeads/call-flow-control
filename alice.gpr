@@ -28,7 +28,7 @@ project Alice is
    type Build_Type is ("Debug", "Production");
    Build : Build_Type := External ("BUILDTYPE", "Production");
 
-   Source_Options := ("src");
+   Source_Options := ("src", "src/handlers");
    for Source_Dirs use Source_Options;
 
    for Main use ("alice.adb");
