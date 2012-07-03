@@ -44,27 +44,6 @@ package Storage.Queries is
          Value : Ada.Strings.Unbounded.Unbounded_String;
       end record;
 
-   ---------------------------------------------------
-   --  Contact Attributes record, cursor and query  --
-   ---------------------------------------------------
-
-   type Contact_Attributes_Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with
-     null record;
-
-   type Contact_Attributes_Row is
-      record
-         JSON   : Common.JSON_String;
-         Ce_Id  : Pair_Natural;
-         Org_Id : Pair_Natural;
-      end record;
-
-   function Element
-     (C : in Contact_Attributes_Cursor)
-      return Contact_Attributes_Row;
-
-   function Contact_Attributes_Query
-     return GNATCOLL.SQL.Exec.Prepared_Statement;
-
    ---------------------------------------------
    --  Contact Full record, cursor and query  --
    ---------------------------------------------

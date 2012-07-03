@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                 Request                                   --
+--                            Contact_Attributes                             --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,49 +21,37 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Status;
-with AWS.Response;
+with Ada.Strings.Unbounded;
+with AWS.Dispatchers.Callback;
+with Common;
+with GNATCOLL.SQL.Exec;
 
-package Request is
+package Contact_Attributes is
 
-   function Call
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get a call JSON for the longest waiting call in the queue.
+   function Read_Callback
+     return AWS.Dispatchers.Callback.Handler;
+   --  Return a callback handler for the get/contact_attributesh interface.
 
-   function Contact_Full
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get a Contact JSON with Attributes.
+private
 
-   function Org_Contacts
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Contacts JSON.
+   use Ada.Strings.Unbounded;
 
-   function Org_Contacts_Attributes
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Contacts_Attributes JSON.
+   type Contact_Attributes_Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with
+     null record;
 
-   function Org_Contacts_Full
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Contacts JSON with Attributes.
+   type Contact_Attributes_Row is
+      record
+         JSON               : Common.JSON_String;
+         Ce_Id              : Natural;
+         Ce_Id_Column_Name  : Unbounded_String;
+         Org_Id             : Natural;
+         Org_Id_Column_Name : Unbounded_String;
+      end record;
 
-   function Organization
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Organization JSON.
+   function Element
+     (C : in Contact_Attributes_Cursor)
+      return Contact_Attributes_Row;
+   --  Transform the low level index based Contact_Attributes_Cursor into a
+   --  more readable Ada record.
 
-   function Queue
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the call queue JSON.
-
-   function Queue_Length
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the call queue length JSON.
-
-end Request;
+end Contact_Attributes;

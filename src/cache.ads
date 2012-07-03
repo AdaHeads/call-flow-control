@@ -38,14 +38,6 @@ package Cache is
    --  Cache for individual contact JSON objects. The contact JSON document
    --  SHOULD be complete with attributes.
 
-   package Contact_Attributes_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => Common.JSON_String,
-      Cleanup_Size      => My.Config.Get (My.Cache_Size_Contact) + 1,
-      Cleanup_On_Write  => True,
-      Max_Element_Age   => My.Config.Get (My.Cache_Max_Element_Age),
-      Reserved_Capacity => My.Config.Get (My.Cache_Size_Contact));
-   --  Cache for individual contact attributes JSON objects.
-
    package Org_Contacts_Cache is new Yolk.Cache.String_Keys
      (Element_Type      => Common.JSON_String,
       Cleanup_Size      => My.Config.Get (My.Cache_Size_Organization) + 1,

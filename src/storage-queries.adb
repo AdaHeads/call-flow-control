@@ -26,34 +26,6 @@ with Yolk.Utilities;
 
 package body Storage.Queries is
 
-   --------------------------------
-   --  Contact_Attributes_Query  --
-   --------------------------------
-
-   function Contact_Attributes_Query
-     return GNATCOLL.SQL.Exec.Prepared_Statement
-   is
-      use Database;
-      use GNATCOLL.SQL;
-      use GNATCOLL.SQL.Exec;
-
-      Get_Contact_Attributes : constant SQL_Query
-        := SQL_Select (Fields =>
-                         Contactentity_Attributes.Json &  --  0
-                         Contactentity_Attributes.Ce_Id & --  1
-                         Contactentity_Attributes.Org_Id, --  2
-                       Where  =>
-                         Contactentity_Attributes.Ce_Id = (Integer_Param (1)));
-
-      Prepared_Get_Contact_Attributes : constant Prepared_Statement
-        := Prepare (Query         => Get_Contact_Attributes,
-                    Auto_Complete => True,
-                    On_Server     => True,
-                    Name          => "get_contact_attributes");
-   begin
-      return Prepared_Get_Contact_Attributes;
-   end Contact_Attributes_Query;
-
    --------------------------
    --  Contact_Full_Query  --
    --------------------------
@@ -91,27 +63,6 @@ package body Storage.Queries is
    begin
       return Prepared_Get_Contact_Full;
    end Contact_Full_Query;
-
-   ---------------
-   --  Element  --
-   ---------------
-
-   function Element
-     (C : in Contact_Attributes_Cursor)
-      return Contact_Attributes_Row
-   is
-      use Common;
-      use Yolk.Utilities;
-   begin
-      return Contact_Attributes_Row'
-        (JSON   => To_JSON_String (C.Value (0)),
-         Ce_Id  =>
-           Pair_Natural'(Name  => TUS (C.Field_Name (1)),
-                         Value => C.Integer_Value (1, Default => 0)),
-         Org_Id =>
-           Pair_Natural'(Name  => TUS (C.Field_Name (2)),
-                         Value => C.Integer_Value (2, Default => 0)));
-   end Element;
 
    ---------------
    --  Element  --

@@ -23,6 +23,7 @@
 
 with AWS.Dispatchers.Callback;
 with Contact;
+with Contact_Attributes;
 with My_Configuration;
 with Request;
 with Yolk.Not_Found;
@@ -74,8 +75,7 @@ package body My_Handlers is
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => My.Config.Get (My.Handler_Get_Contact_Attributes),
-         Action     => Create
-           (Callback => Request.Contact_Attributes'Access));
+         Action     => Contact_Attributes.Read_Callback);
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
