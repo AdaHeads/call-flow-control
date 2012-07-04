@@ -106,13 +106,13 @@ package body Storage is
       end if;
    end Failed_Query;
 
-   -----------------------
-   --  Generic_Storage  --
-   -----------------------
+   --------------------
+   --  Generic_JSON  --
+   --------------------
 
-   package body Generic_Read is
+   package body Generic_Query_To_JSON is
 
-      procedure Read
+      procedure Generate
         (Key              : in      String;
          Request          : in      AWS.Status.Data;
          Status           :     out AWS.Messages.Status_Code;
@@ -152,9 +152,9 @@ package body Storage is
                                      Connection_Type => k);
             end if;
          end loop Fetch_Data;
-      end Read;
+      end Generate;
 
-   end Generic_Read;
+   end Generic_Query_To_JSON;
 
    --------------------------
    --  Get_DB_Connections  --

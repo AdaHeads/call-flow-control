@@ -152,13 +152,12 @@ package body Response is
    -------------------------------
 
    procedure Check_Ce_Id_Parameter
-     (Request   : in AWS.Status.Data)
+     (Request : in AWS.Status.Data)
    is
-      use AWS.Status;
       use AWS.Utils;
       use Errors;
 
-      P : constant String := Parameters (Request).Get ("ce_id");
+      P : constant String := Get_Ce_Id_Key (Request);
    begin
       if not Is_Number (P) then
          raise GET_Parameter_Error with
@@ -166,13 +165,35 @@ package body Response is
       end if;
    end Check_Ce_Id_Parameter;
 
+   ------------------------------
+   --  Check_Org_Id_Parameter  --
+   ------------------------------
+
+   procedure Check_Org_Id_Parameter
+     (Request : in AWS.Status.Data)
+   is
+      use AWS.Utils;
+      use Errors;
+
+      P : constant String := Get_Org_Id_Key (Request);
+   begin
+      if not Is_Number (P) then
+         raise GET_Parameter_Error with
+           "org_id must be a valid natural integer";
+      end if;
+   end Check_Org_Id_Parameter;
+
    --------------------
    --  Generic_Read  --
    --------------------
 
-   package body Generic_Read is
+   package body Generic_Response is
 
-      function Get
+      ----------------
+      --  Generate  --
+      ----------------
+
+      function Generate
         (Request : in AWS.Status.Data)
       return AWS.Response.Data
       is
@@ -182,7 +203,7 @@ package body Response is
          use Errors;
          use HTTP_Codes;
 
-         Key    : constant String := Get_Key (Request);
+         Key    : constant String := Get_Cache_Key (Request);
          Status : AWS.Messages.Status_Code;
          Valid  : Boolean;
          Value  : JSON_String;
@@ -195,7 +216,7 @@ package body Response is
             Status := OK;
          else
             Check_Request_Parameters (Request);
-            Store.Read (Key, Request, Status, Value);
+            Query_To_JSON.Generate (Key, Request, Status, Value);
          end if;
 
          return Build_JSON_Response
@@ -218,9 +239,9 @@ package body Response is
                  (Event   => Event,
                   Message => "Requested resource: " & URL (URI (Request))),
                Status  => Bad_Request);
-      end Get;
+      end Generate;
 
-   end Generic_Read;
+   end Generic_Response;
 
    ---------------------
    --  Get_Ce_Id_Key  --
@@ -234,5 +255,18 @@ package body Response is
    begin
       return Parameters (Request).Get ("ce_id");
    end Get_Ce_Id_Key;
+
+   ----------------------
+   --  Get_Org_Id_Key  --
+   ----------------------
+
+   function Get_Org_Id_Key
+     (Request : in AWS.Status.Data)
+      return String
+   is
+      use AWS.Status;
+   begin
+      return Parameters (Request).Get ("org_id");
+   end Get_Org_Id_Key;
 
 end Response;

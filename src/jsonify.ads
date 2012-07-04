@@ -26,11 +26,6 @@ with Storage.Queries;
 
 package JSONIFY is
 
-   procedure Contact_Full
-     (C     : in out Storage.Queries.Contact_Full_Cursor;
-      Value : in out Common.JSON_String);
-   --  TODO: Write comment
-
    procedure Org_Contacts
      (C     : in out Storage.Queries.Org_Contacts_Cursor;
       Value : in out Common.JSON_String);
@@ -43,11 +38,6 @@ package JSONIFY is
 
    procedure Org_Contacts_Full
      (C     : in out Storage.Queries.Org_Contacts_Full_Cursor;
-      Value : in out Common.JSON_String);
-   --  TODO: Write comment
-
-   procedure Organization
-     (C     : in     Storage.Queries.Organization_Cursor;
       Value : in out Common.JSON_String);
    --  TODO: Write comment
 

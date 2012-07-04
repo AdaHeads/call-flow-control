@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                            Contact_Attributes                             --
+--                                 Contact                                   --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -31,11 +31,11 @@ with Response;
 with Storage;
 with Yolk.Cache.String_Keys;
 
-package Contact_Attributes is
+package Contact_Full is
 
    function Callback
      return AWS.Dispatchers.Callback.Handler;
-   --  Return a callback for the "contact_attributes" interface.
+   --  Return a callback for the "contact_full" interface.
 
 private
 
@@ -46,11 +46,18 @@ private
 
    type Row is
       record
-         JSON               : Common.JSON_String;
-         Ce_Id              : Natural;
-         Ce_Id_Column_Name  : Unbounded_String;
-         Org_Id             : Natural;
-         Org_Id_Column_Name : Unbounded_String;
+         JSON                    : Common.JSON_String;
+         Ce_Id                   : Natural;
+         Ce_Id_Column_Name       : Unbounded_String;
+         Ce_Name                 : Unbounded_String;
+         Ce_Name_Column_Name     : Unbounded_String;
+         Is_Human                : Boolean;
+         Is_Human_Column_Name    : Unbounded_String;
+         Attr_JSON               : Common.JSON_String;
+         Attr_Org_Id             : Natural;
+         Attr_Org_Id_Column_Name : Unbounded_String;
+         Attr_Ce_Id              : Natural;
+         Attr_Ce_Id_Column_Name  : Unbounded_String;
       end record;
 
    function Element
@@ -104,4 +111,4 @@ private
       Query_To_JSON            => Query_To_JSON);
    --  Generate the AWS.Response.Data that ultimately is delivered to the user.
 
-end Contact_Attributes;
+end Contact_Full;

@@ -93,7 +93,7 @@ package Storage is
       --  TODO: Write comment
 
       with procedure JSONIFY
-        (C     : in     GNATCOLL.SQL.Exec.Forward_Cursor'Class;
+        (C     : in out Cursor;
          Value : in out Common.JSON_String);
       --  TODO: Write comment
 
@@ -107,15 +107,15 @@ package Storage is
          Value : in Common.JSON_String);
       --  TODO: Write comment
 
-   package Generic_Read is
+   package Generic_Query_To_JSON is
 
-      procedure Read
+      procedure Generate
         (Key     : in      String;
          Request : in      AWS.Status.Data;
          Status  :     out AWS.Messages.Status_Code;
          Value   :     out Common.JSON_String);
       --  TODO: Write comment
 
-   end Generic_Read;
+   end Generic_Query_To_JSON;
 
 end Storage;

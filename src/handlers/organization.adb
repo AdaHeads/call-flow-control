@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                 Contact                                   --
+--                              Organization                                 --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -25,7 +25,7 @@ with Database;
 with GNATCOLL.JSON;
 with Yolk.Utilities;
 
-package body Contact is
+package body Organization is
 
    ----------------
    --  Callback  --
@@ -56,23 +56,16 @@ package body Contact is
       if C.Has_Row then
          DB_Columns := Create_Object;
 
-         J := GNATCOLL.JSON.Read (To_String (C.Element.JSON),
-                                  "contact_json.error");
+         J := GNATCOLL.JSON.Read (To_String (C.Element.JSON), "json.error");
 
-         DB_Columns.Set_Field (TS (C.Element.Ce_Id_Column_Name),
-                               C.Element.Ce_Id);
+         DB_Columns.Set_Field (TS (C.Element.Org_Id_Column_Name),
+                               C.Element.Org_Id);
 
-         DB_Columns.Set_Field (TS (C.Element.Ce_Name_Column_Name),
-                               C.Element.Ce_Name);
+         DB_Columns.Set_Field (TS (C.Element.Org_Name_Column_Name),
+                               TS (C.Element.Org_Name));
 
-         DB_Columns.Set_Field (TS (C.Element.Is_Human_Column_Name),
-                               C.Element.Is_Human);
-
-         if C.Element.Is_Human then
-            J.Set_Field ("type", "human");
-         else
-            J.Set_Field ("type", "function");
-         end if;
+         DB_Columns.Set_Field (TS (C.Element.Identifier_Column_Name),
+                               TS (C.Element.Identifier));
 
          J.Set_Field ("db_columns", DB_Columns);
       end if;
@@ -91,13 +84,13 @@ package body Contact is
       use Common;
       use Yolk.Utilities;
    begin
-      return Row'(JSON                 => To_JSON_String (C.Value (0)),
-                  Ce_Id                => C.Integer_Value (1, Default => 0),
-                  Ce_Id_Column_Name    => TUS (C.Field_Name (1)),
-                  Ce_Name              => TUS (C.Field_Name (2)),
-                  Ce_Name_Column_Name  => TUS (C.Value (2)),
-                  Is_Human             => C.Boolean_Value (3),
-                  Is_Human_Column_Name => TUS (C.Field_Name (3)));
+      return Row'(JSON                   => To_JSON_String (C.Value (0)),
+                  Org_Id                 => C.Integer_Value (1, Default => 0),
+                  Org_Id_Column_Name     => TUS (C.Field_Name (1)),
+                  Org_Name               => TUS (C.Value (2)),
+                  Org_Name_Column_Name   => TUS (C.Field_Name (2)),
+                  Identifier             => TUS (C.Value (3)),
+                  Identifier_Column_Name => TUS (C.Field_Name (3)));
    end Element;
 
    ----------------------
@@ -112,22 +105,21 @@ package body Contact is
       use GNATCOLL.SQL;
       use GNATCOLL.SQL.Exec;
 
-      Get_Contact : constant SQL_Query
-        := SQL_Select (Fields =>
-                         DB.Contactentity.Json &    --  0
-                         DB.Contactentity.Ce_Id &   --  1
-                         DB.Contactentity.Ce_Name & --  2
-                         DB.Contactentity.Is_Human, --  3
-                       Where  =>
-                         DB.Contactentity.Ce_Id = Integer_Param (1));
+      Get_Organization : constant SQL_Query
+        :=  SQL_Select (Fields =>
+                          DB.Organization.Json &      --  0
+                          DB.Organization.Org_Id &    --  1
+                          DB.Organization.Org_Name &  --  2
+                          DB.Organization.Identifier, --  3
+                        Where  => DB.Organization.Org_Id = Integer_Param (1));
 
-      Prepared_Get_Contact : constant Prepared_Statement
-        := Prepare (Query         => Get_Contact,
+      Prepared_Get_Organization : constant Prepared_Statement
+        := Prepare (Query         => Get_Organization,
                     Auto_Complete => True,
                     On_Server     => True,
-                    Name          => "get_contact");
+                    Name          => "get_organization");
    begin
-      return Prepared_Get_Contact;
+      return Prepared_Get_Organization;
    end Prepared_Query;
 
    ------------------------
@@ -140,7 +132,7 @@ package body Contact is
    is
       use GNATCOLL.SQL.Exec;
    begin
-      return (1 => +Natural'Value (Response.Get_Ce_Id_Key (Request)));
+      return (1 => +Natural'Value (Response.Get_Org_Id_Key (Request)));
    end Query_Parameters;
 
-end Contact;
+end Organization;

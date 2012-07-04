@@ -40,6 +40,18 @@ package Response is
    with inline;
    --  Return the value of the ce_id request parameter.
 
+   procedure Check_Org_Id_Parameter
+     (Request : in AWS.Status.Data)
+   with inline;
+   --  Check if the request parameter org_id is numeric. Raise
+   --  GET_Parameter_Error if not.
+
+   function Get_Org_Id_Key
+     (Request : in AWS.Status.Data)
+      return String
+   with inline;
+   --  Return the value of the org_id request parameter.
+
    generic
 
       with procedure Check_Request_Parameters
@@ -48,7 +60,7 @@ package Response is
       --  Must raise the Errors.GET_Parameter_Error exception if one or more
       --  the request parameters aren't valid.
 
-      with function Get_Key
+      with function Get_Cache_Key
         (Request : in AWS.Status.Data)
       return String;
       --  Return the key used to identify an object in a cache.
@@ -59,15 +71,16 @@ package Response is
          Value    :    out Common.JSON_String);
       --  Find Key in a cache.
 
-      with package Store is new Storage.Generic_Read (<>);
+      with package Query_To_JSON is new Storage.Generic_Query_To_JSON (<>);
       --  This package enables reading data from persistent storage.
 
-   package Generic_Read is
+   package Generic_Response is
 
-      function Get
+      function Generate
         (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+         return AWS.Response.Data;
+      --   TODO: Write comment
 
-   end Generic_Read;
+   end Generic_Response;
 
 end Response;
