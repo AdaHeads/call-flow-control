@@ -31,21 +31,6 @@ package Request is
       return AWS.Response.Data;
    --  Get a call JSON for the longest waiting call in the queue.
 
-   function Org_Contacts
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Contacts JSON.
-
-   function Org_Contacts_Attributes
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Contacts_Attributes JSON.
-
-   function Org_Contacts_Full
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Get the Contacts JSON with Attributes.
-
    function Queue
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;

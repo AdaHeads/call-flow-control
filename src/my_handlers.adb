@@ -27,6 +27,9 @@ with Contact_Attributes;
 with Contact_Full;
 with My_Configuration;
 with Organization;
+with Organization_Contacts;
+with Organization_Contacts_Attributes;
+with Organization_Contacts_Full;
 with Request;
 with Yolk.Not_Found;
 
@@ -87,22 +90,19 @@ package body My_Handlers is
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => My.Config.Get (My.Handler_Get_Organization_Contacts),
-         Action     => Create
-           (Callback => Request.Org_Contacts'Access));
+         Action     => Organization_Contacts.Callback);
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => My.Config.Get
            (My.Handler_Get_Organization_Contacts_Attributes),
-         Action     => Create
-           (Callback => Request.Org_Contacts_Attributes'Access));
+         Action     => Organization_Contacts_Attributes.Callback);
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => My.Config.Get
            (My.Handler_Get_Organization_Contacts_Full),
-         Action     => Create
-           (Callback => Request.Org_Contacts_Full'Access));
+         Action     => Organization_Contacts_Full.Callback);
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,

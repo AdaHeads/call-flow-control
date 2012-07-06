@@ -29,32 +29,4 @@ package Cache is
 
    package My renames My_Configuration;
 
-   package Org_Contacts_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => Common.JSON_String,
-      Cleanup_Size      => My.Config.Get (My.Cache_Size_Organization) + 1,
-      Cleanup_On_Write  => True,
-      Max_Element_Age   => My.Config.Get (My.Cache_Max_Element_Age),
-      Reserved_Capacity => My.Config.Get (My.Cache_Size_Organization));
-   --  Cache for groups of contact JSON objects. The groups SHOULD be based on
-   --  the organization the contacts belong to.
-
-   package Org_Contacts_Full_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => Common.JSON_String,
-      Cleanup_Size      => My.Config.Get (My.Cache_Size_Organization) + 1,
-      Cleanup_On_Write  => True,
-      Max_Element_Age   => My.Config.Get (My.Cache_Max_Element_Age),
-      Reserved_Capacity => My.Config.Get (My.Cache_Size_Organization));
-   --  Cache for groups of contact JSON objects. The groups SHOULD be based on
-   --  the organization the contacts belong to and the contact JSON document
-   --  SHOULD be complete with attributes.
-
-   package Org_Contacts_Attributes_Cache is new Yolk.Cache.String_Keys
-     (Element_Type      => Common.JSON_String,
-      Cleanup_Size      => My.Config.Get (My.Cache_Size_Organization) + 1,
-      Cleanup_On_Write  => True,
-      Max_Element_Age   => My.Config.Get (My.Cache_Max_Element_Age),
-      Reserved_Capacity => My.Config.Get (My.Cache_Size_Organization));
-   --  Cache for groups of contact attributes JSON objects. The groups SHOULD
-   --  be based on the organization the contacts belong to.
-
 end Cache;

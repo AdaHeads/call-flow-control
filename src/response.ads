@@ -21,12 +21,24 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with AWS.Messages;
 with AWS.Response;
 with AWS.Status;
 with Common;
 with Storage;
 
 package Response is
+
+   function Build_JSON_Response
+     (Request : in AWS.Status.Data;
+      Content : in Common.JSON_String;
+      Status  : in AWS.Messages.Status_Code)
+      return AWS.Response.Data
+   with inline;
+   --  Build the response and compress it if the client supports it. Also
+   --  wraps JSON string in foo(JSON string) if the
+   --      ?jsoncallback=foo
+   --  GET parameter is present.
 
    procedure Check_Ce_Id_Parameter
      (Request : in AWS.Status.Data)

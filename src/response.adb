@@ -22,7 +22,6 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Fixed;
-with AWS.Messages;
 with AWS.Response.Set;
 with AWS.URL;
 with AWS.Utils;
@@ -32,17 +31,6 @@ with HTTP_Codes;
 package body Response is
 
    JSON_MIME_Type : constant String := "application/json; charset=utf-8";
-
-   function Build_JSON_Response
-     (Request : in AWS.Status.Data;
-      Content : in Common.JSON_String;
-      Status  : in AWS.Messages.Status_Code)
-      return AWS.Response.Data
-   with inline;
-   --  Build the response and compress it if the client supports it. Also
-   --  wraps JSON string in foo(JSON string) if the
-   --      ?jsoncallback=foo
-   --  GET parameter is present.
 
    procedure Add_CORS_Headers
      (Request  : in     AWS.Status.Data;
