@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                               Storage.Read                                --
+--                               Call_Queue                                  --
 --                                                                           --
---                                  BODY                                     --
+--                                  SPEC                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,13 +21,26 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Cache;
-with HTTP_Codes;
-with JSONIFY;
-with Storage.Queries;
+with AWS.Status;
+with AWS.Response;
 
-package body Storage.Read is
+package Call_Queue is
 
-   null;
+   function Get
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --  Return a response containing the call queue JSON, complete with all
+   --  waiting calls and the length of the queue.
 
-end Storage.Read;
+   function Get_Call
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --  Get a call JSON for the longest waiting call in the queue.
+
+   function Get_Queue_Length
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --  Return a response containing a JSON with just the length of the current
+   --  queue.
+
+end Call_Queue;

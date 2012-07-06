@@ -26,10 +26,15 @@ with Ada.Calendar.Formatting;
 with Ada.Containers.Ordered_Maps;
 with Ada.Numerics.Discrete_Random;
 with Ada.Strings.Fixed;
+with AWS.Messages;
+with AWS.URL;
 with AWS.Utils;
+with Common;
+with Errors;
 with HTTP_Codes;
 with Interfaces.C;
 with GNATCOLL.JSON;
+with Response;
 with Task_Controller;
 
 package body Call_Queue is
@@ -61,10 +66,31 @@ package body Call_Queue is
          --  Note that the time is recorded in UTC. No timezone is given.
       end record;
 
+   procedure Build_Call_JSON
+     (Id     : in     String;
+      Status :    out AWS.Messages.Status_Code;
+      Value  :    out Common.JSON_String);
+   --  If Id exists, Value contains the data for the call with Id and
+   --  Status is 200.
+   --  If Id does not exist, Value is an empty JSON string {} and Status is
+   --  404.
+   --  If Id is empty and there are calls in the queue, Value contains the
+   --  data for the oldest call and Status is 200.
+   --  If Id is empty and the queue is empty, Value contains an empty JSON
+   --  String {} and Status is 404.
+   --  When a call is found and returned, it is also deleted from the queue.
+
+   function Build_Queue_JSON return Common.JSON_String;
+   --  Return a JSON String containing the length of the queue and all the
+   --  calls waiting in the queue.
+
    function Equal_Elements
      (Left, Right : in Call)
       return Boolean;
    --  Return True if two Call elements are equal.
+
+      function Build_Length_JSON return Common.JSON_String;
+   --  Return a JSON String containing simply the length of the queue.
 
    function Sort_Elements
      (Left, Right : in Ada.Calendar.Time)
@@ -214,6 +240,85 @@ package body Call_Queue is
       end loop;
    end Generate_JSON;
 
+   -----------------------
+   --  Build_Call_JSON  --
+   -----------------------
+
+   procedure Build_Call_JSON
+     (Id     : in     String;
+      Status :    out AWS.Messages.Status_Code;
+      Value  :    out Common.JSON_String)
+   is
+      use Common;
+      use GNATCOLL.JSON;
+      use HTTP_Codes;
+
+      JSON    : constant JSON_Value := Create_Object;
+      Org_Id  : Natural := 0;
+      Success : Boolean;
+   begin
+      Status := Server_Error;
+
+      if Id'Length > 0 then
+         Queue.Remove (Id, Org_Id, Success);
+
+         if Success then
+            JSON.Set_Field ("id", Id);
+            JSON.Set_Field ("org_id", Org_Id);
+
+            Status := OK;
+         else
+            Status := Not_Found;
+         end if;
+      else
+         declare
+            CI     : Call_Id;
+            Org_Id : Natural;
+         begin
+            Queue.Remove_First (Removed_Call_Id => CI,
+                                Removed_Org_Id  => Org_Id);
+
+            if Org_Id > 0 then
+               JSON.Set_Field ("id", CI);
+               JSON.Set_Field ("org_id", Org_Id);
+
+               Status := OK;
+            else
+               Status := Not_Found;
+            end if;
+         end;
+      end if;
+
+      Value := To_JSON_String (JSON.Write);
+   end Build_Call_JSON;
+
+   -------------------------
+   --  Build_Length_JSON  --
+   -------------------------
+
+   function Build_Length_JSON return Common.JSON_String
+   is
+      use Common;
+      use GNATCOLL.JSON;
+
+      JSON : constant JSON_Value := Create_Object;
+   begin
+      JSON.Set_Field ("length", Queue.Length);
+
+      return To_JSON_String (JSON.Write);
+   end Build_Length_JSON;
+
+   ------------------------
+   --  Build_Queue_JSON  --
+   ------------------------
+
+   function Build_Queue_JSON
+     return Common.JSON_String
+   is
+   begin
+      return Queue.Get;
+   end Build_Queue_JSON;
+
    ----------------------
    --  Equal_Elements  --
    ----------------------
@@ -231,79 +336,70 @@ package body Call_Queue is
    -----------
 
    function Get
-     return Common.JSON_String
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
    is
+      use HTTP_Codes;
+      use Response;
    begin
-      return Queue.Get;
+      return Build_JSON_Response
+        (Request => Request,
+         Content => Build_Queue_JSON,
+         Status  => OK);
    end Get;
 
    ----------------
    --  Get_Call  --
    ----------------
 
-   procedure Get_Call
-     (Id          : in     String;
-      Status_Code :    out AWS.Messages.Status_Code;
-      Value       :    out Common.JSON_String)
+   function Get_Call
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
    is
+      use AWS.Status;
+      use AWS.URL;
       use Common;
-      use GNATCOLL.JSON;
+      use Errors;
       use HTTP_Codes;
+      use Response;
 
-      JSON    : constant JSON_Value := Create_Object;
-      Org_Id  : Natural := 0;
-      Success : Boolean;
+      Id          : constant String := Parameters (Request).Get ("id");
+      Status_Code : AWS.Messages.Status_Code;
+      Value       : JSON_String;
    begin
-      Status_Code := Server_Error;
+      Build_Call_JSON (Id, Status_Code, Value);
 
-      if Id'Length > 0 then
-         Queue.Remove (Id, Org_Id, Success);
+      return Build_JSON_Response
+        (Request => Request,
+         Content => Value,
+         Status  => Status_Code);
 
-         if Success then
-            JSON.Set_Field ("id", Id);
-            JSON.Set_Field ("org_id", Org_Id);
-
-            Status_Code := OK;
-         else
-            Status_Code := Not_Found;
-         end if;
-      else
-         declare
-            CI     : Call_Id;
-            Org_Id : Natural;
-         begin
-            Queue.Remove_First (Removed_Call_Id => CI,
-                                Removed_Org_Id  => Org_Id);
-
-            if Org_Id > 0 then
-               JSON.Set_Field ("id", CI);
-               JSON.Set_Field ("org_id", Org_Id);
-
-               Status_Code := OK;
-            else
-               Status_Code := Not_Found;
-            end if;
-         end;
-      end if;
-
-      Value := To_JSON_String (JSON.Write);
+   exception
+      when Event : others =>
+         return Build_JSON_Response
+           (Request => Request,
+            Content => Exception_Handler
+              (Event   => Event,
+               Message => "Requested resource: " & URL (URI (Request))),
+            Status  => Server_Error);
    end Get_Call;
 
-   --------------
-   --  Length  --
-   --------------
+   ------------------------
+   --  Get_Queue_Length  --
+   ------------------------
 
-   function Length return Common.JSON_String
+   function Get_Queue_Length
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
    is
-      use Common;
-      use GNATCOLL.JSON;
-
-      JSON : constant JSON_Value := Create_Object;
+      use HTTP_Codes;
+      use Response;
    begin
-      JSON.Set_Field ("length", Queue.Length);
-
-      return To_JSON_String (JSON.Write);
-   end Length;
+      return Build_JSON_Response
+        (Request => Request,
+         Content => Build_Length_JSON,
+         Status  => OK);
+   end Get_Queue_Length;
 
    -------------
    --  Queue  --
