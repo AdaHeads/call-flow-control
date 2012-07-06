@@ -69,7 +69,8 @@ package body Call_Queue is
    procedure Build_Call_JSON
      (Id     : in     String;
       Status :    out AWS.Messages.Status_Code;
-      Value  :    out Common.JSON_String);
+      Value  :    out Common.JSON_String)
+   with inline;
    --  If Id exists, Value contains the data for the call with Id and
    --  Status is 200.
    --  If Id does not exist, Value is an empty JSON string {} and Status is
@@ -80,7 +81,14 @@ package body Call_Queue is
    --  String {} and Status is 404.
    --  When a call is found and returned, it is also deleted from the queue.
 
-   function Build_Queue_JSON return Common.JSON_String;
+   function Build_Length_JSON
+     return Common.JSON_String
+   with inline;
+   --  Return a JSON String containing simply the length of the queue.
+
+   function Build_Queue_JSON
+     return Common.JSON_String
+   with inline;
    --  Return a JSON String containing the length of the queue and all the
    --  calls waiting in the queue.
 
@@ -88,9 +96,6 @@ package body Call_Queue is
      (Left, Right : in Call)
       return Boolean;
    --  Return True if two Call elements are equal.
-
-      function Build_Length_JSON return Common.JSON_String;
-   --  Return a JSON String containing simply the length of the queue.
 
    function Sort_Elements
      (Left, Right : in Ada.Calendar.Time)
@@ -577,18 +582,13 @@ package body Call_Queue is
          Org_Id  :    out Natural;
          Success :    out Boolean)
       is
-         C    : Ordered_Call_Queue_Map.Cursor;
          Elem : Call;
       begin
          Org_Id := 0;
          Success := False;
 
-         Queue_Maps_Loop :
-         for P in Queue_Maps'Range loop
-            C := Queue_Maps (P).First;
-
-            Remove_Loop :
-            for K in 1 .. Queue_Maps (P).Length loop
+         for Queue of Queue_Maps loop
+            for C in Queue.Iterate loop
                Elem := Ordered_Call_Queue_Map.Element (C);
 
                if Elem.Id = Id then
@@ -596,14 +596,13 @@ package body Call_Queue is
                   Success := True;
                   Rebuild_JSON := True;
 
-                  Queue_Maps (P).Delete (C);
+                  Queue.Delete (C);
 
-                  exit Queue_Maps_Loop;
                end if;
+            end loop;
 
-               Ordered_Call_Queue_Map.Next (C);
-            end loop Remove_Loop;
-         end loop Queue_Maps_Loop;
+            exit when Success;
+         end loop;
       end Remove;
 
       --------------------

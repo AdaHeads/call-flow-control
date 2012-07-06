@@ -35,7 +35,8 @@ package Call_Queue is
    function Get_Call
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
-   --  Get a call JSON for the longest waiting call in the queue.
+   --  Return a response containing a JSON with either the oldest call in the
+   --  queue or the call identified by the optional id request parameter.
 
    function Get_Queue_Length
      (Request : in AWS.Status.Data)
