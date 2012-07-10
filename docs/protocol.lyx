@@ -97,7 +97,7 @@ Introduction
 
 \begin_layout Standard
 Alice acts as the connector between one or more Bob clients, a PostgreSQL
- data store and one ore more PBX'es.
+ data store and one PBX (currently we only support Asterisk).
  Her main task is to get and set data via a HTTP/JSON based protocol.
 \end_layout
 
@@ -127,12 +127,6 @@ All data handled by the protocol is expected to be UTF-8 encoded.
  clients, be sure to verify that all data sent to Alice are UTF-8 encoded.
 \end_layout
 
-\begin_layout Standard
-Application level errors and exceptions are returned as JSON documents.
- How these are handled is entirely up to the client.
- HTTP level errors are returned as normal for HTTP servers.
-\end_layout
-
 \begin_layout Section
 The Same Origin Policy - CORS and JSONP
 \end_layout
@@ -149,7 +143,15 @@ Same Origin Policy is a security feature found in the Javascript implementation
 
 \begin_layout Standard
 The solutions to this problem is something called Cross-Origin Resource
- Sharing (CORS) and the JSONP standard.
+ Sharing (CORS) and the JSONP 
+\begin_inset Quotes eld
+\end_inset
+
+standard
+\begin_inset Quotes erd
+\end_inset
+
+.
  Both of these are supported out of the box by jQuery and probably also
  by other Javascript frameworks.
  The 
@@ -163,6 +165,13 @@ correct
  and preferred method to use for cross domain access is CORS.
  Only use JSONP if CORS for some reason or another isn't supported by your
  platform.
+\end_layout
+
+\begin_layout Standard
+Application level errors and exceptions are returned as JSON documents with
+ corresponding HTTP status codes set.
+ How these error documents and HTTP status codes are handled is entirely
+ up to the client.
 \end_layout
 
 \begin_layout Section
@@ -413,8 +422,8 @@ Exceptions
 
 \begin_layout Standard
 When bad things happen an exception is raised and an error JSON document
- returned.
- These have the following format:
+ returned and the HTTP status of the request is set according.
+ The JSON document have the following format:
 \end_layout
 
 \begin_layout LyX-Code
@@ -438,8 +447,13 @@ When bad things happen an exception is raised and an error JSON document
 \end_layout
 
 \begin_layout Standard
-All exceptions have this format.
- It is entirely up to the client to decide what to do with an exception.
+All exceptions/errors have this format.
+ If a request contains bad parameters an error JSON document is returned
+ and the HTTP 400 code is set.
+ If a serverside error occurs an error JSON document is returned and the
+ HTTP 500 status code is set.
+ How these error documents and HTTP status codes are handled is entirely
+ up to the client.
 \end_layout
 
 \begin_layout Section
