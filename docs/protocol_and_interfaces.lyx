@@ -65,7 +65,7 @@
 \begin_body
 
 \begin_layout Title
-Alice Protocol
+Alice Protocol and Interfaces
 \end_layout
 
 \begin_layout Standard
@@ -165,13 +165,6 @@ correct
  and preferred method to use for cross domain access is CORS.
  Only use JSONP if CORS for some reason or another isn't supported by your
  platform.
-\end_layout
-
-\begin_layout Standard
-Application level errors and exceptions are returned as JSON documents with
- corresponding HTTP status codes set.
- How these error documents and HTTP status codes are handled is entirely
- up to the client.
 \end_layout
 
 \begin_layout Section
@@ -322,22 +315,14 @@ db_columns
 \end_layout
 
 \begin_layout LyX-Code
-\begin_inset Quotes eld
-\end_inset
-
-sip_uri
 \begin_inset Quotes erd
 \end_inset
 
-:
+is_human
 \begin_inset Quotes erd
 \end_inset
 
-sip://arthurdent.somewhere
-\begin_inset Quotes erd
-\end_inset
-
-
+:true
 \end_layout
 
 \begin_layout LyX-Code
@@ -365,7 +350,7 @@ ce_name
 \emph default
  and 
 \emph on
-sip_uri
+is_human
 \emph default
 .
  The data found in these columns can be queried, sorted, grouped and/or
@@ -413,7 +398,7 @@ The strength of this model is that new fields can be added to a contact
 \begin_layout Standard
 The weakness of this model is of course that a poorly designed/build client
  can end up with some very bad JSON.
- We believe the strength outweighs the weakness.
+ We believe the strengths outweighs the weaknesses.
 \end_layout
 
 \begin_layout Section
@@ -421,8 +406,8 @@ Exceptions
 \end_layout
 
 \begin_layout Standard
-When bad things happen an exception is raised and an error JSON document
- returned and the HTTP status of the request is set according.
+Application level errors and exceptions are returned as JSON documents with
+ the corresponding HTTP status code set.
  The JSON document have the following format:
 \end_layout
 
@@ -457,7 +442,7 @@ All exceptions/errors have this format.
 \end_layout
 
 \begin_layout Section
-Getting Data
+The Interfaces
 \end_layout
 
 \begin_layout Subsection
@@ -527,7 +512,7 @@ ce_id
 \end_layout
 
 \begin_layout LyX-Code
-"name":"Arthur Dent",
+...,
 \end_layout
 
 \begin_layout LyX-Code
@@ -558,19 +543,11 @@ db_columns
 \begin_inset Quotes eld
 \end_inset
 
-sip_uri
+is_human
 \begin_inset Quotes erd
 \end_inset
 
-:
-\begin_inset Quotes erd
-\end_inset
-
-sip://arthurdent.somewhere
-\begin_inset Quotes erd
-\end_inset
-
-
+:true
 \end_layout
 
 \begin_layout LyX-Code
@@ -621,7 +598,7 @@ ce_id
 \end_layout
 
 \begin_layout LyX-Code
-"cellphone":"555-777-888-999", 
+..., 
 \end_layout
 
 \begin_layout LyX-Code
@@ -642,33 +619,7 @@ ce_id
 \end_layout
 
 \begin_layout LyX-Code
-}, 
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
-"email":"arthurdent42@somewhere.unknown.org",
-\end_layout
-
-\begin_layout LyX-Code
-"tags":[
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"Traveller",
-\end_layout
-
-\begin_layout LyX-Code
-"Towel",
-\end_layout
-
-\begin_layout LyX-Code
-"Heart"
-\end_layout
-
-\begin_layout LyX-Code
-]
+},
 \end_layout
 
 \end_deeper
@@ -681,7 +632,7 @@ ce_id
 \end_layout
 
 \begin_layout LyX-Code
-"phone":"999-000-111", 
+..., 
 \end_layout
 
 \begin_layout LyX-Code
@@ -706,10 +657,6 @@ ce_id
 \end_layout
 
 \end_deeper
-\begin_layout LyX-Code
-"email":"some.other@email.address"
-\end_layout
-
 \begin_layout LyX-Code
 }
 \end_layout
@@ -790,7 +737,7 @@ ce_id
 \end_layout
 
 \begin_layout LyX-Code
-"cellphone":"555-777-888-999",
+...,
 \end_layout
 
 \begin_layout LyX-Code
@@ -816,32 +763,6 @@ ce_id
 
 \end_deeper
 \begin_layout LyX-Code
-"email":"arthurdent42@somewhere.unknown.org",
-\end_layout
-
-\begin_layout LyX-Code
-"tags":[
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"Traveller",
-\end_layout
-
-\begin_layout LyX-Code
-"Towel",
-\end_layout
-
-\begin_layout LyX-Code
-"Heart"
-\end_layout
-
-\begin_layout LyX-Code
-]        
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
 },         
 \end_layout
 
@@ -850,7 +771,7 @@ ce_id
 \end_layout
 
 \begin_layout LyX-Code
-"cellphone":"333-666-111-222",             
+...,             
 \end_layout
 
 \begin_layout LyX-Code
@@ -876,10 +797,6 @@ ce_id
 
 \end_deeper
 \begin_layout LyX-Code
-"email":"some.other@email.address"
-\end_layout
-
-\begin_layout LyX-Code
 }     
 \end_layout
 
@@ -888,7 +805,7 @@ ce_id
 \end_layout
 
 \begin_layout LyX-Code
-"name":"Arthur Dent",     
+...,     
 \end_layout
 
 \begin_layout LyX-Code
@@ -901,15 +818,22 @@ ce_id
 \end_layout
 
 \begin_layout LyX-Code
-"is_human":true,         
+"ce_id":1,
 \end_layout
 
 \begin_layout LyX-Code
-"ce_id":1,         
+"ce_name":"Arthur Dent",
 \end_layout
 
 \begin_layout LyX-Code
-"ce_name":"Arthur Dent"     
+\begin_inset Quotes eld
+\end_inset
+
+is_human
+\begin_inset Quotes erd
+\end_inset
+
+:true
 \end_layout
 
 \begin_layout LyX-Code
@@ -917,10 +841,6 @@ ce_id
 \end_layout
 
 \end_deeper
-\begin_layout LyX-Code
-"type":"human" 
-\end_layout
-
 \end_deeper
 \begin_layout LyX-Code
 }
@@ -956,7 +876,7 @@ org_id
 \end_layout
 
 \begin_layout LyX-Code
-"name":"AdaHeads K/S", 
+..., 
 \end_layout
 
 \begin_layout LyX-Code
@@ -1002,7 +922,7 @@ org_id
 \end_layout
 
 \begin_layout Subsection
-/get/org_contacts?org_id=positive integer
+/get/organization_contacts?org_id=positive integer
 \end_layout
 
 \begin_layout Standard
@@ -1028,7 +948,7 @@ org_id
 \end_layout
 
 \begin_layout LyX-Code
-"name":"Zaphod B.", 
+..., 
 \end_layout
 
 \begin_layout LyX-Code
@@ -1066,7 +986,7 @@ org_id
 \end_layout
 
 \begin_layout LyX-Code
-"name":"Arthur Dent", 
+..., 
 \end_layout
 
 \begin_layout LyX-Code
@@ -1134,7 +1054,7 @@ org_id
 \end_layout
 
 \begin_layout Subsection
-/get/org_contacts_attributes?org_id=positive integer
+/get/organization_contacts_attributes?org_id=positive integer
 \end_layout
 
 \begin_layout Standard
@@ -1161,7 +1081,7 @@ org_id
 \end_layout
 
 \begin_layout LyX-Code
-"cellphone":"555-777-888-999", 
+..., 
 \end_layout
 
 \begin_layout LyX-Code
@@ -1187,32 +1107,6 @@ org_id
 
 \end_deeper
 \begin_layout LyX-Code
-"email":"arthurdent42@somewhere.unknown.org",
-\end_layout
-
-\begin_layout LyX-Code
-"tags":[
-\end_layout
-
-\begin_deeper
-\begin_layout LyX-Code
-"Traveller",
-\end_layout
-
-\begin_layout LyX-Code
-"Towel",
-\end_layout
-
-\begin_layout LyX-Code
-"Heart"
-\end_layout
-
-\begin_layout LyX-Code
-]
-\end_layout
-
-\end_deeper
-\begin_layout LyX-Code
 }, 
 \end_layout
 
@@ -1221,7 +1115,7 @@ org_id
 \end_layout
 
 \begin_layout LyX-Code
-"cellphone":"444-555-777", 
+..., 
 \end_layout
 
 \begin_layout LyX-Code
@@ -1242,14 +1136,10 @@ org_id
 \end_layout
 
 \begin_layout LyX-Code
-}, 
+},
 \end_layout
 
 \end_deeper
-\begin_layout LyX-Code
-"email":"zb@somewhere.unknown.org"
-\end_layout
-
 \begin_layout LyX-Code
 }
 \end_layout
@@ -1264,8 +1154,8 @@ org_id
 \end_layout
 
 \begin_layout Standard
-Because there can be several contact entity attribute sets associated an
- 
+Because there can be several contact entity attribute sets associated with
+ an 
 \emph on
 org_id
 \emph default
@@ -1290,7 +1180,7 @@ attributes
 \end_layout
 
 \begin_layout Subsection
-/get/org_contacts_full?org_id=positive integer
+/get/organization_contacts_full?org_id=positive integer
 \end_layout
 
 \begin_layout Standard
@@ -1301,11 +1191,11 @@ org_id
 \emph default
 , meaning it combines the data from 
 \emph on
-/get/org_contact
+/get/organization_contact
 \emph default
  and 
 \emph on
-/get/org_contact_attributes
+/get/organization_contact_attributes
 \emph default
 .
  Example JSON document:
@@ -1334,7 +1224,7 @@ org_id
 \end_layout
 
 \begin_layout Quotation
-"cellphone":"555-777-888-999", 
+..., 
 \end_layout
 
 \begin_layout Quotation
@@ -1360,44 +1250,10 @@ org_id
 
 \end_deeper
 \begin_layout Quotation
-"email":"arthurdent42@somewhere.unknown.org",
-\end_layout
-
-\begin_layout Quotation
-"tags":[
-\end_layout
-
-\begin_deeper
-\begin_layout Quotation
-"Traveller",
-\end_layout
-
-\begin_layout Quotation
-"Towel",
-\end_layout
-
-\begin_layout Quotation
-"Heart
-\begin_inset Quotes erd
-\end_inset
-
-
-\end_layout
-
-\begin_layout Quotation
-]
-\end_layout
-
-\end_deeper
-\begin_layout Quotation
 }, 
 \end_layout
 
 \end_deeper
-\begin_layout Quotation
-"name":"Arthur Dent",
-\end_layout
-
 \begin_layout Quotation
 "db_columns": 
 \end_layout
@@ -1425,10 +1281,6 @@ org_id
 
 \end_deeper
 \begin_layout Quotation
-"type":"human"
-\end_layout
-
-\begin_layout Quotation
 }, 
 \end_layout
 
@@ -1446,7 +1298,7 @@ org_id
 \end_layout
 
 \begin_layout Quotation
-"cellphone":"444-555-777", 
+..., 
 \end_layout
 
 \begin_layout Quotation
@@ -1472,18 +1324,10 @@ org_id
 
 \end_deeper
 \begin_layout Quotation
-"email":"zb@somewhere.unknown.org" 
-\end_layout
-
-\begin_layout Quotation
 }, 
 \end_layout
 
 \end_deeper
-\begin_layout Quotation
-"name":"Zaphod B.", 
-\end_layout
-
 \begin_layout Quotation
 "db_columns": 
 \end_layout
@@ -1510,10 +1354,6 @@ org_id
 \end_layout
 
 \end_deeper
-\begin_layout Quotation
-"type":"human"
-\end_layout
-
 \begin_layout Quotation
 }
 \end_layout
@@ -1553,17 +1393,7 @@ org_id
 
 \begin_layout Standard
 This interface returns the current call queue.
- This is updated once each second, so polling the /get/queue interface more
- often than once each second is both wasteful and pointless.
- Calling for example:
-\end_layout
-
-\begin_layout LyX-Code
-/get/queue
-\end_layout
-
-\begin_layout Standard
-will return a JSON string like this:
+ Example JSON document:
 \end_layout
 
 \begin_layout LyX-Code

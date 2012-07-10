@@ -1,4 +1,4 @@
-%% LyX 2.0.3 created this file.  For more info, see http://www.lyx.org/.
+%% LyX 2.0.4 created this file.  For more info, see http://www.lyx.org/.
 %% Do not edit unless you really know what you are doing.
 \documentclass[12pt,english]{article}
 \usepackage{mathptmx}
@@ -26,7 +26,7 @@
 \usepackage{babel}
 \begin{document}
 
-\title{Alice Protocol}
+\title{Alice Protocol and Interfaces}
 
 \maketitle
 \newpage{}
@@ -39,8 +39,8 @@
 \section{Introduction}
 
 Alice acts as the connector between one or more Bob clients, a PostgreSQL
-data store and one ore more PBX'es. Her main task is to get and set
-data via a HTTP/JSON based protocol.
+data store and one PBX (currently we only support Asterisk). Her main
+task is to get and set data via a HTTP/JSON based protocol.
 
 
 \section{The Protocol}
@@ -59,10 +59,6 @@ All data handled by the protocol is expected to be UTF-8 encoded.
 Alice does not check whether this is in fact the case, so when implementing
 clients, be sure to verify that all data sent to Alice are UTF-8 encoded.
 
-Application level errors and exceptions are returned as JSON documents.
-How these are handled is entirely up to the client. HTTP level errors
-are returned as normal for HTTP servers.
-
 
 \section{The Same Origin Policy - CORS and JSONP}
 
@@ -74,7 +70,7 @@ on a different domain than the one used by Alice, which in some cases
 can be a pain.
 
 The solutions to this problem is something called Cross-Origin Resource
-Sharing (CORS) and the JSONP standard. Both of these are supported
+Sharing (CORS) and the JSONP ``standard''. Both of these are supported
 out of the box by jQuery and probably also by other Javascript frameworks.
 The ``correct'' and preferred method to use for cross domain access
 is CORS. Only use JSONP if CORS for some reason or another isn't supported
@@ -114,7 +110,7 @@ return a JSON document looking like this:
 
 \textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},
 
-``sip\_uri'':''sip://arthurdent.somewhere''
+''is\_human'':true
 
 \}
 \end{lyxcode}
@@ -122,7 +118,7 @@ return a JSON document looking like this:
 \end{lyxcode}
 The \emph{db\_columns} JSON node is build from the actual columns
 available in the relational database, in this case \emph{ce\_id},
-\emph{ce\_name} and \emph{sip\_uri}. The data found in these columns
+\emph{ce\_name} and \emph{is\_human}. The data found in these columns
 can be queried, sorted, grouped and/or joined by Alice. She is, so
 to speak, aware of them. 
 
@@ -140,14 +136,15 @@ a new interface, where some given parameter is being used to search
 for specific rows of data.
 
 The weakness of this model is of course that a poorly designed/build
-client can end up with some very bad JSON. We believe the strength
-outweighs the weakness.
+client can end up with some very bad JSON. We believe the strengths
+outweighs the weaknesses.
 
 
 \section{Exceptions}
 
-When bad things happen an exception is raised and an error JSON document
-returned. These have the following format:
+Application level errors and exceptions are returned as JSON documents
+with the corresponding HTTP status code set. The JSON document have
+the following format:
 \begin{lyxcode}
 \{
 
@@ -159,11 +156,14 @@ returned. These have the following format:
 
 \}
 \end{lyxcode}
-All exceptions have this format. It is entirely up to the client to
-decide what to do with an exception.
+All exceptions/errors have this format. If a request contains bad
+parameters an error JSON document is returned and the HTTP 400 code
+is set. If a serverside error occurs an error JSON document is returned
+and the HTTP 500 status code is set. How these error documents and
+HTTP status codes are handled is entirely up to the client.
 
 
-\section{Getting Data}
+\section{The Interfaces}
 
 
 \subsection{/get/call{[}?id=call id{]}}
@@ -195,7 +195,7 @@ entity identified by \emph{ce\_id}. Example JSON document:
 \begin{lyxcode}
 \{
 
-\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},
+...,
 
 ``db\_columns'':
 \begin{lyxcode}
@@ -205,7 +205,7 @@ entity identified by \emph{ce\_id}. Example JSON document:
 
 \textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},
 
-``sip\_uri'':''sip://arthurdent.somewhere''
+``is\_human'':true
 
 \}
 \end{lyxcode}
@@ -228,7 +228,7 @@ contact entity. Example JSON document:
 \begin{lyxcode}
 \{
 
-\textquotedbl{}cellphone\textquotedbl{}:\textquotedbl{}555-777-888-999\textquotedbl{},~
+...,~
 
 \textquotedbl{}db\_columns\textquotedbl{}:
 \begin{lyxcode}
@@ -238,25 +238,13 @@ contact entity. Example JSON document:
 
 \textquotedbl{}org\_id\textquotedbl{}:1
 
-\},~
-\end{lyxcode}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}arthurdent42@somewhere.unknown.org\textquotedbl{},
-
-\textquotedbl{}tags\textquotedbl{}:{[}
-\begin{lyxcode}
-\textquotedbl{}Traveller\textquotedbl{},
-
-\textquotedbl{}Towel\textquotedbl{},
-
-\textquotedbl{}Heart\textquotedbl{}
-
-{]}
+\},
 \end{lyxcode}
 \},
 
 \{
 
-\textquotedbl{}phone\textquotedbl{}:\textquotedbl{}999-000-111\textquotedbl{},~
+...,~
 
 \textquotedbl{}db\_columns\textquotedbl{}:
 \begin{lyxcode}
@@ -268,8 +256,6 @@ contact entity. Example JSON document:
 
 \},~
 \end{lyxcode}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}some.other@email.address\textquotedbl{}
-
 \}
 
 {]}
@@ -305,7 +291,7 @@ Example JSON document:
 \begin{lyxcode}
 \{~~~~~~~~~~~~~
 
-\textquotedbl{}cellphone\textquotedbl{}:\textquotedbl{}555-777-888-999\textquotedbl{},
+...,
 
 \textquotedbl{}db\_columns\textquotedbl{}:~
 \begin{lyxcode}
@@ -317,23 +303,11 @@ Example JSON document:
 
 \},~~~~~~~~~~~~~
 \end{lyxcode}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}arthurdent42@somewhere.unknown.org\textquotedbl{},
-
-\textquotedbl{}tags\textquotedbl{}:{[}
-\begin{lyxcode}
-\textquotedbl{}Traveller\textquotedbl{},
-
-\textquotedbl{}Towel\textquotedbl{},
-
-\textquotedbl{}Heart\textquotedbl{}
-
-{]}~~~~~~~~
-\end{lyxcode}
 \},~~~~~~~~~
 
 \{~~~~~~~~~~~~~
 
-\textquotedbl{}cellphone\textquotedbl{}:\textquotedbl{}333-666-111-222\textquotedbl{},~~~~~~~~~~~~~
+...,~~~~~~~~~~~~~
 
 \textquotedbl{}db\_columns\textquotedbl{}:~
 \begin{lyxcode}
@@ -345,27 +319,24 @@ Example JSON document:
 
 \},~~~~~~~~~~~~~
 \end{lyxcode}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}some.other@email.address\textquotedbl{}
-
 \}~~~~~
 
 {]},~~~~~
 
-\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},~~~~~
+...,~~~~~
 
 \textquotedbl{}db\_columns\textquotedbl{}:~
 \begin{lyxcode}
 \{~~~~~~~~~
 
-\textquotedbl{}is\_human\textquotedbl{}:true,~~~~~~~~~
+\textquotedbl{}ce\_id\textquotedbl{}:1,
 
-\textquotedbl{}ce\_id\textquotedbl{}:1,~~~~~~~~~
+\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},
 
-\textquotedbl{}ce\_name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{}~~~~~
+``is\_human'':true
 
 \},~~~~~
 \end{lyxcode}
-\textquotedbl{}type\textquotedbl{}:\textquotedbl{}human\textquotedbl{}~
 \end{lyxcode}
 \}
 \end{lyxcode}
@@ -381,7 +352,7 @@ organization. Example JSON:
 \begin{lyxcode}
 \{
 
-\textquotedbl{}name\textquotedbl{}:\textquotedbl{}AdaHeads~K/S\textquotedbl{},~
+...,~
 
 \textquotedbl{}db\_columns\textquotedbl{}:
 \begin{lyxcode}
@@ -403,7 +374,7 @@ is found in the database:
 \{\}
 \end{lyxcode}
 
-\subsection{/get/org\_contacts?org\_id=positive integer}
+\subsection{/get/organization\_contacts?org\_id=positive integer}
 
 This interface returns all the contact entities associated with \emph{org\_id}.
 Example JSON:
@@ -414,7 +385,7 @@ Example JSON:
 \begin{lyxcode}
 \{
 
-\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Zaphod~B.\textquotedbl{},~
+...,~
 
 \textquotedbl{}db\_columns\textquotedbl{}:
 \begin{lyxcode}
@@ -432,7 +403,7 @@ Example JSON:
 
 \{
 
-\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Arthur~Dent\textquotedbl{},~
+...,~
 
 \textquotedbl{}db\_columns\textquotedbl{}:
 \begin{lyxcode}
@@ -463,7 +434,7 @@ contact entities. If no contact entities are associated with the given
 \}
 \end{lyxcode}
 
-\subsection{/get/org\_contacts\_attributes?org\_id=positive integer}
+\subsection{/get/organization\_contacts\_attributes?org\_id=positive integer}
 
 This interface returns all the contact entity attribute sets associated
 with \emph{org\_id}. Example JSON document:
@@ -474,7 +445,7 @@ with \emph{org\_id}. Example JSON document:
 \begin{lyxcode}
 \{
 
-\textquotedbl{}cellphone\textquotedbl{}:\textquotedbl{}555-777-888-999\textquotedbl{},~
+...,~
 
 \textquotedbl{}db\_columns\textquotedbl{}:
 \begin{lyxcode}
@@ -486,23 +457,11 @@ with \emph{org\_id}. Example JSON document:
 
 \},~
 \end{lyxcode}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}arthurdent42@somewhere.unknown.org\textquotedbl{},
-
-\textquotedbl{}tags\textquotedbl{}:{[}
-\begin{lyxcode}
-\textquotedbl{}Traveller\textquotedbl{},
-
-\textquotedbl{}Towel\textquotedbl{},
-
-\textquotedbl{}Heart\textquotedbl{}
-
-{]}
-\end{lyxcode}
 \},~
 
 \{
 
-\textquotedbl{}cellphone\textquotedbl{}:\textquotedbl{}444-555-777\textquotedbl{},~
+...,~
 
 \textquotedbl{}db\_columns\textquotedbl{}:
 \begin{lyxcode}
@@ -512,10 +471,8 @@ with \emph{org\_id}. Example JSON document:
 
 \textquotedbl{}org\_id\textquotedbl{}:1
 
-\},~
+\},
 \end{lyxcode}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}zb@somewhere.unknown.org\textquotedbl{}
-
 \}
 
 {]}
@@ -523,8 +480,9 @@ with \emph{org\_id}. Example JSON document:
 \}
 \end{lyxcode}
 Because there can be several contact entity attribute sets associated
-an \emph{org\_id} the \emph{attributes} JSON node contains an array.
-If there are no attribute sets, the following JSON document is returned:
+with an \emph{org\_id} the \emph{attributes} JSON node contains an
+array. If there are no attribute sets, the following JSON document
+is returned:
 \begin{lyxcode}
 \{
 
@@ -533,11 +491,11 @@ If there are no attribute sets, the following JSON document is returned:
 \}
 \end{lyxcode}
 
-\subsection{/get/org\_contacts\_full?org\_id=positive integer}
+\subsection{/get/organization\_contacts\_full?org\_id=positive integer}
 
 This interface returns the full contact data for all contacts associated
-with \emph{org\_id}, meaning it combines the data from \emph{/get/org\_contact}
-and \emph{/get/org\_contact\_attributes}. Example JSON document:
+with \emph{org\_id}, meaning it combines the data from \emph{/get/organization\_contact}
+and \emph{/get/organization\_contact\_attributes}. Example JSON document:
 \begin{quotation}
 \{ 
 
@@ -549,7 +507,7 @@ and \emph{/get/org\_contact\_attributes}. Example JSON document:
 \begin{quotation}
 \{
 
-\textquotedbl{}cellphone\textquotedbl{}:\textquotedbl{}555-777-888-999\textquotedbl{}, 
+..., 
 
 \textquotedbl{}db\_columns\textquotedbl{}: 
 \begin{quotation}
@@ -561,22 +519,8 @@ and \emph{/get/org\_contact\_attributes}. Example JSON document:
 
 \}, 
 \end{quotation}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}arthurdent42@somewhere.unknown.org\textquotedbl{},
-
-\textquotedbl{}tags\textquotedbl{}:{[}
-\begin{quotation}
-\textquotedbl{}Traveller\textquotedbl{},
-
-\textquotedbl{}Towel\textquotedbl{},
-
-\textquotedbl{}Heart''
-
-{]}
-\end{quotation}
 \}, 
 \end{quotation}
-\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Arthur Dent\textquotedbl{},
-
 \textquotedbl{}db\_columns\textquotedbl{}: 
 \begin{quotation}
 \{ 
@@ -589,8 +533,6 @@ and \emph{/get/org\_contact\_attributes}. Example JSON document:
 
 \}, 
 \end{quotation}
-\textquotedbl{}type\textquotedbl{}:\textquotedbl{}human\textquotedbl{}
-
 \}, 
 
 \{ 
@@ -599,7 +541,7 @@ and \emph{/get/org\_contact\_attributes}. Example JSON document:
 \begin{quotation}
 \{ 
 
-\textquotedbl{}cellphone\textquotedbl{}:\textquotedbl{}444-555-777\textquotedbl{}, 
+..., 
 
 \textquotedbl{}db\_columns\textquotedbl{}: 
 \begin{quotation}
@@ -611,12 +553,8 @@ and \emph{/get/org\_contact\_attributes}. Example JSON document:
 
 \}, 
 \end{quotation}
-\textquotedbl{}email\textquotedbl{}:\textquotedbl{}zb@somewhere.unknown.org\textquotedbl{} 
-
 \}, 
 \end{quotation}
-\textquotedbl{}name\textquotedbl{}:\textquotedbl{}Zaphod B.\textquotedbl{}, 
-
 \textquotedbl{}db\_columns\textquotedbl{}: 
 \begin{quotation}
 \{ 
@@ -629,8 +567,6 @@ and \emph{/get/org\_contact\_attributes}. Example JSON document:
 
 \},
 \end{quotation}
-\textquotedbl{}type\textquotedbl{}:\textquotedbl{}human\textquotedbl{}
-
 \}
 
 {]} 
@@ -649,13 +585,7 @@ JSON document is returned:
 
 \subsection{/get/queue}
 
-This interface returns the current call queue. This is updated once
-each second, so polling the /get/queue interface more often than once
-each second is both wasteful and pointless. Calling for example:
-\begin{lyxcode}
-/get/queue
-\end{lyxcode}
-will return a JSON string like this:
+This interface returns the current call queue. Example JSON document:
 \begin{lyxcode}
 \{
 
