@@ -56,6 +56,8 @@ package body Call_Queue is
    --  Unique identifier for each call in the queue. This type will
    --  obviously depend heavily on the kind of ID used internally by the PBX.
 
+   Empty_Call_Id : constant Call_Id := "          ";
+
    type Call is
       record
          Id            : Call_Id;
@@ -215,7 +217,7 @@ package body Call_Queue is
                     Priority => P,
                     Start    => Clock);
 
-         if Id_Array (C + 1) /= "          " then
+         if Id_Array (C + 1) /= Empty_Call_Id then
             Queue.Remove (Id_Array (C + 1));
          end if;
 
@@ -582,27 +584,32 @@ package body Call_Queue is
          Org_Id  :    out Natural;
          Success :    out Boolean)
       is
-         Elem : Call;
+         use Ordered_Call_Queue_Map;
+
+         C    : Ordered_Call_Queue_Map.Cursor;
       begin
          Org_Id := 0;
          Success := False;
 
-         for Queue of Queue_Maps loop
-            for C in Queue.Iterate loop
-               Elem := Ordered_Call_Queue_Map.Element (C);
+         Queue_Maps_Loop :
+         for P in Queue_Maps'Range loop
+            C := Queue_Maps (P).First;
 
-               if Elem.Id = Id then
-                  Org_Id := Elem.Callee;
+            Remove_Loop :
+            for K in 1 .. Queue_Maps (P).Length loop
+               if Element (C).Id = Id then
+                  Org_Id := Element (C).Callee;
                   Success := True;
                   Rebuild_JSON := True;
 
-                  Queue.Delete (C);
+                  Queue_Maps (P).Delete (C);
 
+                  exit Queue_Maps_Loop;
                end if;
-            end loop;
 
-            exit when Success;
-         end loop;
+               Next (C);
+            end loop Remove_Loop;
+         end loop Queue_Maps_Loop;
       end Remove;
 
       --------------------
@@ -628,7 +635,7 @@ package body Call_Queue is
             Removed_Org_Id := Queue_Maps (Low).First_Element.Callee;
             Queue_Maps (Low).Delete_First;
          else
-            Removed_Call_Id := "          ";
+            Removed_Call_Id := Empty_Call_Id;
             Removed_Org_Id := 0;
          end if;
       end Remove_First;
