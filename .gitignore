@@ -16,3 +16,6 @@ exe/session/*
 # Do not track emacs temporary and backup files
 \#*#
 *~
+
+Â# Do not track Nano temporary files
+.#*#
