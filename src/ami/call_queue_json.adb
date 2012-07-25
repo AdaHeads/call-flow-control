@@ -2,7 +2,6 @@ with Ada.Calendar;
 with Ada.Calendar.Conversions;
 with Interfaces.C;
 with Ada.Strings.Fixed;
-with Ada.Strings.Unbounded;
 with Response;
 with HTTP_Codes;
 with Ada.Containers;
@@ -69,13 +68,11 @@ package body Call_Queue_JSON is
 
    function Get_Call (Request : in AWS.Status.Data)
                       return AWS.Response.Data is
-      use Ada.Strings.Unbounded;
-
+--        use AWS.Parameters;
+      use AWS.Status;
       Call : Call_Queue.Call_Type;
-      Agent : constant Unbounded_String :=
-        To_Unbounded_String ("SIP/TP-Softphone");
-      Unitqueid : constant Unbounded_String :=
-        To_Unbounded_String ("12345678");
+      Agent : constant String := Parameters (Request).Get ("agent");
+      Unitqueid : constant String :=  Parameters (Request).Get ("uniqueid");
 
       JSON : JSON_Value;
    begin

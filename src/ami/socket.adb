@@ -118,20 +118,19 @@ package body Socket is
 
    --  Get the specific call with UniqueId matching
    --  If unitqueID is null, then the first call in the queue is taken.
-   procedure Get_Call (Uniqueid : in     Unbounded_String;
-                       Agent    : in     Unbounded_String;
+   procedure Get_Call (Uniqueid : in     String;
+                       Agent    : in     String;
                        Call     :    out Call_Queue.Call_Type) is
 
       temp_Call : Call_Type;
       Peer : Peer_Type;
       Peer_List_Index : constant Peer_List_Type.Cursor :=
-        Peer_List_Type.Find (Peer_List, Agent);
+        Peer_List_Type.Find (Peer_List, To_Unbounded_String (Agent));
    begin
       --  Check if there exsist an Agent by that name.
       if not Peer_List_Type.Has_Element
         (Position => Peer_List_Index) then
-         Put_Line ("We have no agent registred by the name: " &
-                     To_String (Agent));
+         Put_Line ("We have no agent registred by the name: " & Agent);
          Call := null_Call;
          return;
 --           raise Program_Error;
@@ -141,8 +140,7 @@ package body Socket is
       --   is the SIP phone registreted
       Peer := Peer_List_Type.Element (Peer_List_Index);
       if Peer.Status = Unregistered then
-         Put_Line ("The following agent is unregistred: " &
-                     To_String (Agent));
+         Put_Line ("The following agent is unregistred: " & Agent);
          raise Program_Error;
       end if;
 
@@ -152,10 +150,11 @@ package body Socket is
 
       --  If Uniqueueid parameter is null,
       --   then take the next call in the call queue.
-      if Uniqueid = Null_Unbounded_String then
+      if Uniqueid = "" then
          Call_Queue.Dequeue (Call => temp_Call);
       else
-         Call_Queue.Dequeue (Uniqueid => Uniqueid, Call => temp_Call);
+         Call_Queue.Dequeue (Uniqueid => To_Unbounded_String (Uniqueid),
+                             Call => temp_Call);
       end if;
 
       --  If there is a call to anwser.
@@ -177,8 +176,8 @@ package body Socket is
 
          --  Send the call out to the phone
          Redirect (Asterisk_AMI => Asterisk,
-                   Channel => temp_Call.Channel,
-                   Exten => Peer.Exten);
+                   Channel      => temp_Call.Channel,
+                   Exten        => Peer.Exten);
       else
          Put_Line ("No Call to take");
 
@@ -687,8 +686,6 @@ package body Socket is
                     Username : in String;
                     Secret   : in String) is
       use Task_Controller;
---        Username : constant String := "filtertest"; --  "admin";
---        Secret : constant String := "filtertest"; --  "amp111";
    begin
       Asterisk := (Greeting  => new String'(Read_Line (channel)),
                    Channel   => channel,
@@ -715,10 +712,12 @@ package body Socket is
                     (Socket.Event'Value (To_String
                      (Event_List (Event_List'First, Value)))) (Event_List);
                exception
-                  when Error : others =>
-                     Put_Line ("Event not implemented: " &
-                                 To_String (Event_List (1, Value)));
-                     Put_Line (Exception_Message (Error));
+                  when others =>
+                     null;
+--                    when Error : others =>
+--                       Put_Line ("Event not implemented: " &
+--                                   To_String (Event_List (1, Value)));
+--                       Put_Line (Exception_Message (Error));
                end;
 
             elsif Event_List (Event_List'First, Key)  = "Response" then
@@ -735,9 +734,9 @@ package body Socket is
          end;
       end loop;
    exception
-      when Error : others =>
-         Put_Line (Exception_Message (Error));
-         Put_Line ("Socket.Start: ");
+      when AWS.Net.Socket_Error =>
+         --  When the socket is terminated the Read_Package throws an exception
+         Put_Line (" AMI Socket Shutdowned");
    end Start;
 
    procedure TEST_StatusPrint is

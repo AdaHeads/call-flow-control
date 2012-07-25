@@ -14,8 +14,8 @@ package Socket is
                     Secret   : in String);
    --  Here starts the part of the program, that listens for events
 
-   procedure Get_Call (Uniqueid   : in     Unbounded_String;
-                       Agent      : in     Unbounded_String;
+   procedure Get_Call (Uniqueid   : in     String;
+                       Agent      : in     String;
                        Call       :    out Call_Queue.Call_Type);
    --  Takes a call from the call_Queue, and redirects it to the Agent.
 
