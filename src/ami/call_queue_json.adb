@@ -2,30 +2,26 @@ with Ada.Calendar;
 with Ada.Calendar.Conversions;
 with Interfaces.C;
 with Ada.Strings.Fixed;
-with Response;
-with HTTP_Codes;
-with Ada.Containers;
-with Common;
-with Socket;
 package body Call_Queue_JSON is
    use GNATCOLL.JSON;
-   use Common;
-   --     function Convert_Call (Call : Call_Queue.Call_Type)
-   --                            return JSON_String is
-   --        use Call_Queue;
-   --        use GNATCOLL.JSON;
-   --        Value : constant JSON_Value := Convert_Call_To_JSON_Object (Call);
-   --     begin
-   --        return To_JSON_String (Value.Write);
-   --     end Convert_Call;
 
    Length_String : constant String := "Length";
+
+   function Convert_Call (Call : in Call_Queue.Call_Type)
+                          return JSON_String is
+      JSON : JSON_Value;
+   begin
+      JSON := Convert_Call_To_JSON_Object (Call => Call);
+
+      return To_JSON_String (JSON.Write);
+   end Convert_Call;
 
    function Convert_Call_To_JSON_Object (Call : Call_Queue.Call_Type)
                                          return GNATCOLL.JSON.JSON_Value is
       use Ada.Calendar;
       use Ada.Calendar.Conversions;
       use Call_Queue;
+
       function Unix_Timestamp
         (Date : in Time)
          return String;
@@ -66,51 +62,25 @@ package body Call_Queue_JSON is
       return Value;
    end Convert_Call_To_JSON_Object;
 
-   function Get_Call (Request : in AWS.Status.Data)
-                      return AWS.Response.Data is
---        use AWS.Parameters;
-      use AWS.Status;
-      Call : Call_Queue.Call_Type;
-      Agent : constant String := Parameters (Request).Get ("agent");
-      Unitqueid : constant String :=  Parameters (Request).Get ("uniqueid");
+   function Convert_Length (Length : in Ada.Containers.Count_Type)
+                            return JSON_String is
 
-      JSON : JSON_Value;
-   begin
-      Socket.Get_Call (Uniqueid => Unitqueid,
-                       Agent    => Agent,
-                       Call     => Call);
-
-      JSON := Convert_Call_To_JSON_Object (Call => Call);
-
-      return Response.Build_JSON_Response
-        (Request => Request,
-         Content => To_JSON_String (JSON.Write),
-         Status  => HTTP_Codes.OK);
-   end Get_Call;
-
-   function Get_Length (Request : in AWS.Status.Data)
-                        return AWS.Response.Data is
-      Queue_Length : constant Ada.Containers.Count_Type :=
-        Call_Queue.Queue_Length;
       Text : constant String :=
-        Ada.Strings.Fixed.Trim (Integer (Queue_Length)'Img, Ada.Strings.Left);
+        Ada.Strings.Fixed.Trim (Integer (Length)'Img, Ada.Strings.Left);
       JSON : constant JSON_Value := Create_Object;
    begin
       JSON.Set_Field (Length_String, Text);
 
-      return Response.Build_JSON_Response
-        (Request => Request,
-         Content => To_JSON_String (JSON.Write),
-         Status  => HTTP_Codes.OK);
-   end Get_Length;
+      return To_JSON_String (JSON.Write);
+   end Convert_Length;
 
-   function Get_Queue (Request : in AWS.Status.Data)
-                            return AWS.Response.Data is
+   function Convert_Queue (Queue : in Call_Queue.Call_Queue_Type;
+                           Queue_Length : in Ada.Containers.Count_Type)
+                            return JSON_String is
       use Call_Queue;
 
-      Queue : constant Call_Queue_Type := Call_Queue.Get_Queue;
       JSON_List : JSON_Array := Empty_Array;
-      Value : JSON_Value;
+      Value     : JSON_Value;
 
       Result : constant JSON_Value := Create_Object;
    begin
@@ -128,8 +98,6 @@ package body Call_Queue_JSON is
       --  TODO Find another methode for finding the length,
       --        because no we are asking on the length of an other Queue.
       declare
-         Queue_Length : constant Ada.Containers.Count_Type :=
-           Call_Queue.Queue_Length;
          Text : constant String :=
            Ada.Strings.Fixed.Trim (Integer (Queue_Length)'Img,
                                    Ada.Strings.Left);
@@ -137,21 +105,7 @@ package body Call_Queue_JSON is
          Result.Set_Field (Length_String, Text);
       end;
 
-      return Response.Build_JSON_Response
-        (Request => Request,
-         Content => To_JSON_String (Result.Write),
-         Status  => HTTP_Codes.OK);
-   end Get_Queue;
-
-   --     function Convert_Call_Length (Item : Ada.Containers.Count_Type)
-   --                                   return JSON_String is
-   --        use GNATCOLL.JSON;
-   --        Length : constant String :=
-   --          Ada.Strings.Fixed.Trim (Integer (Item)'Img, Ada.Strings.Left);
-   --        JSON : constant JSON_Value := Create_Object;
-   --     begin
-   --        JSON.Set_Field ("Length", Length);
-   --        return To_JSON_String (JSON.Write);
-   --     end Convert_Call_Length;
+      return To_JSON_String (Result.Write);
+   end Convert_Queue;
 
 end Call_Queue_JSON;

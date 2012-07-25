@@ -9,7 +9,7 @@ package body AMI is
 
    task AMI_Service is
       entry Start (Username : in String;
-                   Secret : in String);
+                   Secret   : in String);
    end AMI_Service;
 
    task body AMI_Service is
@@ -18,17 +18,17 @@ package body AMI is
       Secret_Unbounded : Unbounded_String;
    begin
       accept Start (Username : in String;
-                    Secret : in String) do
+                    Secret   : in String) do
          Username_Unbounded := To_Unbounded_String (Username);
-         Secret_Unbounded := To_Unbounded_String (Secret);
+         Secret_Unbounded   := To_Unbounded_String (Secret);
       end Start;
 
       Socket.Start (Channel, To_String (Username_Unbounded),
-                            To_String (Secret_Unbounded));
+                             To_String (Secret_Unbounded));
 
    exception
       when others =>
-         Ada.Text_IO.Put_Line ("Exception in AMI: ");
+         Ada.Text_IO.Put_Line ("Exception in AMI.adb");
    end AMI_Service;
 
    procedure Connect (Server_Host : in String := "Asterisk1";

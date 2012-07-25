@@ -1,4 +1,3 @@
---  with Ada.Streams;
 with Ada.Characters.Latin_1;
 with AWS.Net.Buffered;
 
@@ -12,9 +11,11 @@ package body Asterisk_AMI_IO is
 
    function Read_Package (Channel : in AWS.Net.Std.Socket_Type)
                           return Unbounded_String is
+
       package Char renames Ada.Characters.Latin_1;
+
       Newline : constant String := Char.CR & Char.LF;
-      Buffer : Unbounded_String;
+      Buffer  : Unbounded_String;
    begin
       Collecting_Package :
       loop

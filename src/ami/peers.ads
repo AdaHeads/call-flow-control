@@ -12,9 +12,9 @@ package Peers is
    type SIP_Peer_Status_Type is (Unregistered, Registered);
 
    package Call_List is new
-     Ada.Containers.Vectors (Index_Type => Positive,
+     Ada.Containers.Vectors (Index_Type   => Positive,
                              Element_Type => Call_Queue.Call_Type,
-                             "=" => Call_Queue."=");
+                             "="          => Call_Queue."=");
 
    type Peer_Type is
       record

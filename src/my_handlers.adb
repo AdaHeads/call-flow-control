@@ -22,7 +22,6 @@
 -------------------------------------------------------------------------------
 
 with AWS.Dispatchers.Callback;
-with Call_Queue_JSON;
 with Contact;
 with Contact_Attributes;
 with Contact_Full;
@@ -32,6 +31,7 @@ with Organization_Contacts;
 with Organization_Contacts_Attributes;
 with Organization_Contacts_Full;
 with Yolk.Not_Found;
+with Call_Queue_Handler;
 
 package body My_Handlers is
 
@@ -70,7 +70,7 @@ package body My_Handlers is
         (Dispatcher => RH,
          URI        => My.Config.Get (My.Handler_Get_Call),
          Action     => Create
-           (Callback => Call_Queue_JSON.Get_Call'Access));
+           (Callback => Call_Queue_Handler.Get_Call'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
@@ -113,13 +113,13 @@ package body My_Handlers is
         (Dispatcher => RH,
          URI        => My.Config.Get (My.Handler_Get_Queue),
          Action     => Create
-           (Callback => Call_Queue_JSON.Get_Queue'Access));
+           (Callback => Call_Queue_Handler.Get_Queue'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => My.Config.Get (My.Handler_Get_Queue_Length),
          Action     => Create
-           (Callback => Call_Queue_JSON.Get_Length'Access));
+           (Callback => Call_Queue_Handler.Get_Length'Access));
    end Set;
 
 end My_Handlers;

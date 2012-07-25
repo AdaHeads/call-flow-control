@@ -3,40 +3,22 @@ with Ada.Exceptions;
 with Ada.Characters.Latin_1;
 package body Event_Parser is
 
-   --  TODO, remove it, for the use of an build-in procedure.
-   function CountLines (Event : in Unbounded_String) return Natural is
-      count : Integer := 0;
-      package Char renames Ada.Characters.Latin_1;
-
-      Event_Temp : constant String := To_String (Event);
-   begin
-      for i in Event_Temp'Range loop
-         if Event_Temp (i) = Char.LF then
-            count := count + 1;
-         end if;
-      end loop;
-      return count;
-   exception
-      when others =>
-         Ada.Text_IO.Put_Line ("Something is wrong in Even_parser CountLines");
-         return 0;
-   end CountLines;
-
    function Parse (Event_Text : in Unbounded_String) return Event_List_Type is
       package Char renames Ada.Characters.Latin_1;
       EventSize : Integer;
+      Linetermination : constant String := Char.CR & Char.LF;
    begin
---        Ada.Text_IO.Put_Line ("Parse: " & To_String (Event_Text));
-      EventSize := CountLines (Event_Text);
+      --  Counting the number of lines
+      EventSize := Ada.Strings.Unbounded.Count (Event_Text, Linetermination);
       declare
-         List : Event_List_Type (1 .. EventSize, KeyValue'Range);
-         List_Index : Positive := 1;
-         Text_Index : Positive := 1;
-         Text : Unbounded_String := Event_Text;
-         KeyText : Unbounded_String;
-         ValueText : Unbounded_String;
-         Key_Seperator : constant String := Char.Colon & Char.Space;
-         Value_Seperator : constant String := Char.CR & Char.LF;
+         List            : Event_List_Type (1 .. EventSize, KeyValue'Range);
+         List_Index      : Positive         := 1;
+         Text_Index      : Positive         := 1;
+         Text            : Unbounded_String := Event_Text;
+         KeyText         : Unbounded_String;
+         ValueText       : Unbounded_String;
+         Key_Seperator   : constant String  := Char.Colon & Char.Space;
+         Value_Seperator : constant String  := Char.CR & Char.LF;
       begin
          loop
             Text_Index := Index (Source => Text,
@@ -50,8 +32,6 @@ package body Event_Parser is
                             Pattern => Value_Seperator);
             ValueText := Head (Source => Text, Count => Text_Index - 1);
 
-            --              Put_Line ("Key: [" & To_String (Key) & "]");
-            --              Put_Line ("Value: [" & To_String (Value) & "]");
             List (List_Index, Key) := KeyText;
             List (List_Index, Value) := ValueText;
 

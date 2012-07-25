@@ -5,14 +5,26 @@ package body Call_Queue is
 
    protected Call_Queue is
       procedure Enqueue (Call : in Call_Type);
+      --  Places a call on the callqueue.
+
       procedure Dequeue (Call : out Call_Type);
+      --  Takes the next call in the queue.
+
       procedure Dequeue (Uniqueid : in     Unbounded_String;
                          Call     :    out Call_Type);
+      --  Takes out a specific call from the callqueue.
+
       procedure Remove  (Uniqueid : in Unbounded_String);
+      --  Removes a specific call.
 
       function Get_Queue      return Call_Queue_Type;
+      --  Returns the entire queue.
+
       function Queue_Length   return Ada.Containers.Count_Type;
+      --  Gives the number of calls waiting in the call queue.
+
       function Queue_ToString return Unbounded_String;
+      --  Return a Debug friendly String representation of the callqueue.
    private
       Queue : Call_Queue_Type;
    end Call_Queue;
@@ -70,7 +82,7 @@ package body Call_Queue is
          return Queue;
       end Get_Queue;
 
-      --  returns the number of calls waiting in a queue.
+      --  Returns the number of calls waiting in a queue.
       function Queue_Length return Ada.Containers.Count_Type is
          use Ada.Containers;
 
@@ -128,24 +140,25 @@ package body Call_Queue is
       end Remove;
    end Call_Queue;
 
+   --  Takes the first call with the highest priority
    procedure Dequeue (Call : out Call_Type) is
    begin
       Call_Queue.Dequeue (Call);
    end Dequeue;
-   --  Takes a specific call out from the call queue.
 
+   --  Takes a specific call out from the call queue.
    procedure Dequeue (Uniqueid : in Unbounded_String; Call : out Call_Type) is
    begin
       Call_Queue.Dequeue (Uniqueid, Call);
    end Dequeue;
-   --  Takes the first call with the highest priority
 
+   --  Places a call on the call queue.
    procedure Enqueue (Call : in Call_Type) is
    begin
       Call_Queue.Enqueue (Call);
    end Enqueue;
-   --  Places a call on the call queue.
 
+   --  Returns the priority of the call, based on the company
    function Get_Company_Priority (CompanyName : Unbounded_String)
                                   return Priority_Level is
    begin
@@ -157,14 +170,14 @@ package body Call_Queue is
          return Low;
       end if;
    end Get_Company_Priority;
-   --  Gives the companys priority in the call queue strcture.
 
+   --  Returns the entire call queue.
    function Get_Queue return Call_Queue_Type is
    begin
       return Call_Queue.Get_Queue;
    end Get_Queue;
-   --  Returns the entire call queue.
 
+   --  Prints a call out to the screen.
    procedure printCall (Call : in Call_Type) is
       use Ada.Text_IO;
    begin
@@ -173,23 +186,22 @@ package body Call_Queue is
       Put (", Uniqueid => " & To_String (Call.Uniqueid));
       New_Line;
    end printCall;
-   --  Prints a call out to the screen.
 
+   --  Gives the length of the call queue.
    function Queue_Length return Ada.Containers.Count_Type is
    begin
       return Call_Queue.Queue_Length;
    end Queue_Length;
-   --  Gives the length of the call queue.
 
+   --  Returns a debug friendly String representation of the call queue.
    function Queue_ToString return Unbounded_String is
    begin
       return Call_Queue.Queue_ToString;
    end Queue_ToString;
-   --  Returns a debug friendly String representation of the call queue.
 
+   --  Removes a specific call from the call queue.
    procedure Remove (Uniqueid : in Unbounded_String) is
    begin
       Call_Queue.Remove (Uniqueid);
    end Remove;
-   --  Removes a specific call from the call queue.
 end Call_Queue;
