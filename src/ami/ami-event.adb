@@ -4,14 +4,12 @@ with Ada.Calendar;
 with Ada.Containers;
 with AMI.IO; use AMI.IO;
 with Task_Controller;
-with AMI.Action;
 with AMI.Protocol;
 
 package body AMI.Event is
    use Call_Queue;
-
+   use AMI.Action;
    Asterisk         : Asterisk_AMI_Type;
-   Last_Action      : Action := None;
    Peer_List        : Peer_List_Type.Map;
    Consistency      : Queue_Type.Vector;
 
@@ -269,7 +267,6 @@ package body AMI.Event is
          Callback_Routine (Login) := Callback;
       end if;
 
-      Last_Action := Login;
    end Login;
 
    procedure Login_Callback (Event_List : in Event_List_Type) is
@@ -289,7 +286,6 @@ package body AMI.Event is
 
    begin
       AMI.Action.Logoff (Asterisk_AMI.Channel);
-      Last_Action := Logoff;
 
       if Callback /= null then
          --  Callback;
@@ -601,11 +597,6 @@ package body AMI.Event is
       end if;
    end Register_Agent;
 
-   procedure Set_Last_Action (Item : in Action) is
-   begin
-      Last_Action := Item;
-   end Set_Last_Action;
-
    --  Lists the SIP peers. Returns a PeerEntry event for each
    --  SIP peer, and a PeerlistComplete event upon completetion
    --  Event: PeerEntry
@@ -671,7 +662,7 @@ package body AMI.Event is
 
             elsif Event_List (Event_List'First, Key)  = "Response" then
                --  Lookup the callback, and pass the value.
-               Callback_Routine (Last_Action)(Event_List);
+               Callback_Routine (AMI.Action.Get_Last_Action)(Event_List);
                --  Direct it to the callback associated
                --    with the previous commmand
             end if;

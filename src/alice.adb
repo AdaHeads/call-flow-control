@@ -32,7 +32,7 @@ with Yolk.Process_Control;
 with Yolk.Process_Owner;
 with Yolk.Utilities;
 with Yolk.Whoops;
-with AMI;
+with AMI.Std;
 
 procedure Alice is
 
@@ -75,7 +75,7 @@ procedure Alice is
          --  load the old session data.
       end if;
 
-      AMI.Connect;
+      AMI.Std.Connect;
 
       AWS.Server.Start (Web_Server => Web_Server,
                         Dispatcher => Resource_Handlers,
@@ -120,7 +120,7 @@ procedure Alice is
 
       AWS.Server.Shutdown (Web_Server);
 
-      AMI.Disconnect;
+      AMI.Std.Disconnect;
 
       if AWS.Server.Log.Is_Active (Web_Server) then
          AWS.Server.Log.Stop (Web_Server);

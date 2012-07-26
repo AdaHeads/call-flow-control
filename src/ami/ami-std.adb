@@ -1,10 +1,10 @@
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
-with AMI.Event; pragma Elaborate (AMI.Event);
+with AMI.Event;
 with AWS.Net.Std;
 with AWS.Net.Buffered;
 
-package body AMI is
+package body AMI.Std is
    Channel : AWS.Net.Std.Socket_Type;
    --  it has package scope because, we need it in the Disconnect procedure.
 
@@ -16,7 +16,7 @@ package body AMI is
    task body AMI_Service is
       use Ada.Strings.Unbounded;
       Username_Unbounded : Unbounded_String;
-      Secret_Unbounded : Unbounded_String;
+      Secret_Unbounded   : Unbounded_String;
    begin
       accept Start (Username : in String;
                     Secret   : in String) do
@@ -34,8 +34,8 @@ package body AMI is
 
    procedure Connect (Server_Host : in String := "Asterisk1";
                       Server_Port : in Positive := 5038;
-                      Username : in String := "test";
-                      Secret : in String := "test") is
+                      Username    : in String := "test";
+                      Secret      : in String := "test") is
    begin
       AWS.Net.Std.Connect (Socket => Channel,
                            Host => Server_Host,
@@ -49,4 +49,4 @@ package body AMI is
    begin
       AWS.Net.Buffered.Shutdown (Channel);
    end Disconnect;
-end AMI;
+end AMI.Std;
