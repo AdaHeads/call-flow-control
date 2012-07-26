@@ -150,7 +150,7 @@ private
    --  http://www.voip-info.org/wiki/view/asterisk+manager+events
 
    type Event is
-     --Agent Status Events
+     --  Agent Status Events
      (Agentcallbacklogin,
       Agentcallbacklogoff,
       AgentCalled,
