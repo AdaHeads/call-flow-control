@@ -4,7 +4,7 @@ with Call_Queue_JSON;
 with Common; use Common;
 with Response;
 with HTTP_Codes;
-with Socket;
+with AMI.Event;
 
 package body Call_Queue_Handler is
    --  returns the first call in the list.
@@ -17,7 +17,7 @@ package body Call_Queue_Handler is
       Call : Call_Queue.Call_Type;
       JSON : JSON_String;
    begin
-      Socket.Get_Call (Uniqueid => Unitqueid,
+      AMI.Event.Get_Call (Uniqueid => Unitqueid,
                        Agent    => Agent,
                        Call     => Call);
 

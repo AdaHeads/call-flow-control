@@ -2,14 +2,14 @@ with Ada.Characters.Latin_1;
 with AWS.Net.Buffered;
 
 --  Provides I/O routines for reading from Asterisk AMI.
-package body Asterisk_AMI_IO is
-   function Read_Line (Channel : in AWS.Net.Std.Socket_Type) return String is
-      Text : constant String := AWS.Net.Buffered.Get_Line (Socket => Channel);
+package body AMI.IO is
+   function Read_Line (Socket : in AWS.Net.Std.Socket_Type) return String is
+      Text : constant String := AWS.Net.Buffered.Get_Line (Socket => Socket);
    begin
       return Text;
    end Read_Line;
 
-   function Read_Package (Channel : in AWS.Net.Std.Socket_Type)
+   function Read_Package (Socket : in AWS.Net.Std.Socket_Type)
                           return Unbounded_String is
 
       package Char renames Ada.Characters.Latin_1;
@@ -20,7 +20,7 @@ package body Asterisk_AMI_IO is
       Collecting_Package :
       loop
             declare
-               Line : constant String := Read_Line (Channel);
+               Line : constant String := Read_Line (Socket);
             begin
                exit Collecting_Package when Line = "";
                Append (Buffer, Line & Newline);
@@ -30,4 +30,10 @@ package body Asterisk_AMI_IO is
       return Buffer;
    end Read_Package;
 
-end Asterisk_AMI_IO;
+   procedure Send (Socket : in AWS.Net.Std.Socket_Type;
+                   Item   : in String) is
+   begin
+      AWS.Net.Buffered.Put (Socket, Item);
+      AWS.Net.Buffered.Flush (Socket);
+   end Send;
+end AMI.IO;

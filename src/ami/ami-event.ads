@@ -4,101 +4,7 @@ with Peers; use Peers;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with AWS.Net.Std;
 with Call_Queue;
-package Socket is
-
-   NOT_IMPLEMENTED : exception;
-   type Asterisk_AMI_Type is private;
-
-   procedure Start (channel  : in AWS.Net.Std.Socket_Type;
-                    Username : in String;
-                    Secret   : in String);
-   --  Here starts the part of the program, that listens for events
-
-   procedure Get_Call (Uniqueid   : in     String;
-                       Agent      : in     String;
-                       Call       :    out Call_Queue.Call_Type);
-   --  Takes a call from the call_Queue, and redirects it to the Agent.
-
-   procedure Bridge_Call (Channel1 : in Unbounded_String;
-                          Channel2 : in Unbounded_String);
-
-   procedure Register_Agent (PhoneName   : in Unbounded_String;
-                             Computer_ID : in Unbounded_String);
-
-   procedure Consistency_Check;
-
-   procedure TEST_StatusPrint;
-private
-   type Asterisk_AMI_Type is
-      record
-         Greeting  : access String := null;
-         Logged_In : Boolean := False;
-         Channel   : AWS.Net.Std.Socket_Type;
-      end record;
-
-   --  The following types are derived from
-   --  http://www.voip-info.org/wiki/view/asterisk+manager+events
-
-   type Event is
-     --Agent Status Events
-     (Agentcallbacklogin,
-      Agentcallbacklogoff,
-      AgentCalled,
-      AgentComplete,
-      AgentConnect,
-      AgentDump,
-      Agentlogin,
-      Agentlogoff,
-      QueueMemberAdded,
-      QueueMemberPaused,
-      QueueMemberStatus,
-      --  Command Status Events
-      Cdr,
-      Dial,
-      ExtensionStatus,
-      Hangup,
-      MusicOnHold,
-      Join,
-      Leave,
-      Link,
-      MeetmeJoin,
-      MeetmeLeave,
-      MeetmeStopTalking,
-      MeetmeTalking,
-      MessageWaiting,
-      Newcallerid,
-      Newchannel,
-      Newexten,
-      ParkedCall,
-      Rename,
-      SetCDRUserField,
-      Unlink,
-      UnParkedCall,
-      --  Log Status Events
-      Alarm,
-      AlarmClear,
-      DNDState,
-      LogChannel,
-      PeerStatus,
-      Registry,
-      Reload,
-      Shutdown,
-      UserEvent,
-      --  Unformatted and Undocumented
-      Newstate, -- Appears when channel changes state
-      ParkedCallsComplete,
-      QueueParams,
-      QueueMember,
-      QueueStatusEnd,
-      Status,
-      StatusComplete,
-      ZapShowChannels,
-      ZapShowChannelsComplete,
-      --  Pragmatic observed Event, not mentioned in doc
-      QueueEntry,
-      QueueStatusComplete
-     );
-
+package AMI.Event is
    --  Action types
    type Action is
      (WaitEvent, --  Wait for an event to occur (Priv: <none>)
@@ -208,6 +114,101 @@ private
       Events, --  Control Event Flow (Priv: <none>)
       None); --  Internal;
 
+   NOT_IMPLEMENTED : exception;
+   type Asterisk_AMI_Type is private;
+
+   procedure Start (channel  : in AWS.Net.Std.Socket_Type;
+                    Username : in String;
+                    Secret   : in String);
+   --  Here starts the part of the program, that listens for events
+
+   procedure Get_Call (Uniqueid   : in     String;
+                       Agent      : in     String;
+                       Call       :    out Call_Queue.Call_Type);
+   --  Takes a call from the call_Queue, and redirects it to the Agent.
+
+   procedure Bridge_Call (Channel1 : in Unbounded_String;
+                          Channel2 : in Unbounded_String);
+
+   procedure Register_Agent (PhoneName   : in Unbounded_String;
+                             Computer_ID : in Unbounded_String);
+
+   procedure Consistency_Check;
+
+   procedure TEST_StatusPrint;
+
+   procedure Set_Last_Action (Item : in Action);
+private
+   type Asterisk_AMI_Type is
+      record
+         Greeting  : access String := null;
+         Logged_In : Boolean := False;
+         Channel   : AWS.Net.Std.Socket_Type;
+      end record;
+
+   --  The following types are derived from
+   --  http://www.voip-info.org/wiki/view/asterisk+manager+events
+
+   type Event is
+     --Agent Status Events
+     (Agentcallbacklogin,
+      Agentcallbacklogoff,
+      AgentCalled,
+      AgentComplete,
+      AgentConnect,
+      AgentDump,
+      Agentlogin,
+      Agentlogoff,
+      QueueMemberAdded,
+      QueueMemberPaused,
+      QueueMemberStatus,
+      --  Command Status Events
+      Cdr,
+      Dial,
+      ExtensionStatus,
+      Hangup,
+      MusicOnHold,
+      Join,
+      Leave,
+      Link,
+      MeetmeJoin,
+      MeetmeLeave,
+      MeetmeStopTalking,
+      MeetmeTalking,
+      MessageWaiting,
+      Newcallerid,
+      Newchannel,
+      Newexten,
+      ParkedCall,
+      Rename,
+      SetCDRUserField,
+      Unlink,
+      UnParkedCall,
+      --  Log Status Events
+      Alarm,
+      AlarmClear,
+      DNDState,
+      LogChannel,
+      PeerStatus,
+      Registry,
+      Reload,
+      Shutdown,
+      UserEvent,
+      --  Unformatted and Undocumented
+      Newstate, -- Appears when channel changes state
+      ParkedCallsComplete,
+      QueueParams,
+      QueueMember,
+      QueueStatusEnd,
+      Status,
+      StatusComplete,
+      ZapShowChannels,
+      ZapShowChannelsComplete,
+      --  Pragmatic observed Event, not mentioned in doc
+      QueueEntry,
+      QueueStatusComplete
+     );
+
    --  Basic signature of our callback routine for responses
    type Response_Callback_Type is access procedure (Event : String);
    type Callback_Type is access procedure (Event_List : Event_List_Type);
@@ -232,37 +233,31 @@ private
    procedure QueueEntry_Callback          (Event_List : in Event_List_Type);
    procedure QueueStatusComplete_CallBack (Event_List : in Event_List_Type);
    --  Commands
-   procedure Bridge (AMI      : in Asterisk_AMI_Type;
-                     ChannelA : in Unbounded_String;
-                     ChannelB : in Unbounded_String);
-   procedure Get_Version (AMI : in Asterisk_AMI_Type);
+
+   procedure Get_Version (Asterisk_AMI : in Asterisk_AMI_Type);
 
    procedure QueuePause (Asterisk_AMI : in Asterisk_AMI_Type;
                          Peer         : in Peer_Type);
    procedure QueueUnpause (Asterisk_AMI : in Asterisk_AMI_Type;
                            Peer         : in Peer_Type);
-   procedure QueueStatus (Asterisk_AMI : in Asterisk_AMI_Type;
-                          ActionID     : in String := "");
+
    procedure Redirect (Asterisk_AMI : in Asterisk_AMI_Type;
                        Channel      : in Unbounded_String;
                        Exten        : in Unbounded_String;
                        Context      : in Unbounded_String :=
                          To_Unbounded_String ("LocalSets"));
 
-   procedure Ping (Asterisk_AMI : in Asterisk_AMI_Type);
-   procedure Logoff (AMI        : in Asterisk_AMI_Type;
-                     Callback   : access Callback_Type := null);
-   procedure Login (AMI      : in Asterisk_AMI_Type;
-                    Username : in String;
-                    Secret   : in String;
-                    Callback : in Callback_Type := null;
-                    Persist  : in Boolean       := True);
+   procedure Logoff (Asterisk_AMI : in     Asterisk_AMI_Type;
+                     Callback     : access Callback_Type := null);
+   procedure Login (Asterisk_AMI : in Asterisk_AMI_Type;
+                    Username     : in String;
+                    Secret       : in String;
+                    Callback     : in Callback_Type := null;
+                    Persist      : in Boolean       := True);
 
    procedure SIPPeers_Callback;
    procedure NewState_Callback;
    procedure Bridge_Callback;
    procedure Agents;
 
-   procedure SendCommand (Socket : in AWS.Net.Std.Socket_Type;
-                          Item : in String);
-end Socket;
+end AMI.Event;

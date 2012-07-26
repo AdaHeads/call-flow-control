@@ -31,7 +31,7 @@ package Peers is
          Parked_Calls : Call_List.Vector;
 
          Computer_ID : Unbounded_String;
-         --  Det skulle kun symbolere de informationen, der måtte komme senere
+         --  Dete skal kun symbolere de informationen, der måtte komme senere
       end record;
 
    type Peer_type_access is access Peer_Type;

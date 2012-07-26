@@ -1,0 +1,22 @@
+with AMI.Protocol;
+with AWS.Net, AWS.Net.Std;
+package AMI.Action is
+   procedure Bridge (Socket      : in AWS.Net.Std.Socket_Type;
+                     ChannelA : in String;
+                     ChannelB : in String);
+   procedure CoreSettings (Socket : in AWS.Net.Std.Socket_Type);
+   procedure Login (Socket      : in AWS.Net.Std.Socket_Type;
+                    Username : in String;
+                    Secret   : in String);
+   procedure Logoff (Socket : in AWS.Net.Std.Socket_Type);
+   procedure Ping (Socket : in AWS.Net.Std.Socket_Type);
+   procedure QueuePause (Socket : in AWS.Net.Std.Socket_Type;
+                         DeviceName : in String;
+                         State : in Protocol.Pause_States);
+   procedure QueueStatus (Socket : in AWS.Net.Std.Socket_Type;
+                          ActionID     : in String := "");
+   procedure Redirect (Socket : in AWS.Net.Std.Socket_Type;
+                       Channel      : in String;
+                       Exten        : in String;
+                       Context      : in String := "LocalSets");
+end AMI.Action;

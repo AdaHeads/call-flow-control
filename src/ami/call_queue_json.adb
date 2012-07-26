@@ -16,7 +16,7 @@ package body Call_Queue_JSON is
       return To_JSON_String (JSON.Write);
    end Convert_Call;
 
-   function Convert_Call_To_JSON_Object (Call : Call_Queue.Call_Type)
+   function Convert_Call_To_JSON_Object (Call : in Call_Queue.Call_Type)
                                          return GNATCOLL.JSON.JSON_Value is
       use Ada.Calendar;
       use Ada.Calendar.Conversions;

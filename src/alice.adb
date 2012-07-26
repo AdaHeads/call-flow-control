@@ -120,7 +120,7 @@ procedure Alice is
 
       AWS.Server.Shutdown (Web_Server);
 
-      AMI.Terminate_AMI;
+      AMI.Disconnect;
 
       if AWS.Server.Log.Is_Active (Web_Server) then
          AWS.Server.Log.Stop (Web_Server);

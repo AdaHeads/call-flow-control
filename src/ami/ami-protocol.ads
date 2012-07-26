@@ -1,5 +1,5 @@
 --  Protocol-specific strings and ... stuff
-package Protocol is
+package AMI.Protocol is
    function Bridge (Channel1 : in String;
                     Channel2 : in String) return String with inline;
 
@@ -24,4 +24,4 @@ package Protocol is
                       Exten    : in String;
                       Priority : in Integer := 1) return String with inline;
 
-end Protocol;
+end AMI.Protocol;

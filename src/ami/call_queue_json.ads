@@ -20,7 +20,7 @@ package Call_Queue_JSON is
                           return JSON_String;
    --  returns the first call in the list.
 private
-   function Convert_Call_To_JSON_Object (Call : Call_Queue.Call_Type)
+   function Convert_Call_To_JSON_Object (Call : in Call_Queue.Call_Type)
                                          return GNATCOLL.JSON.JSON_Value;
    --  takes a call and converts it to a JSON object.
 end Call_Queue_JSON;

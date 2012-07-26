@@ -3,5 +3,5 @@ package AMI is
                       Server_Port : in Positive := 5038;
                       Username    : in String   := "test";
                       Secret      : in String   := "test");
-   procedure Terminate_AMI;
+   procedure Disconnect;
 end AMI;

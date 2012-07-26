@@ -1,6 +1,6 @@
 with Ada.Strings.Fixed;
 with Ada.Characters.Latin_1;
-package body Protocol is
+package body AMI.Protocol is
    --  LF is never enough for some people..
    package Char renames Ada.Characters.Latin_1;
    Line_Termination_String : constant String := Char.CR & Char.LF;
@@ -118,4 +118,4 @@ package body Protocol is
         Line_Termination_String &
         Line_Termination_String;
    end Redirect;
-end Protocol;
+end AMI.Protocol;

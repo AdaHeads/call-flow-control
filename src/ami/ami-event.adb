@@ -2,12 +2,12 @@ with Ada.Exceptions;  use Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Calendar;
 with Ada.Containers;
-with Asterisk_AMI_IO; use Asterisk_AMI_IO;
-with Protocol; use Protocol;
-with AWS.Net.Buffered, AWS.Net;
+with AMI.IO; use AMI.IO;
 with Task_Controller;
+with AMI.Action;
+with AMI.Protocol;
 
-package body Socket is
+package body AMI.Event is
    use Call_Queue;
 
    Asterisk         : Asterisk_AMI_Type;
@@ -39,25 +39,13 @@ package body Socket is
       raise NOT_IMPLEMENTED;
    end Agents;
 
-   procedure Bridge (AMI       : in Asterisk_AMI_Type;
-                     ChannelA : in Unbounded_String;
-                     ChannelB : in Unbounded_String) is
-      Command : constant String := Protocol.Bridge (To_String (ChannelA),
-                                                    To_String (ChannelB));
-
-   begin
-      --        String'Write (AMI.Channel,
-      --                     Command);
-      SendCommand (Socket => AMI.Channel,
-                   Item => Command);
-   end Bridge;
-
    --  Takes two channels, and bridge the them together.
    procedure Bridge_Call (Channel1 : in Unbounded_String;
                           Channel2 : in Unbounded_String) is
    begin
       --  TODO, Jeg er ikke sikker, at jeg bare kan hive Asterisk her
-      Bridge (Asterisk, Channel1, Channel2);
+      AMI.Action.Bridge (Asterisk.Channel,
+                         To_String (Channel1), To_String (Channel2));
    end Bridge_Call;
 
    --  Event: Bridge
@@ -77,9 +65,8 @@ package body Socket is
    end Bridge_Callback;
 
    procedure Consistency_Check is
-      Command : constant String := Protocol.QueueStatus ("Consistency");
    begin
-      SendCommand (Asterisk.Channel, Command);
+      AMI.Action.QueueStatus (Asterisk.Channel, "Consistency");
    end Consistency_Check;
 
    procedure CoreSettings_Callback (Event_List : in Event_List_Type) is
@@ -133,7 +120,6 @@ package body Socket is
          Put_Line ("We have no agent registred by the name: " & Agent);
          Call := null_Call;
          return;
---           raise Program_Error;
       end if;
 
       --  Now that we know that there exists an agent,
@@ -186,8 +172,7 @@ package body Socket is
    end Get_Call;
 
    --  Scaffolding
-   procedure Get_Version (AMI : in Asterisk_AMI_Type) is
-      Command : constant String := Protocol.CoreSettings;
+   procedure Get_Version (Asterisk_AMI : in Asterisk_AMI_Type) is
    begin
       null;
       --  The following sequence will return a string with Asterisk version.
@@ -200,8 +185,7 @@ package body Socket is
       --  This can be very useful in detecting the different capabilities of
       --  different versions of Asterisk - and perhaps even FreeSwitch?
 
-      --        String'Write (AMI.Channel, Command);
-      SendCommand (AMI.Channel, Command);
+      AMI.Action.CoreSettings (Asterisk_AMI.Channel);
       --        Last_Action := CoreSettings;
    end Get_Version;
 
@@ -214,24 +198,18 @@ package body Socket is
    --  Cause: 16
    --  Cause-txt: Normal Clearing
    procedure Hangup_Callback (Event_List : in Event_List_Type) is
-      --        Call : Call_Type;
    begin
-      --        Put ("Hangup Callback - ");
+      --  Search for the right key in Event_List
       for i in Event_List'Range loop
          if To_String (Event_List (i, Key)) = "Uniqueid" then
-            --              Put_Line (To_String (Event_List (i, Value)));
-            --  If we did't remove it from the list,
-            --   we needed to add a Ended time and set Is_Ended.
+            --  If there should happen more then just remove it,
+            --   then remember to insert Ended time.
             Call_Queue.Remove (Uniqueid => Event_List (i, Value));
-            --              Call := Calls.Get_Call(Call_Queue => Call_Queue,
-            --                                Channel => Event_List(i,Value));
-            --              if Call /= Calls.null_Call then
-            --                 Calls.Remove(Call_Queue => Call_Queue,
-            --                              Call => Call);
-            --              end if;
+
+            --  The field is found, and we are all happy now.
+            return;
          end if;
       end loop;
-      --        raise NOT_IMPLEMENTED;
    end Hangup_Callback;
 
    --  Event: Join
@@ -246,7 +224,6 @@ package body Socket is
       Call : Call_Queue.Call_Type;
       Event_Key : Unbounded_String;
    begin
-      --  TODO, det kan skrives om, hvis vi stoler på opbygningen af eventen.
       for i in Event_List'First .. Event_List'Last loop
          Event_Key := Event_List (i, Key);
 
@@ -274,25 +251,18 @@ package body Socket is
       end loop;
       Call.Arrived := Ada.Calendar.Clock;
 
-      --        Put ("New in queue: ");
-      --        Calls.printCall (Call);
-
       Call_Queue.Enqueue (Call => Call);
-      --        Calls.Add(Call_Queue => Call_Queue, Call => Call);
-
-      --        Put (To_String (Call_Queue.Queue_ToString));
    end Join_Callback;
 
-   procedure Login (AMI      : in Asterisk_AMI_Type;
-                    Username : in String;
-                    Secret   : in String;
-                    Callback : in Callback_Type := null;
-                    Persist  : in Boolean       := True) is
-      Command : constant String := Protocol.Login (Username => Username,
-                                                   Secret => Secret);
-
+   procedure Login (Asterisk_AMI : in Asterisk_AMI_Type;
+                    Username     : in String;
+                    Secret       : in String;
+                    Callback     : in Callback_Type := null;
+                    Persist      : in Boolean       := True) is
    begin
-      SendCommand (AMI.Channel, Command);
+      AMI.Action.Login (Socket   => Asterisk_AMI.Channel,
+                        Username => Username,
+                        Secret   => Secret);
 
       --  Update the table if we were asked to used this as standard callback
       if Callback /= null and then Persist then
@@ -314,11 +284,11 @@ package body Socket is
       end loop;
    end Login_Callback;
 
-   procedure Logoff (AMI      : in     Asterisk_AMI_Type;
-                     Callback : access Callback_Type := null) is
-      Command : constant String := Protocol.Logoff;
+   procedure Logoff (Asterisk_AMI : in     Asterisk_AMI_Type;
+                     Callback     : access Callback_Type := null) is
+
    begin
-      SendCommand (AMI.Channel, Command);
+      AMI.Action.Logoff (Asterisk_AMI.Channel);
       Last_Action := Logoff;
 
       if Callback /= null then
@@ -409,14 +379,6 @@ package body Socket is
       Print_Peer (Peer_List_Type.Element (Container => Peer_List,
                                           Key       => Map_Key));
    end PeerStatus_Callback;
-
-   procedure Ping (Asterisk_AMI : in Asterisk_AMI_Type) is
-      Command : constant String := Protocol.Ping;
-   begin
-      --        String'Write (Asterisk_AMI.Channel, Command);
-      SendCommand (Asterisk_AMI.Channel, Command);
-      Last_Action := Ping;
-   end Ping;
 
    --  Event: QueueEntry
    --  Queue: testqueue1
@@ -517,21 +479,15 @@ package body Socket is
 
    procedure QueuePause (Asterisk_AMI : in Asterisk_AMI_Type;
                          Peer : in Peer_Type) is
-      Command : constant String := Protocol.QueuePause
-        (DeviceName => To_String (Peer.Peer),
-         State => Pause);
+--        Command : constant String := Protocol.QueuePause
+--          (DeviceName => To_String (Peer.Peer),
+--           State => Pause);
 
    begin
-      SendCommand (Asterisk_AMI.Channel, Command);
+      --        SendCommand (Asterisk_AMI.Channel, Command);
+      AMI.Action.QueuePause (Asterisk_AMI.Channel,
+                             To_String (Peer.Peer), Protocol.Pause);
    end QueuePause;
-
-   procedure QueueStatus (Asterisk_AMI : in Asterisk_AMI_Type;
-                         ActionID : in String := "") is
-      Command : constant String := Protocol.QueueStatus (ActionID);
-   begin
-      SendCommand (Asterisk_AMI.Channel, Command);
-      Last_Action := QueueStatus;
-   end QueueStatus;
 
    --  Response: Success
    --  Message: Queue status will follow
@@ -599,11 +555,10 @@ package body Socket is
 
    procedure QueueUnpause (Asterisk_AMI : in Asterisk_AMI_Type;
                            Peer : in Peer_Type) is
-      Command : constant String := Protocol.QueuePause
-        (DeviceName => To_String (Peer.Peer),
-         State => UnPause);
    begin
-      SendCommand (Asterisk_AMI.Channel, Command);
+      AMI.Action.QueuePause (Asterisk_AMI.Channel,
+                             To_String (Peer.Peer), Protocol.UnPause);
+--        SendCommand (Asterisk_AMI.Channel, Command);
    end QueueUnpause;
 
    procedure Redirect (Asterisk_AMI : in Asterisk_AMI_Type;
@@ -611,18 +566,16 @@ package body Socket is
                        Exten : in Unbounded_String;
                        Context : in Unbounded_String :=
                          To_Unbounded_String ("LocalSets")) is
-      Command : constant String := Protocol.Redirect
-        (Channel => To_String (Channel),
-         Context => To_String (Context),
-         Exten => To_String (Exten),
-         Priority => 1);
 
    begin
       Put_Line ("Redirecting " & To_String (Channel)
                 & " => " & To_String (Context) & ", " & To_String (Exten));
-      Put_Line ("-------------" & ASCII.LF & Command);
-      SendCommand (Asterisk_AMI.Channel, Command);
-      --        Last_Action := Redirect;
+
+      AMI.Action.Redirect (Socket  => Asterisk_AMI.Channel,
+                           Channel => To_String (Channel),
+                           Exten   => To_String (Exten),
+                           Context => To_String (Context));
+
    end Redirect;
 
    procedure Register_Agent (PhoneName   : in Unbounded_String;
@@ -648,12 +601,10 @@ package body Socket is
       end if;
    end Register_Agent;
 
-   procedure SendCommand (Socket : in AWS.Net.Std.Socket_Type;
-                          Item : in String) is
+   procedure Set_Last_Action (Item : in Action) is
    begin
-      AWS.Net.Buffered.Put (Socket, Item);
-      AWS.Net.Buffered.Flush (Socket);
-   end SendCommand;
+      Last_Action := Item;
+   end Set_Last_Action;
 
    --  Lists the SIP peers. Returns a PeerEntry event for each
    --  SIP peer, and a PeerlistComplete event upon completetion
@@ -692,11 +643,11 @@ package body Socket is
                    Logged_In => False);
 
       --  Send login
-      Login (AMI      => Asterisk,
-             Username => Username,
-             Secret   => Secret);
+      Login (Asterisk_AMI => Asterisk,
+             Username     => Username,
+             Secret       => Secret);
 
-      QueueStatus (Asterisk, "StartUp");
+      AMI.Action.QueueStatus (Asterisk.Channel, "StartUp");
       loop
          exit when Task_State = Down;
          declare
@@ -705,11 +656,9 @@ package body Socket is
          begin
             --  Basically we have responses, or events
             if Event_List (Event_List'First, Key)  = "Event" then
-               --  Put_Line (To_String (Event_List (Event_List'First, Key)) &
-               --  ": " & To_String (Event_List (Event_List'First, Value)));
                begin
                   Event_Callback_Routine
-                    (Socket.Event'Value (To_String
+                    (AMI.Event.Event'Value (To_String
                      (Event_List (Event_List'First, Value)))) (Event_List);
                exception
                   when others =>
@@ -736,7 +685,7 @@ package body Socket is
    exception
       when AWS.Net.Socket_Error =>
          --  When the socket is terminated the Read_Package throws an exception
-         Put_Line (" AMI Socket Shutdowned");
+         Put_Line ("AMI Socket Shutdowned");
    end Start;
 
    procedure TEST_StatusPrint is
@@ -765,4 +714,4 @@ package body Socket is
       raise NOT_IMPLEMENTED;
    end Unlink_Callback;
 
-end Socket;
+end AMI.Event;
