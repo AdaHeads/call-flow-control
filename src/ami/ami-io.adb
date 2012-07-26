@@ -19,12 +19,12 @@ package body AMI.IO is
    begin
       Collecting_Package :
       loop
-            declare
-               Line : constant String := Read_Line (Socket);
-            begin
-               exit Collecting_Package when Line = "";
-               Append (Buffer, Line & Newline);
-            end;
+         declare
+            Line : constant String := Read_Line (Socket);
+         begin
+            exit Collecting_Package when Line = "";
+            Append (Buffer, Line & Newline);
+         end;
 
       end loop Collecting_Package;
       return Buffer;
