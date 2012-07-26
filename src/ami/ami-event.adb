@@ -479,9 +479,9 @@ package body AMI.Event is
 
    procedure QueuePause (Asterisk_AMI : in Asterisk_AMI_Type;
                          Peer : in Peer_Type) is
---        Command : constant String := Protocol.QueuePause
---          (DeviceName => To_String (Peer.Peer),
---           State => Pause);
+      --        Command : constant String := Protocol.QueuePause
+      --          (DeviceName => To_String (Peer.Peer),
+      --           State => Pause);
 
    begin
       --        SendCommand (Asterisk_AMI.Channel, Command);
@@ -558,7 +558,7 @@ package body AMI.Event is
    begin
       AMI.Action.QueuePause (Asterisk_AMI.Channel,
                              To_String (Peer.Peer), Protocol.UnPause);
---        SendCommand (Asterisk_AMI.Channel, Command);
+      --        SendCommand (Asterisk_AMI.Channel, Command);
    end QueueUnpause;
 
    procedure Redirect (Asterisk_AMI : in Asterisk_AMI_Type;
@@ -663,10 +663,10 @@ package body AMI.Event is
                exception
                   when others =>
                      null;
---                    when Error : others =>
---                       Put_Line ("Event not implemented: " &
---                                   To_String (Event_List (1, Value)));
---                       Put_Line (Exception_Message (Error));
+                     --  when Error : others =>
+                     --  Put_Line ("Event not implemented: " &
+                     --    To_String (Event_List (1, Value)));
+                     --  Put_Line (Exception_Message (Error));
                end;
 
             elsif Event_List (Event_List'First, Key)  = "Response" then
