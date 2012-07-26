@@ -1,5 +1,6 @@
 with AMI.Protocol;
-with AWS.Net, AWS.Net.Std;
+with AWS.Net;
+with AWS.Net.Std; use AWS.Net.Std;
 package AMI.Action is
          --  Action types
    type Action_Type is
@@ -111,24 +112,25 @@ package AMI.Action is
       None); --  Internal;
 
    --  Actions
-   procedure Bridge (Socket   : in AWS.Net.Std.Socket_Type;
+   procedure Bridge (Socket   : in Socket_Type;
                      ChannelA : in String;
                      ChannelB : in String);
-   procedure CoreSettings (Socket : in AWS.Net.Std.Socket_Type);
-   procedure Login (Socket      : in AWS.Net.Std.Socket_Type;
+   procedure CoreSettings (Socket : in Socket_Type);
+   procedure Login (Socket   : in Socket_Type;
                     Username : in String;
                     Secret   : in String);
-   procedure Logoff (Socket : in AWS.Net.Std.Socket_Type);
-   procedure Ping (Socket : in AWS.Net.Std.Socket_Type);
-   procedure QueuePause (Socket : in AWS.Net.Std.Socket_Type;
+   procedure Logoff (Socket : in Socket_Type);
+--     procedure Park (Socket : in AWS.)
+   procedure Ping (Socket : in Socket_Type);
+   procedure QueuePause (Socket     : in Socket_Type;
                          DeviceName : in String;
-                         State : in Protocol.Pause_States);
-   procedure QueueStatus (Socket : in AWS.Net.Std.Socket_Type;
-                          ActionID     : in String := "");
-   procedure Redirect (Socket : in AWS.Net.Std.Socket_Type;
-                       Channel      : in String;
-                       Exten        : in String;
-                       Context      : in String := "LocalSets");
+                         State      : in Protocol.Pause_States);
+   procedure QueueStatus (Socket   : in Socket_Type;
+                          ActionID : in String := "");
+   procedure Redirect (Socket  : in Socket_Type;
+                       Channel : in String;
+                       Exten   : in String;
+                       Context : in String := "LocalSets");
 
    function Get_Last_Action return Action_Type;
 end AMI.Action;
