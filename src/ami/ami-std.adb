@@ -4,9 +4,11 @@ with AMI.Event;
 with AWS.Net.Std;
 with AWS.Net.Buffered;
 with Yolk.Log;
-
+with AMI.Action;
+with Routines;
 package body AMI.Std is
-   Channel : AWS.Net.Std.Socket_Type;
+   Action_Socket : AWS.Net.Std.Socket_Type;
+   Event_Socket : AWS.Net.Std.Socket_Type;
    --  it has package scope because, we need it in the Disconnect procedure.
 
    task AMI_Service is
@@ -25,7 +27,7 @@ package body AMI.Std is
          Secret_Unbounded   := To_Unbounded_String (Secret);
       end Start;
 
-      AMI.Event.Start (Channel, To_String (Username_Unbounded),
+      AMI.Event.Start (Event_Socket, To_String (Username_Unbounded),
                              To_String (Secret_Unbounded));
 
    exception
@@ -35,21 +37,38 @@ package body AMI.Std is
 
    procedure Connect (Server_Host : in String := "Asterisk1";
                       Server_Port : in Positive := 5038;
-                      Username    : in String := "test";
-                      Secret      : in String := "test") is
+                      Username    : in String := "filtertest";
+                      Secret      : in String := "filtertest") is
    begin
-      AWS.Net.Std.Connect (Socket => Channel,
-                           Host => Server_Host,
-                           Port => Server_Port);
+      --  Setting up event Socket.
+      AWS.Net.Std.Connect (Socket => Event_Socket,
+                           Host   => Server_Host,
+                           Port   => Server_Port);
       Yolk.Log.Trace (Yolk.Log.Info,
-                      "AMI socket connected - Host: "
+                      "AMI Event socket connected - Host: "
                       & Server_Host & " Port: " & Server_Port'Img);
       AMI_Service.Start (Username, Secret);
+
+      --  Setting up Action Socket.
+      AWS.Net.Std.Connect (Socket => Action_Socket,
+                           Host   => Server_Host,
+                           Port   => Server_Port);
+      Yolk.Log.Trace (Yolk.Log.Info,
+                      "AMI Action socket connected - Host: "
+                      & Server_Host & " Port: " & Server_Port'Img);
+
+      AMI.Action.Initialize (Action_Socket,
+                             "action",
+                             "reaction");
+      Yolk.Log.Trace (Yolk.Log.Debug, "AMI Action Initialized.");
+
+      Routines.StartUpSequence;
    end Connect;
 
    procedure Disconnect is
       use Ada.Text_IO;
    begin
-      AWS.Net.Buffered.Shutdown (Channel);
+      AWS.Net.Buffered.Shutdown (Event_Socket);
+      AWS.Net.Buffered.Shutdown (Action_Socket);
    end Disconnect;
 end AMI.Std;

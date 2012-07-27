@@ -140,6 +140,16 @@ package body Call_Queue is
       end Remove;
    end Call_Queue;
 
+      --  Returns a call in String format.
+   function Call_To_String (Call : in Call_Type) return String is
+      Response : Unbounded_String;
+   begin
+      Append (Response, "Channel => " & To_String (Call.Channel));
+      Append (Response, ", Queue => " & To_String (Call.Queue));
+      Append (Response, ", Uniqueid => " & To_String (Call.Uniqueid));
+      return To_String (Response);
+   end Call_To_String;
+
    --  Takes the first call with the highest priority
    procedure Dequeue (Call : out Call_Type) is
    begin
@@ -176,16 +186,6 @@ package body Call_Queue is
    begin
       return Call_Queue.Get_Queue;
    end Get_Queue;
-
-   --  Prints a call out to the screen.
-   procedure printCall (Call : in Call_Type) is
-      use Ada.Text_IO;
-   begin
-      Put ("Channel => " & To_String (Call.Channel));
-      Put (", Queue => " & To_String (Call.Queue));
-      Put (", Uniqueid => " & To_String (Call.Uniqueid));
-      New_Line;
-   end printCall;
 
    --  Gives the length of the call queue.
    function Queue_Length return Ada.Containers.Count_Type is

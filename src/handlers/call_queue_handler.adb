@@ -4,23 +4,25 @@ with Call_Queue_JSON;
 with Common; use Common;
 with Response;
 with HTTP_Codes;
-with AMI.Event;
+with Routines;
 
 package body Call_Queue_Handler is
    --  returns the first call in the list.
    function Get_Call (Request : in AWS.Status.Data)
                       return AWS.Response.Data is
       use AWS.Status;
-
+      use Call_Queue;
       Agent : constant String := Parameters (Request).Get ("agent");
       Unitqueid : constant String :=  Parameters (Request).Get ("uniqueid");
       Call : Call_Queue.Call_Type;
       JSON : JSON_String;
    begin
-      AMI.Event.Get_Call (Uniqueid => Unitqueid,
-                       Agent    => Agent,
-                       Call     => Call);
-
+      Routines.Get_Call (Uniqueid => Unitqueid,
+                         Agent    => Agent,
+                         Call     => Call);
+      if Call = Call_Queue.null_Call then
+         Routines.TEST_StatusPrint;
+      end if;
       JSON := Call_Queue_JSON.Convert_Call (Call);
 
       return  Response.Build_JSON_Response

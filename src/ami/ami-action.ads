@@ -1,6 +1,9 @@
 with AMI.Protocol;
 with AWS.Net;
 with AWS.Net.Std; use AWS.Net.Std;
+with Ada.Containers.Vectors;
+with Call_Queue;
+with Event_Parser; use Event_Parser;
 package AMI.Action is
          --  Action types
    type Action_Type is
@@ -111,28 +114,34 @@ package AMI.Action is
       Events, --  Control Event Flow (Priv: <none>)
       None); --  Internal;
 
+   package Call_List is new
+     Ada.Containers.Vectors (Index_Type   => Positive,
+                             Element_Type => Call_Queue.Call_Type,
+                             "="          => Call_Queue."=");
+
+   --  Initialize
+
+   procedure Initialize (Socket   : in Socket_Type;
+                         Username : in String;
+                         Secret   : in String);
+
    --  Actions
-   procedure Bridge (Socket   : in Socket_Type;
-                     ChannelA : in String;
+   procedure Bridge (ChannelA : in String;
                      ChannelB : in String);
-   procedure CoreSettings (Socket : in Socket_Type);
-   procedure Login (Socket   : in Socket_Type;
-                    Username : in String;
+   function CoreSettings return String;
+   procedure Login (Username : in String;
                     Secret   : in String);
-   procedure Logoff (Socket : in Socket_Type);
-   procedure Park (Socket           : in Socket_Type;
-                   Channel          : in String;
+   procedure Logoff;
+   procedure Park (Channel          : in String;
                    Fallback_Channel : in String);
-   procedure Ping (Socket : in Socket_Type);
-   procedure QueuePause (Socket     : in Socket_Type;
-                         DeviceName : in String;
+   procedure Ping;
+   procedure QueuePause (DeviceName : in String;
                          State      : in Protocol.Pause_States);
-   procedure QueueStatus (Socket   : in Socket_Type;
-                          ActionID : in String := "");
-   procedure Redirect (Socket  : in Socket_Type;
-                       Channel : in String;
+   function QueueStatus (ActionID : in String := "") return Call_List.Vector;
+   procedure Redirect (Channel : in String;
                        Exten   : in String;
                        Context : in String := "LocalSets");
 
-   function Get_Last_Action return Action_Type;
+   --  Utility functions
+   function Read_Event_List return Event_List_Type;
 end AMI.Action;

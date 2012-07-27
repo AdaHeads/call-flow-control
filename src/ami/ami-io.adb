@@ -1,6 +1,5 @@
 with Ada.Characters.Latin_1;
 with AWS.Net.Buffered;
-
 --  Provides I/O routines for reading from Asterisk AMI.
 package body AMI.IO is
    function Read_Line (Socket : in AWS.Net.Std.Socket_Type) return String is

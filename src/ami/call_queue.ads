@@ -23,7 +23,7 @@ package Call_Queue is
          Ended          : Ada.Calendar.Time;
       end record;
 
-   procedure printCall (Call : in Call_Type);
+   function Call_To_String (Call : in Call_Type) return String;
 
    package Queue_Type is new
      Ada.Containers.Vectors (Index_Type => Positive,
@@ -33,18 +33,19 @@ package Call_Queue is
 
    type Call_Queue_Type is array (Priority_Level) of Queue_Type.Vector;
 
-   null_Call : constant Call_Type := (Channel => Null_Unbounded_String,
-                                      CallerIDNum => Null_Unbounded_String,
-                                      CallerIDName => Null_Unbounded_String,
-                                      Queue => Null_Unbounded_String,
-                                      Position => 0,
-                                      Count => 0,
-                                      Uniqueid => Null_Unbounded_String,
-                                      Arrived => Ada.Calendar.Clock,
-                                      Picked_Up => Ada.Calendar.Clock,
-                                      Is_Picked_Up => False,
-                                      Ended => Ada.Calendar.Clock,
-                                      Is_Ended => False);
+   null_Call : constant Call_Type :=
+     (Channel      => Null_Unbounded_String,
+      CallerIDNum  => Null_Unbounded_String,
+      CallerIDName => Null_Unbounded_String,
+      Queue        => Null_Unbounded_String,
+      Position     => 0,
+      Count        => 0,
+      Uniqueid     => Null_Unbounded_String,
+      Arrived      => Ada.Calendar.Clock,
+      Picked_Up    => Ada.Calendar.Clock,
+      Is_Picked_Up => False,
+      Ended        => Ada.Calendar.Clock,
+      Is_Ended     => False);
 
    procedure Enqueue (Call : in Call_Type);
    --  Places a call on the call queue.

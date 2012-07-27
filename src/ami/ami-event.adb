@@ -1,4 +1,5 @@
 with Ada.Exceptions;  use Ada.Exceptions;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Calendar;
 with Ada.Containers;
@@ -6,19 +7,22 @@ with AMI.IO; use AMI.IO;
 with Task_Controller;
 with AMI.Protocol;
 with Yolk.Log;
+with Call_Queue;
+with Peers;
 package body AMI.Event is
    use Call_Queue;
-   use AMI.Action;
+--     use AMI.Action;
+   use Peers;
 
    Asterisk         : Asterisk_AMI_Type;
-   Peer_List        : Peer_List_Type.Map;
+--     Peer_List        : Peer_List_Type.Map;
    Consistency      : Queue_Type.Vector;
 
    --  Callback maps
-   Callback_Routine : Action_Callback_Routine_Table :=
-     (Login       => Login_Callback'Access,
-      QueueStatus => QueueStatus_Callback'Access,
-      others      => null);
+--     Callback_Routine : Action_Callback_Routine_Table :=
+--       (Login       => Login_Callback'Access,
+--        QueueStatus => QueueStatus_Callback'Access,
+--        others      => null);
 
    Event_Callback_Routine : constant Event_Callback_Routine_Table :=
      (Dial                 => Dial_Callback'Access,
@@ -27,7 +31,6 @@ package body AMI.Event is
       QueueMemberPaused    => QueueMemberPaused_Callback'Access,
       PeerStatus           => PeerStatus_Callback'Access,
       Unlink               => Unlink_Callback'Access,
-      QueueEntry           => QueueEntry_Callback'Access,
       QueueStatusComplete  => QueueStatusComplete_CallBack'Access,
       others               => null);
 
@@ -37,15 +40,6 @@ package body AMI.Event is
       Put_Line ("Not implemented");
       raise NOT_IMPLEMENTED;
    end Agents;
-
-   --  Takes two channels, and bridge the them together.
-   procedure Bridge_Call (Channel1 : in Unbounded_String;
-                          Channel2 : in Unbounded_String) is
-   begin
-      --  TODO, Jeg er ikke sikker, at jeg bare kan hive Asterisk her
-      AMI.Action.Bridge (Asterisk.Channel,
-                         To_String (Channel1), To_String (Channel2));
-   end Bridge_Call;
 
    --  Event: Bridge
    --  Privilege: call,all
@@ -62,23 +56,6 @@ package body AMI.Event is
       Put_Line ("Not implemented");
       raise NOT_IMPLEMENTED;
    end Bridge_Callback;
-
-   procedure Consistency_Check is
-   begin
-      AMI.Action.QueueStatus (Asterisk.Channel, "Consistency");
-   end Consistency_Check;
-
-   procedure CoreSettings_Callback (Event_List : in Event_List_Type) is
-      Current_Key : Unbounded_String;
-   begin
-      for i in Event_List'Range loop
-         Current_Key := Event_List (i, Key);
-         if To_String (Current_Key) = "AsteriskVersion" then
-            Put_Line ("AsteriskVersion: " & To_String (Event_List (i, Value)));
-         end if;
-      end loop;
-      raise NOT_IMPLEMENTED;
-   end CoreSettings_Callback;
 
    --  Event: Dial
    --  Privilege: call,all
@@ -101,92 +78,6 @@ package body AMI.Event is
          end if;
       end loop;
    end Dial_Callback;
-
-   --  Get the specific call with UniqueId matching
-   --  If unitqueID is null, then the first call in the queue is taken.
-   procedure Get_Call (Uniqueid : in     String;
-                       Agent    : in     String;
-                       Call     :    out Call_Queue.Call_Type) is
-
-      temp_Call : Call_Type;
-      Peer : Peer_Type;
-      Peer_List_Index : constant Peer_List_Type.Cursor :=
-        Peer_List_Type.Find (Peer_List, To_Unbounded_String (Agent));
-   begin
-      --  Check if there exsist an Agent by that name.
-      if not Peer_List_Type.Has_Element
-        (Position => Peer_List_Index) then
-         Put_Line ("We have no agent registred by the name: " & Agent);
-         Call := null_Call;
-         return;
-      end if;
-
-      --  Now that we know that there exists an agent,
-      --   is the SIP phone registreted
-      Peer := Peer_List_Type.Element (Peer_List_Index);
-      if Peer.Status = Unregistered then
-         Put_Line ("The following agent is unregistred: " & Agent);
-         raise Program_Error;
-      end if;
-
-      --  TESTING
-      Put (To_String (Call_Queue.Queue_ToString));
-      --  TESTING
-
-      --  If Uniqueueid parameter is null,
-      --   then take the next call in the call queue.
-      if Uniqueid = "" then
-         Call_Queue.Dequeue (Call => temp_Call);
-      else
-         Call_Queue.Dequeue (Uniqueid => To_Unbounded_String (Uniqueid),
-                             Call => temp_Call);
-      end if;
-
-      --  If there is a call to anwser.
-      if temp_Call /= Call_Queue.null_Call then
-         --  TESTING
-         Put_Line ("Got Call");
-         Call_Queue.printCall (Call => temp_Call);
-         --  TESTING
-
-         temp_Call.Picked_Up := Ada.Calendar.Clock;
-         temp_Call.Is_Picked_Up := True;
-
-         Peer.Call := temp_Call;
-         Peer_List_Type.Replace_Element (Container => Peer_List,
-                                         Position => Peer_List_Index,
-                                         New_Item => Peer);
-
-         Call := temp_Call;
-
-         --  Send the call out to the phone
-         Redirect (Asterisk_AMI => Asterisk,
-                   Channel      => temp_Call.Channel,
-                   Exten        => Peer.Exten);
-      else
-         Put_Line ("No Call to take");
-
-         Call := null_Call;
-      end if;
-   end Get_Call;
-
-   --  Scaffolding
-   procedure Get_Version (Asterisk_AMI : in Asterisk_AMI_Type) is
-   begin
-      null;
-      --  The following sequence will return a string with Asterisk version.
-      --  Action: Command
-      --  Command: core show version
-      --
-      --  OR!
-      --  Action: CoreSettings
-      --
-      --  This can be very useful in detecting the different capabilities of
-      --  different versions of Asterisk - and perhaps even FreeSwitch?
-
-      AMI.Action.CoreSettings (Asterisk_AMI.Channel);
-      --        Last_Action := CoreSettings;
-   end Get_Version;
 
    --  Event: Hangup
    --  Privilege: call,all
@@ -255,18 +146,19 @@ package body AMI.Event is
 
    procedure Login (Asterisk_AMI : in Asterisk_AMI_Type;
                     Username     : in String;
-                    Secret       : in String;
-                    Callback     : in Callback_Type := null;
-                    Persist      : in Boolean       := True) is
+                    Secret       : in String) is
+      Command : constant String := AMI.Protocol.Login (Username, Secret);
    begin
-      AMI.Action.Login (Socket   => Asterisk_AMI.Channel,
-                        Username => Username,
-                        Secret   => Secret);
+      --  AMI.Action.Login (Socket   => Asterisk_AMI.Channel,
+      --                    Username => Username,
+      --                    Secret   => Secret);
+
+      AMI.IO.Send (Asterisk_AMI.Channel, Command);
 
       --  Update the table if we were asked to used this as standard callback
-      if Callback /= null and then Persist then
-         Callback_Routine (Login) := Callback;
-      end if;
+      --  if Callback /= null and then Persist then
+      --  Callback_Routine (Login) := Callback;
+      --  end if;
 
    end Login;
 
@@ -282,17 +174,18 @@ package body AMI.Event is
       end loop;
    end Login_Callback;
 
-   procedure Logoff (Asterisk_AMI : in     Asterisk_AMI_Type;
-                     Callback     : access Callback_Type := null) is
-
-   begin
-      AMI.Action.Logoff (Asterisk_AMI.Channel);
-
-      if Callback /= null then
-         --  Callback;
-         null;
-      end if;
-   end Logoff;
+   --  no need for, we are never gonna call it anyway.
+   --  procedure Logoff (Asterisk_AMI : in     Asterisk_AMI_Type;
+   --                    Callback     : access Callback_Type := null) is
+   --
+   --  begin
+   --     AMI.Action.Logoff (Asterisk_AMI.Channel);
+   --
+   --     if Callback /= null then
+   --        --  Callback;
+   --        null;
+   --     end if;
+   --  end Logoff;
 
    --  Event: Newstate
    --  Privilege: call,all
@@ -307,39 +200,6 @@ package body AMI.Event is
       Put_Line ("Not implemented");
       raise NOT_IMPLEMENTED;
    end NewState_Callback;
-
-   --  Sends the agent's current call on hold / park
-   procedure Park (Agent : in Unbounded_String) is
-      use Peer_List_Type;
-      Peer_Cursor : Peer_List_Type.Cursor;
-   begin
-      --  Finds the Agent, to get the call to park.
-      Peer_Cursor := Peer_List_Type.Find (Container => Peer_List,
-                                          Key       => Agent);
-
-      if Peer_Cursor /= Peer_List_Type.No_Element then
-         declare
-            Peer : Peer_Type;
-         begin
-            Peer := Peer_List_Type.Element (Peer_Cursor);
-            --  Not sure about this.
-            Put_Line (To_String (Peer.Peer));
-            if Peer.Call /= null_Call then
-               AMI.Action.Park (Socket           => Asterisk.Channel,
-                                Channel          => To_String
-                                  (Peer.Call.Channel),
-                                Fallback_Channel => To_String (Peer.Peer));
-            else
-               Yolk.Log.Trace (Handle => Yolk.Log.Debug,
-                               Message => "This agent have no call: " &
-                                 To_String (Agent));
-               raise NOT_IMPLEMENTED;
-            end if;
-         end;
-      else
-         raise NOT_IMPLEMENTED;
-      end if;
-   end Park;
 
    --  Event: PeerStatus
    --  Peer: SIP/2005
@@ -392,82 +252,35 @@ package body AMI.Event is
 
       --  Update the timestamp
       Peer.Last_Seen := Ada.Calendar.Clock;
-
-      --  Update the peer list
-      if Peer_List_Type.Contains (Container => Peer_List,
-                                  Key       => Map_Key) then
-         Peer_List_Type.Replace (Container => Peer_List,
-                                 Key       => Map_Key,
-                                 New_Item  => Peer);
-      else
-
-         Peer_List_Type.Insert (Container => Peer_List,
-                                Key       => Map_Key,
-                                New_Item  => Peer);
-      end if;
-
-      Print_Peer (Peer_List_Type.Element (Container => Peer_List,
-                                          Key       => Map_Key));
-   end PeerStatus_Callback;
-
-   --  Event: QueueEntry
-   --  Queue: testqueue1
-   --  Position: 1
-   --  Channel: SIP/TP-Softphone-00000017
-   --  Uniqueid: 1341827264.23
-   --  CallerIDNum: TP-Softphone
-   --  CallerIDName: unknown
-   --  Wait: 98
-   --
-   --  It assummes that the Call_Queue is empty, therefor
-   --  it should only get called when the program startes.
-   procedure QueueEntry_Callback (Event_List : in Event_List_Type) is
-      Key_Text : Unbounded_String;
-      Call : Call_Type;
-      Is_Start_Up : Boolean := False;
-   begin
-      for i in Event_List'Range loop
-         Key_Text := Event_List (i, Key);
-         if To_String (Key_Text) = "Queue" then
-            Call.Queue := Event_List (i, Value);
-         elsif To_String (Key_Text) = "Channel" then
-            Call.Channel := Event_List (i, Value);
-         elsif To_String (Key_Text) = "Uniqueid" then
-            Call.Uniqueid := Event_List (i, Value);
-         elsif To_String (Key_Text) = "CallerIDNum" then
-            Call.CallerIDNum := Event_List (i, Value);
-         elsif To_String (Key_Text) = "CallerIDName" then
-            Call.CallerIDName := Event_List (i, Value);
-         elsif To_String (Key_Text) = "Position" then
-            Call.Position := Integer'Value (To_String (Event_List (i, Value)));
-         elsif To_String (Key_Text) = "ActionID" then
-            if To_String (Event_List (i, Value)) = "StartUp" then
-               Is_Start_Up := True;
-            end if;
-         elsif To_String (Key_Text) = "Wait" then
-            declare
-               use Ada.Calendar;
-               Waited_In_Seconds : Duration;
-               Now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
-            begin
-               Waited_In_Seconds := Duration'Value (To_String
-                                                    (Event_List (i, Value)));
-               Call.Arrived := Now - Waited_In_Seconds;
-            exception
-               when others =>
-                  Ada.Text_IO.Put_Line
-                    ("QueueEntry: wait is not an Duration, and that is wrong"
-                     & To_String (Event_List (i, Value)));
-            end;
+      declare
+         use Peers.Peer_List_Type;
+         Peer_Cursor : Peer_List_Type.Cursor;
+      begin
+         Peer_Cursor := Peer_List_Type.Find (Peers.Get_Peers_List,
+                                             Map_Key);
+         if Peer_Cursor /= Peer_List_Type.No_Element then
+            Peers.Replace_Peer (Item => Peer);
+         else
+            Peers.Insert_Peer (Peer);
          end if;
-      end loop;
-      if Is_Start_Up then
-         Call_Queue.Enqueue (Call);
-      else
-         --  Then it must be a consistency tjek.
-         Consistency.Append (Call);
-      end if;
-   end QueueEntry_Callback;
+      end;
+      --  Update the peer list
+--        if Peer_List_Type.Contains (Container => Peers.Get_Peers_List,
+--                                    Key       => Map_Key) then
+
+--           Peer_List_Type.Replace (Container => Peer_List,
+--                                   Key       => Map_Key,
+--                                   New_Item  => Peer);
+--        else
+--
+--           Peer_List_Type.Insert (Container => Peer_List,
+--                                  Key       => Map_Key,
+--                                  New_Item  => Peer);
+--        end if;
+
+--        Print_Peer (Peer_List_Type.Element (Container => Peer_List,
+--                                            Key       => Map_Key));
+   end PeerStatus_Callback;
 
    --  Event: QueueMemberPaused
    --  Privilege: agent,all
@@ -476,48 +289,37 @@ package body AMI.Event is
    --  MemberName: Jared Smith
    --  Paused: 1
    procedure QueueMemberPaused_Callback (Event_List : in Event_List_Type) is
-      Peer_Phone : Unbounded_String;
-      paused : Boolean := False;
-      Peer_Cursor : Peer_List_Type.Cursor;
-      Peer : Peer_Type;
+--        Peer_Phone : Unbounded_String;
+--        paused : Boolean := False;
+--        Peer_Cursor : Peer_List_Type.Cursor;
+--        Peer : Peer_Type;
    begin
-      for i in Event_List'Range loop
-         if To_String (Event_List (i, Key)) = "Location" then
-            Peer_Phone := Event_List (i, Value);
+--        for i in Event_List'Range loop
+--           if To_String (Event_List (i, Key)) = "Location" then
+--              Peer_Phone := Event_List (i, Value);
+--
+--           elsif To_String (Event_List (i, Key)) = "Paused" then
+--              if To_String (Event_List (i, Value)) = "0" then
+--                 paused := False;
+--
+--              elsif To_String (Event_List (i, Value)) = "1" then
+--                 paused := True;
+--              end if;
+--           end if;
+--        end loop;
 
-         elsif To_String (Event_List (i, Key)) = "Paused" then
-            if To_String (Event_List (i, Value)) = "0" then
-               paused := False;
+--        Peer_Cursor :=  Peer_List_Type.Find (Peer_List, Peer_Phone);
+--        Peer := Peer_List_Type.Element (Peer_Cursor);
+--
+--        Peer.Paused := paused;
+--        Peer_List_Type.Replace_Element (Container => Peer_List,
+--                                        Position => Peer_Cursor,
+--                                        New_Item => Peer);
 
-            elsif To_String (Event_List (i, Value)) = "1" then
-               paused := True;
-            end if;
-         end if;
-      end loop;
-
-      Peer_Cursor :=  Peer_List_Type.Find (Peer_List, Peer_Phone);
-      Peer := Peer_List_Type.Element (Peer_Cursor);
-
-      Peer.Paused := paused;
-      Peer_List_Type.Replace_Element (Container => Peer_List,
-                                      Position => Peer_Cursor,
-                                      New_Item => Peer);
-
-      Put_Line ("Not implemented - QueueMemberPaused_Callback");
+      Put_Line ("Not implemented - QueueMemberPaused_Callback" &
+                  To_String (Event_List (1, Value)));
       --  raise NOT_IMPLEMENTED;
    end QueueMemberPaused_Callback;
-
-   procedure QueuePause (Asterisk_AMI : in Asterisk_AMI_Type;
-                         Peer : in Peer_Type) is
-      --        Command : constant String := Protocol.QueuePause
-      --          (DeviceName => To_String (Peer.Peer),
-      --           State => Pause);
-
-   begin
-      --        SendCommand (Asterisk_AMI.Channel, Command);
-      AMI.Action.QueuePause (Asterisk_AMI.Channel,
-                             To_String (Peer.Peer), Protocol.Pause);
-   end QueuePause;
 
    --  Response: Success
    --  Message: Queue status will follow
@@ -571,7 +373,8 @@ package body AMI.Event is
                   if not Check_Call (Consistency.Element (Cons_Index)) then
                      Put_Line ("--------------------------------------------");
                      Put_Line ("    Consistency check - Not Equal failed    ");
-                     printCall (Consistency.Element (Cons_Index));
+                     Put_Line (Call_To_String
+                               (Consistency.Element (Cons_Index)));
                      Put_Line ("Does not exsist in our call queue");
                      Put_Line ("--------------------------------------------");
                   end if;
@@ -582,54 +385,6 @@ package body AMI.Event is
       end loop;
 
    end QueueStatusComplete_CallBack;
-
-   procedure QueueUnpause (Asterisk_AMI : in Asterisk_AMI_Type;
-                           Peer : in Peer_Type) is
-   begin
-      AMI.Action.QueuePause (Asterisk_AMI.Channel,
-                             To_String (Peer.Peer), Protocol.UnPause);
-      --        SendCommand (Asterisk_AMI.Channel, Command);
-   end QueueUnpause;
-
-   procedure Redirect (Asterisk_AMI : in Asterisk_AMI_Type;
-                       Channel : in Unbounded_String;
-                       Exten : in Unbounded_String;
-                       Context : in Unbounded_String :=
-                         To_Unbounded_String ("LocalSets")) is
-
-   begin
-      Put_Line ("Redirecting " & To_String (Channel)
-                & " => " & To_String (Context) & ", " & To_String (Exten));
-
-      AMI.Action.Redirect (Socket  => Asterisk_AMI.Channel,
-                           Channel => To_String (Channel),
-                           Exten   => To_String (Exten),
-                           Context => To_String (Context));
-
-   end Redirect;
-
-   procedure Register_Agent (PhoneName   : in Unbounded_String;
-                             Computer_ID : in Unbounded_String) is
-      Peer : Peer_Type;
-      Peer_Index : Peer_List_Type.Cursor;
-   begin
-      Peer_Index := Peer_List_Type.Find (Container => Peer_List,
-                                         Key => PhoneName);
-      if Peer_List_Type.Has_Element (Peer_Index) then
-         --  The phone allready exsist in the list.
-         Peer := Peer_List_Type.Element (Position => Peer_Index);
-         Peer.Computer_ID := Computer_ID;
-         Peer_List_Type.Replace_Element (Container => Peer_List,
-                                         Position => Peer_Index,
-                                         New_Item => Peer);
-      else
-         Peer.Peer := PhoneName;
-         Peer.Computer_ID := Computer_ID;
-         Peer_List_Type.Insert (Container => Peer_List,
-                                Key => PhoneName,
-                                New_Item => Peer);
-      end if;
-   end Register_Agent;
 
    --  Lists the SIP peers. Returns a PeerEntry event for each
    --  SIP peer, and a PeerlistComplete event upon completetion
@@ -662,6 +417,7 @@ package body AMI.Event is
                     Username : in String;
                     Secret   : in String) is
       use Task_Controller;
+
    begin
       Asterisk := (Greeting  => new String'(Read_Line (channel)),
                    Channel   => channel,
@@ -671,8 +427,10 @@ package body AMI.Event is
       Login (Asterisk_AMI => Asterisk,
              Username     => Username,
              Secret       => Secret);
+      Yolk.Log.Trace (Yolk.Log.Debug,
+                     "Ami Event logged in.");
+      --  AMI.Action.QueueStatus (Asterisk.Channel, "StartUp");
 
-      AMI.Action.QueueStatus (Asterisk.Channel, "StartUp");
       loop
          exit when Task_State = Down;
          declare
@@ -694,11 +452,11 @@ package body AMI.Event is
                      --  Put_Line (Exception_Message (Error));
                end;
 
-            elsif Event_List (Event_List'First, Key)  = "Response" then
-               --  Lookup the callback, and pass the value.
-               Callback_Routine (AMI.Action.Get_Last_Action)(Event_List);
-               --  Direct it to the callback associated
-               --    with the previous commmand
+--              elsif Event_List (Event_List'First, Key)  = "Response" then
+--                 --  Lookup the callback, and pass the value.
+--                 Callback_Routine (AMI.Action.Get_Last_Action)(Event_List);
+--                 --  Direct it to the callback associated
+--                 --    with the previous commmand
             end if;
          exception
             when Error : others =>
@@ -712,17 +470,6 @@ package body AMI.Event is
          --  When the socket is terminated the Read_Package throws an exception
          Put_Line ("AMI Socket Shutdowned");
    end Start;
-
-   procedure TEST_StatusPrint is
-   begin
-      Put_Line ("----------- Peers --------------");
-      for Peer in Peer_List.Iterate loop
-         Peers.Print_Peer (Peer_List_Type.Element (Peer));
-      end loop;
-
-      Put (To_String (Call_Queue.Queue_ToString));
-      Put_Line ("Queue length" & Integer (Call_Queue.Queue_Length)'Img);
-   end TEST_StatusPrint;
 
    --  Event: Unlink
    --  Privilege: call,all

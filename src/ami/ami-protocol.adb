@@ -38,6 +38,10 @@ package body AMI.Protocol is
    --  Channel1: <value>
    --  Channel2: <value>
    --  [Tone:] <value>
+   --
+   --  Response
+   --  Response: Success
+   --  Message: Launched bridge thread with success
    function Bridge (Channel1 : in String;
                     Channel2 : in String) return String is
    begin
