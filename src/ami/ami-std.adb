@@ -3,6 +3,7 @@ with Ada.Text_IO;
 with AMI.Event;
 with AWS.Net.Std;
 with AWS.Net.Buffered;
+with Yolk.Log;
 
 package body AMI.Std is
    Channel : AWS.Net.Std.Socket_Type;
@@ -40,7 +41,9 @@ package body AMI.Std is
       AWS.Net.Std.Connect (Socket => Channel,
                            Host => Server_Host,
                            Port => Server_Port);
-
+      Yolk.Log.Trace (Yolk.Log.Info,
+                      "AMI socket connected - Host: "
+                      & Server_Host & " Port: " & Server_Port'Img);
       AMI_Service.Start (Username, Secret);
    end Connect;
 

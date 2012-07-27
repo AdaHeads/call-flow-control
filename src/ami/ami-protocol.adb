@@ -8,8 +8,9 @@ package body AMI.Protocol is
    --  Value part of request string
    Bridge_String           : constant String := "Bridge";
    CoreSettings_String     : constant String := "CoreSettings";
-   Login_String            : constant String := "Login";
+   Park_String             : constant String := "Park";
    Ping_String             : constant String := "Ping";
+   Login_String            : constant String := "Login";
    Logoff_String           : constant String := "Logoff";
    QueueStatus_String      : constant String := "QueueStatus";
    QueuePause_String       : constant String := "QueuePause";
@@ -67,6 +68,15 @@ package body AMI.Protocol is
       return Action_String & Logoff_String & Line_Termination_String &
              Line_Termination_String;
    end Logoff;
+
+   function Park (Channel : in String;
+                  Fallback_Channel : in String) return String is
+   begin
+      return Action_String & Park_String & Line_Termination_String &
+        Channel_String & Channel & Line_Termination_String &
+        Channel2_String & Fallback_Channel & Line_Termination_String &
+        Line_Termination_String;
+   end Park;
 
    function Ping return String is
    begin

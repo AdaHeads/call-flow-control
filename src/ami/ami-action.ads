@@ -120,7 +120,9 @@ package AMI.Action is
                     Username : in String;
                     Secret   : in String);
    procedure Logoff (Socket : in Socket_Type);
---     procedure Park (Socket : in AWS.)
+   procedure Park (Socket           : in Socket_Type;
+                   Channel          : in String;
+                   Fallback_Channel : in String);
    procedure Ping (Socket : in Socket_Type);
    procedure QueuePause (Socket     : in Socket_Type;
                          DeviceName : in String;

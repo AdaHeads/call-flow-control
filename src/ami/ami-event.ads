@@ -15,6 +15,8 @@ package AMI.Event is
                     Secret   : in String);
    --  Here starts the part of the program, that listens for events
 
+   --------------------------------------------------------
+   --  Should be in another file.
    procedure Get_Call (Uniqueid   : in     String;
                        Agent      : in     String;
                        Call       :    out Call_Queue.Call_Type);
@@ -23,13 +25,15 @@ package AMI.Event is
    procedure Bridge_Call (Channel1 : in Unbounded_String;
                           Channel2 : in Unbounded_String);
 
+   procedure Park (Agent : in Unbounded_String);
+
    procedure Register_Agent (PhoneName   : in Unbounded_String;
                              Computer_ID : in Unbounded_String);
 
    procedure Consistency_Check;
 
    procedure TEST_StatusPrint;
-
+   ---------------------------------------------------------
 private
    type Asterisk_AMI_Type is
       record

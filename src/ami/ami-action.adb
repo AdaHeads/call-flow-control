@@ -1,5 +1,6 @@
 --  with AMI.Event; use AMI.Event;
 with AMI.IO;
+with Ada.Text_IO;
 package body AMI.Action is
 
    Last_Action      : Action_Type := None;
@@ -41,6 +42,18 @@ package body AMI.Action is
       AMI.IO.Send (Socket, Command);
       Last_Action := Logoff;
    end Logoff;
+
+   procedure Park (Socket           : in Socket_Type;
+                   Channel          : in String;
+                   Fallback_Channel : in String) is
+      Command : constant String :=
+        Protocol.Park (Channel          => Channel,
+                       Fallback_Channel => Fallback_Channel);
+   begin
+      Ada.Text_IO.Put_Line ("Parking Call");
+      Ada.Text_IO.Put_Line (Command);
+      AMI.IO.Send (Socket, Command);
+   end Park;
 
    procedure Ping (Socket : in Socket_Type) is
       Command : constant String := Protocol.Ping;

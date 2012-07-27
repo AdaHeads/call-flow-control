@@ -6,16 +6,20 @@ package AMI.Protocol is
    function CoreSettings return String with inline;
 
    function Login (Username : in String;
-                   Secret : in String) return String with inline;
+                   Secret   : in String) return String with inline;
 
    function Logoff return String with inline;
+
+   function Park (Channel          : in String;
+                  Fallback_Channel : in String) return String with inline;
 
    function Ping return String with inline;
 
    type Pause_States is (Pause, UnPause);
 
    function QueuePause (DeviceName : in String;
-                        State : in Pause_States) return String with inline;
+                        State      : in Pause_States)
+                        return String with inline;
 
    function QueueStatus (ActionID : in String := "") return String with inline;
 

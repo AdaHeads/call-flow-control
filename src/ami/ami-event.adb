@@ -5,10 +5,11 @@ with Ada.Containers;
 with AMI.IO; use AMI.IO;
 with Task_Controller;
 with AMI.Protocol;
-
+with Yolk.Log;
 package body AMI.Event is
    use Call_Queue;
    use AMI.Action;
+
    Asterisk         : Asterisk_AMI_Type;
    Peer_List        : Peer_List_Type.Map;
    Consistency      : Queue_Type.Vector;
@@ -306,6 +307,39 @@ package body AMI.Event is
       Put_Line ("Not implemented");
       raise NOT_IMPLEMENTED;
    end NewState_Callback;
+
+   --  Sends the agent's current call on hold / park
+   procedure Park (Agent : in Unbounded_String) is
+      use Peer_List_Type;
+      Peer_Cursor : Peer_List_Type.Cursor;
+   begin
+      --  Finds the Agent, to get the call to park.
+      Peer_Cursor := Peer_List_Type.Find (Container => Peer_List,
+                                          Key       => Agent);
+
+      if Peer_Cursor /= Peer_List_Type.No_Element then
+         declare
+            Peer : Peer_Type;
+         begin
+            Peer := Peer_List_Type.Element (Peer_Cursor);
+            --  Not sure about this.
+            Put_Line (To_String (Peer.Peer));
+            if Peer.Call /= null_Call then
+               AMI.Action.Park (Socket           => Asterisk.Channel,
+                                Channel          => To_String
+                                  (Peer.Call.Channel),
+                                Fallback_Channel => To_String (Peer.Peer));
+            else
+               Yolk.Log.Trace (Handle => Yolk.Log.Debug,
+                               Message => "This agent have no call: " &
+                                 To_String (Agent));
+               raise NOT_IMPLEMENTED;
+            end if;
+         end;
+      else
+         raise NOT_IMPLEMENTED;
+      end if;
+   end Park;
 
    --  Event: PeerStatus
    --  Peer: SIP/2005
