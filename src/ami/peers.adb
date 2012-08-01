@@ -1,7 +1,9 @@
-with Ada.Text_IO;
-with Ada.Calendar.Formatting; use  Ada.Calendar.Formatting;
+with Ada.Calendar.Formatting,
+     Ada.Text_IO;
+
 with Yolk.Log;
 package body Peers is
+   use  Ada.Calendar.Formatting;
    ----------------------------------------------------------------------------
    --  TODO Navngivning, Der er brug for nogle bedre navne her.
    protected Peers_List is

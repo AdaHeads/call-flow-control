@@ -1,5 +1,6 @@
-with Ada.Text_IO;
-with Ada.Characters.Latin_1;
+with Ada.Characters.Latin_1,
+     Ada.Text_IO;
+
 package body Call_Queue is
    use Queue_Type;
 

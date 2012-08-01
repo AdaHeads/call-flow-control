@@ -5,7 +5,7 @@ with Common; use Common;
 with Response;
 with HTTP_Codes;
 with Routines;
-
+with AMI.Action;
 package body Call_Queue_Handler is
    --  returns the first call in the list.
    function Get_Call (Request : in AWS.Status.Data)
@@ -59,6 +59,8 @@ package body Call_Queue_Handler is
       Queue_Length : Ada.Containers.Count_Type;
       JSON : JSON_String;
    begin
+      AMI.Action.Action_Manager.Ping;
+
       Queue := Call_Queue.Get_Queue;
       Queue_Length := Call_Queue.Queue_Length;
 

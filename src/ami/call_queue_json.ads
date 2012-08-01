@@ -1,11 +1,10 @@
-with Call_Queue;
-with GNATCOLL.JSON;
 with Ada.Containers;
-with Common; use Common;
---  TODO All the functions returns AWS.Response.Data,
---       but this is a JSON package, make it return JSON Strings.
---       and the same problem with the parameter. I don't want to know about it
+with Call_Queue,
+     Common;
+with GNATCOLL.JSON;
+
 package Call_Queue_JSON is
+   use Common;
 
    function Convert_Queue (Queue : in Call_Queue.Call_Queue_Type;
                           Queue_Length : in Ada.Containers.Count_Type)

@@ -1,9 +1,11 @@
-with AWS.Net;
-with AWS.Net.Std; use AWS.Net.Std;
 with Ada.Containers.Vectors;
-with Call_Queue;
-with Event_Parser; use Event_Parser;
+with AWS.Net,
+     AWS.Net.Std;
+with Call_Queue,
+     Event_Parser;
 package AMI.Action is
+   use AWS.Net.Std;
+   use Event_Parser;
 
    package Call_List is new
      Ada.Containers.Vectors (Index_Type   => Positive,
@@ -44,6 +46,10 @@ package AMI.Action is
       entry Redirect (Channel : in String;
                       Exten   : in String;
                       Context : in String);
+      entry Initialize (Server_Host : in String;
+                        Server_Port : in Positive;
+                        Username    : in String;
+                        Secret      : in String);
    end Action_Manager;
 
 private

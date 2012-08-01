@@ -1,5 +1,5 @@
-with Ada.Strings.Fixed;
-with Ada.Characters.Latin_1;
+with Ada.Characters.Latin_1,
+     Ada.Strings.Fixed;
 package body AMI.Protocol is
    --  LF is never enough for some people..
    package Char renames Ada.Characters.Latin_1;

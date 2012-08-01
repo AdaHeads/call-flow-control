@@ -1,5 +1,6 @@
-with AWS.Net.Std;
 with Ada.Strings.Unbounded;
+with AWS.Net.Std;
+
 package AMI.IO is
    use Ada.Strings.Unbounded;
 

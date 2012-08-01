@@ -1,16 +1,23 @@
-with Ada.Exceptions;  use Ada.Exceptions;
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Ada.Text_IO; use Ada.Text_IO;
-with Ada.Calendar;
-with AMI.IO; use AMI.IO;
-with Task_Controller;
-with AMI.Protocol;
+with Ada.Calendar,
+     Ada.Exceptions,
+     Ada.Strings.Unbounded,
+     Ada.Text_IO;
+
+with AMI.IO,
+     AMI.Protocol;
+
+with Call_Queue,
+     Peers,
+     Task_Controller;
+
 with Yolk.Log;
-with Call_Queue;
-with Peers;
+
 package body AMI.Event is
+   use Ada.Strings.Unbounded;
    use Call_Queue;
-   --     use AMI.Action;
+   use Ada.Exceptions;
+   use AMI.IO;
+   use Ada.Text_IO;
    use Peers;
 
    Asterisk         : Asterisk_AMI_Type;
@@ -323,7 +330,6 @@ package body AMI.Event is
              Secret       => Secret);
       Yolk.Log.Trace (Yolk.Log.Debug,
                       "Ami Event logged in.");
-      --  AMI.Action.QueueStatus (Asterisk.Channel, "StartUp");
 
       loop
          exit when Task_State = Down;
@@ -341,17 +347,7 @@ package body AMI.Event is
                exception
                   when others =>
                      null;
-                     --  when Error : others =>
-                     --  Put_Line ("Event not implemented: " &
-                     --    To_String (Event_List (1, Value)));
-                     --  Put_Line (Exception_Message (Error));
                end;
-
-               --  elsif Event_List (Event_List'First, Key)  = "Response" then
-               --  --  Lookup the callback, and pass the value.
-               --  Callback_Routine (AMI.Action.Get_Last_Action)(Event_List);
-               --  --  Direct it to the callback associated
-               --  --    with the previous commmand
             end if;
          exception
             when Error : others =>
@@ -363,7 +359,7 @@ package body AMI.Event is
    exception
       when AWS.Net.Socket_Error =>
          --  When the socket is terminated the Read_Package throws an exception
-         Put_Line ("AMI Socket Shutdowned");
+         Put_Line ("AMI Socket Shutdown");
    end Start;
 
    --  Event: Unlink

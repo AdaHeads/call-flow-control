@@ -1,5 +1,6 @@
-with Ada.Strings.Unbounded;
-with Ada.Containers.Ordered_Maps;
+with Ada.Containers.Ordered_Maps,
+     Ada.Strings.Unbounded;
+
 package Event_Parser is
    use Ada.Strings.Unbounded;
 

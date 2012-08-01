@@ -1,8 +1,8 @@
-with Ada.Containers;
-with Ada.Calendar;
-with Ada.Strings.Unbounded;
-with Ada.Containers.Vectors;
---  with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Calendar,
+     Ada.Containers,
+     Ada.Containers.Vectors,
+     Ada.Strings.Unbounded;
+
 package Call_Queue is
    use Ada.Strings.Unbounded;
    --     Type Call_Queue_Type is private;

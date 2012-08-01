@@ -1,7 +1,8 @@
---  with Ada.Exceptions;
+with Event_Parser;
 with AWS.Net.Std;
-with Event_Parser; use Event_Parser;
+
 package AMI.Event is
+   use Event_Parser;
 
    type Asterisk_AMI_Type is private;
 

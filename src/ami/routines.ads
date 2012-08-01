@@ -1,6 +1,7 @@
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded;
 with Call_Queue;
 package Routines is
+   use Ada.Strings.Unbounded;
    --------------------------------------------------------
    --  Should be out of the AMI directory.
 

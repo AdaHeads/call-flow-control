@@ -1,6 +1,7 @@
-with Ada.Text_IO;
-with Ada.Exceptions;
-with Ada.Characters.Latin_1;
+with Ada.Characters.Latin_1,
+     Ada.Exceptions,
+     Ada.Text_IO;
+
 package body Event_Parser is
 
    function Parse (Event_Text : in Unbounded_String)

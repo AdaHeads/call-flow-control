@@ -1,56 +1,128 @@
---  with AMI.Event; use AMI.Event;
-with AMI.IO;
-with Ada.Text_IO;
---  with Ada.Calendar;
-with Ada.Strings.Unbounded;
-with AMI.Protocol;
-with Yolk.Log;
+with Ada.Exceptions,
+     Ada.Strings.Unbounded,
+     Ada.Text_IO;
+
+with AMI.IO,
+     AMI.Protocol;
+
+with Yolk.Log,
+     Task_Controller;
 package body AMI.Action is
    Socket : AWS.Net.Std.Socket_Type;
 
    task body Action_Manager is
+      use Ada.Strings.Unbounded;
+      use Task_Controller;
+
+      Server_Host : Unbounded_String;
+      Server_Port : Positive;
+
+      Username : Unbounded_String;
+      Secret : Unbounded_String;
+
+      Greetings : Unbounded_String;
    begin
+      accept Initialize (Server_Host : in String;
+                         Server_Port : in Positive;
+                         Username    : in String;
+                         Secret      : in String) do
+
+         Action_Manager.Server_Host := To_Unbounded_String (Server_Host);
+         Action_Manager.Server_Port := Server_Port;
+
+         Action_Manager.Username := To_Unbounded_String (Username);
+         Action_Manager.Secret   := To_Unbounded_String (Secret);
+      end Initialize;
+
+      Reconnect :
       loop
-         select
-            accept Bridge (ChannelA : in String;
-                           ChannelB : in String) do
-               Bridge (ChannelA, ChannelB);
-            end Bridge;
-         or
-            accept CoreSettings (Data : out Event_List_Type.Map) do
-               Data := AMI.Action.CoreSettings;
-            end CoreSettings;
-         or
-            accept Login (Username : in     String;
-                          Secret   : in     String;
-                          Success  :    out Boolean) do
-               Success := Login (Username, Secret);
-            end Login;
-         or
-            accept Logoff do
-               Logoff;
-            end Logoff;
-         or
-            accept QueueStatus (List : out Call_List.Vector) do
-               List := AMI.Action.QueueStatus;
-            end QueueStatus;
-         or
-            accept Park (Channel1 : in String;
-                         Channel2 : in String) do
-               AMI.Action.Park (Channel1, Channel2);
-            end Park;
-         or
-            accept Ping  do
-               AMI.Action.Ping;
-            end Ping;
-         or
-            accept Redirect (Channel : in String;
-                             Exten   : in String;
-                             Context : in String) do
-               AMI.Action.Redirect (Channel, Exten, Context);
-            end Redirect;
-         end select;
-      end loop;
+         if Task_State = Down then
+            Yolk.Log.Trace (Yolk.Log.Info,
+                            "AMI Action_Manager is quitting");
+            exit Reconnect;
+         end if;
+         begin
+            AWS.Net.Std.Connect (Socket => AMI.Action.Socket,
+                                 Host   => To_String (Server_Host),
+                                 Port   => Server_Port);
+            Greetings := To_Unbounded_String
+              (AMI.IO.Read_Line (AMI.Action.Socket));
+            Yolk.Log.Trace (Yolk.Log.Debug,
+                            "Action Greeting: " & To_String (Greetings));
+
+            if not
+              AMI.Action.Login
+                (Username => To_String (Action_Manager.Username),
+                 Secret   => To_String (Action_Manager.Secret))
+            then
+               Yolk.Log.Trace (Yolk.Log.Notice, "AMI Action Wrong login:" &
+                                 "Username: " &
+                                 To_String (Action_Manager.Username) &
+                                 "Secret: " &
+                                 To_String (Action_Manager.Secret));
+            end if;
+            Action_Loop :
+            loop
+               if Task_State = Down then
+                  Yolk.Log.Trace (Yolk.Log.Info,
+                                  "AMI Action_Manager is quitting");
+                  exit Reconnect;
+               end if;
+               select
+                  accept Bridge (ChannelA : in String;
+                                 ChannelB : in String) do
+                     Bridge (ChannelA, ChannelB);
+                  end Bridge;
+               or
+                  accept CoreSettings (Data : out Event_List_Type.Map) do
+                     Data := AMI.Action.CoreSettings;
+                  end CoreSettings;
+               or
+                  accept Login (Username : in     String;
+                                Secret   : in     String;
+                                Success  :    out Boolean) do
+                     Success := Login (Username, Secret);
+                  end Login;
+               or
+                  accept Logoff do
+                     Logoff;
+                  end Logoff;
+               or
+                  accept QueueStatus (List : out Call_List.Vector) do
+                     List := AMI.Action.QueueStatus;
+                  end QueueStatus;
+               or
+                  accept Park (Channel1 : in String;
+                               Channel2 : in String) do
+                     AMI.Action.Park (Channel1, Channel2);
+                  end Park;
+               or
+                  accept Ping  do
+                     AMI.Action.Ping;
+                  end Ping;
+               or
+                  accept Redirect (Channel : in String;
+                                   Exten   : in String;
+                                   Context : in String) do
+                     AMI.Action.Redirect (Channel, Exten, Context);
+                  end Redirect;
+               or
+                  delay 1.0;
+               end select;
+            end loop Action_Loop;
+         exception
+            when others =>
+               Yolk.Log.Trace (Yolk.Log.Debug, "AMI Action Lost connection");
+         end;
+         Yolk.Log.Trace (Yolk.Log.Debug, "AMI Action Reconnect");
+         delay 0.5;
+
+      end loop Reconnect;
+   exception
+      when E : others =>
+         Yolk.Log.Trace (Yolk.Log.Error,
+                         "Exception in Action_Manager: " &
+                           Ada.Exceptions.Exception_Name (E));
    end Action_Manager;
 
    procedure Bridge (ChannelA : in String;

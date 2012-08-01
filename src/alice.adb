@@ -172,10 +172,10 @@ begin
    Wait;
    --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
 
-   Stop_Server;
-
    Task_State := Down;
    --  Signal all running tasks to go down.
+
+   Stop_Server;
 
 exception
    when Event : others =>

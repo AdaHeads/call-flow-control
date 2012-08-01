@@ -1,11 +1,12 @@
-with AMI.Action;
-with Yolk.Log;
-with Ada.Containers;
+with AMI.Action,
+     Ada.Calendar,
+     Ada.Containers,
+     Ada.Exceptions;
+
 with Peers;
-with Ada.Calendar;
-with Ada.Exceptions;
 with Event_Parser;
---  with Ada.Containers.Hashed_Maps; use Ada.Containers.Hashed_Maps;
+with Yolk.Log;
+
 package body Routines is
       --  Takes two channels, and bridge the them together.
    procedure Bridge_Call (Channel1 : in Unbounded_String;

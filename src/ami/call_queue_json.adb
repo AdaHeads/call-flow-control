@@ -1,7 +1,9 @@
-with Ada.Calendar;
-with Ada.Calendar.Conversions;
+with Ada.Calendar,
+     Ada.Calendar.Conversions,
+     Ada.Strings.Fixed;
+
 with Interfaces.C;
-with Ada.Strings.Fixed;
+
 package body Call_Queue_JSON is
    use GNATCOLL.JSON;
 
@@ -76,7 +78,7 @@ package body Call_Queue_JSON is
 
    function Convert_Queue (Queue : in Call_Queue.Call_Queue_Type;
                            Queue_Length : in Ada.Containers.Count_Type)
-                            return JSON_String is
+                           return JSON_String is
       use Call_Queue;
 
       JSON_List : JSON_Array := Empty_Array;

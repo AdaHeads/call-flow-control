@@ -1,14 +1,16 @@
-with Ada.Containers.Hashed_Maps;  use Ada.Containers;
-with Ada.Strings.Hash;
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Ada.Calendar;
+with Ada.Calendar,
+     Ada.Containers.Hashed_Maps,
+     Ada.Containers.Vectors,
+     Ada.Strings.Hash,
+     Ada.Strings.Unbounded;
+
 with Call_Queue;
-with Ada.Containers.Vectors;
 --  TODO: Make this into a generic that uses protected types
 --          for accessing the map.
 --  TODO: Add "calls on hold" list.
 package Peers is
-
+   use Ada.Containers;
+   use Ada.Strings.Unbounded;
    type SIP_Peer_Status_Type is (Unregistered, Registered);
 
    package Call_List is new
@@ -33,19 +35,19 @@ package Peers is
          Computer_ID : Unbounded_String;
          --  Dete skal kun symbolere de informationen, der måtte komme senere
       end record;
---     null_Peer : Peer_Type :=
---       (Defined => False,
---        Status => Unregistered,
---        ChannelType => Null_Unbounded_String,
---        Peer  => Null_Unbounded_String,
---        Port  => Null_Unbounded_String,
---        Address => Null_Unbounded_String,
---        Paused => False,
---        Last_Seen => Ada.Calendar.Clock,
---        Call => Call_Queue.null_Call,
---        Exten => Null_Unbounded_String,
---        Parked_Calls => Call_List.Vector, --  something's wrong here
---        Computer_ID  => Null_Unbounded_String);
+   --     null_Peer : Peer_Type :=
+   --       (Defined => False,
+   --        Status => Unregistered,
+   --        ChannelType => Null_Unbounded_String,
+   --        Peer  => Null_Unbounded_String,
+   --        Port  => Null_Unbounded_String,
+   --        Address => Null_Unbounded_String,
+   --        Paused => False,
+   --        Last_Seen => Ada.Calendar.Clock,
+   --        Call => Call_Queue.null_Call,
+   --        Exten => Null_Unbounded_String,
+   --        Parked_Calls => Call_List.Vector, --  something's wrong here
+   --        Computer_ID  => Null_Unbounded_String);
 
    type Peer_type_access is access Peer_Type;
 
