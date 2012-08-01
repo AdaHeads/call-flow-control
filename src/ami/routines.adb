@@ -4,6 +4,7 @@ with Ada.Containers;
 with Peers;
 with Ada.Calendar;
 with Ada.Exceptions;
+with Event_Parser;
 --  with Ada.Containers.Hashed_Maps; use Ada.Containers.Hashed_Maps;
 package body Routines is
       --  Takes two channels, and bridge the them together.
@@ -11,15 +12,16 @@ package body Routines is
                           Channel2 : in Unbounded_String) is
    begin
       --  TODO, Jeg er ikke sikker, at jeg bare kan hive Asterisk her
-      AMI.Action.Bridge (To_String (Channel1), To_String (Channel2));
+      AMI.Action.Action_Manager.Bridge
+        (To_String (Channel1), To_String (Channel2));
    end Bridge_Call;
 
    procedure Consistency_Check is
       use Call_Queue;
       use Ada.Containers;
 
-      Call_List : constant AMI.Action.Call_List.Vector :=
-        AMI.Action.QueueStatus ("Consistency");
+      Call_List : AMI.Action.Call_List.Vector;
+
       Queue : constant Call_Queue_Type := Call_Queue.Get_Queue;
       function Check_Call (Call : in Call_Type) return Boolean;
       function Check_Call (Call : in Call_Type) return Boolean is
@@ -37,6 +39,7 @@ package body Routines is
          return False;
       end Check_Call;
    begin
+      AMI.Action.Action_Manager.QueueStatus (Call_List);
       --  AMI.Action.QueueStatus (Asterisk.Channel, "Consistency");
       Yolk.Log.Trace (Yolk.Log.Debug, "Consistency Check");
       if Call_Queue.Queue_Length /= Call_List.Length then
@@ -124,8 +127,10 @@ package body Routines is
          Call := temp_Call;
 
          --  Send the call out to the phone
-         AMI.Action.Redirect (Channel => To_String (temp_Call.Channel),
-                              Exten   => To_String (Peer.Exten));
+         AMI.Action.Action_Manager.Redirect
+           (Channel => To_String (temp_Call.Channel),
+            Exten   => To_String (Peer.Exten),
+            Context => "LocalSets");
       else
          Yolk.Log.Trace (Yolk.Log.Debug, "Get_Call: No Call to take");
 
@@ -142,9 +147,16 @@ package body Routines is
 
       --  Scaffolding
    function Get_Version return String is
-      Text : constant String := AMI.Action.CoreSettings;
+      use Event_Parser;
+      Data : Event_List_Type.Map;
+      Version : Unbounded_String;
    begin
-      return Text;
+      AMI.Action.Action_Manager.CoreSettings (Data);
+      if Data.Contains (To_Unbounded_String ("AsteriskVersion")) then
+         Version := Data.Element (To_Unbounded_String ("AsteriskVersion"));
+      end if;
+      AMI.Action.Action_Manager.Ping;
+      return To_String (Version);
       --        Last_Action := CoreSettings;
    end Get_Version;
 
@@ -168,9 +180,9 @@ package body Routines is
             Yolk.Log.Trace (Yolk.Log.Debug, "Park: Peer => " &
                               To_String (Peer.Peer));
             if Peer.Call /= null_Call then
-               AMI.Action.Park (Channel          => To_String
-                                  (Peer.Call.Channel),
-                                Fallback_Channel => To_String (Peer.Peer));
+               AMI.Action.Action_Manager.Park
+                 (Channel1 => To_String (Peer.Call.Channel),
+                  Channel2 => To_String (Peer.Peer));
             else
                Yolk.Log.Trace (Handle => Yolk.Log.Debug,
                                Message => "This agent have no call: " &
@@ -205,9 +217,9 @@ package body Routines is
    end Register_Agent;
 
    procedure StartUpSequence is
-      Call_List : constant AMI.Action.Call_List.Vector :=
-        AMI.Action.QueueStatus ("StartUp");
+      Call_List : AMI.Action.Call_List.Vector;
    begin
+      AMI.Action.Action_Manager.QueueStatus (Call_List);
       for i in Call_List.First_Index .. Call_List.Last_Index loop
          Call_Queue.Enqueue (Call => Call_List.Element (i));
       end loop;

@@ -82,7 +82,7 @@ private
 
    --  Basic signature of our callback routine for responses
    type Response_Callback_Type is access procedure (Event : String);
-   type Callback_Type is access procedure (Event_List : Event_List_Type);
+   type Callback_Type is access procedure (Event_List : Event_List_Type.Map);
 
    --  Callback table for actions
 --     type Action_Callback_Routine_Table is array (AMI.Action.Action_Type)
@@ -92,16 +92,12 @@ private
    type Event_Callback_Routine_Table is array (Event) of Callback_Type;
 
    --  Callbacks
-   procedure Dial_Callback              (Event_List : in Event_List_Type);
-   procedure Hangup_Callback            (Event_List : in Event_List_Type);
-   procedure Join_Callback              (Event_List : in Event_List_Type);
-   procedure Login_Callback             (Event_List : in Event_List_Type);
-   procedure PeerStatus_Callback        (Event_List : in Event_List_Type);
-   procedure QueueMemberPaused_Callback (Event_List : in Event_List_Type);
-   procedure Unlink_Callback            (Event_List : in Event_List_Type);
-   procedure QueueStatus_Callback       (Event_List : in Event_List_Type);
-
-   procedure QueueStatusComplete_CallBack (Event_List : in Event_List_Type);
+   procedure Dial_Callback              (Event_List : in Event_List_Type.Map);
+   procedure Hangup_Callback            (Event_List : in Event_List_Type.Map);
+   procedure Join_Callback              (Event_List : in Event_List_Type.Map);
+   procedure Login_Callback             (Event_List : in Event_List_Type.Map);
+   procedure PeerStatus_Callback        (Event_List : in Event_List_Type.Map);
+   procedure Unlink_Callback            (Event_List : in Event_List_Type.Map);
 
    --  Commands
    procedure Login (Asterisk_AMI : in Asterisk_AMI_Type;

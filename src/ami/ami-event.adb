@@ -2,7 +2,6 @@ with Ada.Exceptions;  use Ada.Exceptions;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Calendar;
-with Ada.Containers;
 with AMI.IO; use AMI.IO;
 with Task_Controller;
 with AMI.Protocol;
@@ -11,27 +10,24 @@ with Call_Queue;
 with Peers;
 package body AMI.Event is
    use Call_Queue;
---     use AMI.Action;
+   --     use AMI.Action;
    use Peers;
 
    Asterisk         : Asterisk_AMI_Type;
---     Peer_List        : Peer_List_Type.Map;
-   Consistency      : Queue_Type.Vector;
+   --     Peer_List        : Peer_List_Type.Map;
 
    --  Callback maps
---     Callback_Routine : Action_Callback_Routine_Table :=
---       (Login       => Login_Callback'Access,
---        QueueStatus => QueueStatus_Callback'Access,
---        others      => null);
+   --     Callback_Routine : Action_Callback_Routine_Table :=
+   --       (Login       => Login_Callback'Access,
+   --        QueueStatus => QueueStatus_Callback'Access,
+   --        others      => null);
 
    Event_Callback_Routine : constant Event_Callback_Routine_Table :=
      (Dial                 => Dial_Callback'Access,
       Hangup               => Hangup_Callback'Access,
       Join                 => Join_Callback'Access,
-      QueueMemberPaused    => QueueMemberPaused_Callback'Access,
       PeerStatus           => PeerStatus_Callback'Access,
       Unlink               => Unlink_Callback'Access,
-      QueueStatusComplete  => QueueStatusComplete_CallBack'Access,
       others               => null);
 
    --  Lists agents
@@ -67,16 +63,13 @@ package body AMI.Event is
    --  UniqueID: 1340097427.10
    --  DestUniqueID: 1340097427.11
    --  Dialstring: softphone1
-   procedure Dial_Callback (Event_List : in Event_List_Type) is
+   procedure Dial_Callback (Event_List : in Event_List_Type.Map) is
    begin
-      --  Now we play a game called; Find the message!
-      for i in Event_List'First + 1 .. Event_List'Last loop
-         if To_String (Event_List (i, Key)) = "Message" and
-         then To_String (Event_List (i, Value)) =
-           "Authentication accepted" then
-            Asterisk.Logged_In := True;
-         end if;
-      end loop;
+      if Event_List.Contains (To_Unbounded_String ("Message")) and then
+        Event_List.Element (To_Unbounded_String ("Message")) =
+        "Authentication accepted" then
+         Asterisk.Logged_In := True;
+      end if;
    end Dial_Callback;
 
    --  Event: Hangup
@@ -87,19 +80,12 @@ package body AMI.Event is
    --  CallerIDName: <unknown>
    --  Cause: 16
    --  Cause-txt: Normal Clearing
-   procedure Hangup_Callback (Event_List : in Event_List_Type) is
+   procedure Hangup_Callback (Event_List : in Event_List_Type.Map) is
    begin
-      --  Search for the right key in Event_List
-      for i in Event_List'Range loop
-         if To_String (Event_List (i, Key)) = "Uniqueid" then
-            --  If there should happen more then just remove it,
-            --   then remember to insert Ended time.
-            Call_Queue.Remove (Uniqueid => Event_List (i, Value));
-
-            --  The field is found, and we are all happy now.
-            return;
-         end if;
-      end loop;
+      if Event_List.Contains (To_Unbounded_String ("Uniqueid")) then
+         Call_Queue.Remove (Event_List.Element (
+           To_Unbounded_String ("Uniqueid")));
+      end if;
    end Hangup_Callback;
 
    --  Event: Join
@@ -110,35 +96,42 @@ package body AMI.Event is
    --  Position: 1
    --  Count 1
    --  Uniqueid: 1340807150.33
-   procedure Join_Callback (Event_List : in Event_List_Type) is
+   procedure Join_Callback (Event_List : in Event_List_Type.Map) is
       Call : Call_Queue.Call_Type;
-      Event_Key : Unbounded_String;
+      --        Event_Key : Unbounded_String;
    begin
-      for i in Event_List'First .. Event_List'Last loop
-         Event_Key := Event_List (i, Key);
+      --        for i in Event_List'First .. Event_List'Last loop
+      --           Event_Key := Event_List (i, Key);
 
-         if To_String (Event_Key) = "Channel" then
-            Call.Channel := Event_List (i, Value);
+      if Event_List.Contains (To_Unbounded_String ("Channel")) then
+         Call.Channel := Event_List.Element (To_Unbounded_String ("Channel"));
+      end if;
+      --           if To_String (Event_Key) = "Channel" then
+      --              Call.Channel := Event_List (i, Value);
 
-         elsif To_String (Event_Key) = "CallerIDNum" then
-            Call.CallerIDNum := Event_List (i, Value);
-
-         elsif To_String (Event_Key) = "CallerIDName" then
-            Call.CallerIDName := Event_List (i, Value);
-
-         elsif To_String (Event_Key) = "Queue" then
-            Call.Queue := Event_List (i, Value);
-
-         elsif To_String (Event_Key) = "Position" then
-            Call.Position := Integer'Value (To_String (Event_List (i, Value)));
-
-         elsif To_String (Event_Key) = "Count" then
-            Call.Count := Integer'Value (To_String (Event_List (i, Value)));
-
-         elsif To_String (Event_Key) = "Uniqueid" then
-            Call.Uniqueid := Event_List (i, Value);
-         end if;
-      end loop;
+      if Event_List.Contains (To_Unbounded_String ("CallerIDNum")) then
+         Call.CallerIDNum := Event_List.Element
+           (To_Unbounded_String ("CallerIDNum"));
+      end if;
+      if Event_List.Contains (To_Unbounded_String ("CallerIDName")) then
+         Call.CallerIDName := Event_List.Element
+           (To_Unbounded_String ("CallerIDName"));
+      end if;
+      if Event_List.Contains (To_Unbounded_String ("Queue")) then
+         Call.Queue := Event_List.Element (To_Unbounded_String ("Queue"));
+      end if;
+      if Event_List.Contains (To_Unbounded_String ("Position")) then
+         Call.Position := Integer'Value (To_String (
+           Event_List.Element (To_Unbounded_String ("Position"))));
+      end if;
+      if Event_List.Contains (To_Unbounded_String ("Count")) then
+         Call.Count := Integer'Value (To_String (
+           Event_List.Element (To_Unbounded_String ("Count"))));
+      end if;
+      if Event_List.Contains (To_Unbounded_String ("Uniqueid")) then
+         Call.Uniqueid := Event_List.Element
+           (To_Unbounded_String ("Uniqueid"));
+      end if;
       Call.Arrived := Ada.Calendar.Clock;
 
       Call_Queue.Enqueue (Call => Call);
@@ -162,16 +155,14 @@ package body AMI.Event is
 
    end Login;
 
-   procedure Login_Callback (Event_List : in Event_List_Type) is
+   procedure Login_Callback (Event_List : in Event_List_Type.Map) is
    begin
       --  Now we play a game called; Find the message!
-      for i in Event_List'First + 1 .. Event_List'Last loop
-         if To_String (Event_List (i, Key)) = "Message" and
-         then To_String (Event_List (i, Value)) =
-           "Authentication accepted" then
-            Asterisk.Logged_In := True;
-         end if;
-      end loop;
+      if Event_List.Contains (To_Unbounded_String ("Message")) and
+      then To_String (Event_List.Element (To_Unbounded_String ("Message"))) =
+        "Authentication accepted" then
+         Asterisk.Logged_In := True;
+      end if;
    end Login_Callback;
 
    --  no need for, we are never gonna call it anyway.
@@ -204,36 +195,43 @@ package body AMI.Event is
    --  Event: PeerStatus
    --  Peer: SIP/2005
    --  PeerStatus: Registered
-   procedure PeerStatus_Callback (Event_List : in Event_List_Type) is
+   procedure PeerStatus_Callback (Event_List : in Event_List_Type.Map) is
       Peer    : Peer_Type;
       Map_Key : Unbounded_String;
    begin
       Put_Line ("Peer status update");
-      for i in Event_List'First + 1 .. Event_List'Last loop
-         if To_String (Event_List (i, Key)) = "Peer" then
-            Peer.Peer := Event_List (i, Value);
-            Map_Key := Event_List (i, Value);
-
-         elsif To_String (Event_List (i, Key)) = "ChannelType" then
-            Peer.ChannelType := Event_List (i, Value);
-
-         elsif To_String (Event_List (i, Key)) = "Address" then
-            Peer.Address := Event_List (i, Value);
-
-         elsif To_String (Event_List (i, Key)) = "Port" then
-            Peer.Port := Event_List (i, Value);
-
-         elsif To_String (Event_List (i, Key)) = "PeerStatus" then
-            if To_String (Event_List (i, Value)) = "Unregistered"  then
-               Peer.Status := Unregistered;
-            elsif To_String (Event_List (i, Value)) = "Registered"  then
-               Peer.Status := Registered;
-            else
-               Put_Line ("SIP client to unknown state: " &
-                           To_String (Event_List (i, Value)));
-            end if;
+      --        for i in Event_List'First + 1 .. Event_List'Last loop
+      if Event_List.Contains (To_Unbounded_String ("Peer")) then
+         Peer.Peer := Event_List.Element (To_Unbounded_String ("Peer"));
+         Map_Key := Event_List.Element (To_Unbounded_String ("Peer"));
+      end if;
+      if Event_List.Contains (To_Unbounded_String ("ChannelType")) then
+         Peer.ChannelType := Event_List.Element
+           (To_Unbounded_String ("ChannelType"));
+      end if;
+      if Event_List.Contains (To_Unbounded_String ("Address")) then
+         Peer.Address := Event_List.Element
+           (To_Unbounded_String ("Address"));
+      end if;
+      if Event_List.Contains (To_Unbounded_String ("Port")) then
+         Peer.Port := Event_List.Element (To_Unbounded_String ("Port"));
+      end if;
+      if Event_List.Contains (To_Unbounded_String ("PeerStatus")) then
+         if To_String (Event_List.Element (To_Unbounded_String ("PeerStatus")))
+           = "Unregistered"  then
+            Peer.Status := Unregistered;
+         elsif To_String (Event_List.Element (
+           To_Unbounded_String ("PeerStatus"))) = "Registered"  then
+            Peer.Status := Registered;
+         else
+            Yolk.Log.Trace (Yolk.Log.Debug, "Peer Status, unknown state: " &
+                To_String (Event_List.Element
+                (To_Unbounded_String ("PeerStatus"))));
+            --              Put_Line ("SIP client to unknown state: " &
+            --                          To_String (Event_List (i, Value)));
          end if;
-      end loop;
+      end if;
+      --        end loop;
 
       declare
          Exten : Unbounded_String;
@@ -265,126 +263,22 @@ package body AMI.Event is
          end if;
       end;
       --  Update the peer list
---        if Peer_List_Type.Contains (Container => Peers.Get_Peers_List,
---                                    Key       => Map_Key) then
+      --        if Peer_List_Type.Contains (Container => Peers.Get_Peers_List,
+      --                                    Key       => Map_Key) then
 
---           Peer_List_Type.Replace (Container => Peer_List,
---                                   Key       => Map_Key,
---                                   New_Item  => Peer);
---        else
---
---           Peer_List_Type.Insert (Container => Peer_List,
---                                  Key       => Map_Key,
---                                  New_Item  => Peer);
---        end if;
+      --           Peer_List_Type.Replace (Container => Peer_List,
+      --                                   Key       => Map_Key,
+      --                                   New_Item  => Peer);
+      --        else
+      --
+      --           Peer_List_Type.Insert (Container => Peer_List,
+      --                                  Key       => Map_Key,
+      --                                  New_Item  => Peer);
+      --        end if;
 
---        Print_Peer (Peer_List_Type.Element (Container => Peer_List,
---                                            Key       => Map_Key));
+      --        Print_Peer (Peer_List_Type.Element (Container => Peer_List,
+      --                                            Key       => Map_Key));
    end PeerStatus_Callback;
-
-   --  Event: QueueMemberPaused
-   --  Privilege: agent,all
-   --  Queue: myqueue
-   --  Location: SIP/testphone
-   --  MemberName: Jared Smith
-   --  Paused: 1
-   procedure QueueMemberPaused_Callback (Event_List : in Event_List_Type) is
---        Peer_Phone : Unbounded_String;
---        paused : Boolean := False;
---        Peer_Cursor : Peer_List_Type.Cursor;
---        Peer : Peer_Type;
-   begin
---        for i in Event_List'Range loop
---           if To_String (Event_List (i, Key)) = "Location" then
---              Peer_Phone := Event_List (i, Value);
---
---           elsif To_String (Event_List (i, Key)) = "Paused" then
---              if To_String (Event_List (i, Value)) = "0" then
---                 paused := False;
---
---              elsif To_String (Event_List (i, Value)) = "1" then
---                 paused := True;
---              end if;
---           end if;
---        end loop;
-
---        Peer_Cursor :=  Peer_List_Type.Find (Peer_List, Peer_Phone);
---        Peer := Peer_List_Type.Element (Peer_Cursor);
---
---        Peer.Paused := paused;
---        Peer_List_Type.Replace_Element (Container => Peer_List,
---                                        Position => Peer_Cursor,
---                                        New_Item => Peer);
-
-      Put_Line ("Not implemented - QueueMemberPaused_Callback" &
-                  To_String (Event_List (1, Value)));
-      --  raise NOT_IMPLEMENTED;
-   end QueueMemberPaused_Callback;
-
-   --  Response: Success
-   --  Message: Queue status will follow
-   procedure QueueStatus_Callback (Event_List : in Event_List_Type) is
-   begin
-      for i in Event_List'Range loop
-         if Event_List (i, Key) = "Message" then
-            if Event_List (i, Value) = "Queue status will follow" then
-               Consistency.Clear;
-            end if;
-         end if;
-      end loop;
-   end QueueStatus_Callback;
-
-   procedure QueueStatusComplete_CallBack (Event_List : in Event_List_Type) is
-      use Ada.Containers;
-      Queue : constant Call_Queue_Type := Call_Queue.Get_Queue;
-      function Check_Call (Call : in Call_Type) return Boolean;
-      function Check_Call (Call : in Call_Type) return Boolean is
-      begin
-         for Queue_Priority in Queue'Range loop
-            for Queue_Index in
-              1 .. Integer (Queue (Queue_Priority).Length) loop
-               if Call.Uniqueid =
-                 Queue (Queue_Priority).Element (Queue_Index).Uniqueid
-               then
-                  return True;
-               end if;
-            end loop;
-         end loop;
-         return False;
-      end Check_Call;
-   begin
-      for i in Event_List'Range loop
-         if To_String (Event_List (i, Key)) = "ActionID" then
-            if To_String (Event_List (i, Value)) = "Consistency" then
-               Put_Line ("Consistency Check");
-               if Call_Queue.Queue_Length /= Consistency.Length then
-                  Put_Line ("-----------------------------------------------");
-                  Put_Line ("         Consistency check - Length failed     ");
-                  Put_Line ("Call Queue Length: " &
-                              Call_Queue.Queue_Length'Img);
-                  Put_Line ("Asterisk Queue Length: " &
-                              Consistency.Length'Img);
-                  Put_Line ("-----------------------------------------------");
-               end if;
-               --  TODO Error Correction
-               --  XXX Der er en chance for det her er langsomst.
-
-               for Cons_Index in 1 .. Integer (Consistency.Length) loop
-                  if not Check_Call (Consistency.Element (Cons_Index)) then
-                     Put_Line ("--------------------------------------------");
-                     Put_Line ("    Consistency check - Not Equal failed    ");
-                     Put_Line (Call_To_String
-                               (Consistency.Element (Cons_Index)));
-                     Put_Line ("Does not exsist in our call queue");
-                     Put_Line ("--------------------------------------------");
-                  end if;
-               end loop;
-               Put_Line ("The system is consistent");
-            end if;
-         end if;
-      end loop;
-
-   end QueueStatusComplete_CallBack;
 
    --  Lists the SIP peers. Returns a PeerEntry event for each
    --  SIP peer, and a PeerlistComplete event upon completetion
@@ -428,21 +322,22 @@ package body AMI.Event is
              Username     => Username,
              Secret       => Secret);
       Yolk.Log.Trace (Yolk.Log.Debug,
-                     "Ami Event logged in.");
+                      "Ami Event logged in.");
       --  AMI.Action.QueueStatus (Asterisk.Channel, "StartUp");
 
       loop
          exit when Task_State = Down;
          declare
             Event_String : constant Unbounded_String := Read_Package (channel);
-            Event_List : constant Event_List_Type := Parse (Event_String);
+            Event_List : constant Event_List_Type.Map := Parse (Event_String);
          begin
             --  Basically we have responses, or events
-            if Event_List (Event_List'First, Key)  = "Event" then
+            if Event_List.Contains (To_Unbounded_String ("Event")) then
                begin
                   Event_Callback_Routine
                     (AMI.Event.Event'Value (To_String
-                     (Event_List (Event_List'First, Value)))) (Event_List);
+                     (Event_List.Element
+                        (To_Unbounded_String ("Event")))))(Event_List);
                exception
                   when others =>
                      null;
@@ -452,11 +347,11 @@ package body AMI.Event is
                      --  Put_Line (Exception_Message (Error));
                end;
 
---              elsif Event_List (Event_List'First, Key)  = "Response" then
---                 --  Lookup the callback, and pass the value.
---                 Callback_Routine (AMI.Action.Get_Last_Action)(Event_List);
---                 --  Direct it to the callback associated
---                 --    with the previous commmand
+               --  elsif Event_List (Event_List'First, Key)  = "Response" then
+               --  --  Lookup the callback, and pass the value.
+               --  Callback_Routine (AMI.Action.Get_Last_Action)(Event_List);
+               --  --  Direct it to the callback associated
+               --  --    with the previous commmand
             end if;
          exception
             when Error : others =>
@@ -479,10 +374,11 @@ package body AMI.Event is
    --  Uniqueid2: 1340097427.11
    --  CallerID1: softphone2
    --  CallerID2: 100
-   procedure Unlink_Callback (Event_List : in Event_List_Type) is
+   procedure Unlink_Callback (Event_List : in Event_List_Type.Map) is
    begin
       Put_Line ("Not implemented " &
-                  To_String (Event_List (Event_List'First, Value)));
+          To_String (Event_List.Element (
+          To_Unbounded_String ("Event"))));
       raise NOT_IMPLEMENTED;
    end Unlink_Callback;
 
