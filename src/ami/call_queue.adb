@@ -55,6 +55,9 @@ package body Call_Queue is
                Current_Call := Queue_Type.Element (Call_Queue_Cursor);
                if Current_Call.Uniqueid = Uniqueid then
                   Call := Current_Call;
+                  Queue_Type.Delete (Container => Queue (i),
+                                     Position  => Call_Queue_Cursor,
+                                     Count     => 1);
                   return;
                end if;
             end loop;
