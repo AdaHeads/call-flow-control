@@ -219,6 +219,7 @@ package body Routines is
    procedure StartUpSequence is
       Call_List : AMI.Action.Call_List.Vector;
    begin
+
       AMI.Action.Action_Manager.QueueStatus (Call_List);
       for i in Call_List.First_Index .. Call_List.Last_Index loop
          Call_Queue.Enqueue (Call => Call_List.Element (i));

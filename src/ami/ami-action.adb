@@ -1,7 +1,7 @@
 --  with AMI.Event; use AMI.Event;
 with AMI.IO;
 with Ada.Text_IO;
-with Ada.Calendar;
+--  with Ada.Calendar;
 with Ada.Strings.Unbounded;
 with AMI.Protocol;
 with Yolk.Log;
@@ -54,7 +54,7 @@ package body AMI.Action is
    end Action_Manager;
 
    procedure Bridge (ChannelA : in String;
-                           ChannelB : in String) is
+                     ChannelB : in String) is
       Command : constant String := Protocol.Bridge (ChannelA, ChannelB);
    begin
       AMI.IO.Send (Socket => Socket,
@@ -73,7 +73,7 @@ package body AMI.Action is
                          Secret   : in String) is
       Greetings : constant String := AMI.IO.Read_Line (Initialize.Socket);
    begin
-      Yolk.Log.Trace (Yolk.Log.Debug, Greetings);
+      Yolk.Log.Trace (Yolk.Log.Debug, "Greetings: " & Greetings);
       AMI.Action.Socket := Socket;
 
       if not Login (Username, Secret) then
@@ -88,7 +88,7 @@ package body AMI.Action is
                                                    Secret   => Secret);
    begin
 
-      Yolk.Log.Trace (Yolk.Log.Debug, Command);
+      Yolk.Log.Trace (Yolk.Log.Debug, "Log-In: " & Command);
       AMI.IO.Send (Socket, Command);
 
       declare
@@ -97,13 +97,18 @@ package body AMI.Action is
       begin
          --  Response: Success
          --  Message: Authentication accepted
+         Yolk.Log.Trace (Yolk.Log.Debug, To_String (Response.First_Element));
+         for item in Response.Iterate loop
+            Yolk.Log.Trace (Yolk.Log.Debug,
+                            To_String (Event_List_Type.Element (item)));
+         end loop;
          if
            To_String (Response.Element (To_Unbounded_String ("Response")))
            = "Success"
            and then
              To_String (Response.Element (To_Unbounded_String ("Message")))
-           = "Authentication accepted"
-         then
+           = "Authentication accepted" then
+
             return True;
          else
             Yolk.Log.Trace (Yolk.Log.Notice,
@@ -200,27 +205,27 @@ package body AMI.Action is
                end if;
                if Event.Contains (To_Unbounded_String ("Position")) then
                   Call.Position := Integer'Value (To_String (Event.Element
-                    (To_Unbounded_String ("Queue"))));
+                    (To_Unbounded_String ("Position"))));
                end if;
                --  elsif To_String (Key_Text) = "ActionID" then
-               if Event.Contains (To_Unbounded_String ("Wait")) then
-                  declare
-                     use Ada.Calendar;
-                     Waited_In_Seconds : Duration;
-                     Now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
-                  begin
-                     Waited_In_Seconds := Duration'Value
-                       (To_String (Event.Element (
-                        To_Unbounded_String ("Wait"))));
-                     Call.Arrived := Now - Waited_In_Seconds;
-                  exception
-                     when others =>
-                        Yolk.Log.Trace (Yolk.Log.Info,
-                                       "Failed to parse QueueStatus Reponse" &
-                            "Wait: " & To_String (Event.Element (
-                            To_Unbounded_String ("Wait"))));
-                  end;
-               end if;
+               --     if Event.Contains (To_Unbounded_String ("Wait")) then
+               --        declare
+               --           use Ada.Calendar;
+               --           Waited_In_Seconds : Duration;
+               --       Now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+               --        begin
+               --           Waited_In_Seconds := Duration'Value
+               --                   (To_String (Event.Element (
+               --                        To_Unbounded_String ("Wait"))));
+               --                     Call.Arrived := Now - Waited_In_Seconds;
+               --                    exception
+               --                       when others =>
+               --                        Yolk.Log.Trace (Yolk.Log.Info,
+               --                     "Failed to parse QueueStatus Reponse" &
+               --                        "Wait: " & To_String (Event.Element (
+               --                            To_Unbounded_String ("Wait"))));
+               --                    end;
+               --                 end if;
                --                 end loop Extract_Call_Info;
                Response.Append (Call);
             end if;

@@ -39,6 +39,8 @@ package body AMI.Std is
                       Server_Port : in Positive := 5038;
                       Username    : in String := "filtertest";
                       Secret      : in String := "filtertest") is
+      Action_Username : constant String := "action";
+      Action_Secret : constant String := "reaction";
    begin
       --  Setting up event Socket.
       AWS.Net.Std.Connect (Socket => Event_Socket,
@@ -58,8 +60,8 @@ package body AMI.Std is
                       & Server_Host & " Port: " & Server_Port'Img);
 
       AMI.Action.Initialize (Action_Socket,
-                             "action",
-                             "reaction");
+                             Username => Action_Username,
+                             Secret => Action_Secret);
       Yolk.Log.Trace (Yolk.Log.Debug, "AMI Action Initialized.");
 
       Routines.StartUpSequence;
