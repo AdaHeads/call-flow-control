@@ -56,6 +56,8 @@ package body Peers is
          Exten := To_Unbounded_String ("102");
       elsif Peer_String = "SIP/TP-Softphone" then
          Exten := To_Unbounded_String ("103");
+      elsif Peer_String = "SIP/JSA-N900" then
+         Exten := To_Unbounded_String ("104");
       else
          Ada.Text_IO.Put_Line
            ("Could not find an Extension for: " & Peer_String);

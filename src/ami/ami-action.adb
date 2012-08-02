@@ -1,14 +1,22 @@
-with Ada.Exceptions,
-     Ada.Strings.Unbounded,
-     Ada.Text_IO;
+with
+   Ada.Calendar,
+   Ada.Exceptions,
+   Ada.Strings.Unbounded,
+   Ada.Text_IO;
 
 with AMI.IO,
      AMI.Protocol;
 
 with Yolk.Log,
      Task_Controller;
+
+with AWS.Net,
+     AWS.Net.Std;
+
 package body AMI.Action is
-   Socket : AWS.Net.Std.Socket_Type;
+   use AWS.Net.Std;
+
+   Socket : Socket_Type;
 
    task body Action_Manager is
       use Ada.Strings.Unbounded;
@@ -18,7 +26,7 @@ package body AMI.Action is
       Server_Port : Positive;
 
       Username : Unbounded_String;
-      Secret : Unbounded_String;
+      Secret   : Unbounded_String;
 
       Greetings : Unbounded_String;
    begin
@@ -140,18 +148,18 @@ package body AMI.Action is
       return Read_Event_List;
    end CoreSettings;
 
-   procedure Initialize (Socket   : in AWS.Net.Std.Socket_Type;
-                         Username : in String;
-                         Secret   : in String) is
-      Greetings : constant String := AMI.IO.Read_Line (Initialize.Socket);
-   begin
-      Yolk.Log.Trace (Yolk.Log.Debug, "Greetings: " & Greetings);
-      AMI.Action.Socket := Socket;
-
-      if not Login (Username, Secret) then
-         null;
-      end if;
-   end Initialize;
+--     procedure Initialize (Socket   : in AWS.Net.Std.Socket_Type;
+--                           Username : in String;
+--                           Secret   : in String) is
+--        Greetings : constant String := AMI.IO.Read_Line (Initialize.Socket);
+--     begin
+--        Yolk.Log.Trace (Yolk.Log.Debug, "Greetings: " & Greetings);
+--        AMI.Action.Socket := Socket;
+--
+--        if not Login (Username, Secret) then
+--           null;
+--        end if;
+--     end Initialize;
 
    function Login (Username : in String;
                    Secret   : in String) return Boolean is
@@ -232,9 +240,39 @@ package body AMI.Action is
       use Ada.Strings.Unbounded;
       Command : constant String := Protocol.QueueStatus (ActionID);
       Response : Call_List.Vector;
-      --        Key_Text, Value_Text : Unbounded_String;
-   begin
 
+      function Extract_Total_Seconds (Text : in Unbounded_String)
+                                      return Duration;
+      function Extract_Total_Seconds (Text : in Unbounded_String)
+                                      return Duration is
+         Colon_Index : Integer;
+         Minutes : Unbounded_String;
+         Seconds : Unbounded_String;
+      begin
+         --  If there are any Colons, then the format is "mm:ss"
+         --  else it's "ssss"
+         --  m = minutes, s = seconds,
+         if Count (Text, ":") = 1 then
+            Colon_Index := Index (Text, ":");
+            --  Extract the minutes and Seconds
+            Minutes := Head (Source => Text, Count => Colon_Index - 1);
+            Seconds := Tail (Source => Text, Count =>
+                               Length (Text) - Colon_Index);
+            Yolk.Log.Trace (Yolk.Log.Debug, "Minutes: " & To_String (Minutes) &
+                              "Seconds: " & To_String (Seconds));
+            --  Convert Minutes to Seconds, and sum them.
+            return Duration'Value (To_String (Minutes)) * 60 +
+              Duration'Value (To_String (Seconds));
+         elsif Ada.Strings.Unbounded.Count (Text, ":") = 0 then
+            return Duration'Value (To_String (Text));
+         else
+            Yolk.Log.Trace (Yolk.Log.Warning,
+                            "Wait in QueueStatus has an unknown format: <" &
+                              To_String (Text) & ">.");
+            return 0.0;
+         end if;
+      end Extract_Total_Seconds;
+   begin
       AMI.IO.Send (Socket, Command);
       loop
          declare
@@ -247,14 +285,19 @@ package body AMI.Action is
               To_String (Event.Element (To_Unbounded_String ("Event")))
               = "QueueStatusComplete" then
                exit;
+
+               --  Event: QueueEntry
+               --  Queue: testqueue1
+               --  Position: 1
+               --  Channel: SIP/TP-Softphone-00000017
+               --  Uniqueid: 1341827264.23
+               --  CallerIDNum: TP-Softphone
+               --  CallerIDName: unknown
+               --  Wait: 98
             elsif Event.Contains (To_Unbounded_String ("Event")) and then
               To_String (Event.Element (To_Unbounded_String ("Event")))
               = "QueueEntry" then
 
-               --                 Extract_Call_Info :
-               --                 for i in Event'Range loop
-               --                    Key_Text := Event (i, Key);
-               --                    Value_Text := Event (i, Value);
                if Event.Contains (To_Unbounded_String ("Queue")) then
                   Call.Queue := Event.Element
                     (To_Unbounded_String ("Queue"));
@@ -280,25 +323,28 @@ package body AMI.Action is
                     (To_Unbounded_String ("Position"))));
                end if;
                --  elsif To_String (Key_Text) = "ActionID" then
-               --     if Event.Contains (To_Unbounded_String ("Wait")) then
-               --        declare
-               --           use Ada.Calendar;
-               --           Waited_In_Seconds : Duration;
-               --       Now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
-               --        begin
-               --           Waited_In_Seconds := Duration'Value
-               --                   (To_String (Event.Element (
-               --                        To_Unbounded_String ("Wait"))));
-               --                     Call.Arrived := Now - Waited_In_Seconds;
-               --                    exception
-               --                       when others =>
-               --                        Yolk.Log.Trace (Yolk.Log.Info,
-               --                     "Failed to parse QueueStatus Reponse" &
-               --                        "Wait: " & To_String (Event.Element (
-               --                            To_Unbounded_String ("Wait"))));
-               --                    end;
-               --                 end if;
-               --                 end loop Extract_Call_Info;
+               if Event.Contains (To_Unbounded_String ("Wait")) then
+                  declare
+                     use Ada.Calendar;
+                     Wait_Raw : Unbounded_String;
+                     Waited_In_Seconds : Duration;
+
+                     Now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+                  begin
+                     Wait_Raw := Event.Element (To_Unbounded_String ("Wait"));
+                     Waited_In_Seconds := Extract_Total_Seconds (Wait_Raw);
+                     Call.Arrived := Now - Waited_In_Seconds;
+                  exception
+                     when E : others =>
+                        Yolk.Log.Trace (Yolk.Log.Info,
+                          "Failed to parse QueueStatus Reponse" &
+                            "Wait: " & To_String (Event.Element (
+                            To_Unbounded_String ("Wait"))));
+                        Yolk.Log.Trace (Yolk.Log.Debug, "Action: QueueStatus" &
+                                          Ada.Exceptions.Exception_Name (E));
+                  end;
+               end if;
+
                Response.Append (Call);
             end if;
          end;
@@ -306,15 +352,6 @@ package body AMI.Action is
 
       return Response;
    end QueueStatus;
-
-   --  Event: QueueEntry
-   --  Queue: testqueue1
-   --  Position: 1
-   --  Channel: SIP/TP-Softphone-00000017
-   --  Uniqueid: 1341827264.23
-   --  CallerIDNum: TP-Softphone
-   --  CallerIDName: unknown
-   --  Wait: 98
 
    function Read_Event_List return Event_Parser.Event_List_Type.Map is
       use Ada.Strings.Unbounded;

@@ -1,21 +1,14 @@
 with Ada.Containers.Vectors;
-with AWS.Net,
-     AWS.Net.Std;
+
 with Call_Queue,
      Event_Parser;
 package AMI.Action is
-   use AWS.Net.Std;
    use Event_Parser;
 
    package Call_List is new
      Ada.Containers.Vectors (Index_Type   => Positive,
                              Element_Type => Call_Queue.Call_Type,
                              "="          => Call_Queue."=");
-
-   --  Initialize
-   procedure Initialize (Socket   : in Socket_Type;
-                         Username : in String;
-                         Secret   : in String);
 
    task Action_Manager is
       --  Makes two channels talk with each other.
@@ -46,6 +39,7 @@ package AMI.Action is
       entry Redirect (Channel : in String;
                       Exten   : in String;
                       Context : in String);
+
       entry Initialize (Server_Host : in String;
                         Server_Port : in Positive;
                         Username    : in String;
