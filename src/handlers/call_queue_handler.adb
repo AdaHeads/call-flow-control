@@ -1,12 +1,16 @@
 with Ada.Containers;
-with Call_Queue;
-with Call_Queue_JSON;
-with Common; use Common;
-with Response;
-with HTTP_Codes;
-with Routines;
-with AMI.Action;
+
+with AMI.Action,
+     Call_Queue,
+     Call_Queue_JSON,
+     Common,
+     HTTP_Codes,
+     Response,
+     Routines;
+
 package body Call_Queue_Handler is
+   use Common;
+
    --  returns the first call in the list.
    function Get_Call (Request : in AWS.Status.Data)
                       return AWS.Response.Data is
@@ -26,9 +30,9 @@ package body Call_Queue_Handler is
       JSON := Call_Queue_JSON.Convert_Call (Call);
 
       return  Response.Build_JSON_Response
-             (Request => Request,
-              Content => JSON,
-              Status  => HTTP_Codes.OK);
+        (Request => Request,
+         Content => JSON,
+         Status  => HTTP_Codes.OK);
    end Get_Call;
 
    --  returns the number of calls waiting in the calling queue.
@@ -45,9 +49,9 @@ package body Call_Queue_Handler is
 
       --  wrap it and send it.
       return  Response.Build_JSON_Response
-             (Request => Request,
-              Content => JSON,
-              Status  => HTTP_Codes.OK);
+        (Request => Request,
+         Content => JSON,
+         Status  => HTTP_Codes.OK);
    end Get_Length;
 
    --  returns the entire Call Queue, in JSON format.
@@ -67,9 +71,9 @@ package body Call_Queue_Handler is
       JSON := Call_Queue_JSON.Convert_Queue (Queue, Queue_Length);
 
       return  Response.Build_JSON_Response
-             (Request => Request,
-              Content => JSON,
-              Status  => HTTP_Codes.OK);
+        (Request => Request,
+         Content => JSON,
+         Status  => HTTP_Codes.OK);
    end Get_Queue;
 
 end Call_Queue_Handler;

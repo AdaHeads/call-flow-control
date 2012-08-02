@@ -1,5 +1,6 @@
-with AWS.Status;
-with AWS.Response;
+with AWS.Status,
+     AWS.Response;
+
 package Call_Queue_Handler is
       function Get_Queue (Request : in AWS.Status.Data)
                        return AWS.Response.Data;
