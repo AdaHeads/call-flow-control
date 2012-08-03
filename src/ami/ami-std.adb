@@ -48,7 +48,7 @@ package body AMI.Std is
       Reconnect :
       loop
          begin
-            exit Reconnect when Task_State = Down;
+
             AWS.Net.Std.Connect (Socket => Event_Socket,
                                  Host   => To_String (Server_Host),
                                  Port   => Server_Port);
@@ -64,7 +64,9 @@ package body AMI.Std is
                Yolk.Log.Trace (Yolk.Log.Info,
                                "The Event Socket have lost connection");
          end;
+         exit Reconnect when Task_State = Down;
          delay 0.5;
+
       end loop Reconnect;
    exception
       when others =>

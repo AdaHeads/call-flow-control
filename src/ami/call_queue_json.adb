@@ -45,9 +45,13 @@ package body Call_Queue_JSON is
 
       Value : constant JSON_Value := Create_Object;
       CompanyID : Ada.Strings.Unbounded.Unbounded_String;
+      Compnay_prefix : constant String := "org_id";
    begin
       if Call /= Call_Queue.null_Call then
-         CompanyID := Call.Queue;
+         CompanyID := Ada.Strings.Unbounded.Tail
+           (Call.Queue,
+            Ada.Strings.Unbounded.Length (Call.Queue) -
+            Compnay_prefix'Length);
 
          Value.Set_Field ("Channel", Call.Channel);
          Value.Set_Field ("CallerIDNum", Call.CallerIDNum);
