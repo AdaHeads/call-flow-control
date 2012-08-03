@@ -1,6 +1,7 @@
 with Ada.Calendar,
      Ada.Calendar.Conversions,
-     Ada.Strings.Fixed;
+     Ada.Strings.Fixed,
+     Ada.Strings.Unbounded;
 
 with Interfaces.C;
 
@@ -43,12 +44,15 @@ package body Call_Queue_JSON is
       end Unix_Timestamp;
 
       Value : constant JSON_Value := Create_Object;
+      CompanyID : Ada.Strings.Unbounded.Unbounded_String;
    begin
       if Call /= Call_Queue.null_Call then
+         CompanyID := Call.Queue;
+
          Value.Set_Field ("Channel", Call.Channel);
          Value.Set_Field ("CallerIDNum", Call.CallerIDNum);
          Value.Set_Field ("CallerIDName", Call.CallerIDName);
-         Value.Set_Field ("CompanyName", Call.Queue);
+         Value.Set_Field ("CompanyID", CompanyID);
          Value.Set_Field ("Position", Call.Position);
          Value.Set_Field ("Count", Call.Count);
          Value.Set_Field ("Uniqueid", Call.Uniqueid);
@@ -57,6 +61,7 @@ package body Call_Queue_JSON is
          if Call.Is_Picked_Up then
             Value.Set_Field ("Picked_Up", Unix_Timestamp (Call.Picked_Up));
          end if;
+
          if Call.Is_Ended then
             Value.Set_Field ("Ended", Unix_Timestamp (Call.Ended));
          end if;
