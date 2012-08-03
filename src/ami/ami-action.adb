@@ -1,8 +1,7 @@
-with
-   Ada.Calendar,
-   Ada.Exceptions,
-   Ada.Strings.Unbounded,
-   Ada.Text_IO;
+with  Ada.Calendar,
+      Ada.Exceptions,
+      Ada.Strings.Unbounded,
+      Ada.Text_IO;
 
 with AMI.IO,
      AMI.Protocol;
@@ -25,10 +24,10 @@ package body AMI.Action is
       Server_Host : Unbounded_String;
       Server_Port : Positive;
 
-      Username : Unbounded_String;
-      Secret   : Unbounded_String;
+      Username    : Unbounded_String;
+      Secret      : Unbounded_String;
 
-      Greetings : Unbounded_String;
+      Greetings   : Unbounded_String;
    begin
       accept Initialize (Server_Host : in String;
                          Server_Port : in Positive;

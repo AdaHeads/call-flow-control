@@ -76,9 +76,7 @@ private
       Status,
       StatusComplete,
       ZapShowChannels,
-      ZapShowChannelsComplete,
-      --  Pragmatic observed Event, not mentioned in doc
-      QueueStatusComplete
+      ZapShowChannelsComplete
      );
 
    --  Basic signature of our callback routine for responses
@@ -86,19 +84,19 @@ private
    type Callback_Type is access procedure (Event_List : Event_List_Type.Map);
 
    --  Callback table for actions
---     type Action_Callback_Routine_Table is array (AMI.Action.Action_Type)
---       of Callback_Type;
+   --  type Action_Callback_Routine_Table is array (AMI.Action.Action_Type)
+   --    of Callback_Type;
 
    --  Callback table for log events
    type Event_Callback_Routine_Table is array (Event) of Callback_Type;
 
    --  Callbacks
-   procedure Dial_Callback              (Event_List : in Event_List_Type.Map);
-   procedure Hangup_Callback            (Event_List : in Event_List_Type.Map);
-   procedure Join_Callback              (Event_List : in Event_List_Type.Map);
-   procedure Login_Callback             (Event_List : in Event_List_Type.Map);
-   procedure PeerStatus_Callback        (Event_List : in Event_List_Type.Map);
-   procedure Unlink_Callback            (Event_List : in Event_List_Type.Map);
+   procedure Dial_Callback       (Event_List : in Event_List_Type.Map);
+   procedure Hangup_Callback     (Event_List : in Event_List_Type.Map);
+   procedure Join_Callback       (Event_List : in Event_List_Type.Map);
+   procedure Login_Callback      (Event_List : in Event_List_Type.Map);
+   procedure PeerStatus_Callback (Event_List : in Event_List_Type.Map);
+   procedure Unlink_Callback     (Event_List : in Event_List_Type.Map);
 
    --  Commands
    procedure Login (Asterisk_AMI : in Asterisk_AMI_Type;
@@ -108,6 +106,6 @@ private
    procedure SIPPeers_Callback;
    procedure NewState_Callback;
    procedure Bridge_Callback;
-   procedure Agents;
+--     procedure Agents;
 
 end AMI.Event;

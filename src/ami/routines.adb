@@ -181,9 +181,12 @@ package body Routines is
             Yolk.Log.Trace (Yolk.Log.Debug, "Park: Peer => " &
                               To_String (Peer.Peer));
             if Peer.Call /= null_Call then
+               --  there are something wrong here,
+               --    i don't want it to fall back to the phone directly,
+               --    but i don't know where else to send the call to.
                AMI.Action.Action_Manager.Park
                  (Channel1 => To_String (Peer.Call.Channel),
-                  Channel2 => To_String (Peer.Peer));
+                  Channel2 => To_String (Get_PhoneInfo (Peer)));
             else
                Yolk.Log.Trace (Handle => Yolk.Log.Debug,
                                Message => "This agent have no call: " &
@@ -212,6 +215,7 @@ package body Routines is
          Peers.Replace_Peer (Item => Peer);
       else
          Peer.Peer := PhoneName;
+         Peer.ChannelType := To_Unbounded_String ("SIP");
          Peer.Computer_ID := Computer_ID;
          Peers.Insert_Peer (New_Item  => Peer);
       end if;

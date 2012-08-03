@@ -71,6 +71,11 @@ package body Peers is
       return Peers_List.Get_Peers_List;
    end Get_Peers_List;
 
+   function Get_PhoneInfo (Peer : in Peer_Type) return Unbounded_String is
+   begin
+      return Peer.ChannelType & To_Unbounded_String ("/") & Peer.Peer;
+   end Get_PhoneInfo;
+
    function Hash (Peer_Address : in Unbounded_String) return Hash_Type is
    begin
       return Ada.Strings.Hash (To_String (Peer_Address));
@@ -107,4 +112,25 @@ package body Peers is
    begin
       Peers_List.Replace_Peer (Item);
    end Replace_Peer;
+
+   procedure Set_PhoneInfo (Peer : in out Peer_Type;
+                            Text : in Unbounded_String)
+                               is
+      Seperator_Index : Integer;
+   begin
+
+      if Ada.Strings.Unbounded.Count (Text, "/") > 0 then
+         Seperator_Index := Index (Text, "/");
+         Peer.Peer := Tail (Source => Text,
+                      Count  => Length (Text) - Seperator_Index);
+         Peer.ChannelType := Head (Text, Seperator_Index - 1);
+         if To_String (Peer.ChannelType) /= "SIP" then
+            Yolk.Log.Trace (Yolk.Log.Alert, To_String (Peer.ChannelType));
+         end if;
+      else
+         Yolk.Log.Trace (Yolk.Log.Debug,
+                       "Set_PhoneInfo: This peer does not have a Channeltype: "
+                         & To_String (Text));
+      end if;
+   end Set_PhoneInfo;
 end Peers;

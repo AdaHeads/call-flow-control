@@ -20,14 +20,7 @@ package body AMI.Event is
    use Ada.Text_IO;
    use Peers;
 
-   Asterisk         : Asterisk_AMI_Type;
-   --     Peer_List        : Peer_List_Type.Map;
-
-   --  Callback maps
-   --     Callback_Routine : Action_Callback_Routine_Table :=
-   --       (Login       => Login_Callback'Access,
-   --        QueueStatus => QueueStatus_Callback'Access,
-   --        others      => null);
+   Asterisk : Asterisk_AMI_Type;
 
    Event_Callback_Routine : constant Event_Callback_Routine_Table :=
      (Dial                 => Dial_Callback'Access,
@@ -38,11 +31,11 @@ package body AMI.Event is
       others               => null);
 
    --  Lists agents
-   procedure Agents is
-   begin
-      Put_Line ("Not implemented");
-      raise NOT_IMPLEMENTED;
-   end Agents;
+   --     procedure Agents is
+   --     begin
+   --        Put_Line ("Not implemented");
+   --        raise NOT_IMPLEMENTED;
+   --     end Agents;
 
    --  Event: Bridge
    --  Privilege: call,all
@@ -73,7 +66,7 @@ package body AMI.Event is
    procedure Dial_Callback (Event_List : in Event_List_Type.Map) is
    begin
       if Event_List.Contains (To_Unbounded_String ("Message")) and then
-        Event_List.Element (To_Unbounded_String ("Message")) =
+        Event_List.Element  (To_Unbounded_String ("Message")) =
         "Authentication accepted" then
          Asterisk.Logged_In := True;
       end if;
@@ -105,16 +98,10 @@ package body AMI.Event is
    --  Uniqueid: 1340807150.33
    procedure Join_Callback (Event_List : in Event_List_Type.Map) is
       Call : Call_Queue.Call_Type;
-      --        Event_Key : Unbounded_String;
    begin
-      --        for i in Event_List'First .. Event_List'Last loop
-      --           Event_Key := Event_List (i, Key);
-
       if Event_List.Contains (To_Unbounded_String ("Channel")) then
          Call.Channel := Event_List.Element (To_Unbounded_String ("Channel"));
       end if;
-      --           if To_String (Event_Key) = "Channel" then
-      --              Call.Channel := Event_List (i, Value);
 
       if Event_List.Contains (To_Unbounded_String ("CallerIDNum")) then
          Call.CallerIDNum := Event_List.Element
@@ -149,16 +136,7 @@ package body AMI.Event is
                     Secret       : in String) is
       Command : constant String := AMI.Protocol.Login (Username, Secret);
    begin
-      --  AMI.Action.Login (Socket   => Asterisk_AMI.Channel,
-      --                    Username => Username,
-      --                    Secret   => Secret);
-
       AMI.IO.Send (Asterisk_AMI.Channel, Command);
-
-      --  Update the table if we were asked to used this as standard callback
-      --  if Callback /= null and then Persist then
-      --  Callback_Routine (Login) := Callback;
-      --  end if;
 
    end Login;
 
@@ -203,26 +181,42 @@ package body AMI.Event is
    --  Peer: SIP/2005
    --  PeerStatus: Registered
    procedure PeerStatus_Callback (Event_List : in Event_List_Type.Map) is
-      Peer    : Peer_Type;
-      Map_Key : Unbounded_String;
+      use Peers.Peer_List_Type;
+      Peer        : Peer_Type;
+      Map_Key     : Unbounded_String;
+      Exsist      : Boolean := False;
+      Peer_Cursor : Peer_List_Type.Cursor;
+
    begin
-      Put_Line ("Peer status update");
-      --        for i in Event_List'First + 1 .. Event_List'Last loop
       if Event_List.Contains (To_Unbounded_String ("Peer")) then
-         Peer.Peer := Event_List.Element (To_Unbounded_String ("Peer"));
-         Map_Key := Event_List.Element (To_Unbounded_String ("Peer"));
+         Set_PhoneInfo (Peer,
+                        Event_List.Element (To_Unbounded_String ("Peer")));
+         Map_Key := Peer.Peer;
       end if;
-      if Event_List.Contains (To_Unbounded_String ("ChannelType")) then
-         Peer.ChannelType := Event_List.Element
-           (To_Unbounded_String ("ChannelType"));
+
+      --  Check to see if the peer already exsists.
+      Peer_Cursor := Peer_List_Type.Find (Peers.Get_Peers_List, Map_Key);
+
+      if Peer_Cursor /= Peer_List_Type.No_Element then
+         Exsist := True;
+         Peer := Peer_List_Type.Element (Peer_Cursor);
       end if;
+
+      --  This parameter is set at the Set_PhoneInfo.
+      --  if Event_List.Contains (To_Unbounded_String ("ChannelType")) then
+      --      Peer.ChannelType := Event_List.Element
+      --      (To_Unbounded_String ("ChannelType"));
+      --  end if;
+
       if Event_List.Contains (To_Unbounded_String ("Address")) then
          Peer.Address := Event_List.Element
            (To_Unbounded_String ("Address"));
       end if;
+
       if Event_List.Contains (To_Unbounded_String ("Port")) then
          Peer.Port := Event_List.Element (To_Unbounded_String ("Port"));
       end if;
+
       if Event_List.Contains (To_Unbounded_String ("PeerStatus")) then
          if To_String (Event_List.Element (To_Unbounded_String ("PeerStatus")))
            = "Unregistered"  then
@@ -234,57 +228,32 @@ package body AMI.Event is
             Yolk.Log.Trace (Yolk.Log.Debug, "Peer Status, unknown state: " &
                 To_String (Event_List.Element
                 (To_Unbounded_String ("PeerStatus"))));
-            --              Put_Line ("SIP client to unknown state: " &
-            --                          To_String (Event_List (i, Value)));
          end if;
       end if;
-      --        end loop;
 
       declare
          Exten : Unbounded_String;
-         --  Hent Extension.
+         --  Gathering Extension.
       begin
          Exten := Peers.Get_Exten (Peer.Peer);
          if Exten = Null_Unbounded_String then
-            Put_Line ("There is not registrated any extension to agent: " &
-                        To_String (Peer.Peer));
+            Yolk.Log.Trace (Yolk.Log.Warning,
+                          "There is not registrated any extension to agent: " &
+                          To_String (Peer.Peer));
             raise Program_Error;
          else
-            Put_Line ("Peer got Exten => " & To_String (Exten));
             Peer.Exten := Exten;
          end if;
       end;
 
       --  Update the timestamp
       Peer.Last_Seen := Ada.Calendar.Clock;
-      declare
-         use Peers.Peer_List_Type;
-         Peer_Cursor : Peer_List_Type.Cursor;
-      begin
-         Peer_Cursor := Peer_List_Type.Find (Peers.Get_Peers_List,
-                                             Map_Key);
-         if Peer_Cursor /= Peer_List_Type.No_Element then
-            Peers.Replace_Peer (Item => Peer);
-         else
-            Peers.Insert_Peer (Peer);
-         end if;
-      end;
-      --  Update the peer list
-      --        if Peer_List_Type.Contains (Container => Peers.Get_Peers_List,
-      --                                    Key       => Map_Key) then
 
-      --           Peer_List_Type.Replace (Container => Peer_List,
-      --                                   Key       => Map_Key,
-      --                                   New_Item  => Peer);
-      --        else
-      --
-      --           Peer_List_Type.Insert (Container => Peer_List,
-      --                                  Key       => Map_Key,
-      --                                  New_Item  => Peer);
-      --        end if;
-
-      --        Print_Peer (Peer_List_Type.Element (Container => Peer_List,
-      --                                            Key       => Map_Key));
+      if Exsist then
+         Peers.Replace_Peer (Item => Peer);
+      else
+         Peers.Insert_Peer (Peer);
+      end if;
    end PeerStatus_Callback;
 
    --  Lists the SIP peers. Returns a PeerEntry event for each

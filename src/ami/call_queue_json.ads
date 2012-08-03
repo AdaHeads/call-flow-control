@@ -1,7 +1,7 @@
 with Ada.Containers;
 with Call_Queue,
      Common;
-with GNATCOLL.JSON;
+private with GNATCOLL.JSON;
 
 package Call_Queue_JSON is
    use Common;

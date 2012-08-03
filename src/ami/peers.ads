@@ -59,10 +59,15 @@ package Peers is
       Hash => Hash,
       Equivalent_Keys => "=");
 
-   function Get_Exten (Peer : in Unbounded_String) return Unbounded_String;
-   procedure Print_Peer (Peer : in Peer_Type);
    function Get_Peers_List return Peer_List_Type.Map;
-   procedure Replace_Peer (Item : in Peer_Type);
-   procedure Insert_Peer (New_Item : in Peer_Type);
+   function Get_Exten (Peer : in Unbounded_String) return Unbounded_String;
 
+   procedure Print_Peer (Peer : in Peer_Type);
+   procedure Insert_Peer (New_Item : in Peer_Type);
+   procedure Replace_Peer (Item : in Peer_Type);
+
+   --  Utility functions.
+   procedure Set_PhoneInfo (Peer : in out Peer_Type;
+                            Text : in Unbounded_String);
+   function Get_PhoneInfo (Peer : in Peer_Type) return Unbounded_String;
 end Peers;
