@@ -34,6 +34,7 @@ package body Call_Queue is
       --  Gives the call with the highest priority, and have waited longest.
       procedure Dequeue (Call : out Call_Type) is
       begin
+         Call := null_Call;
          for i in Queue'Range loop
             if not Queue_Type.Is_Empty (Queue (i)) then
                Call := Queue_Type.First_Element (Queue (i));
