@@ -67,7 +67,8 @@ package body Routines is
    --  If unitqueID is null, then the first call in the queue is taken.
    procedure Get_Call (Uniqueid : in     String;
                        Agent    : in     String;
-                       Call     :    out Call_Queue.Call_Type) is
+                       Call     :    out Call_Queue.Call_Type;
+                       Status   :    out Unbounded_String) is
       use Call_Queue;
       use Peers;
       use Peers.Peer_List_Type;
@@ -83,25 +84,24 @@ package body Routines is
          Yolk.Log.Trace (Yolk.Log.Debug, "Get_Call: " &
                            "We have no agent registred by the name: <" &
                            Agent & ">");
-
+         Status := To_Unbounded_String
+           ("There exsist no Agent by the name: " & Agent);
          Call := null_Call;
          return;
       end if;
 
       --  Now that we know that there exists an agent,
-      --   is the SIP phone registreted
+      --   is the SIP phone registreted?
       Peer := Peer_List_Type.Element (Peer_List_Index);
       Yolk.Log.Trace (Yolk.Log.Debug, "I got an Peer in Gel_Call on address: "
                       & To_String (Peer.Address));
       if Peer.Status = Unregistered then
          Yolk.Log.Trace (Yolk.Log.Debug, "Get_Call: " &
                            "The following agent is unregistred: " & Agent);
+         Status := To_Unbounded_String
+           ("The following agent is unregistred: " & Agent);
          raise Program_Error;
       end if;
-
-      --   --  TESTING
-      --   Put (To_String (Call_Queue.Queue_ToString));
-      --   --  TESTING
 
       --  If Uniqueueid parameter is null,
       --   then take the next call in the call queue.
@@ -114,10 +114,6 @@ package body Routines is
 
       --  If there is a call to anwser.
       if temp_Call /= Call_Queue.null_Call then
-         --  --  TESTING
-         --  Put_Line ("Got Call");
-         --  Call_Queue.printCall (Call => temp_Call);
-         --  --  TESTING
 
          temp_Call.Picked_Up := Ada.Calendar.Clock;
          temp_Call.Is_Picked_Up := True;
@@ -167,6 +163,14 @@ package body Routines is
       use Peers.Peer_List_Type;
       use Call_Queue;
       Peer_Cursor : Peer_List_Type.Cursor;
+
+      --  Returns the format Asterisk Wants "ChannelType/PhoneName"
+      function Get_PhoneInfo (Peer : in Peer_Type) return Unbounded_String;
+
+      function Get_PhoneInfo (Peer : in Peer_Type) return Unbounded_String is
+      begin
+         return Peer.ChannelType & To_Unbounded_String ("/") & Peer.Peer;
+      end Get_PhoneInfo;
    begin
       --  Finds the Agent, to get the call to park.
       Peer_Cursor := Peer_List_Type.Find (Container => Peers.Get_Peers_List,

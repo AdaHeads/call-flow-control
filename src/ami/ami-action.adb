@@ -85,6 +85,10 @@ package body AMI.Action is
                      Data := AMI.Action.CoreSettings;
                   end CoreSettings;
                or
+                  accept Hangup (Channel : in String) do
+                     Hangup (Channel);
+                  end Hangup;
+               or
                   accept Login (Username : in     String;
                                 Secret   : in     String;
                                 Success  :    out Boolean) do
@@ -146,6 +150,28 @@ package body AMI.Action is
       AMI.IO.Send (Socket, Command);
       return Read_Event_List;
    end CoreSettings;
+
+   procedure Hangup (Channel : in String) is
+      use Ada.Strings.Unbounded;
+      Command : constant String := Protocol.Hangup (Channel);
+   begin
+      AMI.IO.Send (Socket, Command);
+      loop
+         declare
+            Event : Event_List_Type.Map;
+         begin
+            Event := Read_Event_List;
+            if Event.Contains (To_Unbounded_String ("Response")) then
+               if To_String
+                 (Event.Element (To_Unbounded_String ("Response"))) /=
+                 "Success" then
+                  Yolk.Log.Trace (Yolk.Log.Debug, "Hangup failed.");
+               end if;
+               exit;
+            end if;
+         end;
+      end loop;
+   end Hangup;
 
 --     procedure Initialize (Socket   : in AWS.Net.Std.Socket_Type;
 --                           Username : in String;

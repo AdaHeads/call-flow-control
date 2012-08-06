@@ -187,6 +187,32 @@ package body AMI.Event is
       Exsist      : Boolean := False;
       Peer_Cursor : Peer_List_Type.Cursor;
 
+   --  Extracts the channel type, and the phonename, and saves them in the peer
+      procedure Set_PhoneInfo (Peer : in out Peer_Type;
+                            Text : in Unbounded_String);
+
+      procedure Set_PhoneInfo (Peer : in out Peer_Type;
+                               Text : in Unbounded_String)
+      is
+         Seperator_Index : Integer;
+      begin
+
+         if Ada.Strings.Unbounded.Count (Text, "/") > 0 then
+            Seperator_Index := Index (Text, "/");
+            Peer.Peer := Tail (Source => Text,
+                               Count  => Length (Text) - Seperator_Index);
+            Peer.ChannelType := Head (Text, Seperator_Index - 1);
+            if To_String (Peer.ChannelType) /= "SIP" then
+               Yolk.Log.Trace (Yolk.Log.Alert, To_String (Peer.ChannelType));
+            end if;
+         else
+            Yolk.Log.Trace (Yolk.Log.Debug,
+                            "Set_PhoneInfo:" &
+                            "This peer does not have a Channeltype: "
+                            & To_String (Text));
+         end if;
+      end Set_PhoneInfo;
+
    begin
       if Event_List.Contains (To_Unbounded_String ("Peer")) then
          Set_PhoneInfo (Peer,

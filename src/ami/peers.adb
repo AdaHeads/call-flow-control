@@ -48,15 +48,15 @@ package body Peers is
       Exten : Unbounded_String;
       Peer_String : constant String := To_String (Peer);
    begin
-      if Peer_String = "SIP/softphone1" then
+      if Peer_String = "softphone1" then
          Exten := To_Unbounded_String ("100");
-      elsif Peer_String = "SIP/softphone2" then
+      elsif Peer_String = "softphone2" then
          Exten := To_Unbounded_String ("101");
-      elsif Peer_String = "SIP/DesireZ" then
+      elsif Peer_String = "DesireZ" then
          Exten := To_Unbounded_String ("102");
-      elsif Peer_String = "SIP/TP-Softphone" then
+      elsif Peer_String = "TP-Softphone" then
          Exten := To_Unbounded_String ("103");
-      elsif Peer_String = "SIP/JSA-N900" then
+      elsif Peer_String = "JSA-N900" then
          Exten := To_Unbounded_String ("104");
       else
          Ada.Text_IO.Put_Line
@@ -70,11 +70,6 @@ package body Peers is
    begin
       return Peers_List.Get_Peers_List;
    end Get_Peers_List;
-
-   function Get_PhoneInfo (Peer : in Peer_Type) return Unbounded_String is
-   begin
-      return Peer.ChannelType & To_Unbounded_String ("/") & Peer.Peer;
-   end Get_PhoneInfo;
 
    function Hash (Peer_Address : in Unbounded_String) return Hash_Type is
    begin
@@ -112,25 +107,4 @@ package body Peers is
    begin
       Peers_List.Replace_Peer (Item);
    end Replace_Peer;
-
-   procedure Set_PhoneInfo (Peer : in out Peer_Type;
-                            Text : in Unbounded_String)
-                               is
-      Seperator_Index : Integer;
-   begin
-
-      if Ada.Strings.Unbounded.Count (Text, "/") > 0 then
-         Seperator_Index := Index (Text, "/");
-         Peer.Peer := Tail (Source => Text,
-                      Count  => Length (Text) - Seperator_Index);
-         Peer.ChannelType := Head (Text, Seperator_Index - 1);
-         if To_String (Peer.ChannelType) /= "SIP" then
-            Yolk.Log.Trace (Yolk.Log.Alert, To_String (Peer.ChannelType));
-         end if;
-      else
-         Yolk.Log.Trace (Yolk.Log.Debug,
-                       "Set_PhoneInfo: This peer does not have a Channeltype: "
-                         & To_String (Text));
-      end if;
-   end Set_PhoneInfo;
 end Peers;

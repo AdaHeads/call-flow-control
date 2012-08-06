@@ -1,4 +1,5 @@
-with Ada.Containers;
+with Ada.Containers,
+     Ada.Strings.Unbounded;
 
 with AMI.Action,
      Call_Queue,
@@ -20,14 +21,20 @@ package body Call_Queue_Handler is
       Unitqueid : constant String :=  Parameters (Request).Get ("uniqueid");
       Call : Call_Queue.Call_Type;
       JSON : JSON_String;
+      Status : Ada.Strings.Unbounded.Unbounded_String;
    begin
       Routines.Get_Call (Uniqueid => Unitqueid,
                          Agent    => Agent,
-                         Call     => Call);
+                         Call     => Call,
+                         Status   => Status);
       if Call = Call_Queue.null_Call then
          Routines.TEST_StatusPrint;
+         JSON := To_JSON_String ("{ ""Status"" : """ &
+                                   Ada.Strings.Unbounded.To_String (Status)
+                                 & """}");
+      else
+         JSON := Call_Queue_JSON.Convert_Call (Call);
       end if;
-      JSON := Call_Queue_JSON.Convert_Call (Call);
 
       return  Response.Build_JSON_Response
         (Request => Request,

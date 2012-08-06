@@ -13,10 +13,11 @@ with AWS.Net.Std,
      AWS.Net.Buffered;
 
 package body AMI.Std is
-   --     Action_Socket : AWS.Net.Std.Socket_Type;
    Event_Socket : AWS.Net.Std.Socket_Type;
    --  it has package scope because, we need it in the Disconnect procedure.
 
+   --  AMI-Event needs to have it's own Thread,
+   --   because it constantly reads from the socket.
    task AMI_Service is
       entry Initialize (Server_Host : in String;
                         Server_Port : in Positive;
@@ -73,16 +74,17 @@ package body AMI.Std is
          Ada.Text_IO.Put_Line ("Exception in AMI-STD.adb");
    end AMI_Service;
 
-   procedure Connect (Server_Host : in String := "Asterisk1";
-                      Server_Port : in Positive := 5038;
-                      Username    : in String := "filtertest";
-                      Secret      : in String := "filtertest") is
-      Action_Username : constant String := "action";
-      Action_Secret : constant String := "reaction";
+   procedure Connect (Server_Host     : in String   := "Asterisk1";
+                      Server_Port     : in Positive := 5038;
+                      Event_Username  : in String   := "filtertest";
+                      Event_Secret    : in String   := "filtertest";
+                      Action_Username : in String   := "action";
+                      Action_Secret   : in String   := "reaction") is
 
    begin
       --  Setting up event Socket.
-      AMI_Service.Initialize (Server_Host, Server_Port, Username, Secret);
+      AMI_Service.Initialize (Server_Host, Server_Port,
+                              Event_Username, Event_Secret);
 
       --  Setting up Action Socket.
       AMI.Action.Action_Manager.Initialize (Server_Host => Server_Host,

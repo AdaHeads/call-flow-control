@@ -8,10 +8,11 @@ package body AMI.Protocol is
    --  Value part of request string
    Bridge_String           : constant String := "Bridge";
    CoreSettings_String     : constant String := "CoreSettings";
-   Park_String             : constant String := "Park";
-   Ping_String             : constant String := "Ping";
    Login_String            : constant String := "Login";
    Logoff_String           : constant String := "Logoff";
+   Hangup_String           : constant String := "Hangup";
+   Park_String             : constant String := "Park";
+   Ping_String             : constant String := "Ping";
    QueueStatus_String      : constant String := "QueueStatus";
    QueuePause_String       : constant String := "QueuePause";
    Redirect_String         : constant String := "Redirect";
@@ -19,16 +20,16 @@ package body AMI.Protocol is
    --  Key part of request string
    Action_String           : constant String := "Action: ";
    ActionID_String         : constant String := "ActionID: ";
+   Channel_String          : constant String := "Channel: ";
    Channel1_String         : constant String := "Channel1: ";
    Channel2_String         : constant String := "Channel2: ";
-   Username_String         : constant String := "Username: ";
-   Secret_String           : constant String := "Secret: ";
-   Interface_String        : constant String := "Interface: ";
-   Paused_String           : constant String := "Paused: ";
-   Channel_String          : constant String := "Channel: ";
    Context_String          : constant String := "Context: ";
    Exten_String            : constant String := "Exten: ";
+   Interface_String        : constant String := "Interface: ";
+   Paused_String           : constant String := "Paused: ";
    Priority_String         : constant String := "Priority: ";
+   Secret_String           : constant String := "Secret: ";
+   Username_String         : constant String := "Username: ";
 
    Paused : constant array (Pause_States) of String (1 .. 1)
      := (Pause => "0", UnPause => "1");
@@ -57,6 +58,13 @@ package body AMI.Protocol is
                   Line_Termination_String &
                   Line_Termination_String;
    end CoreSettings;
+
+   function Hangup (Channel : in String) return String is
+   begin
+      return Action_String & Hangup_String & Line_Termination_String &
+        Channel_String & Channel & Line_Termination_String &
+        Line_Termination_String;
+   end Hangup;
 
    function Login (Username : in String;
                    Secret   : in String) return String is

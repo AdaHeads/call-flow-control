@@ -3,6 +3,7 @@ with Call_Queue,
      Common;
 private with GNATCOLL.JSON;
 
+--  This package can return callqueue information and it in JSON format.
 package Call_Queue_JSON is
    use Common;
 

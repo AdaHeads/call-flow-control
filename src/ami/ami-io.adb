@@ -8,6 +8,7 @@ package body AMI.IO is
       return Text;
    end Read_Line;
 
+   --  Reads until it catches an empty line.
    function Read_Package (Socket : in AWS.Net.Std.Socket_Type)
                           return Unbounded_String is
 

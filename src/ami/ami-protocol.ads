@@ -5,6 +5,8 @@ package AMI.Protocol is
 
    function CoreSettings return String with inline;
 
+   function Hangup (Channel : in String) return String with inline;
+
    function Login (Username : in String;
                    Secret   : in String) return String with inline;
 

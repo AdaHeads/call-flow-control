@@ -35,19 +35,20 @@ package Peers is
          Computer_ID : Unbounded_String;
          --  Dete skal kun symbolere de informationen, der måtte komme senere
       end record;
-   --     null_Peer : Peer_Type :=
-   --       (Defined => False,
-   --        Status => Unregistered,
-   --        ChannelType => Null_Unbounded_String,
-   --        Peer  => Null_Unbounded_String,
-   --        Port  => Null_Unbounded_String,
-   --        Address => Null_Unbounded_String,
-   --        Paused => False,
-   --        Last_Seen => Ada.Calendar.Clock,
-   --        Call => Call_Queue.null_Call,
-   --        Exten => Null_Unbounded_String,
-   --        Parked_Calls => Call_List.Vector, --  something's wrong here
-   --        Computer_ID  => Null_Unbounded_String);
+
+      null_Peer : Peer_Type :=
+        (Defined      => False,
+         Status       => Unregistered,
+         ChannelType  => Null_Unbounded_String,
+         Peer         => Null_Unbounded_String,
+         Port         => Null_Unbounded_String,
+         Address      => Null_Unbounded_String,
+         Paused       => False,
+         Last_Seen    => Ada.Calendar.Clock,
+         Call         => Call_Queue.null_Call,
+         Exten        => Null_Unbounded_String,
+         Parked_Calls => Call_List.Empty_Vector,
+         Computer_ID  => Null_Unbounded_String);
 
    type Peer_type_access is access Peer_Type;
 
@@ -66,8 +67,4 @@ package Peers is
    procedure Insert_Peer (New_Item : in Peer_Type);
    procedure Replace_Peer (Item : in Peer_Type);
 
-   --  Utility functions.
-   procedure Set_PhoneInfo (Peer : in out Peer_Type;
-                            Text : in Unbounded_String);
-   function Get_PhoneInfo (Peer : in Peer_Type) return Unbounded_String;
 end Peers;

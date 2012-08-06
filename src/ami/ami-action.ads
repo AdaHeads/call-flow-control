@@ -3,6 +3,8 @@ with Ada.Containers.Vectors;
 with Call_Queue,
      Event_Parser;
 
+--  This package have the purpose of sending Actions/Commands to Asterisk,
+--  and read the response
 package AMI.Action is
    use Event_Parser;
 
@@ -19,6 +21,8 @@ package AMI.Action is
       --  Gives some information about the system
       entry CoreSettings (Data : out Event_List_Type.Map);
 
+      entry Hangup (Channel : in String);
+
       --  Logs in this Action module
       entry Login (Username : in     String;
                    Secret   : in     String;
@@ -33,6 +37,7 @@ package AMI.Action is
       --  Sends a call on hold/park
       entry Park (Channel1 : in String;
                   Channel2 : in String);
+
       --  Ping pong
       entry Ping;
 
@@ -54,14 +59,15 @@ private
       --  Actions
    procedure Bridge (ChannelA : in String;
                      ChannelB : in String);
-   function CoreSettings return Event_List_Type.Map;
-   function Login (Username : in String;
+   function  CoreSettings return Event_List_Type.Map;
+   procedure Hangup (Channel : String);
+   function  Login (Username : in String;
                    Secret   : in String) return Boolean;
    procedure Logoff;
    procedure Park (Channel          : in String;
                    Fallback_Channel : in String);
    procedure Ping;
-   function QueueStatus (ActionID : in String := "") return Call_List.Vector;
+   function  QueueStatus (ActionID : in String := "") return Call_List.Vector;
    procedure Redirect (Channel : in String;
                        Exten   : in String;
                        Context : in String);
