@@ -7,7 +7,8 @@ with AMI.Action,
      Common,
      HTTP_Codes,
      Response,
-     Routines;
+     Routines,
+     Peers;
 
 package body Call_Queue_Handler is
    use Common;
@@ -82,5 +83,29 @@ package body Call_Queue_Handler is
          Content => JSON,
          Status  => HTTP_Codes.OK);
    end Get_Queue;
+
+   function Hangup (Request : in AWS.Status.Data)
+                    return AWS.Response.Data is
+      use AWS.Status;
+      use Peers;
+      Agent : constant String := Parameters (Request).Get ("agent");
+      Peer : Peers.Peer_Type;
+      JSON : JSON_String;
+   begin
+      Peer := Peers.Get_Peer
+        (Ada.Strings.Unbounded.To_Unbounded_String (Agent));
+      if Peer /= Peers.null_Peer then
+         AMI.Action.Action_Manager.Hangup
+           (Ada.Strings.Unbounded.To_String (Peer.Call.Channel));
+         JSON := To_JSON_String ("{ ""Status"" : ""Success, call closed"" }");
+      else
+         JSON := To_JSON_String ("{ ""Status"" : ""No agent by the name:" &
+                                   Agent & """ }");
+      end if;
+      return  Response.Build_JSON_Response
+        (Request => Request,
+         Content => JSON,
+         Status  => HTTP_Codes.OK);
+   end Hangup;
 
 end Call_Queue_Handler;

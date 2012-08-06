@@ -8,13 +8,24 @@ package body Peers is
    --  TODO Navngivning, Der er brug for nogle bedre navne her.
    protected Peers_List is
       function Get_Peers_List return Peer_List_Type.Map;
-      procedure Replace_Peer (Item     : in Peer_Type);
+      function Get_Peer (Peer : in Unbounded_String) return Peer_Type;
+      procedure Replace_Peer (Item : in Peer_Type);
       procedure Insert (New_Item : in Peer_Type);
    private
       List : Peer_List_Type.Map;
    end Peers_List;
 
    protected body Peers_List is
+      function Get_Peer (Peer : in Unbounded_String) return Peer_Type is
+      begin
+         for item in List.Iterate loop
+            if Peer_List_Type.Element (item).Peer = Peer then
+               return Peer_List_Type.Element (item);
+            end if;
+         end loop;
+         return null_Peer;
+      end Get_Peer;
+
       function Get_Peers_List return Peer_List_Type.Map is
       begin
          return List;
@@ -39,7 +50,6 @@ package body Peers is
                                             Position  => Peer_Cursor,
                                             New_Item  => Item);
          end if;
-
       end Replace_Peer;
    end Peers_List;
 
@@ -66,6 +76,11 @@ package body Peers is
       return Exten;
    end Get_Exten;
 
+   function Get_Peer (Peer : in Unbounded_String) return Peer_Type is
+   begin
+      return Peers_List.Get_Peer (Peer);
+   end Get_Peer;
+
    function Get_Peers_List return Peer_List_Type.Map is
    begin
       return Peers_List.Get_Peers_List;
@@ -90,8 +105,8 @@ package body Peers is
          Put ("Status => Unregistered, ");
       when Registered =>
          Put ("Status => Registered, ");
-         --      when others =>
-         --         raise PROGRAM_ERROR;
+         --  when others =>
+         --     raise PROGRAM_ERROR;
       end case;
 
       Put ("Address => " & To_String (Peer.Address) & ", ");

@@ -68,6 +68,12 @@ package body My_Handlers is
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
+         URI        => My.Config.Get (My.Handler_Call_Hangup),
+         Action     => Create
+            (Callback => Call_Queue_Handler.Hangup'Access));
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
          URI        => My.Config.Get (My.Handler_Get_Call),
          Action     => Create
            (Callback => Call_Queue_Handler.Get_Call'Access));
