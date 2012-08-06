@@ -90,12 +90,13 @@ package body Call_Queue_JSON is
                            return JSON_String is
       use Call_Queue;
 
-      JSON_List : JSON_Array := Empty_Array;
+      JSON_List : JSON_Array;
       Value     : JSON_Value;
 
       Result : constant JSON_Value := Create_Object;
    begin
       for Priority in Call_Queue.Priority_Level loop
+         JSON_List := Empty_Array;
          for Index in Queue (Priority).First_Index ..
            Queue (Priority).Last_Index loop
 

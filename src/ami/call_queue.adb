@@ -41,7 +41,6 @@ package body Call_Queue is
                Queue_Type.Delete_First (Container => Queue (i));
             end if;
          end loop;
-
       end Dequeue;
 
       --  Gives the call with selected Uniqueid
