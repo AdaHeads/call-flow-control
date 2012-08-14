@@ -5,6 +5,7 @@ package body AMI.IO is
    function Read_Line (Socket : in AWS.Net.Std.Socket_Type) return String is
       Text : constant String := AWS.Net.Buffered.Get_Line (Socket => Socket);
    begin
+      Yolk.Log.Trace (Yolk.Log.Debug, "IO: " & Text);
       return Text;
    end Read_Line;
 
@@ -33,6 +34,7 @@ package body AMI.IO is
    procedure Send (Socket : in AWS.Net.Std.Socket_Type;
                    Item   : in String) is
    begin
+      Yolk.Log.Trace (Yolk.Log.Debug, "OI: " & Item);
       AWS.Net.Buffered.Put (Socket, Item);
       AWS.Net.Buffered.Flush (Socket);
    end Send;

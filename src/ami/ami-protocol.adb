@@ -8,6 +8,7 @@ package body AMI.Protocol is
    --  Value part of request string
    Bridge_String           : constant String := "Bridge";
    CoreSettings_String     : constant String := "CoreSettings";
+   GetVar_String           : constant String := "GetVar";
    Login_String            : constant String := "Login";
    Logoff_String           : constant String := "Logoff";
    Hangup_String           : constant String := "Hangup";
@@ -16,6 +17,7 @@ package body AMI.Protocol is
    QueueStatus_String      : constant String := "QueueStatus";
    QueuePause_String       : constant String := "QueuePause";
    Redirect_String         : constant String := "Redirect";
+   SetVar_String           : constant String := "Setvar";
 
    --  Key part of request string
    Action_String           : constant String := "Action: ";
@@ -29,6 +31,8 @@ package body AMI.Protocol is
    Paused_String           : constant String := "Paused: ";
    Priority_String         : constant String := "Priority: ";
    Secret_String           : constant String := "Secret: ";
+   Variable_String         : constant String := "Variable: ";
+   Value_String            : constant String := "Value: ";
    Username_String         : constant String := "Username: ";
 
    Paused : constant array (Pause_States) of String (1 .. 1)
@@ -58,6 +62,15 @@ package body AMI.Protocol is
                   Line_Termination_String &
                   Line_Termination_String;
    end CoreSettings;
+
+   function Get_Var (Channel : in String;
+                     VariableName : in String) return String is
+   begin
+      return Action_String & GetVar_String & Line_Termination_String &
+        Channel_String & Channel & Line_Termination_String &
+        Variable_String & VariableName & Line_Termination_String &
+        Line_Termination_String;
+   end Get_Var;
 
    function Hangup (Channel : in String) return String is
    begin
@@ -140,4 +153,15 @@ package body AMI.Protocol is
         Line_Termination_String &
         Line_Termination_String;
    end Redirect;
+
+   function Set_Var (Channel      : in String;
+                     VariableName : in String;
+                     Value        : in String) return String is
+   begin
+      return Action_String & SetVar_String & Line_Termination_String &
+        Channel_String & Channel & Line_Termination_String &
+        Variable_String & VariableName & Line_Termination_String &
+        Value_String & Value & Line_Termination_String &
+        Line_Termination_String;
+   end Set_Var;
 end AMI.Protocol;

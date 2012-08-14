@@ -1,7 +1,8 @@
 with Ada.Calendar,
      Ada.Calendar.Conversions,
      Ada.Strings.Fixed,
-     Ada.Strings.Unbounded;
+     Ada.Strings.Unbounded,
+     Ada.Characters.Handling;
 
 with Interfaces.C;
 
@@ -53,21 +54,18 @@ package body Call_Queue_JSON is
             Ada.Strings.Unbounded.Length (Call.Queue) -
             Compnay_prefix'Length);
 
-         Value.Set_Field ("Channel", Call.Channel);
-         Value.Set_Field ("CallerIDNum", Call.CallerIDNum);
-         Value.Set_Field ("CallerIDName", Call.CallerIDName);
-         Value.Set_Field ("CompanyID", CompanyID);
-         Value.Set_Field ("Position", Call.Position);
-         Value.Set_Field ("Count", Call.Count);
-         Value.Set_Field ("Uniqueid", Call.Uniqueid);
-         Value.Set_Field ("Arrived", Unix_Timestamp (Call.Arrived));
+         Value.Set_Field ("channel", Call.Channel);
+         Value.Set_Field ("caller_id", Call.CallerIDNum);
+         Value.Set_Field ("org_id", CompanyID);
+         Value.Set_Field ("uniqueid", Call.Uniqueid);
+         Value.Set_Field ("arrival_time", Unix_Timestamp (Call.Arrived));
 
          if Call.Is_Picked_Up then
-            Value.Set_Field ("Picked_Up", Unix_Timestamp (Call.Picked_Up));
+            Value.Set_Field ("pickup_time", Unix_Timestamp (Call.Picked_Up));
          end if;
 
          if Call.Is_Ended then
-            Value.Set_Field ("Ended", Unix_Timestamp (Call.Ended));
+            Value.Set_Field ("ended", Unix_Timestamp (Call.Ended));
          end if;
       end if;
       return Value;
@@ -105,7 +103,9 @@ package body Call_Queue_JSON is
             Append (JSON_List, Value);
 
          end loop;
-         Result.Set_Field (Priority'Img, JSON_List);
+         --------------------------------------------------------------
+         Result.Set_Field (Ada.Characters.Handling.To_Lower (Priority'Img),
+                           JSON_List);
       end loop;
       --  TODO Find another methode for finding the length,
       --        because no we are asking on the length of an other Queue.
@@ -119,5 +119,14 @@ package body Call_Queue_JSON is
 
       return To_JSON_String (Result.Write);
    end Convert_Queue;
+
+   function Status_Message (Title   : in String;
+                            Message : in String) return JSON_String is
+      JSON : constant JSON_Value := Create_Object;
+   begin
+      JSON.Set_Field ("status", Title);
+      JSON.Set_Field ("description", Message);
+      return To_JSON_String (JSON.Write);
+   end Status_Message;
 
 end Call_Queue_JSON;

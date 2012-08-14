@@ -1,5 +1,5 @@
 with Ada.Characters.Latin_1,
-     Ada.Text_IO;
+     Yolk.Log;
 
 package body Call_Queue is
    use Queue_Type;
@@ -138,8 +138,9 @@ package body Call_Queue is
             end loop;
          end loop;
 
-         Ada.Text_IO.Put_Line
-           ("Remove: This uniqueid could not be found in the call queue." &
+         Yolk.Log.Trace
+           (Yolk.Log.Debug,
+            "Remove: This uniqueid could not be found in the call queue." &
               " Uniqueid: " & To_String (Uniqueid));
       end Remove;
    end Call_Queue;
@@ -176,9 +177,9 @@ package body Call_Queue is
    function Get_Company_Priority (CompanyName : Unbounded_String)
                                   return Priority_Level is
    begin
-      if To_String (CompanyName) = "testqueue1" then
+      if To_String (CompanyName) = "org_id1" then
          return High;
-      elsif To_String (CompanyName) = "testqueue2" then
+      elsif To_String (CompanyName) = "org_id2" then
          return Normal;
       else
          return Low;

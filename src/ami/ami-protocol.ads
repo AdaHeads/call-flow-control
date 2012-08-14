@@ -5,6 +5,9 @@ package AMI.Protocol is
 
    function CoreSettings return String with inline;
 
+   function Get_Var (Channel : in String;
+                     VariableName : in String) return String with inline;
+
    function Hangup (Channel : in String) return String with inline;
 
    function Login (Username : in String;
@@ -30,4 +33,7 @@ package AMI.Protocol is
                       Exten    : in String;
                       Priority : in Integer := 1) return String with inline;
 
+   function Set_Var (Channel      : in String;
+                     VariableName : in String;
+                     Value        : in String) return String with inline;
 end AMI.Protocol;

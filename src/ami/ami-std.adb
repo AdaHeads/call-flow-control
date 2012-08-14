@@ -1,5 +1,5 @@
 with Ada.Strings.Unbounded,
-     Ada.Text_IO;
+     Ada.Exceptions;
 
 with AMI.Event,
      AMI.Action;
@@ -28,6 +28,8 @@ package body AMI.Std is
    task body AMI_Service is
       use Ada.Strings.Unbounded;
       use Task_Controller;
+      use Ada.Exceptions;
+
       Server_Host : Unbounded_String;
       Server_Port : Positive;
 
@@ -70,8 +72,11 @@ package body AMI.Std is
 
       end loop Reconnect;
    exception
-      when others =>
-         Ada.Text_IO.Put_Line ("Exception in AMI-STD.adb");
+      when Err : others =>
+         Yolk.Log.Trace
+           (Yolk.Log.Debug,
+            "Exception in AMI-STD.AMI_Service:" &
+            Exception_Name (Err) & "|:|" & Exception_Message (Err));
    end AMI_Service;
 
    procedure Connect (Server_Host     : in String   := "Asterisk1";
@@ -97,9 +102,7 @@ package body AMI.Std is
    end Connect;
 
    procedure Disconnect is
-      use Ada.Text_IO;
    begin
       AWS.Net.Buffered.Shutdown (Event_Socket);
-      --        AWS.Net.Buffered.Shutdown (Action_Socket);
    end Disconnect;
 end AMI.Std;

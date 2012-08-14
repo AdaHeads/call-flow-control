@@ -43,6 +43,8 @@ package My_Configuration is
                  DB2_Port,
                  DB2_User,
                  Handler_Call_Hangup,
+                 Handler_Call_Park,
+                 Handler_Call_Unpark,
                  Handler_Get_Call,
                  Handler_Get_Contact,
                  Handler_Get_Contact_Attributes,
@@ -84,8 +86,14 @@ package My_Configuration is
                        => Util.TUS ("5433"),
                        DB2_User
                        => Util.TUS ("alice"),
+
                        Handler_Call_Hangup
-                       => Util.TUS ("/call/hangup"),
+                       => Util.TUS ("/get/hangup"),
+                       Handler_Call_Park
+                       => Util.TUS ("/get/park"),
+                       Handler_Call_Unpark
+                       => Util.TUS ("/get/unpark"),
+
                        Handler_Get_Call
                        => Util.TUS ("/get/call"),
                        Handler_Get_Contact

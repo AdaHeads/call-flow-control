@@ -64,7 +64,7 @@ package Peers is
    function Get_Exten (Peer : in Unbounded_String) return Unbounded_String;
    function Get_Peer (Peer : in Unbounded_String) return Peer_Type;
 
-   procedure Print_Peer (Peer : in Peer_Type);
+--     procedure Print_Peer (Peer : in Peer_Type);
    procedure Insert_Peer (New_Item : in Peer_Type);
    procedure Replace_Peer (Item : in Peer_Type);
 

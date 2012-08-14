@@ -1,9 +1,5 @@
-with Ada.Calendar.Formatting,
-     Ada.Text_IO;
-
 with Yolk.Log;
 package body Peers is
-   use  Ada.Calendar.Formatting;
    ----------------------------------------------------------------------------
    --  TODO Navngivning, Der er brug for nogle bedre navne her.
    protected Peers_List is
@@ -69,8 +65,8 @@ package body Peers is
       elsif Peer_String = "JSA-N900" then
          Exten := To_Unbounded_String ("104");
       else
-         Ada.Text_IO.Put_Line
-           ("Could not find an Extension for: " & Peer_String);
+         Yolk.Log.Trace (Yolk.Log.Debug,
+                         "Could not find an Extension for: " & Peer_String);
          Exten := Null_Unbounded_String;
       end if;
       return Exten;
@@ -96,27 +92,28 @@ package body Peers is
       Peers_List.Insert (New_Item);
    end Insert_Peer;
 
-   procedure Print_Peer (Peer : in Peer_Type) is
-      use Ada.Text_IO;
-   begin
-      Put ("Peer => "   & To_String (Peer.Peer) & ", ");
-      case Peer.Status is
-      when Unregistered =>
-         Put ("Status => Unregistered, ");
-      when Registered =>
-         Put ("Status => Registered, ");
-         --  when others =>
-         --     raise PROGRAM_ERROR;
-      end case;
-
-      Put ("Address => " & To_String (Peer.Address) & ", ");
-      Put ("Channel_Type => " & To_String (Peer.ChannelType) & ", ");
-      Put ("Port => " & To_String (Peer.Port) & ", ");
-      Put ("Exten => " & To_String (Peer.Exten) & ", ");
-      Put ("Last_Seen => " & Ada.Calendar.Formatting.Image (Peer.Last_Seen));
-      New_Line;
-
-   end Print_Peer;
+--     procedure Print_Peer (Peer : in Peer_Type) is
+--        use Ada.Text_IO;
+--     begin
+--        Put ("Peer => "   & To_String (Peer.Peer) & ", ");
+--        case Peer.Status is
+--        when Unregistered =>
+--           Put ("Status => Unregistered, ");
+--        when Registered =>
+--           Put ("Status => Registered, ");
+--           --  when others =>
+--           --     raise PROGRAM_ERROR;
+--        end case;
+--
+--        Put ("Address => " & To_String (Peer.Address) & ", ");
+--        Put ("Channel_Type => " & To_String (Peer.ChannelType) & ", ");
+--        Put ("Port => " & To_String (Peer.Port) & ", ");
+--        Put ("Exten => " & To_String (Peer.Exten) & ", ");
+--        Put ("Last_Seen =>
+--     " & Ada.Calendar.Formatting.Image (Peer.Last_Seen));
+--        New_Line;
+--
+--     end Print_Peer;
 
    procedure Replace_Peer (Item : in Peer_Type) is
    begin

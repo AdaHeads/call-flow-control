@@ -26,6 +26,7 @@ with AWS.Messages;
 package HTTP_Codes is
 
    OK           : constant AWS.Messages.Status_Code := AWS.Messages.S200;
+   No_Content   : constant AWS.Messages.Status_Code := AWS.Messages.S204;
 
    Bad_Request  : constant AWS.Messages.Status_Code := AWS.Messages.S400;
    Unauthorized : constant AWS.Messages.Status_Code := AWS.Messages.S401;

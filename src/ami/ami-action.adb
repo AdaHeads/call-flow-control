@@ -1,7 +1,5 @@
 with  Ada.Calendar,
-      Ada.Exceptions,
-      Ada.Strings.Unbounded,
-      Ada.Text_IO;
+      Ada.Exceptions;
 
 with AMI.IO,
      AMI.Protocol;
@@ -62,11 +60,12 @@ package body AMI.Action is
                 (Username => To_String (Action_Manager.Username),
                  Secret   => To_String (Action_Manager.Secret))
             then
-               Yolk.Log.Trace (Yolk.Log.Notice, "AMI Action Wrong login:" &
-                                 "Username: " &
-                                 To_String (Action_Manager.Username) &
-                                 "Secret: " &
-                                 To_String (Action_Manager.Secret));
+               Yolk.Log.Trace (Yolk.Log.Notice,
+                               "AMI Action Wrong login:" &
+                               "Username: " &
+                               To_String (Action_Manager.Username) &
+                               "Secret: " &
+                               To_String (Action_Manager.Secret));
             end if;
             Action_Loop :
             loop
@@ -78,25 +77,33 @@ package body AMI.Action is
                select
                   accept Bridge (ChannelA : in String;
                                  ChannelB : in String) do
-                     Bridge (ChannelA, ChannelB);
+                     AMI.Action.Bridge (ChannelA, ChannelB);
                   end Bridge;
                or
                   accept CoreSettings (Data : out Event_List_Type.Map) do
                      Data := AMI.Action.CoreSettings;
                   end CoreSettings;
                or
+                  accept Get_Var (Channel      : in String;
+                                  VariableName : in String;
+                                  Value        : out Unbounded_String) do
+                     Value := To_Unbounded_String (
+                       AMI.Action.Get_Var (Channel      => Channel,
+                                           VariableName => VariableName));
+                  end Get_Var;
+               or
                   accept Hangup (Channel : in String) do
-                     Hangup (Channel);
+                     AMI.Action.Hangup (Channel);
                   end Hangup;
                or
                   accept Login (Username : in     String;
                                 Secret   : in     String;
                                 Success  :    out Boolean) do
-                     Success := Login (Username, Secret);
+                     Success := AMI.Action.Login (Username, Secret);
                   end Login;
                or
                   accept Logoff do
-                     Logoff;
+                     AMI.Action.Logoff;
                   end Logoff;
                or
                   accept QueueStatus (List : out Call_List.Vector) do
@@ -117,6 +124,14 @@ package body AMI.Action is
                                    Context : in String) do
                      AMI.Action.Redirect (Channel, Exten, Context);
                   end Redirect;
+               or
+                  accept Set_Var (Channel      : in String;
+                                  VariableName : in String;
+                                  Value        : in String) do
+                     Yolk.Log.Trace (Yolk.Log.Debug,
+                                     "--==Set_Var_Channel:" & Channel);
+                     AMI.Action.Set_Var (Channel, VariableName, Value);
+                  end Set_Var;
                or
                   delay 1.0;
                end select;
@@ -151,11 +166,67 @@ package body AMI.Action is
       return Read_Event_List;
    end CoreSettings;
 
+   function  Get_Var (Channel      : in String;
+                      VariableName : in String) return String is
+      use Ada.Strings.Unbounded;
+      Command : constant String :=
+        Protocol.Get_Var (Channel      => Channel,
+                          VariableName => VariableName);
+   begin
+      AMI.IO.Send (Socket, Command);
+
+      declare
+         Event : constant Event_List_Type.Map := Read_Event_List;
+      begin
+         if not Event.Contains (To_Unbounded_String ("Response")) then
+            Yolk.Log.Trace (Yolk.Log.Debug, "AMI Action is out of Sync");
+            return "";
+         end if;
+
+         if To_String (Event.Element (To_Unbounded_String ("Response"))) /=
+           "Success" then
+            declare
+               Message : Unbounded_String := To_Unbounded_String
+                   ("AMI-Action.Get_Var Exception without a Message");
+            begin
+               if Event.Contains (To_Unbounded_String ("Message")) then
+                  Message := Event.Element (To_Unbounded_String ("Message"));
+               end if;
+               Yolk.Log.Trace (Yolk.Log.Debug,
+                               "AMI-Action.Get_Var Errormessage:" &
+                                 To_String (Message));
+            end;
+            return "";
+         end if;
+
+         --  If the variable does not exsist
+         if Event.Contains (To_Unbounded_String ("Value")) then
+            if To_String (Event.Element (
+              To_Unbounded_String ("Value"))) = "(null)" then
+               return "(null)";
+            end if;
+         end if;
+
+         declare
+            result : constant String :=
+              To_String (Event.Element (To_Unbounded_String ("Value")));
+         begin
+            Yolk.Log.Trace (Yolk.Log.Debug,
+                            "AMI.Action.Get_Var Command:" & Command &
+                           " Result: " & result);
+            return result;
+         end;
+
+      end;
+   end Get_Var;
+
    procedure Hangup (Channel : in String) is
       use Ada.Strings.Unbounded;
       Command : constant String := Protocol.Hangup (Channel);
    begin
+      Yolk.Log.Trace (Yolk.Log.Debug, "Hangup command [" & Command & "]");
       AMI.IO.Send (Socket, Command);
+      Read_Response :
       loop
          declare
             Event : Event_List_Type.Map;
@@ -167,24 +238,12 @@ package body AMI.Action is
                  "Success" then
                   Yolk.Log.Trace (Yolk.Log.Debug, "Hangup failed.");
                end if;
-               exit;
+               exit Read_Response;
             end if;
+            Yolk.Log.Trace (Yolk.Log.Debug, "Hangup: i'm reading forever");
          end;
-      end loop;
+      end loop Read_Response;
    end Hangup;
-
---     procedure Initialize (Socket   : in AWS.Net.Std.Socket_Type;
---                           Username : in String;
---                           Secret   : in String) is
---        Greetings : constant String := AMI.IO.Read_Line (Initialize.Socket);
---     begin
---        Yolk.Log.Trace (Yolk.Log.Debug, "Greetings: " & Greetings);
---        AMI.Action.Socket := Socket;
---
---        if not Login (Username, Secret) then
---           null;
---        end if;
---     end Initialize;
 
    function Login (Username : in String;
                    Secret   : in String) return Boolean is
@@ -227,9 +286,7 @@ package body AMI.Action is
    procedure Logoff is
       Command : constant String := Protocol.Logoff;
    begin
-
       AMI.IO.Send (Socket, Command);
-
    end Logoff;
 
    procedure Park (Channel          : in String;
@@ -238,9 +295,7 @@ package body AMI.Action is
         Protocol.Park (Channel          => Channel,
                        Fallback_Channel => Fallback_Channel);
    begin
-
-      Ada.Text_IO.Put_Line ("Parking Call");
-      Ada.Text_IO.Put_Line (Command);
+      Yolk.Log.Trace (Yolk.Log.Debug, "AMI-Action.Park: " & Command);
       AMI.IO.Send (Socket, Command);
 
    end Park;
@@ -415,4 +470,41 @@ package body AMI.Action is
          end if;
       end;
    end Redirect;
+
+   procedure Set_Var (Channel      : in String;
+                      VariableName : in String;
+                      Value        : in String) is
+      use Ada.Strings.Unbounded;
+      Command : constant String :=
+        AMI.Protocol.Set_Var (Channel      => Channel,
+                              VariableName => VariableName,
+                              Value        => Value);
+      Event : Event_List_Type.Map;
+   begin
+      AMI.IO.Send (Socket, Command);
+      Event := Read_Event_List;
+
+      if not Event.Contains (To_Unbounded_String ("Response")) then
+         Yolk.Log.Trace (Yolk.Log.Debug, "AMI-Action.Set_Var is out of sync");
+         Yolk.Log.Trace (Yolk.Log.Debug,
+                         "Channel: " & Channel &
+                           " VariableName: " & VariableName &
+                           " Value: " & Value);
+         for item of Event loop
+            Yolk.Log.Trace (Yolk.Log.Debug, To_String (item));
+         end loop;
+
+         return;
+      end if;
+
+      if To_String (Event.Element (To_Unbounded_String ("Response"))) /=
+        "Success" then
+         Yolk.Log.Trace (Yolk.Log.Debug,
+                         "Something went wrong inside AMI-Action.Set_Var");
+         Yolk.Log.Trace (Yolk.Log.Debug,
+                         "Channel: " & Channel &
+                           " VariableName: " & VariableName &
+                           " Value: " & Value);
+      end if;
+   end Set_Var;
 end AMI.Action;

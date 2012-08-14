@@ -1,9 +1,9 @@
 with Ada.Calendar,
      Ada.Exceptions,
-     Ada.Strings.Unbounded,
-     Ada.Text_IO;
+     Ada.Strings.Unbounded;
 
-with AMI.IO,
+with AMI.Action,
+     AMI.IO,
      AMI.Protocol;
 
 with Call_Queue,
@@ -17,7 +17,6 @@ package body AMI.Event is
    use Call_Queue;
    use Ada.Exceptions;
    use AMI.IO;
-   use Ada.Text_IO;
    use Peers;
 
    Asterisk : Asterisk_AMI_Type;
@@ -49,7 +48,7 @@ package body AMI.Event is
    --  CallerID2: 100
    procedure Bridge_Callback is
    begin
-      Put_Line ("Not implemented");
+      Yolk.Log.Trace (Yolk.Log.Debug, "Bridge not implemented");
       raise NOT_IMPLEMENTED;
    end Bridge_Callback;
 
@@ -128,7 +127,18 @@ package body AMI.Event is
       end if;
       Call.Arrived := Ada.Calendar.Clock;
 
-      Call_Queue.Enqueue (Call => Call);
+      declare
+         State : Unbounded_String;
+      begin
+         AMI.Action.Action_Manager.Get_Var
+           (Channel      => To_String (Call.Channel),
+            VariableName => "CallState",
+            Value        => State);
+
+         if To_String (State) = "(null)" or else To_String (State) = "" then
+            Call_Queue.Enqueue (Call => Call);
+         end if;
+      end;
    end Join_Callback;
 
    procedure Login (Asterisk_AMI : in Asterisk_AMI_Type;
@@ -141,13 +151,20 @@ package body AMI.Event is
    end Login;
 
    procedure Login_Callback (Event_List : in Event_List_Type.Map) is
+      Message : Unbounded_String;
    begin
-      --  Now we play a game called; Find the message!
-      if Event_List.Contains (To_Unbounded_String ("Message")) and
-      then To_String (Event_List.Element (To_Unbounded_String ("Message"))) =
-        "Authentication accepted" then
-         Asterisk.Logged_In := True;
+
+      if Event_List.Contains (To_Unbounded_String ("Message")) then
+         Message := Event_List.Element
+           (To_Unbounded_String ("Message"));
+
+         if To_String (Message) =  "Authentication accepted" then
+            Asterisk.Logged_In := True;
+         else
+            Asterisk.Logged_In := False;
+         end if;
       end if;
+
    end Login_Callback;
 
    --  no need for, we are never gonna call it anyway.
@@ -173,7 +190,7 @@ package body AMI.Event is
    --  Uniqueid: 1340097427.11
    procedure NewState_Callback is
    begin
-      Put_Line ("Not implemented");
+      Yolk.Log.Trace (Yolk.Log.Debug, "NewState_Callback not implemented");
       raise NOT_IMPLEMENTED;
    end NewState_Callback;
 
@@ -185,11 +202,11 @@ package body AMI.Event is
       Peer        : Peer_Type;
       Map_Key     : Unbounded_String;
       Exsist      : Boolean := False;
-      Peer_Cursor : Peer_List_Type.Cursor;
 
-   --  Extracts the channel type, and the phonename, and saves them in the peer
+      --  Extracts the channel type, and the phonename,
+      --    and saves them in the peer
       procedure Set_PhoneInfo (Peer : in out Peer_Type;
-                            Text : in Unbounded_String);
+                               Text : in Unbounded_String);
 
       procedure Set_PhoneInfo (Peer : in out Peer_Type;
                                Text : in Unbounded_String)
@@ -208,7 +225,7 @@ package body AMI.Event is
          else
             Yolk.Log.Trace (Yolk.Log.Debug,
                             "Set_PhoneInfo:" &
-                            "This peer does not have a Channeltype: "
+                              "This peer does not have a Channeltype: "
                             & To_String (Text));
          end if;
       end Set_PhoneInfo;
@@ -220,13 +237,20 @@ package body AMI.Event is
          Map_Key := Peer.Peer;
       end if;
 
-      --  Check to see if the peer already exsists.
-      Peer_Cursor := Peer_List_Type.Find (Peers.Get_Peers_List, Map_Key);
+      declare
+         temp_peer : Peer_Type;
+      begin
+         temp_peer := Peers.Get_Peer (Map_Key);
 
-      if Peer_Cursor /= Peer_List_Type.No_Element then
-         Exsist := True;
-         Peer := Peer_List_Type.Element (Peer_Cursor);
-      end if;
+         if temp_peer /= Peers.null_Peer then
+            Peer := temp_peer;
+            Exsist := True;
+         end if;
+         exception
+         when err : others =>
+            Yolk.Log.Trace (Yolk.Log.Debug, Exception_Name (err) & "|:|" &
+                           Exception_Message (err));
+      end;
 
       --  This parameter is set at the Set_PhoneInfo.
       --  if Event_List.Contains (To_Unbounded_String ("ChannelType")) then
@@ -247,14 +271,23 @@ package body AMI.Event is
          if To_String (Event_List.Element (To_Unbounded_String ("PeerStatus")))
            = "Unregistered"  then
             Peer.Status := Unregistered;
+            Yolk.Log.Trace (Yolk.Log.Debug,
+                            "Got peer with unregistrered status");
+
          elsif To_String (Event_List.Element (
-           To_Unbounded_String ("PeerStatus"))) = "Registered"  then
+           To_Unbounded_String ("PeerStatus"))) = "Registered" then
             Peer.Status := Registered;
+            Yolk.Log.Trace (Yolk.Log.Debug,
+                            "Got peer with registrered status");
+
          else
             Yolk.Log.Trace (Yolk.Log.Debug, "Peer Status, unknown state: " &
                 To_String (Event_List.Element
                 (To_Unbounded_String ("PeerStatus"))));
          end if;
+      else
+         Yolk.Log.Trace (Yolk.Log.Info,
+                         "PeerStatus_CallbackHandler had no PeerStatus");
       end if;
 
       declare
@@ -264,8 +297,8 @@ package body AMI.Event is
          Exten := Peers.Get_Exten (Peer.Peer);
          if Exten = Null_Unbounded_String then
             Yolk.Log.Trace (Yolk.Log.Warning,
-                          "There is not registrated any extension to agent: " &
-                          To_String (Peer.Peer));
+                            "There is not registrated any extension to agent: "
+                            & To_String (Peer.Peer));
             raise Program_Error;
          else
             Peer.Exten := Exten;
@@ -303,7 +336,7 @@ package body AMI.Event is
    --  ListItems: 2
    procedure SIPPeers_Callback is
    begin
-      Put_Line ("Not implemented");
+      Yolk.Log.Trace (Yolk.Log.Debug, "SipPeers_Callback not implemented");
       raise NOT_IMPLEMENTED;
    end SIPPeers_Callback;
 
@@ -319,6 +352,8 @@ package body AMI.Event is
                    Channel   => channel,
                    Logged_In => False);
 
+      Yolk.Log.Trace (Yolk.Log.Debug, "Event Greetings: " &
+                        Asterisk.Greeting.all);
       --  Send login
       Login (Asterisk_AMI => Asterisk,
              Username     => Username,
@@ -346,15 +381,14 @@ package body AMI.Event is
             end if;
          exception
             when Error : others =>
-               Put_Line (Ada.Exceptions.Exception_Name (Error));
-               Put_Line (Exception_Message (Error));
-               Put_Line ("Socket.Start.declare: ");
+               Yolk.Log.Trace (Yolk.Log.Debug, Exception_Name (Error));
+               Yolk.Log.Trace (Yolk.Log.Debug, Exception_Message (Error));
          end;
       end loop;
    exception
       when AWS.Net.Socket_Error =>
          --  When the socket is terminated the Read_Package throws an exception
-         Put_Line ("AMI Socket Shutdown");
+         Yolk.Log.Trace (Yolk.Log.Info, "AMI Socket Shutdown");
    end Start;
 
    --  Event: Unlink
@@ -367,9 +401,11 @@ package body AMI.Event is
    --  CallerID2: 100
    procedure Unlink_Callback (Event_List : in Event_List_Type.Map) is
    begin
-      Put_Line ("Not implemented " &
-          To_String (Event_List.Element (
-          To_Unbounded_String ("Event"))));
+      Yolk.Log.Trace (Yolk.Log.Debug, "Unlink_Callback not implemented");
+      if Event_List.Contains (To_Unbounded_String
+                              ("I'm not implemented but needed anyway")) then
+         null;
+      end if;
       raise NOT_IMPLEMENTED;
    end Unlink_Callback;
 

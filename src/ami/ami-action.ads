@@ -1,4 +1,5 @@
-with Ada.Containers.Vectors;
+with Ada.Containers.Vectors,
+     Ada.Strings.Unbounded;
 
 with Call_Queue,
      Event_Parser;
@@ -20,6 +21,12 @@ package AMI.Action is
 
       --  Gives some information about the system
       entry CoreSettings (Data : out Event_List_Type.Map);
+
+      --  Returns a variable by the name, from a channel.
+      entry Get_Var
+        (Channel      : in String;
+         VariableName : in String;
+         Value        : out Ada.Strings.Unbounded.Unbounded_String);
 
       entry Hangup (Channel : in String);
 
@@ -50,6 +57,10 @@ package AMI.Action is
                         Server_Port : in Positive;
                         Username    : in String;
                         Secret      : in String);
+
+      entry Set_Var (Channel      : in String;
+                     VariableName : in String;
+                     Value        : in String);
    end Action_Manager;
 
 private
@@ -60,6 +71,8 @@ private
    procedure Bridge (ChannelA : in String;
                      ChannelB : in String);
    function  CoreSettings return Event_List_Type.Map;
+   function  Get_Var (Channel      : in String;
+                      VariableName : in String) return String;
    procedure Hangup (Channel : String);
    function  Login (Username : in String;
                    Secret   : in String) return Boolean;
@@ -71,4 +84,7 @@ private
    procedure Redirect (Channel : in String;
                        Exten   : in String;
                        Context : in String);
+   procedure Set_Var (Channel      : in String;
+                      VariableName : in String;
+                      Value        : in String);
 end AMI.Action;

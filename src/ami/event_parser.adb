@@ -2,6 +2,8 @@ with Ada.Characters.Latin_1,
      Ada.Exceptions,
      Ada.Text_IO;
 
+with Yolk.Log;
+
 package body Event_Parser is
 
    function Parse (Event_Text : in Unbounded_String)
@@ -51,7 +53,9 @@ package body Event_Parser is
          Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Name (Err));
          Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (Err));
          Ada.Text_IO.Put_Line ("Event_Parser.Parse");
-
+         for item of List loop
+            Yolk.Log.Trace (Yolk.Log.Debug, To_String (item));
+         end loop;
          return List;
    end Parse;
 end Event_Parser;

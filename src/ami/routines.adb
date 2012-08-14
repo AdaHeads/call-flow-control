@@ -68,7 +68,7 @@ package body Routines is
    procedure Get_Call (Uniqueid : in     String;
                        Agent    : in     String;
                        Call     :    out Call_Queue.Call_Type;
-                       Status   :    out Unbounded_String) is
+                       Status   :    out Status_Type) is
       use Call_Queue;
       use Peers;
       use Peers.Peer_List_Type;
@@ -79,13 +79,13 @@ package body Routines is
         Peer_List_Type.Find
           (Peer_List, To_Unbounded_String (Agent));
    begin
+      Status := Unknowen_Error;
       --  Check if there exsist an Agent by that name.
       if Peer_List_Index = Peer_List_Type.No_Element then
          Yolk.Log.Trace (Yolk.Log.Debug, "Get_Call: " &
-                           "We have no agent registred by the name: <" &
-                           Agent & ">");
-         Status := To_Unbounded_String
-           ("There exsist no Agent by the name: " & Agent);
+                           "We have no agent registred by the name: [" &
+                           Agent & "]");
+         Status := No_Agent_Found;
          Call := null_Call;
          return;
       end if;
@@ -93,14 +93,13 @@ package body Routines is
       --  Now that we know that there exists an agent,
       --   is the SIP phone registreted?
       Peer := Peer_List_Type.Element (Peer_List_Index);
-      Yolk.Log.Trace (Yolk.Log.Debug, "I got an Peer in Gel_Call on address: "
+      Yolk.Log.Trace (Yolk.Log.Debug, "I got an Peer in Get_Call on address: "
                       & To_String (Peer.Address));
       if Peer.Status = Unregistered then
          Yolk.Log.Trace (Yolk.Log.Debug, "Get_Call: " &
                            "The following agent is unregistred: " & Agent);
-         Status := To_Unbounded_String
-           ("The following agent is unregistred: " & Agent);
-         raise Program_Error;
+         Status := Unregistred_Agent;
+         return;
       end if;
 
       --  If Uniqueueid parameter is null,
@@ -114,7 +113,7 @@ package body Routines is
 
       --  If there is a call to anwser.
       if temp_Call /= Call_Queue.null_Call then
-
+         Status := Success;
          temp_Call.Picked_Up := Ada.Calendar.Clock;
          temp_Call.Is_Picked_Up := True;
 
@@ -128,9 +127,10 @@ package body Routines is
            (Channel => To_String (temp_Call.Channel),
             Exten   => To_String (Peer.Exten),
             Context => "LocalSets");
+
       else
          Yolk.Log.Trace (Yolk.Log.Debug, "Get_Call: No Call to take");
-
+         Status := No_Call_Found;
          Call := null_Call;
       end if;
    exception
@@ -152,55 +152,149 @@ package body Routines is
       if Data.Contains (To_Unbounded_String ("AsteriskVersion")) then
          Version := Data.Element (To_Unbounded_String ("AsteriskVersion"));
       end if;
-      AMI.Action.Action_Manager.Ping;
       return To_String (Version);
-      --        Last_Action := CoreSettings;
    end Get_Version;
 
-      --  Sends the agent's current call on hold / park
-   procedure Park (Agent : in Unbounded_String) is
+   procedure Hangup (Agent  : in     Unbounded_String;
+                     Status :    out Status_Type) is
+      use Peers;
+      use Call_Queue;
+
+      Peer : Peer_Type;
+   begin
+      Yolk.Log.Trace (Yolk.Log.Debug, "Hangup: routine started");
+      Status := Unknowen_Error;
+      Peer := Peers.Get_Peer (Agent);
+
+      if Peer = Peers.null_Peer then
+         Yolk.Log.Trace (Yolk.Log.Debug,
+                         "Hangup: No agent found by that name: " &
+                           To_String (Agent));
+         Status := No_Agent_Found;
+         return;
+      end if;
+
+      if Peer.Call = Call_Queue.null_Call then
+         Yolk.Log.Trace (Yolk.Log.Debug,
+                         "Hangup: The agent have no call to hangup");
+         Status := No_Call_Found;
+         return;
+      end if;
+
+      Yolk.Log.Trace (Yolk.Log.Debug,
+                      "Call closed for " & To_String (Agent));
+
+      AMI.Action.Action_Manager.Hangup
+        (Ada.Strings.Unbounded.To_String (Peer.Call.Channel));
+
+      Yolk.Log.Trace (Yolk.Log.Debug, "Hangup routine: after hangup Action");
+
+      Peer.Call := Call_Queue.null_Call;
+      Peers.Replace_Peer (Peer);
+      Status := Success;
+
+      Yolk.Log.Trace (Yolk.Log.Debug, "The Hangup routine is done.");
+   end Hangup;
+
+   --  TODO Refactor, in case something goes wrong,
+   --    the steps are taken in the wrong order.
+   --  Sends the agent's current call on hold / park.
+   procedure Park (Agent  : in     String;
+                   Call   :    out Call_Queue.Call_Type;
+                   Status :    out Status_Type) is
       use Peers;
       use Peers.Peer_List_Type;
       use Call_Queue;
-      Peer_Cursor : Peer_List_Type.Cursor;
+      --  Returns the format Asterisk understand "ChannelType/PhoneName"
+--        function Get_PhoneInfo (Peer : in Peer_Type) return Unbounded_String;
+--
+--      function Get_PhoneInfo (Peer : in Peer_Type) return Unbounded_String is
+--        begin
+--           return Peer.ChannelType & To_Unbounded_String ("/") & Peer.Peer;
+--        end Get_PhoneInfo;
 
-      --  Returns the format Asterisk Wants "ChannelType/PhoneName"
-      function Get_PhoneInfo (Peer : in Peer_Type) return Unbounded_String;
-
-      function Get_PhoneInfo (Peer : in Peer_Type) return Unbounded_String is
-      begin
-         return Peer.ChannelType & To_Unbounded_String ("/") & Peer.Peer;
-      end Get_PhoneInfo;
+      Peer : Peer_Type;
    begin
-      --  Finds the Agent, to get the call to park.
-      Peer_Cursor := Peer_List_Type.Find (Container => Peers.Get_Peers_List,
-                                          Key       => Agent);
+      --  Default fallback status.
+      Status := Unknowen_Error;
 
-      if Peer_Cursor /= Peer_List_Type.No_Element then
-         declare
-            Peer : Peer_Type;
-         begin
-            Peer := Peer_List_Type.Element (Peer_Cursor);
-            --  Not sure about this.
-            Yolk.Log.Trace (Yolk.Log.Debug, "Park: Peer => " &
-                              To_String (Peer.Peer));
-            if Peer.Call /= null_Call then
-               --  there are something wrong here,
-               --    i don't want it to fall back to the phone directly,
-               --    but i don't know where else to send the call to.
-               AMI.Action.Action_Manager.Park
-                 (Channel1 => To_String (Peer.Call.Channel),
-                  Channel2 => To_String (Get_PhoneInfo (Peer)));
-            else
-               Yolk.Log.Trace (Handle => Yolk.Log.Debug,
-                               Message => "This agent have no call: " &
-                                 To_String (Agent));
-               raise AMI.NOT_IMPLEMENTED;
-            end if;
-         end;
-      else
-         raise AMI.NOT_IMPLEMENTED;
+      --  Finds the Agent, to get the call to park.
+      Peer := Peers.Get_Peer (Peer => To_Unbounded_String (Agent));
+      if Peer = Peers.null_Peer then
+         --  No peer found
+         Status := No_Agent_Found;
+         Yolk.Log.Trace (Yolk.Log.Debug,
+                         "Park Routine: The agent does not exsist: " & Agent);
+         return;
       end if;
+
+      if Peer.Call = Call_Queue.null_Call then
+         Yolk.Log.Trace (Handle => Yolk.Log.Debug,
+                         Message => "This agent have no call: " & Agent);
+         Status := No_Call_Found;
+         return;
+      end if;
+
+      Yolk.Log.Trace (Yolk.Log.Debug, "Park: Peer => " &
+                        To_String (Peer.Peer) &
+                        " Call Channel =>" & To_String (Peer.Call.Channel));
+      --  Out parameter.
+      Call := Peer.Call;
+
+      --  Move the call back to the Queue, which will act like a parking lot.
+      declare
+         Exten : Unbounded_String;
+      begin
+         --  TODO Update, There have to be an easier way
+         --   to find the companies Extension.
+         --  Get the extension the queue is tied up to.
+
+         AMI.Action.Action_Manager.Get_Var
+           (Channel      => To_String (Call.Channel),
+            VariableName => "Extension",
+            Value        => Exten);
+
+         if To_String (Exten) = "(null)" then
+            Yolk.Log.Trace (Yolk.Log.Debug,
+                            "Routines.Park: " &
+                              "The Call does not have an Extension Variable" &
+                              "Call-Channel: " & To_String (Call.Channel) &
+                              "Peer: " & To_String (Peer.Peer));
+            Status := Routines.Unknowen_Error;
+            return;
+         elsif To_String (Exten) = "" then
+            Yolk.Log.Trace (Yolk.Log.Debug,
+                            "Routines.Park: " &
+                              "The Call have an empty extension variable" &
+                              "Call-Channel: " & To_String (Call.Channel) &
+                              "Peer: " & To_String (Peer.Peer));
+            Status := Routines.Unknowen_Error;
+            return;
+         end if;
+
+         --  Sets the variable that tells this call is a call on hold.
+         AMI.Action.Action_Manager.Set_Var
+           (Channel      => To_String (Call.Channel),
+            VariableName => "CallState",
+            Value        => "onhold");
+
+         --  Move the call back to the queue
+         AMI.Action.Action_Manager.Redirect
+           (Channel => To_String (Call.Channel),
+            Exten   => To_String (Exten),
+            Context => "LocalSets");
+      end;
+
+      --  Set Variable that it's on hold
+      --  Add it to the list
+      --  //Make sure it is not added twice.
+
+      --  Update peer information
+      Peer.Parked_Calls.Append (Peer.Call);
+      Peer.Call := Call_Queue.null_Call;
+      Peers.Replace_Peer (Peer);
+
+      Status := Success;
    end Park;
 
    procedure Register_Agent (PhoneName   : in Unbounded_String;
@@ -228,7 +322,6 @@ package body Routines is
    procedure StartUpSequence is
       Call_List : AMI.Action.Call_List.Vector;
    begin
-
       AMI.Action.Action_Manager.QueueStatus (Call_List);
       for i in Call_List.First_Index .. Call_List.Last_Index loop
          Call_Queue.Enqueue (Call => Call_List.Element (i));
@@ -244,8 +337,83 @@ package body Routines is
                          (Peer_List_Type.Element (Peer).Peer));
 --           Peers.Print_Peer (Peer_List_Type.Element (Peer));
       end loop;
-
---        Put (To_String (Call_Queue.Queue_ToString));
---        Put_Line ("Queue length" & Integer (Call_Queue.Queue_Length)'Img);
    end TEST_StatusPrint;
+
+   procedure UnPark (Agent    : in     String;
+                     Call_ID  : in     String;
+                     Status   :    out Status_Type) is
+      use Peers;
+      use Call_Queue;
+      use Peers.Call_List;
+      Peer : Peers.Peer_Type;
+      Peer_Cursor : Cursor;
+   begin
+      Status := Unknowen_Error;
+      --  First find the peer
+      Peer := Peers.Get_Peer (To_Unbounded_String (Agent));
+      if Peer = null_Peer then
+         Status := No_Agent_Found;
+         return;
+      end if;
+
+      if Peer.Call /= Call_Queue.null_Call then
+         --  Something is wrong here.
+         Yolk.Log.Trace
+           (Yolk.Log.Info,
+            "There were a request for unPark a call with Agent: " &
+              Agent & " Call_ID: " & Call_ID &
+              " Call allready there: " &
+              To_String (Peer.Call.Channel));
+         Status := Agent_Already_In_Call;
+         return;
+      end if;
+
+      Yolk.Log.Trace (Yolk.Log.Debug,
+                      "Routines.Unpark:" &
+                        " Checkpoint before looking for the call");
+
+      --  then find the call.
+      Peer_Cursor := Peer.Parked_Calls.First;
+      Find_Parked_Call :
+      loop
+         exit Find_Parked_Call when
+           Peer_Cursor = Peers.Call_List.No_Element;
+
+         --  when found, move it to current call.
+         if Call_ID = Element (Peer_Cursor).Uniqueid then
+
+            --  Move call from parked calls, to Current_call
+            Peer.Call := Element (Peer_Cursor);
+            Delete (Container => Peer.Parked_Calls,
+                    Position  => Peer_Cursor);
+
+            --  Make the actual Asterisk call to transfer the call.
+            AMI.Action.Action_Manager.Redirect
+              (Channel  => To_String (Peer.Call.Channel),
+               Context  => "LocalSets",
+               Exten    => To_String (Peer.Exten));
+
+            --  Set the Variable CallState to empty,
+            --    so we can see that the call is not on hold any more
+            AMI.Action.Action_Manager.Set_Var
+              (Channel      => To_String (Peer.Call.Channel),
+               VariableName => "CallState",
+               Value        => "");
+
+            Status := Success;
+            return;
+         else
+            Yolk.Log.Trace (Yolk.Log.Debug,
+                            "Routines.Unpark: Call_ID /= Found id " &
+                              Call_ID & " /= " & To_String
+                              (Element (Peer_Cursor).Uniqueid));
+         end if;
+            Peer_Cursor := Next (Peer_Cursor);
+      end loop Find_Parked_Call;
+
+      Yolk.Log.Trace (Yolk.Log.Debug, "Routines.Unpark:" &
+                        " Checkpoint after looking for parkedcall");
+      --  If the call, for some unknown reason, wasn't there.
+      Status := No_Call_Found;
+   end UnPark;
 end Routines;
