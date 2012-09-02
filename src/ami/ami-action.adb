@@ -1,4 +1,4 @@
-with  Ada.Calendar,
+with  --  Ada.Calendar,
       Ada.Exceptions;
 
 with AMI.IO,
@@ -106,8 +106,9 @@ package body AMI.Action is
                      AMI.Action.Logoff;
                   end Logoff;
                or
-                  accept QueueStatus (List : out Call_List.Vector) do
-                     List := AMI.Action.QueueStatus;
+                  accept QueueStatus
+                  do
+                     AMI.Action.QueueStatus;
                   end QueueStatus;
                or
                   accept Park (Channel1 : in String;
@@ -316,121 +317,123 @@ package body AMI.Action is
       end;
    end Ping;
 
-   function QueueStatus (ActionID : in String := "") return Call_List.Vector is
+--     function QueueStatus (ActionID : in String := "")
+--                           return Call_List.Call_List_Type.Vector is
+   procedure QueueStatus (ActionID : in String := "") is
       use Ada.Strings.Unbounded;
       Command : constant String := Protocol.QueueStatus (ActionID);
-      Response : Call_List.Vector;
+--        Response : Call_List.Call_List_Type.Vector;
 
-      function Extract_Total_Seconds (Text : in Unbounded_String)
-                                      return Duration;
-      function Extract_Total_Seconds (Text : in Unbounded_String)
-                                      return Duration is
-         Colon_Index : Integer;
-         Minutes : Unbounded_String;
-         Seconds : Unbounded_String;
-      begin
-         --  If there are any Colons, then the format is "mm:ss"
-         --  else it's "ssss"
-         --  m = minutes, s = seconds,
-         if Count (Text, ":") = 1 then
-            Colon_Index := Index (Text, ":");
-            --  Extract the minutes and Seconds
-            Minutes := Head (Source => Text, Count => Colon_Index - 1);
-            Seconds := Tail (Source => Text, Count =>
-                               Length (Text) - Colon_Index);
-            Yolk.Log.Trace (Yolk.Log.Debug, "Minutes: " & To_String (Minutes) &
-                              "Seconds: " & To_String (Seconds));
-            --  Convert Minutes to Seconds, and sum them.
-            return Duration'Value (To_String (Minutes)) * 60 +
-              Duration'Value (To_String (Seconds));
-         elsif Ada.Strings.Unbounded.Count (Text, ":") = 0 then
-            return Duration'Value (To_String (Text));
-         else
-            Yolk.Log.Trace (Yolk.Log.Warning,
-                            "Wait in QueueStatus has an unknown format: <" &
-                              To_String (Text) & ">.");
-            return 0.0;
-         end if;
-      end Extract_Total_Seconds;
+--     function Extract_Total_Seconds (Text : in Unbounded_String)
+--                                     return Duration;
+--     function Extract_Total_Seconds (Text : in Unbounded_String)
+--                                    return Duration is
+--       Colon_Index : Integer;
+--       Minutes : Unbounded_String;
+--       Seconds : Unbounded_String;
+--    begin
+--       --  If there are any Colons, then the format is "mm:ss"
+--       --  else it's "ssss"
+--       --  m = minutes, s = seconds,
+--       if Count (Text, ":") = 1 then
+--          Colon_Index := Index (Text, ":");
+--          --  Extract the minutes and Seconds
+--          Minutes := Head (Source => Text, Count => Colon_Index - 1);
+--          Seconds := Tail (Source => Text, Count =>
+--                                Length (Text) - Colon_Index);
+--          Yolk.Log.Trace (Yolk.Log.Debug, "Minutes: " & To_String (Minutes) &
+--                            "Seconds: " & To_String (Seconds));
+--          --  Convert Minutes to Seconds, and sum them.
+--          return Duration'Value (To_String (Minutes)) * 60 +
+--           Duration'Value (To_String (Seconds));
+--      elsif Ada.Strings.Unbounded.Count (Text, ":") = 0 then
+--         return Duration'Value (To_String (Text));
+--      else
+--         Yolk.Log.Trace (Yolk.Log.Warning,
+--                         "Wait in QueueStatus has an unknown format: <" &
+--                           To_String (Text) & ">.");
+--          return 0.0;
+--       end if;
+--   end Extract_Total_Seconds;
    begin
       AMI.IO.Send (Socket, Command);
-      loop
-         declare
-            Event : constant Event_Parser.Event_List_Type.Map
-              := Read_Event_List;
-            Call : Call_Queue.Call_Type;
-         begin
+--        loop
+--           declare
+--              Event : constant Event_Parser.Event_List_Type.Map
+--                := Read_Event_List;
+--              Call : Call_List.Call_Type;
+--           begin
+--
+--              if Event.Contains (To_Unbounded_String ("Event")) and then
+--                To_String (Event.Element (To_Unbounded_String ("Event")))
+--                = "QueueStatusComplete" then
+--                 exit;
+--
+--                 --  Event: QueueEntry
+--                 --  Queue: testqueue1
+--                 --  Position: 1
+--                 --  Channel: SIP/TP-Softphone-00000017
+--                 --  Uniqueid: 1341827264.23
+--                 --  CallerIDNum: TP-Softphone
+--                 --  CallerIDName: unknown
+--                 --  Wait: 98
+--              elsif Event.Contains (To_Unbounded_String ("Event")) and then
+--                To_String (Event.Element (To_Unbounded_String ("Event")))
+--                = "QueueEntry" then
+--
+--                 if Event.Contains (To_Unbounded_String ("Queue")) then
+--                    Call.Queue := Event.Element
+--                      (To_Unbounded_String ("Queue"));
+--                 end if;
+--                 if Event.Contains (To_Unbounded_String ("Channel")) then
+--                    Call.Channel := Event.Element
+--                      (To_Unbounded_String ("Channel"));
+--                 end if;
+--                 if Event.Contains (To_Unbounded_String ("Uniqueid")) then
+--                    Call.Uniqueid := Event.Element
+--                      (To_Unbounded_String ("Uniqueid"));
+--                 end if;
+--                 if Event.Contains (To_Unbounded_String ("CallerIDNum")) then
+--                    Call.CallerIDNum := Event.Element
+--                      (To_Unbounded_String ("CallerIDNum"));
+--                 end if;
+--             if Event.Contains (To_Unbounded_String ("CallerIDName")) then
+--                    Call.CallerIDName := Event.Element
+--                      (To_Unbounded_String ("CallerIDName"));
+--                 end if;
+--                 if Event.Contains (To_Unbounded_String ("Position")) then
+--                    Call.Position := Integer'Value (To_String (Event.Element
+--                      (To_Unbounded_String ("Position"))));
+--                 end if;
+--                 --  elsif To_String (Key_Text) = "ActionID" then
+--                 if Event.Contains (To_Unbounded_String ("Wait")) then
+--                    declare
+--                       use Ada.Calendar;
+--                       Wait_Raw : Unbounded_String;
+--                       Waited_In_Seconds : Duration;
+--
+--                  Now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+--                   begin
+--                   Wait_Raw := Event.Element (To_Unbounded_String ("Wait"));
+--                      Waited_In_Seconds := Extract_Total_Seconds (Wait_Raw);
+--                       Call.Arrived := Now - Waited_In_Seconds;
+--                    exception
+--                       when E : others =>
+--                          Yolk.Log.Trace (Yolk.Log.Info,
+--                            "Failed to parse QueueStatus Reponse" &
+--                              "Wait: " & To_String (Event.Element (
+--                              To_Unbounded_String ("Wait"))));
+--                      Yolk.Log.Trace (Yolk.Log.Debug, "Action: QueueStatus" &
+--                                       Ada.Exceptions.Exception_Name (E));
+--                    end;
+--                 end if;
+--
+--                 Response.Append (Call);
+--              end if;
+--           end;
+--        end loop;
 
-            if Event.Contains (To_Unbounded_String ("Event")) and then
-              To_String (Event.Element (To_Unbounded_String ("Event")))
-              = "QueueStatusComplete" then
-               exit;
-
-               --  Event: QueueEntry
-               --  Queue: testqueue1
-               --  Position: 1
-               --  Channel: SIP/TP-Softphone-00000017
-               --  Uniqueid: 1341827264.23
-               --  CallerIDNum: TP-Softphone
-               --  CallerIDName: unknown
-               --  Wait: 98
-            elsif Event.Contains (To_Unbounded_String ("Event")) and then
-              To_String (Event.Element (To_Unbounded_String ("Event")))
-              = "QueueEntry" then
-
-               if Event.Contains (To_Unbounded_String ("Queue")) then
-                  Call.Queue := Event.Element
-                    (To_Unbounded_String ("Queue"));
-               end if;
-               if Event.Contains (To_Unbounded_String ("Channel")) then
-                  Call.Channel := Event.Element
-                    (To_Unbounded_String ("Channel"));
-               end if;
-               if Event.Contains (To_Unbounded_String ("Uniqueid")) then
-                  Call.Uniqueid := Event.Element
-                    (To_Unbounded_String ("Uniqueid"));
-               end if;
-               if Event.Contains (To_Unbounded_String ("CallerIDNum")) then
-                  Call.CallerIDNum := Event.Element
-                    (To_Unbounded_String ("CallerIDNum"));
-               end if;
-               if Event.Contains (To_Unbounded_String ("CallerIDName")) then
-                  Call.CallerIDName := Event.Element
-                    (To_Unbounded_String ("CallerIDName"));
-               end if;
-               if Event.Contains (To_Unbounded_String ("Position")) then
-                  Call.Position := Integer'Value (To_String (Event.Element
-                    (To_Unbounded_String ("Position"))));
-               end if;
-               --  elsif To_String (Key_Text) = "ActionID" then
-               if Event.Contains (To_Unbounded_String ("Wait")) then
-                  declare
-                     use Ada.Calendar;
-                     Wait_Raw : Unbounded_String;
-                     Waited_In_Seconds : Duration;
-
-                     Now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
-                  begin
-                     Wait_Raw := Event.Element (To_Unbounded_String ("Wait"));
-                     Waited_In_Seconds := Extract_Total_Seconds (Wait_Raw);
-                     Call.Arrived := Now - Waited_In_Seconds;
-                  exception
-                     when E : others =>
-                        Yolk.Log.Trace (Yolk.Log.Info,
-                          "Failed to parse QueueStatus Reponse" &
-                            "Wait: " & To_String (Event.Element (
-                            To_Unbounded_String ("Wait"))));
-                        Yolk.Log.Trace (Yolk.Log.Debug, "Action: QueueStatus" &
-                                          Ada.Exceptions.Exception_Name (E));
-                  end;
-               end if;
-
-               Response.Append (Call);
-            end if;
-         end;
-      end loop;
-
-      return Response;
+--        return Response;
    end QueueStatus;
 
    function Read_Event_List return Event_Parser.Event_List_Type.Map is

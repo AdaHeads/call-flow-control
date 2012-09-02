@@ -120,8 +120,6 @@ procedure Alice is
 
       AWS.Server.Shutdown (Web_Server);
 
-      AMI.Std.Disconnect;
-
       if AWS.Server.Log.Is_Active (Web_Server) then
          AWS.Server.Log.Stop (Web_Server);
       end if;
@@ -172,11 +170,12 @@ begin
    Wait;
    --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
 
+   Stop_Server;
+
    Task_State := Down;
    --  Signal all running tasks to go down.
 
-   Stop_Server;
-
+   AMI.Std.Disconnect;
 exception
    when Event : others =>
       Trace (Handle  => Error,

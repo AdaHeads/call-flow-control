@@ -11,7 +11,7 @@ package body Call_Queue_JSON is
 
    Length_String : constant String := "Length";
 
-   function Convert_Call (Call : in Call_Queue.Call_Type)
+   function Convert_Call (Call : in Call_List.Call_Type)
                           return JSON_String is
       JSON : JSON_Value;
    begin
@@ -20,11 +20,11 @@ package body Call_Queue_JSON is
       return To_JSON_String (JSON.Write);
    end Convert_Call;
 
-   function Convert_Call_To_JSON_Object (Call : in Call_Queue.Call_Type)
+   function Convert_Call_To_JSON_Object (Call : in Call_List.Call_Type)
                                          return GNATCOLL.JSON.JSON_Value is
       use Ada.Calendar;
       use Ada.Calendar.Conversions;
-      use Call_Queue;
+      use Call_List;
 
       function Unix_Timestamp
         (Date : in Time)
@@ -48,7 +48,7 @@ package body Call_Queue_JSON is
       CompanyID : Ada.Strings.Unbounded.Unbounded_String;
       Compnay_prefix : constant String := "org_id";
    begin
-      if Call /= Call_Queue.null_Call then
+      if Call /= Call_List.null_Call then
          CompanyID := Ada.Strings.Unbounded.Tail
            (Call.Queue,
             Ada.Strings.Unbounded.Length (Call.Queue) -
@@ -83,17 +83,17 @@ package body Call_Queue_JSON is
       return To_JSON_String (JSON.Write);
    end Convert_Length;
 
-   function Convert_Queue (Queue : in Call_Queue.Call_Queue_Type;
+   function Convert_Queue (Queue : in Call_List.Call_Queue_Type;
                            Queue_Length : in Ada.Containers.Count_Type)
                            return JSON_String is
-      use Call_Queue;
+      use Call_List;
 
       JSON_List : JSON_Array;
       Value     : JSON_Value;
 
       Result : constant JSON_Value := Create_Object;
    begin
-      for Priority in Call_Queue.Priority_Level loop
+      for Priority in Call_List.Priority_Level loop
          JSON_List := Empty_Array;
          for Index in Queue (Priority).First_Index ..
            Queue (Priority).Last_Index loop

@@ -1,7 +1,7 @@
-with Ada.Containers.Vectors,
+with --  Ada.Containers.Vectors,
      Ada.Strings.Unbounded;
 
-with Call_Queue,
+with --  Call_List,
      Event_Parser;
 
 --  This package have the purpose of sending Actions/Commands to Asterisk,
@@ -9,10 +9,10 @@ with Call_Queue,
 package AMI.Action is
    use Event_Parser;
 
-   package Call_List is new
-     Ada.Containers.Vectors (Index_Type   => Positive,
-                             Element_Type => Call_Queue.Call_Type,
-                             "="          => Call_Queue."=");
+--     package Call_List is new
+--       Ada.Containers.Vectors (Index_Type   => Positive,
+--                               Element_Type => Call_List.Call_Type,
+--                               "="          => Call_List."=");
 
    task Action_Manager is
       --  Makes two channels talk with each other.
@@ -39,7 +39,7 @@ package AMI.Action is
       entry Logoff;
 
       --  Returns a list of all the calls waiting in a queue.
-      entry QueueStatus (List : out Call_List.Vector);
+      entry QueueStatus;
 
       --  Sends a call on hold/park
       entry Park (Channel1 : in String;
@@ -80,7 +80,9 @@ private
    procedure Park (Channel          : in String;
                    Fallback_Channel : in String);
    procedure Ping;
-   function  QueueStatus (ActionID : in String := "") return Call_List.Vector;
+--     function  QueueStatus (ActionID : in String := "")
+--                            return Call_List.Call_List_Type.Vector;
+   procedure QueueStatus (ActionID : in String := "");
    procedure Redirect (Channel : in String;
                        Exten   : in String;
                        Context : in String);

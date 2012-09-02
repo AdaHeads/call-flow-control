@@ -6,7 +6,7 @@ with AMI.Action,
      AMI.IO,
      AMI.Protocol;
 
-with Call_Queue,
+with Call_List,
      Peers,
      Task_Controller;
 
@@ -14,7 +14,7 @@ with Yolk.Log;
 
 package body AMI.Event is
    use Ada.Strings.Unbounded;
-   use Call_Queue;
+   use Call_List;
    use Ada.Exceptions;
    use AMI.IO;
    use Peers;
@@ -82,7 +82,7 @@ package body AMI.Event is
    procedure Hangup_Callback (Event_List : in Event_List_Type.Map) is
    begin
       if Event_List.Contains (To_Unbounded_String ("Uniqueid")) then
-         Call_Queue.Remove (Event_List.Element (
+         Call_List.Remove (Event_List.Element (
            To_Unbounded_String ("Uniqueid")));
       end if;
    end Hangup_Callback;
@@ -96,7 +96,7 @@ package body AMI.Event is
    --  Count 1
    --  Uniqueid: 1340807150.33
    procedure Join_Callback (Event_List : in Event_List_Type.Map) is
-      Call : Call_Queue.Call_Type;
+      Call : Call_List.Call_Type;
    begin
       if Event_List.Contains (To_Unbounded_String ("Channel")) then
          Call.Channel := Event_List.Element (To_Unbounded_String ("Channel"));
@@ -136,7 +136,7 @@ package body AMI.Event is
             Value        => State);
 
          if To_String (State) = "(null)" or else To_String (State) = "" then
-            Call_Queue.Enqueue (Call => Call);
+            Call_List.Add (Call => Call);
          end if;
       end;
    end Join_Callback;

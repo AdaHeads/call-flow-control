@@ -2,7 +2,7 @@ with Ada.Containers,
      Ada.Strings.Unbounded;
 
 with AMI.Action,
-     Call_Queue,
+     Call_List,
      Call_Queue_JSON,
      Common,
      HTTP_Codes,
@@ -20,17 +20,17 @@ package body Call_Queue_Handler is
    --  returns the first call in the list.
    function Get_Call (Request : in AWS.Status.Data)
                       return AWS.Response.Data is
-      use Call_Queue;
+      use Call_List;
       Agent : constant String := Parameters (Request).Get ("agent");
       Unitqueid : constant String :=  Parameters (Request).Get ("uniqueid");
-      Call : Call_Queue.Call_Type;
+      Call : Call_List.Call_Type;
       JSON : JSON_String;
       Status : Routines.Status_Type;
       Status_Code : AWS.Messages.Status_Code;
    begin
-      Routines.Get_Call (Uniqueid => Unitqueid,
-                         Agent    => Agent,
-                         Call     => Call,
+      Routines.Get_Call (Unique_ID => Unitqueid,
+                         Agent_ID    => Agent,
+                         --  Call     => Call,
                          Status   => Status);
 
       case Status is
@@ -70,7 +70,7 @@ package body Call_Queue_Handler is
       Count : Ada.Containers.Count_Type;
       JSON  : JSON_String;
    begin
-      Count := Call_Queue.Queue_Length;
+      Count := Call_List.Length;
       --  Make the Internal calls
 
       JSON := Call_Queue_JSON.Convert_Length (Count);
@@ -88,7 +88,7 @@ package body Call_Queue_Handler is
                        return AWS.Response.Data is
       use Ada.Containers;
 
-      Queue : Call_Queue.Call_Queue_Type;
+      Queue : Call_List.Call_List_Type;
       Queue_Length : Ada.Containers.Count_Type;
 
       JSON : JSON_String;
@@ -96,8 +96,8 @@ package body Call_Queue_Handler is
    begin
       AMI.Action.Action_Manager.Ping;
 
-      Queue := Call_Queue.Get_Queue;
-      Queue_Length := Call_Queue.Queue_Length;
+      Queue := Call_List.Get;
+      Queue_Length := Call_List.Length;
 
       if Queue_Length /= 0 then
          JSON := Call_Queue_JSON.Convert_Queue (Queue, Queue_Length);
@@ -186,13 +186,13 @@ package body Call_Queue_Handler is
       Status_Code : AWS.Messages.Status_Code;
       Status : Routines.Status_Type;
       JSON : JSON_String;
-      Call : Call_Queue.Call_Type;
+      Call : Call_List.Call_Type;
    begin
       Yolk.Log.Trace (Yolk.Log.Debug, "Call_Queue_Handler.Park started");
       declare
          Agent : constant String := Parameters (Request).Get ("agent");
       begin
-         Routines.Park (Agent, Call, Status);
+         Routines.Park (Call, Status);
       end;
       case Status is
          when Routines.Success =>
@@ -269,7 +269,7 @@ package body Call_Queue_Handler is
       JSON : JSON_String;
    begin
       Yolk.Log.Trace (Yolk.Log.Debug, "Unpark_Call");
-      Routines.UnPark (Agent   => Agent,
+      Routines.UnPark ( --  Agent_ID   => Agent,
                        Call_ID => Call_ID,
                        Status  => Status);
 
