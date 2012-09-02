@@ -25,6 +25,7 @@ package body AMI.Event is
      (Dial                 => Dial_Callback'Access,
       Hangup               => Hangup_Callback'Access,
       Join                 => Join_Callback'Access,
+      Newchannel           => Newchannel_Callback'Access,
       PeerStatus           => PeerStatus_Callback'Access,
       Unlink               => Unlink_Callback'Access,
       others               => null);
@@ -80,10 +81,14 @@ package body AMI.Event is
    --  Cause: 16
    --  Cause-txt: Normal Clearing
    procedure Hangup_Callback (Event_List : in Event_List_Type.Map) is
+      Call : Call_Type;
    begin
       if Event_List.Contains (To_Unbounded_String ("Uniqueid")) then
-         Call_List.Remove (Event_List.Element (
+         Call := Call_List.Remove (Event_List.Element (
            To_Unbounded_String ("Uniqueid")));
+         Yolk.Log.Trace (Yolk.Log.Debug, "This call have been hangup: " &
+                           "Channel: " & To_String (Call.Channel) &
+                           "UniqueID: " & To_String (Call.Uniqueid));
       end if;
    end Hangup_Callback;
 
@@ -167,18 +172,10 @@ package body AMI.Event is
 
    end Login_Callback;
 
-   --  no need for, we are never gonna call it anyway.
-   --  procedure Logoff (Asterisk_AMI : in     Asterisk_AMI_Type;
-   --                    Callback     : access Callback_Type := null) is
-   --
-   --  begin
-   --     AMI.Action.Logoff (Asterisk_AMI.Channel);
-   --
-   --     if Callback /= null then
-   --        --  Callback;
-   --        null;
-   --     end if;
-   --  end Logoff;
+   procedure Newchannel_Callback (Event_List : in Event_List_Type.Map) is
+   begin
+      null;
+   end Newchannel_Callback;
 
    --  Event: Newstate
    --  Privilege: call,all

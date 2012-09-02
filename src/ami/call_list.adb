@@ -2,7 +2,6 @@ with Ada.Characters.Latin_1,
      Yolk.Log;
 
 package body Call_List is
-   use Queue_Type;
 
    protected Protected_Call_List is
       procedure Add (Call : in Call_Type);
@@ -15,10 +14,11 @@ package body Call_List is
 --                           Call     :    out Call_Type);
 --        --  Takes out a specific call from the callqueue.
 
-      function Remove (Uniqueid : in Unbounded_String) return Call_Type;
+      procedure Remove (Uniqueid : in      Unbounded_String;
+                        Call     :    out  Call_Type);
       --  Removes a specific call.
 
-      function Get return Call_Queue_Type;
+      function Get return Call_List_Type.Vector;
       --  Returns the entire queue.
 
       function Get_Call (UniqueID : in Unbounded_String) return Call_Type;
@@ -36,11 +36,11 @@ package body Call_List is
 
       procedure Update (Call : in Call_Type);
    private
-      List : Call_List_Type;
+      List : Call_List_Type.Vector;
    end Protected_Call_List;
 
    protected body Protected_Call_List is
---        --  Gives the call with the highest priority, and have waited longest.
+--      --  Gives the call with the highest priority, and have waited longest.
 --        procedure Dequeue (Call : out Call_Type) is
 --        begin
 --           Call := null_Call;
@@ -98,9 +98,9 @@ package body Call_List is
 
       function Get_Call (UniqueID : in Unbounded_String) return Call_Type is
       begin
-         for Call in List loop
-            if Call.UniqueID = UniqueID then
-               return Call;
+         for Call in List.Iterate loop
+            if Call_List_Type.Element (Call).Uniqueid = UniqueID then
+               return Call_List_Type.Element (Call);
             end if;
          end loop;
          return null_Call;
@@ -110,52 +110,50 @@ package body Call_List is
       function Length return Ada.Containers.Count_Type is
          use Ada.Containers;
       begin
-         return List.Length();
+         return List.Length;
       end Length;
+
+      --  Removes the call with the specified UniqueID
+      procedure Remove (Uniqueid : in     Unbounded_String;
+                        Call     :    out Call_Type) is
+      begin
+         declare
+            Cursor : Call_List_Type.Cursor;
+         begin
+            Cursor := List.First;
+            loop
+               exit when not Call_List_Type.Has_Element (Cursor);
+               if Call_List_Type.Element (Cursor).Uniqueid = Uniqueid then
+                  Call := Call_List_Type.Element (Cursor);
+                  Call_List_Type.Delete (Container => List,
+                                         Position  => Cursor,
+                                         Count     => 1);
+                  return;
+               end if;
+            end loop;
+         end;
+
+         Yolk.Log.Trace
+           (Yolk.Log.Debug,
+            "Call_List - Remove:" &
+              "This uniqueid could not be found in the call queue." &
+              " Uniqueid: " & To_String (Uniqueid));
+         Call := null_Call;
+      end Remove;
 
       --  Returns the call list as String.
       function ToString return Unbounded_String is
          text : Unbounded_String;
          package Char renames Ada.Characters.Latin_1;
       begin
-         for Call in List loop
-            Append (text, Call.Channel);
+         for Call in List.Iterate loop
+            Append (text, Call_List_Type.Element (Call).Channel);
             Append (text, ", Uniqueid: ");
-            Append (text, Call.Uniqueid);
+            Append (text, Call_List_Type.Element (Call).Uniqueid);
             Append (text, Char.LF);
-         end Loop;
+         end loop;
          return text;
       end ToString;
-
-      --  Removes the call with the specified UniqueID
-      function Remove (Uniqueid : in Unbounded_String) return Call_Type is
-         Call_Queue_Element : Call_Type;
-      begin
-         for index in List.First_Index .. List.Last_Index loop
-            if List.Element (Position => index).Uniqueid = Uniqueid then
-               return List.Delete (Position => Index);
-               --  we have found and deleted the call, now, exit procedure.
-            end if;
-         end loop;
-
---           for i in Queue'Range loop
---              for Call_Queue_Index in
---                Queue (i).First_Index .. Queue (i).Last_Index loop
---                 Call_Queue_Element := Queue (i).Element (Call_Queue_Index);
---                 if Call_Queue_Element.Uniqueid = Uniqueid then
---                    Queue (i).Delete (Call_Queue_Index);
---                    return;
---                    --  we have found and deleted the call, now, exit procedure.
---                 end if;
---              end loop;
---           end loop;
-         Yolk.Log.Trace
-           (Yolk.Log.Debug,
-            "Call_List - Remove:" &
-              "This uniqueid could not be found in the call queue." &
-              " Uniqueid: " & To_String (Uniqueid));
-         return null_Call;
-      end Remove;
 
 --        procedure PickupCall (Agent_ID : in Unbounded_String,
 --                              Uniqueid : in Unbounded_String
@@ -176,7 +174,7 @@ package body Call_List is
 --                       Yolk.Log.Trace
 --                         (Yolk.Log.Debug,
 --                          "Call_List - PickupCall:" &
---                            "The Call with Uniqueid: " & To_String (Uniqueid) &
+--                        "The Call with Uniqueid: " & To_String (Uniqueid) &
 --                         " is in state: " item.State'Img);
 --                    else
 --                       Temp_Call := item;
@@ -205,6 +203,12 @@ package body Call_List is
       end Update;
    end Protected_Call_List;
 
+   --  Places a call on the call queue.
+   procedure Add (Call : in Call_Type) is
+   begin
+      Protected_Call_List.Add (Call);
+   end Add;
+
       --  Returns a call in String format.
    function Call_To_String (Call : in Call_Type) return String is
       Response : Unbounded_String;
@@ -222,16 +226,10 @@ package body Call_List is
 --     end Dequeue;
 
 --     --  Takes a specific call out from the call queue.
---     procedure Dequeue (Uniqueid : in Unbounded_String; Call : out Call_Type) is
+--  procedure Dequeue (Uniqueid : in Unbounded_String; Call : out Call_Type) is
 --     begin
 --        Call_Queue.Dequeue (Uniqueid, Call);
 --     end Dequeue;
-
-   --  Places a call on the call queue.
-   procedure Add (Call : in Call_Type) is
-   begin
-      Protected_Call_List.Add (Call);
-   end Add;
 
 --     --  Returns the priority of the call, based on the company
 --     function Get_Company_Priority (CompanyName : Unbounded_String)
@@ -247,10 +245,15 @@ package body Call_List is
 --     end Get_Company_Priority;
 
    --  Returns the entire call queue.
-   function Get return Call_Queue_Type is
+   function Get return Call_List_Type.Vector is
    begin
       return Protected_Call_List.Get;
    end Get;
+
+   function Get_Call (UniqueID : in Unbounded_String) return Call_Type is
+   begin
+      return Protected_Call_List.Get_Call (UniqueID);
+   end Get_Call;
 
    --  Gives the length of the call queue.
    function Length return Ada.Containers.Count_Type is
@@ -258,17 +261,19 @@ package body Call_List is
       return Protected_Call_List.Length;
    end Length;
 
+      --  Removes a specific call from the call queue.
+   function Remove (Uniqueid : in Unbounded_String) return Call_Type is
+      Call : Call_Type;
+   begin
+      Protected_Call_List.Remove (Uniqueid, Call);
+      return Call;
+   end Remove;
+
    --  Returns a debug friendly String representation of the call queue.
    function ToString return Unbounded_String is
    begin
       return Protected_Call_List.ToString;
    end ToString;
-
-   --  Removes a specific call from the call queue.
-   function Remove (Uniqueid : in Unbounded_String) return Call_Type is
-   begin
-      return Protected_Call_List.Remove (Uniqueid);
-   end Remove;
 
 --     function PickupCall (Agent_ID : in Unbounded_String,
 --                          Uniqueid : in Unbounded_String) return Call_Type is
@@ -291,8 +296,4 @@ package body Call_List is
 --        return Call;
 --     end Hangup;
 
-   function Get_Call (UniqueID : in Unbounded_String) return Call_Type is
-   begin
-      return Protected_Call_List.Get_Call (UniqueID);
-   end Get_Call;
 end Call_List;

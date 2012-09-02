@@ -7,8 +7,7 @@ private with GNATCOLL.JSON;
 package Call_Queue_JSON is
    use Common;
 
-   function Convert_Queue (Queue : in Call_List.Call_Queue_Type;
-                          Queue_Length : in Ada.Containers.Count_Type)
+   function Convert_Queue (Queue : in Call_List.Call_List_Type.Vector)
                            return JSON_String;
    --  returns the entire Call Queue, in JSON format.
 

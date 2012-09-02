@@ -95,6 +95,7 @@ private
    procedure Hangup_Callback     (Event_List : in Event_List_Type.Map);
    procedure Join_Callback       (Event_List : in Event_List_Type.Map);
    procedure Login_Callback      (Event_List : in Event_List_Type.Map);
+   procedure Newchannel_Callback (Event_List : in Event_List_Type.Map);
    procedure PeerStatus_Callback (Event_List : in Event_List_Type.Map);
    procedure Unlink_Callback     (Event_List : in Event_List_Type.Map);
 

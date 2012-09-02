@@ -22,6 +22,7 @@ package body AMI.Protocol is
    --  Key part of request string
    Action_String           : constant String := "Action: ";
    ActionID_String         : constant String := "ActionID: ";
+   Async_String            : constant String := "Async: ";
    Channel_String          : constant String := "Channel: ";
    Channel1_String         : constant String := "Channel1: ";
    Channel2_String         : constant String := "Channel2: ";
@@ -48,11 +49,13 @@ package body AMI.Protocol is
    --  Response: Success
    --  Message: Launched bridge thread with success
    function Bridge (Channel1 : in String;
-                    Channel2 : in String) return String is
+                    Channel2 : in String;
+                    Async    : in Boolean := True) return String is
    begin
       return Action_String & Bridge_String & Line_Termination_String &
             Channel1_String & Channel1 & Line_Termination_String &
             Channel2_String & Channel2 & Line_Termination_String &
+            Async_String & Async'Img & Line_Termination_String &
             Line_Termination_String;
    end Bridge;
 

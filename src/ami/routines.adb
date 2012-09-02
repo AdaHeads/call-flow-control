@@ -112,21 +112,22 @@ package body Routines is
 
       Temp_Call := Call_List.Get_Call (UniqueID =>
                                          To_Unbounded_String (Unique_ID));
-      --  If there is a call to anwser.
-      if Temp_Call /= Call_List.null_Call then
-         Status := Success;
 
-         --  Send the call out to the phone
-         AMI.Action.Action_Manager.Redirect
-           (Channel => To_String (Temp_Call.Channel),
-            Exten   => To_String (Peer.Exten),
-            Context => "LocalSets");
-
-      else
+      if Temp_Call = null_Call then
          Yolk.Log.Trace (Yolk.Log.Debug,
                          "Get_Call: No Call to take with ID: " & Unique_ID);
          Status := No_Call_Found;
       end if;
+
+      --  If there is a call to anwser.
+      Status := Success;
+
+      --  Send the call out to the phone
+      AMI.Action.Action_Manager.Redirect
+        (Channel => To_String (Temp_Call.Channel),
+         Exten   => To_String (Peer.Exten),
+         Context => "LocalSets");
+
    exception
       when Error : others =>
          Yolk.Log.Trace (Yolk.Log.Debug,
@@ -246,10 +247,10 @@ package body Routines is
       end if;
 
          --  Sets the variable that tells this call is a call on hold.
-         AMI.Action.Action_Manager.Set_Var
-           (Channel      => To_String (Call.Channel),
-            VariableName => "CallState",
-            Value        => "onhold");
+--           AMI.Action.Action_Manager.Set_Var
+--             (Channel      => To_String (Call.Channel),
+--              VariableName => "CallState",
+--              Value        => "onhold");
 
          --  Move the call back to the queue
          AMI.Action.Action_Manager.Redirect
@@ -312,8 +313,8 @@ package body Routines is
       use Call_List;
       use Peers.Call_List;
 
-      Peer : Peers.Peer_Type;
 --        Peer_Cursor : Cursor;
+      Peer : Peers.Peer_Type;
       Call : Call_Type;
    begin
       Status := Unknowen_Error;
@@ -382,11 +383,14 @@ package body Routines is
 
       Call := Call_List.Get_Call (To_Unbounded_String (Call_ID));
 
+      --  Checks if a call with that ID exsist
       if Call = null_Call then
          Status := No_Call_Found;
          return;
       end if;
 
+      --  Makes sure that the call is not in a state,
+      --   where it would be inappropriate to change it's state.
       if Call.State /= Speaking then
          Status := Unknowen_Error;
          return;

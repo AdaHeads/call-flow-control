@@ -23,7 +23,6 @@ package body Call_Queue_Handler is
       use Call_List;
       Agent : constant String := Parameters (Request).Get ("agent");
       Unitqueid : constant String :=  Parameters (Request).Get ("uniqueid");
-      Call : Call_List.Call_Type;
       JSON : JSON_String;
       Status : Routines.Status_Type;
       Status_Code : AWS.Messages.Status_Code;
@@ -36,7 +35,8 @@ package body Call_Queue_Handler is
       case Status is
          when Routines.Success =>
             Status_Code := HTTP_Codes.OK;
-            JSON := Call_Queue_JSON.Convert_Call (Call);
+            JSON := Call_Queue_JSON.Status_Message
+              ("Success", "The request is being processed");
          when Routines.No_Call_Found =>
             Status_Code := HTTP_Codes.No_Content;
             JSON := Call_Queue_JSON.Status_Message
@@ -88,7 +88,7 @@ package body Call_Queue_Handler is
                        return AWS.Response.Data is
       use Ada.Containers;
 
-      Queue : Call_List.Call_List_Type;
+      Queue : Call_List.Call_List_Type.Vector;
       Queue_Length : Ada.Containers.Count_Type;
 
       JSON : JSON_String;
@@ -100,7 +100,7 @@ package body Call_Queue_Handler is
       Queue_Length := Call_List.Length;
 
       if Queue_Length /= 0 then
-         JSON := Call_Queue_JSON.Convert_Queue (Queue, Queue_Length);
+         JSON := Call_Queue_JSON.Convert_Queue (Queue);
          Status_Code := HTTP_Codes.OK;
       else
          JSON := To_JSON_String ("{}");
@@ -186,18 +186,19 @@ package body Call_Queue_Handler is
       Status_Code : AWS.Messages.Status_Code;
       Status : Routines.Status_Type;
       JSON : JSON_String;
-      Call : Call_List.Call_Type;
    begin
       Yolk.Log.Trace (Yolk.Log.Debug, "Call_Queue_Handler.Park started");
       declare
-         Agent : constant String := Parameters (Request).Get ("agent");
+         Call_ID : constant String := Parameters (Request).Get ("Call_ID");
       begin
-         Routines.Park (Call, Status);
+         Routines.Park (Call_ID, Status);
       end;
       case Status is
          when Routines.Success =>
             Status_Code := HTTP_Codes.OK;
-            JSON := Call_Queue_JSON.Convert_Call (Call);
+            JSON := Call_Queue_JSON.Status_Message
+           ("Success",
+            "The command is being process");
 
          when Routines.No_Call_Found =>
             Status_Code := HTTP_Codes.No_Content;
@@ -262,7 +263,6 @@ package body Call_Queue_Handler is
 
    function Unpark_Call (Request : in AWS.Status.Data)
                           return AWS.Response.Data is
-      Agent : constant String := Parameters (Request).Get ("agent");
       Call_ID : constant String := Parameters (Request).Get ("call_id");
       Status : Routines.Status_Type;
       Status_Code : AWS.Messages.Status_Code;

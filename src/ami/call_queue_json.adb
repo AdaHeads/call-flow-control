@@ -1,8 +1,7 @@
 with Ada.Calendar,
      Ada.Calendar.Conversions,
      Ada.Strings.Fixed,
-     Ada.Strings.Unbounded,
-     Ada.Characters.Handling;
+     Ada.Strings.Unbounded;
 
 with Interfaces.C;
 
@@ -83,8 +82,7 @@ package body Call_Queue_JSON is
       return To_JSON_String (JSON.Write);
    end Convert_Length;
 
-   function Convert_Queue (Queue : in Call_List.Call_Queue_Type;
-                           Queue_Length : in Ada.Containers.Count_Type)
+   function Convert_Queue (Queue : in Call_List.Call_List_Type.Vector)
                            return JSON_String is
       use Call_List;
 
@@ -92,30 +90,20 @@ package body Call_Queue_JSON is
       Value     : JSON_Value;
 
       Result : constant JSON_Value := Create_Object;
+      Cursor : Call_List_Type.Cursor;
    begin
-      for Priority in Call_List.Priority_Level loop
-         JSON_List := Empty_Array;
-         for Index in Queue (Priority).First_Index ..
-           Queue (Priority).Last_Index loop
+      JSON_List := Empty_Array;
 
-            Value := Convert_Call_To_JSON_Object
-              (Queue (Priority).Element (Index));
-            Append (JSON_List, Value);
-
-         end loop;
-         --------------------------------------------------------------
-         Result.Set_Field (Ada.Characters.Handling.To_Lower (Priority'Img),
-                           JSON_List);
+      Cursor := Queue.First;
+      loop
+         exit when not Call_List_Type.Has_Element (Cursor);
+         Value := Convert_Call_To_JSON_Object
+           (Call_List_Type.Element (Cursor));
+         Append (JSON_List, Value);
       end loop;
-      --  TODO Find another methode for finding the length,
-      --        because no we are asking on the length of an other Queue.
-      declare
-         Text : constant String :=
-           Ada.Strings.Fixed.Trim (Integer (Queue_Length)'Img,
-                                   Ada.Strings.Left);
-      begin
-         Result.Set_Field (Length_String, Text);
-      end;
+         --------------------------------------------------------------
+         Result.Set_Field ("Call_List",
+                           JSON_List);
 
       return To_JSON_String (Result.Write);
    end Convert_Queue;

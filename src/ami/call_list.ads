@@ -66,7 +66,7 @@ package Call_List is
 --                        Call     :    out Call_Type);
 --     --  Takes a specific call out from the call queue.
 
-   procedure Remove (Uniqueid : in Unbounded_String);
+   function Remove (Uniqueid : in Unbounded_String) return Call_Type;
    --  Removes a specific call from the call queue.
 
    function Get return Call_List_Type.Vector;

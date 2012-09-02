@@ -1,7 +1,8 @@
 --  Protocol-specific strings and ... stuff
 package AMI.Protocol is
    function Bridge (Channel1 : in String;
-                    Channel2 : in String) return String with inline;
+                    Channel2 : in String;
+                    Async    : in Boolean := True) return String with inline;
 
    function CoreSettings return String with inline;
 
