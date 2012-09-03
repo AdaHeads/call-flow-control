@@ -172,9 +172,25 @@ package body AMI.Event is
 
    end Login_Callback;
 
+   --  Event: Newchannel
+   --  Channel: Zap/2-1
+   --  State: Rsrvd
+   --  Callerid: <unknown>
+   --  Uniqueid: 1094154427.11
    procedure Newchannel_Callback (Event_List : in Event_List_Type.Map) is
+      Call : Call_Type;
    begin
-      null;
+      if Event_List.Contains (To_Unbounded_String ("Channel")) then
+         Call.Channel := Event_List.Element
+            (To_Unbounded_String ("Channel"));
+      end if;
+
+      if Event_List.Contains (To_Unbounded_String ("Uniqueid")) then
+         Call.Uniqueid :=  Event_List.Element
+            (To_Unbounded_String ("Uniqueid"));
+      end if;
+
+      Call_List.Add (Call);
    end Newchannel_Callback;
 
    --  Event: Newstate

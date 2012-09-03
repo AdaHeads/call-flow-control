@@ -102,7 +102,7 @@ package body Call_Queue_JSON is
          Append (JSON_List, Value);
       end loop;
          --------------------------------------------------------------
-         Result.Set_Field ("Call_List",
+         Result.Set_Field ("calls",
                            JSON_List);
 
       return To_JSON_String (Result.Write);
