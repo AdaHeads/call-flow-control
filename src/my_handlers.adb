@@ -22,10 +22,12 @@
 -------------------------------------------------------------------------------
 
 with AWS.Dispatchers.Callback;
+with AWS.Net.WebSocket.Registry;
 with Contact;
 with Contact_Attributes;
 with Contact_Full;
 with My_Configuration;
+with Notifications;
 with Organization;
 with Organization_Contacts;
 with Organization_Contacts_Attributes;
@@ -141,5 +143,17 @@ package body My_Handlers is
          Action     => Create
            (Callback => Call_Queue_Handler.Get_Length'Access));
    end Set;
+
+   ------------------------------
+   --  Set_WebSocket_Handlers  --
+   ------------------------------
+
+   procedure Set_WebSocket_Handlers
+   is
+   begin
+      AWS.Net.WebSocket.Registry.Register
+        (URI     => "/notifications",
+         Factory => Notifications.Create'Access);
+   end Set_WebSocket_Handlers;
 
 end My_Handlers;

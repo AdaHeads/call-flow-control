@@ -154,6 +154,9 @@ begin
    Set (RH => Resource_Handlers);
    --  Populate the Resource_Handlers object.
 
+   Set_WebSocket_Handlers;
+   --  Register URI's that are WebSocket enabled.
+
    AWS.Server.Set_Unexpected_Exception_Handler
      (Web_Server => Web_Server,
       Handler    => Yolk.Whoops.Unexpected_Exception_Handler'Access);
@@ -172,10 +175,10 @@ begin
    Wait;
    --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
 
+   Stop_Server;
+
    Task_State := Down;
    --  Signal all running tasks to go down.
-
-   Stop_Server;
 
 exception
    when Event : others =>

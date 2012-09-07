@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                               My_Handlers                                 --
+--                              Notifications                                --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,21 +21,16 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  Application specific resource handlers.
+with AWS.Net.WebSocket;
+with AWS.Status;
 
-with AWS.Services.Dispatchers.URI;
+package Notifications is
 
-package My_Handlers is
+   function Create
+     (Socket  : in AWS.Net.Socket_Access;
+      Request : in AWS.Status.Data)
+      return AWS.Net.WebSocket.Object'Class;
+   --  This function is called whenever a new WebSocket connection is made on
+   --  the /notifications resource.
 
-   procedure Set
-     (RH : out AWS.Services.Dispatchers.URI.Handler);
-   --  Setup content dispatchers for the server. Basically this initializes the
-   --  RH object declared in yolk_demo.adb. The handlers registered here are
-   --  specific to this application. Generic content handlers, such as 404
-   --  errors, images and similar, are registered in the core Yolk.Handlers
-   --  package.
-
-      procedure Set_WebSocket_Handlers;
-   --  Setup dispatchers for WebSocket enabled URI's.
-
-end My_Handlers;
+end Notifications;
