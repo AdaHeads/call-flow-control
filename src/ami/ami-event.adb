@@ -7,8 +7,7 @@ with AMI.Action,
      AMI.Protocol;
 
 with Call_List,
-     Peers,
-     Task_Controller;
+     Peers;
 
 with Yolk.Log;
 
