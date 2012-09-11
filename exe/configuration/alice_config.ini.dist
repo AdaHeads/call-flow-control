@@ -111,9 +111,9 @@ DB2_Password secret
 #
 # The readonly backup database password.
 
-DB2_Port 5433
+DB2_Port 5432
 # Positive.
-# Default: 5433
+# Default: 5432
 #
 # The database port.
 
@@ -130,63 +130,86 @@ DB2_User alice
 # These Key/Value pairs define which dispatcher is used for a given resource.
 # All resource handlers are specified in the My_Handlers package.
 
+Handler_Call_Hangup /get/hangup
+# String.
+# Default: /get/hangup
+#
+# The URI for the /get/hangup resource.
+
+Handler_Call_Park /get/park
+# String.
+# Default: /get/park
+#
+# The URI for the /get/park resource.
+
+Handler_Call_Unpark /get/unpark
+# String.
+# Default: /get/unpark
+#
+# The URI for the /get/unpark resource.
+
 Handler_Get_Call /get/call
 # String.
 # Default: /get/call
 #
-# The regular expression to match the /get/call resource.
+# The URI for the /get/call resource.
 
 Handler_Get_Contact /get/contact
 # String.
 # Default: /get/contact
 #
-# The regular expression to match the /get/contact resource.
+# The URI for the /get/contact resource.
 
 Handler_Get_Contact_Attributes /get/contact_attributes
 # String.
 # Default: /get/contact_attributes
 #
-# The regular expression to match the /get/contact_attributes resource.
+# The URI for the /get/contact_attributes resource.
 
 Handler_Get_Contact_Full /get/contact_full
 # String.
 # Default: /get/contact_full
 #
-# The regular expression to match the /get/contact_full resource.
+# The URI for the /get/contact_full resource.
 
 Handler_Get_Organization_Contacts /get/organization_contacts
 # String.
 # Default: /get/organization_contacts
 #
-# The regular expression to match the /get/organization_contacts resource.
+# The URI for the /get/organization_contacts resource.
 
 Handler_Get_Organization_Contacts_Attributes /get/organization_contacts_attributes
 # String.
 # Default: /get/organization_contacts_attributes
 #
-# The regular expression to match the /get/organization_contact_attributes
-# resource.
+# The URI for the /get/organization_contact_attributes resource.
 
 Handler_Get_Organization_Contacts_Full /get/organization_contacts_full
 # String.
 # Default: /get/organization_contacts_full
 #
-# The regular expression to match the /get/organization_contacts_full resource.
+# The URI for the /get/organization_contacts_full resource.
 
 Handler_Get_Organization /get/organization
 # String.
 # Default: /get/organization
 #
-# The expression to match the /get/organization resource.
+# The URI for the /get/organization resource.
 
 Handler_Get_Queue /get/queue
 # String.
 # Default: /get/queue
 #
-# The expression to match the /get/queue resource
+# The URI for the /get/queue resource
 
 Handler_Get_Queue_Length /get/queue_length
 # String.
 # Default: /get/queue_length
 #
-# The expression to match the /get/queue_length resource
+# The URI for the /get/queue_length resource
+
+Handler_Notifications /notifications
+# String.
+# Default: /notifications
+#
+# The URI for the /notifications websocket resource.
