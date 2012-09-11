@@ -17,7 +17,7 @@ package AMI.Protocol is
 
    function Login (Username : in String;
                    Secret   : in String;
-                   Async    : in Boolean := True) return String with inline;
+                   Async    : in Boolean := False) return String with inline;
 
    function Logoff (Async : in Boolean := True) return String with inline;
 

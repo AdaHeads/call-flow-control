@@ -375,11 +375,11 @@ package body AMI.Event is
                       "Ami Event logged in.");
 
       loop
-         exit when Task_State = Down;
          declare
             Event_String : constant Unbounded_String := Read_Package (channel);
-            Event_List : constant Event_List_Type.Map := Parse (Event_String);
+            Event_List : Event_List_Type.Map;
          begin
+            Event_List := Parse (Event_String);
             --  Basically we have responses, or events
             if Event_List.Contains (To_Unbounded_String ("Event")) then
                begin

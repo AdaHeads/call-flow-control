@@ -290,6 +290,7 @@ package body Routines is
    procedure StartUpSequence is
 --        Call_List : AMI.Action.Call_List.Vector;
    begin
+      Yolk.Log.Trace (Yolk.Log.Debug, "Calling QueueStatus");
       AMI.Action.Action_Manager.QueueStatus;
 --        for i in Call_List.First_Index .. Call_List.Last_Index loop
 --           Call_List.Enqueue (Call => Call_List.Element (i));

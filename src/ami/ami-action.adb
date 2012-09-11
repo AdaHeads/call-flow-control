@@ -26,22 +26,25 @@ package body AMI.Action is
       Secret      : Unbounded_String;
 
       Greetings   : Unbounded_String;
+
+      subtype Fail_Counter_Type is Natural range 0 .. 3;
+      Fail_Counter : Fail_Counter_Type := 0;
    begin
-      accept Initialize (Server_Host : in String;
-                         Server_Port : in Positive;
-                         Username    : in String;
-                         Secret      : in String) do
-
-         Action_Manager.Server_Host := To_Unbounded_String (Server_Host);
-         Action_Manager.Server_Port := Server_Port;
-
-         Action_Manager.Username := To_Unbounded_String (Username);
-         Action_Manager.Secret   := To_Unbounded_String (Secret);
-      end Initialize;
+--        accept Initialize (Server_Host : in String;
+--                           Server_Port : in Positive;
+--                           Username    : in String;
+--                           Secret      : in String) do
+--
+--           Action_Manager.Server_Host := To_Unbounded_String (Server_Host);
+--           Action_Manager.Server_Port := Server_Port;
+--
+--           Action_Manager.Username := To_Unbounded_String (Username);
+--           Action_Manager.Secret   := To_Unbounded_String (Secret);
+--        end Initialize;
 
       Reconnect :
       loop
-         if Task_State = Down then
+         if Task_State = Up then
             Yolk.Log.Trace (Yolk.Log.Info,
                             "AMI Action_Manager is quitting");
             exit Reconnect;
@@ -50,6 +53,7 @@ package body AMI.Action is
             AWS.Net.Std.Connect (Socket => AMI.Action.Socket,
                                  Host   => To_String (Server_Host),
                                  Port   => Server_Port);
+            Fail_Counter := 0;
             Greetings := To_Unbounded_String
               (AMI.IO.Read_Line (AMI.Action.Socket));
             Yolk.Log.Trace (Yolk.Log.Debug,
@@ -108,6 +112,8 @@ package body AMI.Action is
                or
                   accept QueueStatus
                   do
+                     Yolk.Log.Trace (Yolk.Log.Debug,
+                                     "Got into Accept QueueStatus");
                      AMI.Action.QueueStatus;
                   end QueueStatus;
                or
@@ -133,14 +139,19 @@ package body AMI.Action is
                                      "--==Set_Var_Channel:" & Channel);
                      AMI.Action.Set_Var (Channel, VariableName, Value);
                   end Set_Var;
-               or
-                  delay 1.0;
                end select;
             end loop Action_Loop;
          exception
             when others =>
                Yolk.Log.Trace (Yolk.Log.Debug, "AMI Action Lost connection");
+               Fail_Counter := Fail_Counter + 1;
          end;
+         if Fail_Counter = 3 then
+            Yolk.Log.Trace (Yolk.Log.Info,
+                            "AMI-Action died because of failcounter");
+            exit Reconnect;
+         end if;
+
          Yolk.Log.Trace (Yolk.Log.Debug, "AMI Action Reconnect");
          delay 0.5;
 

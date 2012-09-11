@@ -74,8 +74,9 @@ procedure Alice is
          --  If sessions are enabled and the Session_Data_File exists, then
          --  load the old session data.
       end if;
-
+      Trace (Error, "Calling AMI.Std.connect in Alice");
       AMI.Std.Connect;
+      Trace (Error, "Done Calling AMI.Std.connect in Alice");
 
       AWS.Server.Start (Web_Server => Web_Server,
                         Dispatcher => Resource_Handlers,
@@ -166,12 +167,12 @@ begin
           ". Listening on port" &
           AWS.Config.Server_Port (Web_Server_Config)'Img);
    --  We're alive! Log this fact to the Info trace.
-
+   Yolk.Log.Trace (Yolk.Log.Info, "Wait is comming up!");
    Wait;
    --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
-
+   Yolk.Log.Trace (Yolk.Log.Info, "Stop Server is comming up!");
    Stop_Server;
-
+   Yolk.Log.Trace (Yolk.Log.Info, "Task_State down is comming up!");
    Task_State := Down;
    --  Signal all running tasks to go down.
 

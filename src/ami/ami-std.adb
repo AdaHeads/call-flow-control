@@ -1,11 +1,10 @@
 with Ada.Strings.Unbounded,
      Ada.Exceptions;
 
-with AMI.Event,
-     AMI.Action;
+with AMI.Event;
+--       AMI.Action;
 
-with Routines,
-     Task_Controller;
+--  with Routines;
 
 with Yolk.Log;
 
@@ -14,6 +13,7 @@ with AWS.Net.Std,
 
 package body AMI.Std is
    Event_Socket : AWS.Net.Std.Socket_Type;
+   Shutdown : Boolean := False;
    --  it has package scope because, we need it in the Disconnect procedure.
 
    --  AMI-Event needs to have it's own Thread,
@@ -27,8 +27,9 @@ package body AMI.Std is
 
    task body AMI_Service is
       use Ada.Strings.Unbounded;
-      use Task_Controller;
       use Ada.Exceptions;
+
+      Reconnect_Delay : constant Duration := 1.0;
 
       Server_Host : Unbounded_String;
       Server_Port : Positive;
@@ -51,7 +52,6 @@ package body AMI.Std is
       Reconnect :
       loop
          begin
-
             AWS.Net.Std.Connect (Socket => Event_Socket,
                                  Host   => To_String (Server_Host),
                                  Port   => Server_Port);
@@ -64,11 +64,17 @@ package body AMI.Std is
                              To_String (Secret));
          exception
             when others =>
-               Yolk.Log.Trace (Yolk.Log.Info,
-                               "The Event Socket have lost connection");
+               if Shutdown then
+                  Yolk.Log.Trace (Yolk.Log.Info, "PBX connection closed.");
+                  exit Reconnect;
+               else
+                  --  send message out to websocket about system failure.
+                  Yolk.Log.Trace (Yolk.Log.Error,
+                                  "No connection to PBX.");
+               end if;
+
          end;
-         exit Reconnect when Task_State = Down;
-         delay 0.5;
+         delay Reconnect_Delay;
 
       end loop Reconnect;
    exception
@@ -79,30 +85,34 @@ package body AMI.Std is
             Exception_Name (Err) & "|:|" & Exception_Message (Err));
    end AMI_Service;
 
-   procedure Connect (Server_Host     : in String   := "Asterisk1";
+   procedure Connect (Server_Host     : in String   := "Asterisk100";
                       Server_Port     : in Positive := 5038;
                       Event_Username  : in String   := "filtertest";
-                      Event_Secret    : in String   := "filtertest";
-                      Action_Username : in String   := "action";
-                      Action_Secret   : in String   := "reaction") is
+                      Event_Secret    : in String   := "filtertest"
+--                        Action_Username : in String   := "action";
+--                        Action_Secret   : in String   := "reaction"
+                     ) is
 
    begin
+      --  Socket connecting
+
       --  Setting up event Socket.
       AMI_Service.Initialize (Server_Host, Server_Port,
                               Event_Username, Event_Secret);
 
       --  Setting up Action Socket.
-      AMI.Action.Action_Manager.Initialize (Server_Host => Server_Host,
-                                            Server_Port => Server_Port,
-                                            Username => Action_Username,
-                                            Secret   => Action_Secret);
+--        AMI.Action.Action_Manager.Initialize (Server_Host => Server_Host,
+--                                              Server_Port => Server_Port,
+--                                              Username => Action_Username,
+--                                              Secret   => Action_Secret);
       Yolk.Log.Trace (Yolk.Log.Debug, "AMI Action Initialized.");
 
-      Routines.StartUpSequence;
+--        Routines.StartUpSequence;
    end Connect;
 
    procedure Disconnect is
    begin
+      Shutdown := True;
       AWS.Net.Buffered.Shutdown (Event_Socket);
    end Disconnect;
 end AMI.Std;

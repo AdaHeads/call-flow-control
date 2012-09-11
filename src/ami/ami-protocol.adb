@@ -88,7 +88,7 @@ package body AMI.Protocol is
 
    function Login (Username : in String;
                    Secret   : in String;
-                   Async    : in Boolean := True) return String is
+                   Async    : in Boolean := False) return String is
    begin
       return Action_String & Login_String & Line_Termination_String &
         Username_String & Username        & Line_Termination_String &
