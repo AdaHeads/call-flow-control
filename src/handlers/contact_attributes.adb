@@ -51,33 +51,31 @@ package body Contact_Attributes is
       use Yolk.Utilities;
 
       Attr_Array : JSON_Array;
-      DB_Columns : JSON_Value;
-      DB_JSON    : JSON_Value;
-      J          : constant JSON_Value := Create_Object;
+      Attr_JSON  : JSON_Value;
+      JSON       : JSON_Value;
    begin
+      JSON := Create_Object;
+
       while C.Has_Row loop
-         DB_Columns := Create_Object;
-         DB_JSON    := Create_Object;
+         Attr_JSON := Create_Object;
 
-         DB_JSON := GNATCOLL.JSON.Read (To_String (C.Element.JSON),
-                                        "contact_attributes.json.error");
+         Attr_JSON := GNATCOLL.JSON.Read (To_String (C.Element.JSON),
+                                          "contact_attributes.json.error");
 
-         DB_Columns.Set_Field (TS (C.Element.Ce_Id_Column_Name),
-                               C.Element.Ce_Id);
+         Attr_JSON.Set_Field (TS (C.Element.Ce_Id_Column_Name),
+                              C.Element.Ce_Id);
 
-         DB_Columns.Set_Field (TS (C.Element.Org_Id_Column_Name),
-                               C.Element.Org_Id);
+         Attr_JSON.Set_Field (TS (C.Element.Org_Id_Column_Name),
+                              C.Element.Org_Id);
 
-         DB_JSON.Set_Field ("db_columns", DB_Columns);
-
-         Append (Attr_Array, DB_JSON);
+         Append (Attr_Array, Attr_JSON);
 
          C.Next;
       end loop;
 
-      J.Set_Field ("attributes", Attr_Array);
+      JSON.Set_Field ("attributes", Attr_Array);
 
-      Value := To_JSON_String (J.Write);
+      Value := To_JSON_String (JSON.Write);
    end Create_JSON;
 
    ---------------
@@ -95,7 +93,7 @@ package body Contact_Attributes is
                   Ce_Id                => C.Integer_Value (1, Default => 0),
                   Ce_Id_Column_Name    => TUS (C.Field_Name (1)),
                   Org_Id               => C.Integer_Value (2, Default => 0),
-                  Org_Id_Column_Name   => TUS (C.Value (2)));
+                  Org_Id_Column_Name   => TUS (C.Field_Name (2)));
    end Element;
 
    ----------------------
