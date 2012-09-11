@@ -54,7 +54,8 @@ package My_Configuration is
                  Handler_Get_Organization_Contacts_Full,
                  Handler_Get_Organization,
                  Handler_Get_Queue,
-                 Handler_Get_Queue_Length);
+                 Handler_Get_Queue_Length,
+                 Handler_Notifications);
 
    type Defaults_Array is array (Keys) of
      Ada.Strings.Unbounded.Unbounded_String;
@@ -83,17 +84,15 @@ package My_Configuration is
                        DB2_Password
                        => Util.TUS ("secret"),
                        DB2_Port
-                       => Util.TUS ("5433"),
+                       => Util.TUS ("5432"),
                        DB2_User
                        => Util.TUS ("alice"),
-
                        Handler_Call_Hangup
                        => Util.TUS ("/get/hangup"),
                        Handler_Call_Park
                        => Util.TUS ("/get/park"),
                        Handler_Call_Unpark
                        => Util.TUS ("/get/unpark"),
-
                        Handler_Get_Call
                        => Util.TUS ("/get/call"),
                        Handler_Get_Contact
@@ -113,7 +112,9 @@ package My_Configuration is
                        Handler_Get_Queue
                        => Util.TUS ("/get/queue"),
                        Handler_Get_Queue_Length
-                       => Util.TUS ("/get/queue_length"));
+                       => Util.TUS ("/get/queue_length"),
+                       Handler_Notifications
+                       => Util.TUS ("/notifications"));
 
    package Config is new Yolk.Config_File_Parser
      (Key_Type            => Keys,

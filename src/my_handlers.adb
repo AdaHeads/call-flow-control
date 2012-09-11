@@ -68,25 +68,23 @@ package body My_Handlers is
       --  Dispatchers --
       ------------------
 
-      -------- Thomas P added -------------
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Call_Unpark),
+         URI        => My.Config.Get (My.Handler_Call_Hangup),
          Action     => Create
-            (Callback => Call_Queue_Handler.Unpark_Call'Access));
+           (Callback => Call_Queue_Handler.Hangup'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => My.Config.Get (My.Handler_Call_Park),
          Action     => Create
-            (Callback => Call_Queue_Handler.Park_Call'Access));
+           (Callback => Call_Queue_Handler.Park_Call'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Call_Hangup),
+         URI        => My.Config.Get (My.Handler_Call_Unpark),
          Action     => Create
-            (Callback => Call_Queue_Handler.Hangup'Access));
-      ------- Thomas P added --------------
+           (Callback => Call_Queue_Handler.Unpark_Call'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,

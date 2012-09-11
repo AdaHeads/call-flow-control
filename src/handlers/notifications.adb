@@ -21,12 +21,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Calendar;
-with Ada.Calendar.Formatting;
-with Ada.Containers.Doubly_Linked_Lists;
 with AWS.Net.WebSocket.Registry;
-with AWS.Utils;
-with Task_Controller;
 with Yolk.Log;
 
 package body Notifications is
@@ -36,74 +31,31 @@ package body Notifications is
    overriding procedure On_Close
      (Socket  : in out Object;
       Message : in     String);
-   --  Close event received from the server
-
-   overriding procedure On_Message
-     (Socket  : in out Object;
-      Message : in     String);
-   --  Message received from the server
+   --  Is called when a websocket connection is closed.
 
    overriding procedure On_Open
      (Socket  : in out Object;
       Message : in     String);
-   --  Open event received from the server
+   --  Is called when a websocket connection is opened.
 
-   package Object_Container is new Ada.Containers.Doubly_Linked_Lists (Object);
-   use Object_Container;
-   Clients : List;
-   --  Every connected client is added to this list, which in turn is used by
-   --  the Clocker task to send unique messages to each individual connected
-   --  client.
+   Recipients : constant AWS.Net.WebSocket.Registry.Recipient :=
+                  AWS.Net.WebSocket.Registry.Create (URI => "/notifications");
+   --  Targets all clients (any Origin) whose URI is /notifications. Basically
+   --  the /notifications websocket broadcasts to every connected client.
 
-   Rcp : constant AWS.Net.WebSocket.Registry.Recipient :=
-           AWS.Net.WebSocket.Registry.Create (URI => "/notifications");
-   --  Targets all clients (any Origin) whose URI is /websocket
+   -----------------
+   --  Broadcast  --
+   -----------------
 
-   task Clocker;
-   --  The Clocker task is nothing but a simple loop that broadcasts a
-   --  timestamp, the amount of connected clients and a string with 10 random
-   --  characters.
-
-   ---------------
-   --  Clocker  --
-   ---------------
-
-   task body Clocker
+   procedure Broadcast
+     (JSON : in Common.JSON_String)
    is
-      use Task_Controller;
-      use Yolk.Log;
+      use Common;
    begin
-      Trace (Handle  => Info,
-             Message => "Websocket.Clocker task started");
-
-      loop
-         exit when Task_State = Down;
-
-         AWS.Net.WebSocket.Registry.Send
-           (To      => Rcp,
-            Message => "timestamp|" & Ada.Calendar.Formatting.Image
-              (Ada.Calendar.Clock, True));
-         --  Date broadcasted to all clients connected to /notifications
-
-         AWS.Net.WebSocket.Registry.Send
-           (To      => Rcp,
-            Message => "clients_connected|" & Clients.Length'Img);
-         --  Amount of clients connected broadcast to all clients connected to
-         --  /notifications
-
-         for Client of Clients loop
-            Client.Send
-              (Message => "random_string|" & AWS.Utils.Random_String (10));
-            --  Send a random string to a specific client connected to
-            --  /websocket
-         end loop;
-
-         delay 1.0;
-      end loop;
-
-      Trace (Handle  => Info,
-             Message => "Websocket.Clocker task stopped");
-   end Clocker;
+      AWS.Net.WebSocket.Registry.Send
+        (To      => Recipients,
+         Message => To_String (JSON));
+   end Broadcast;
 
    --------------
    --  Create  --
@@ -117,7 +69,7 @@ package body Notifications is
       use Yolk.Log;
    begin
       Trace (Handle  => Info,
-             Message => "WebSocket created.");
+             Message => "A /notifications WebSocket was created.");
 
       return Object'(AWS.Net.WebSocket.Object
                      (AWS.Net.WebSocket.Create (Socket, Request))
@@ -132,43 +84,14 @@ package body Notifications is
      (Socket  : in out Object;
       Message : in     String)
    is
-      use AWS.Net.WebSocket;
+      pragma Unreferenced (Socket);
+      pragma Unreferenced (Message);
+
       use Yolk.Log;
-
-      C : Cursor := No_Element;
    begin
-      for Client in Clients.Iterate loop
-         if Element (Client) = Socket then
-            C := Client;
-            exit;
-         end if;
-      end loop;
-
-      if C /= No_Element then
-         Clients.Delete (C);
-      end if;
-
       Trace (Handle  => Info,
-             Message => "WebSocket closed " &
-               Error_Type'Image (Socket.Error) &
-               ", " & Message);
+             Message => "A /notifications WebSocket connection was closed.");
    end On_Close;
-
-   ------------------
-   --  On_Message  --
-   ------------------
-
-   overriding procedure On_Message
-     (Socket  : in out Object;
-      Message : in     String)
-   is
-      use Yolk.Log;
-   begin
-      Socket.Send (Message);
-
-      Trace (Handle  => Info,
-             Message => "WebSocket message received: " & Message);
-   end On_Message;
 
    ---------------
    --  On_Open  --
@@ -178,12 +101,13 @@ package body Notifications is
      (Socket  : in out Object;
       Message : in     String)
    is
+      pragma Unreferenced (Socket);
+      pragma Unreferenced (Message);
+
       use Yolk.Log;
    begin
-      Clients.Append (Socket);
-
       Trace (Handle  => Info,
-             Message => "WebSocket opened: " & Message & Socket.URI);
+             Message => "A /notifications WebSocket connection was opened");
    end On_Open;
 
 end Notifications;

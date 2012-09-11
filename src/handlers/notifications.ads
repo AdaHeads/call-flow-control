@@ -23,6 +23,7 @@
 
 with AWS.Net.WebSocket;
 with AWS.Status;
+with Common;
 
 package Notifications is
 
@@ -30,7 +31,12 @@ package Notifications is
      (Socket  : in AWS.Net.Socket_Access;
       Request : in AWS.Status.Data)
       return AWS.Net.WebSocket.Object'Class;
-   --  This function is called whenever a new WebSocket connection is made on
-   --  the /notifications resource.
+   --  Create is called whenever a new WebSocket connection is made on the
+   --  /notifications resource.
+
+   procedure Broadcast
+     (JSON : in Common.JSON_String);
+   --  Broadcasts JSON to every client connected to the /notifications
+   --  WebSocket.
 
 end Notifications;
