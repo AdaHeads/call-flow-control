@@ -50,34 +50,22 @@ package body Contact is
       use GNATCOLL.JSON;
       use Yolk.Utilities;
 
-      DB_Columns : JSON_Value;
-      J          : JSON_Value := Create_Object;
+      JSON : JSON_Value;
    begin
+      JSON := Create_Object;
+
       if C.Has_Row then
-         DB_Columns := Create_Object;
+         JSON.Set_Field (TS (C.Element.Ce_Id_Column_Name),
+                         C.Element.Ce_Id);
 
-         J := GNATCOLL.JSON.Read (To_String (C.Element.JSON),
-                                  "contact_json.error");
+         JSON.Set_Field (TS (C.Element.Ce_Name_Column_Name),
+                         C.Element.Ce_Name);
 
-         DB_Columns.Set_Field (TS (C.Element.Ce_Id_Column_Name),
-                               C.Element.Ce_Id);
-
-         DB_Columns.Set_Field (TS (C.Element.Ce_Name_Column_Name),
-                               C.Element.Ce_Name);
-
-         DB_Columns.Set_Field (TS (C.Element.Is_Human_Column_Name),
-                               C.Element.Is_Human);
-
-         if C.Element.Is_Human then
-            J.Set_Field ("type", "human");
-         else
-            J.Set_Field ("type", "function");
-         end if;
-
-         J.Set_Field ("db_columns", DB_Columns);
+         JSON.Set_Field (TS (C.Element.Is_Human_Column_Name),
+                         C.Element.Is_Human);
       end if;
 
-      Value := To_JSON_String (J.Write);
+      Value := To_JSON_String (JSON.Write);
    end Create_JSON;
 
    ---------------
@@ -88,16 +76,14 @@ package body Contact is
      (C : in Cursor)
       return Row
    is
-      use Common;
       use Yolk.Utilities;
    begin
-      return Row'(JSON                 => To_JSON_String (C.Value (0)),
-                  Ce_Id                => C.Integer_Value (1, Default => 0),
-                  Ce_Id_Column_Name    => TUS (C.Field_Name (1)),
-                  Ce_Name              => TUS (C.Field_Name (2)),
-                  Ce_Name_Column_Name  => TUS (C.Value (2)),
-                  Is_Human             => C.Boolean_Value (3),
-                  Is_Human_Column_Name => TUS (C.Field_Name (3)));
+      return Row'(Ce_Id                => C.Integer_Value (0, Default => 0),
+                  Ce_Id_Column_Name    => TUS (C.Field_Name (0)),
+                  Ce_Name              => TUS (C.Value (1)),
+                  Ce_Name_Column_Name  => TUS (C.Field_Name (1)),
+                  Is_Human             => C.Boolean_Value (2),
+                  Is_Human_Column_Name => TUS (C.Field_Name (2)));
    end Element;
 
    ----------------------
@@ -114,10 +100,9 @@ package body Contact is
 
       Get_Contact : constant SQL_Query
         := SQL_Select (Fields =>
-                         DB.Contactentity.Json &    --  0
-                         DB.Contactentity.Ce_Id &   --  1
-                         DB.Contactentity.Ce_Name & --  2
-                         DB.Contactentity.Is_Human, --  3
+                         DB.Contactentity.Ce_Id &   --  0
+                         DB.Contactentity.Ce_Name & --  1
+                         DB.Contactentity.Is_Human, --  2
                        Where  =>
                          DB.Contactentity.Ce_Id = Integer_Param (1));
 

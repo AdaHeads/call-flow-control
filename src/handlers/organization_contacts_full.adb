@@ -50,65 +50,49 @@ package body Organization_Contacts_Full is
       use GNATCOLL.JSON;
       use Yolk.Utilities;
 
-      Attr_DB_Columns : JSON_Value;
-      Attr_JSON       : JSON_Value;
-      Contact_Array   : JSON_Array;
-      Contact_JSON    : JSON_Value;
-      DB_Columns      : JSON_Value;
-      J               : constant JSON_Value := Create_Object;
+      Attr_JSON      : JSON_Value;
+      Contacts_Array : JSON_Array;
+      Contact_JSON   : JSON_Value;
+      JSON           : JSON_Value;
    begin
+      JSON := Create_Object;
+
       while C.Has_Row loop
          Contact_JSON := Create_Object;
-         DB_Columns := Create_Object;
 
-         Contact_JSON := GNATCOLL.JSON.Read
-           (To_String (C.Element.JSON),
-            "organization_contacts_full.json.error");
+         Contact_JSON.Set_Field (TS (C.Element.Ce_Id_Column_Name),
+                                 C.Element.Ce_Id);
 
-         DB_Columns.Set_Field (TS (C.Element.Ce_Id_Column_Name),
-                               C.Element.Ce_Id);
+         Contact_JSON.Set_Field (TS (C.Element.Ce_Name_Column_Name),
+                                 TS (C.Element.Ce_Name));
 
-         DB_Columns.Set_Field (TS (C.Element.Ce_Name_Column_Name),
-                               TS (C.Element.Ce_Name));
-
-         DB_Columns.Set_Field (TS (C.Element.Is_Human_Column_Name),
-                               C.Element.Is_Human);
-
-         if C.Element.Is_Human then
-            Contact_JSON.Set_Field ("type", "human");
-         else
-            Contact_JSON.Set_Field ("type", "function");
-         end if;
-
-         Contact_JSON.Set_Field ("db_columns", DB_Columns);
+         Contact_JSON.Set_Field (TS (C.Element.Is_Human_Column_Name),
+                                 C.Element.Is_Human);
 
          Attr_JSON := Create_Object;
-         Attr_DB_Columns := Create_Object;
 
          if To_String (C.Element.Attr_JSON) /= "" then
             Attr_JSON := GNATCOLL.JSON.Read
               (To_String (C.Element.Attr_JSON),
                "organization_contacts_full_attributes.json.error");
 
-            Attr_DB_Columns.Set_Field (TS (C.Element.Attr_Org_Id_Column_Name),
-                                       C.Element.Attr_Org_Id);
+            Attr_JSON.Set_Field (TS (C.Element.Attr_Org_Id_Column_Name),
+                                 C.Element.Attr_Org_Id);
 
-            Attr_DB_Columns.Set_Field (TS (C.Element.Attr_Ce_Id_Column_Name),
-                                       C.Element.Attr_Ce_Id);
-
-            Attr_JSON.Set_Field ("db_columns", Attr_DB_Columns);
+            Attr_JSON.Set_Field (TS (C.Element.Attr_Ce_Id_Column_Name),
+                                 C.Element.Attr_Ce_Id);
          end if;
 
          Contact_JSON.Set_Field ("attributes", Attr_JSON);
 
-         Append (Contact_Array, Contact_JSON);
+         Append (Contacts_Array, Contact_JSON);
 
          C.Next;
       end loop;
 
-      J.Set_Field ("contacts", Contact_Array);
+      JSON.Set_Field ("contacts", Contacts_Array);
 
-      Value := To_JSON_String (J.Write);
+      Value := To_JSON_String (JSON.Write);
    end Create_JSON;
 
    ---------------
@@ -123,18 +107,17 @@ package body Organization_Contacts_Full is
       use Yolk.Utilities;
    begin
       return Row'
-        (JSON                    => To_JSON_String (C.Value (0)),
-         Ce_Id                   => C.Integer_Value (1, Default => 0),
-         Ce_Id_Column_Name       => TUS (C.Field_Name (1)),
-         Ce_Name                 => TUS (C.Value (2)),
-         Ce_Name_Column_Name     => TUS (C.Field_Name (2)),
-         Is_Human                => C.Boolean_Value (3),
-         Is_Human_Column_Name    => TUS (C.Field_Name (3)),
-         Attr_JSON               => To_JSON_String (C.Value (4)),
-         Attr_Org_Id             => C.Integer_Value (5, Default => 0),
-         Attr_Org_Id_Column_Name => TUS (C.Field_Name (5)),
-         Attr_Ce_Id              => C.Integer_Value (6, Default => 0),
-         Attr_Ce_Id_Column_Name  => TUS (C.Field_Name (6)));
+        (Ce_Id                   => C.Integer_Value (0, Default => 0),
+         Ce_Id_Column_Name       => TUS (C.Field_Name (0)),
+         Ce_Name                 => TUS (C.Value (1)),
+         Ce_Name_Column_Name     => TUS (C.Field_Name (1)),
+         Is_Human                => C.Boolean_Value (2),
+         Is_Human_Column_Name    => TUS (C.Field_Name (2)),
+         Attr_JSON               => To_JSON_String (C.Value (3)),
+         Attr_Org_Id             => C.Integer_Value (4, Default => 0),
+         Attr_Org_Id_Column_Name => TUS (C.Field_Name (4)),
+         Attr_Ce_Id              => C.Integer_Value (5, Default => 0),
+         Attr_Ce_Id_Column_Name  => TUS (C.Field_Name (5)));
    end Element;
 
    ----------------------
@@ -165,13 +148,12 @@ package body Organization_Contacts_Full is
 
       Get_Org_Contacts_Full : constant SQL_Query
         := SQL_Select (Fields =>
-                         DB.Contactentity.Json &              --  0
-                         DB.Contactentity.Ce_Id &             --  1
-                         DB.Contactentity.Ce_Name &           --  2
-                         DB.Contactentity.Is_Human &          --  3
-                         DB.Contactentity_Attributes.Json &   --  4
-                         DB.Contactentity_Attributes.Org_Id & --  5
-                         DB.Contactentity_Attributes.Ce_Id,   --  6
+                         DB.Contactentity.Ce_Id &             --  0
+                         DB.Contactentity.Ce_Name &           --  1
+                         DB.Contactentity.Is_Human &          --  2
+                         DB.Contactentity_Attributes.Json &   --  3
+                         DB.Contactentity_Attributes.Org_Id & --  4
+                         DB.Contactentity_Attributes.Ce_Id,   --  5
                        From   => Get_Org_Contacts_Full_Left_Join,
                        Where  =>
                          DB.Organization_Contactentities.Org_Id =

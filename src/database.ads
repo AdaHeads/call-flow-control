@@ -10,7 +10,6 @@ package Database is
       Ce_Id : SQL_Field_Integer (Ta_Contactentity, Instance, N_Ce_Id, Index);
       Ce_Name : SQL_Field_Text (Ta_Contactentity, Instance, N_Ce_Name, Index);
       Is_Human : SQL_Field_Boolean (Ta_Contactentity, Instance, N_Is_Human, Index);
-      Json : SQL_Field_Text (Ta_Contactentity, Instance, N_Json, Index);
    end record;
 
    type T_Contactentity (Instance : Cst_String_Access)

@@ -19,26 +19,24 @@
 
 with Ada.Directories;
 with Ada.Exceptions;
+with AMI.Std;
 with AWS.Config;
 with AWS.Server;
 with AWS.Server.Log;
 with AWS.Services.Dispatchers.URI;
 with AWS.Session;
 with My_Handlers;
-with Task_Controller;
 with Yolk.Configuration;
 with Yolk.Log;
 with Yolk.Process_Control;
 with Yolk.Process_Owner;
 with Yolk.Utilities;
 with Yolk.Whoops;
-with AMI.Std;
 
 procedure Alice is
 
    use Ada.Exceptions;
    use My_Handlers;
-   use Task_Controller;
    use Yolk.Configuration;
    use Yolk.Log;
    use Yolk.Process_Control;
@@ -153,6 +151,9 @@ begin
    Set (RH => Resource_Handlers);
    --  Populate the Resource_Handlers object.
 
+   Set_WebSocket_Handlers;
+   --  Register URI's that are WebSocket enabled.
+
    AWS.Server.Set_Unexpected_Exception_Handler
      (Web_Server => Web_Server,
       Handler    => Yolk.Whoops.Unexpected_Exception_Handler'Access);
@@ -170,18 +171,15 @@ begin
    Yolk.Log.Trace (Yolk.Log.Info, "Wait is comming up!");
    Wait;
    --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
-   Yolk.Log.Trace (Yolk.Log.Info, "Stop Server is comming up!");
-   Stop_Server;
-   Yolk.Log.Trace (Yolk.Log.Info, "Task_State down is comming up!");
-   Task_State := Down;
-   --  Signal all running tasks to go down.
 
    AMI.Std.Disconnect;
+
+   Stop_Server;
+
 exception
    when Event : others =>
       Trace (Handle  => Error,
              Message => Exception_Information (Event));
       --  Write the exception information to the rotating Error log trace.
       Stop_Server;
-      Task_State := Down;
 end Alice;

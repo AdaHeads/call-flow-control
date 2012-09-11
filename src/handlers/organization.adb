@@ -50,28 +50,25 @@ package body Organization is
       use GNATCOLL.JSON;
       use Yolk.Utilities;
 
-      DB_Columns : JSON_Value;
-      J          : JSON_Value := Create_Object;
+      JSON : JSON_Value;
    begin
+      JSON := Create_Object;
+
       if C.Has_Row then
-         DB_Columns := Create_Object;
+         JSON := GNATCOLL.JSON.Read (To_String (C.Element.JSON),
+                                     "organization_json.error");
 
-         J := GNATCOLL.JSON.Read (To_String (C.Element.JSON),
-                                  "organization_json.error");
+         JSON.Set_Field (TS (C.Element.Org_Id_Column_Name),
+                         C.Element.Org_Id);
 
-         DB_Columns.Set_Field (TS (C.Element.Org_Id_Column_Name),
-                               C.Element.Org_Id);
+         JSON.Set_Field (TS (C.Element.Org_Name_Column_Name),
+                         TS (C.Element.Org_Name));
 
-         DB_Columns.Set_Field (TS (C.Element.Org_Name_Column_Name),
-                               TS (C.Element.Org_Name));
-
-         DB_Columns.Set_Field (TS (C.Element.Identifier_Column_Name),
-                               TS (C.Element.Identifier));
-
-         J.Set_Field ("db_columns", DB_Columns);
+         JSON.Set_Field (TS (C.Element.Identifier_Column_Name),
+                         TS (C.Element.Identifier));
       end if;
 
-      Value := To_JSON_String (J.Write);
+      Value := To_JSON_String (JSON.Write);
    end Create_JSON;
 
    ---------------

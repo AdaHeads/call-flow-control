@@ -35,7 +35,6 @@ SET default_with_oids = false;
 CREATE TABLE contactentity (
     ce_id integer NOT NULL,
     ce_name character varying(256) NOT NULL,
-    json character varying(10000) NOT NULL,
     is_human boolean DEFAULT true NOT NULL
 );
 

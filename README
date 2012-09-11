@@ -2,7 +2,6 @@ Contents of this README:
 
     1. Introduction
     2. Dependencies
-    3. The Alice protocol
 
 --------------------
 --  Introduction  --
@@ -19,11 +18,3 @@ Alice is GPLv3, see COPYING3 and COPYING.RUNTIME.
 --------------------
 
 Alice depends on Yolk, AWS and GNATColl being compiled with PostgreSQL support.
-
---------------------------
---  The Alice Protocol  --
---------------------------
-
-Talking to Alice is done through a very simple HTTP protocol. Getting data is
-done via plain GET parameters, and the data returned is always JSON. Setting
-data is done via POST parameters, and returned data is JSON.

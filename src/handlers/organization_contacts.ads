@@ -46,7 +46,6 @@ private
 
    type Row is
       record
-         JSON                 : Common.JSON_String;
          Ce_Id                : Natural;
          Ce_Id_Column_Name    : Unbounded_String;
          Ce_Name              : Unbounded_String;

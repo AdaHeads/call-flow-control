@@ -30,9 +30,7 @@ ALTER TABLE organization
 
 
 --  A contact entity.
---  SHOULD contain information relevant to describing a contact entity, like
---  email addresses, phone numbers, titles and similar. All this data is kept
---  in the json column which MUST contain a valid JSON object string.
+--  SHOULD contain information relevant to describing a very basic contact entity. 
 --
 --  Note that the COLLATE parameter should be set according to the environment.
 --
@@ -40,14 +38,12 @@ ALTER TABLE organization
 --     ce_name  : SHOULD contain the actual name of the contact entity. This is
 --                used primarily for sorting and presentation, to avoid parsing
 --                the JSON object.
---     json     : The actual contact entity data.
 --     is_human : If True the contact entity is an actual human, if False then
 --     		  it's a function/group.
 CREATE TABLE contactentity
 (
   ce_id serial NOT NULL,
   ce_name character varying(256) NOT NULL,
-  json character varying(10000) NOT NULL,
   is_human boolean NOT NULL DEFAULT true,
   CONSTRAINT contactentity_pkey PRIMARY KEY (ce_id )
 )
@@ -84,7 +80,7 @@ ALTER TABLE organization_contactentities
 
 
 --  Contact entity attributes.
---  SHOULD contain such data as name, emailaddresses, phone numbers, tags and
+--  SHOULD contain such data as names, emailaddresses, phone numbers, tags and
 --  other relevant information about a contact entity.
 --
 --  Note that the constraints make sure that there can only be one set of
@@ -116,4 +112,3 @@ WITH (
 );
 ALTER TABLE contactentity_attributes
   OWNER TO alice;
-
