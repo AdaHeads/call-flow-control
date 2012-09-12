@@ -4,7 +4,6 @@ with AMI.Action,
      Ada.Exceptions;
 with Call_List;
 with Peers;
-with Event_Parser;
 with Yolk.Log;
 
 package body Routines is
@@ -24,7 +23,7 @@ package body Routines is
       end if;
 
       --  Sends the command out to Asterisk.
-      AMI.Action.Action_Manager.Bridge
+      AMI.Action.Bridge
         (To_String (Call1.Channel), To_String (Call2.Channel));
       Status := Success;
    end Bridge_Call;
@@ -123,7 +122,7 @@ package body Routines is
       Status := Success;
 
       --  Send the call out to the phone
-      AMI.Action.Action_Manager.Redirect
+      AMI.Action.Redirect
         (Channel => To_String (Temp_Call.Channel),
          Exten   => To_String (Peer.Exten),
          Context => "LocalSets");
@@ -136,17 +135,17 @@ package body Routines is
                          Ada.Exceptions.Exception_Information (Error));
    end Get_Call;
 
-      --  Scaffolding
-   procedure Get_Version is --  return String is
-      use Event_Parser;
-      Data : Event_List_Type.Map;
-   begin
-      AMI.Action.Action_Manager.CoreSettings (Data);
---        if Data.Contains (To_Unbounded_String ("AsteriskVersion")) then
---           Version := Data.Element (To_Unbounded_String ("AsteriskVersion"));
---        end if;
---        return To_String (Version);
-   end Get_Version;
+--        --  Scaffolding
+--     procedure Get_Version is --  return String is
+--        use Event_Parser;
+--        Data : Event_List_Type.Map;
+--     begin
+--        AMI.Action.CoreSettings (Data);
+--  --        if Data.Contains (To_Unbounded_String ("AsteriskVersion")) then
+--  --      Version := Data.Element (To_Unbounded_String ("AsteriskVersion"));
+--  --        end if;
+--  --        return To_String (Version);
+--     end Get_Version;
 
    procedure Hangup (Call_ID : in     Unbounded_String;
                      Status  :    out Status_Type) is
@@ -167,7 +166,7 @@ package body Routines is
       Yolk.Log.Trace (Yolk.Log.Debug,
                       "Hangup Call: " & To_String (Call_ID));
 
-      AMI.Action.Action_Manager.Hangup
+      AMI.Action.Hangup
         (Ada.Strings.Unbounded.To_String (Call.Channel));
 
       Status := Success;
@@ -253,7 +252,7 @@ package body Routines is
 --              Value        => "onhold");
 
          --  Move the call back to the queue
-         AMI.Action.Action_Manager.Redirect
+         AMI.Action.Redirect
            (Channel => To_String (Call.Channel),
             Exten   => To_String (Call.Extension),
             Context => "LocalSets");
@@ -291,7 +290,7 @@ package body Routines is
 --        Call_List : AMI.Action.Call_List.Vector;
    begin
       Yolk.Log.Trace (Yolk.Log.Debug, "Calling QueueStatus");
-      AMI.Action.Action_Manager.QueueStatus;
+      AMI.Action.QueueStatus;
 --        for i in Call_List.First_Index .. Call_List.Last_Index loop
 --           Call_List.Enqueue (Call => Call_List.Element (i));
 --        end loop;
@@ -404,7 +403,7 @@ package body Routines is
          return;
       end if;
 
-      AMI.Action.Action_Manager.Redirect
+      AMI.Action.Redirect
         (Channel  => To_String (Call.Channel),
          Context  => "LocalSets",
          Exten    => To_String (Peer.Exten));

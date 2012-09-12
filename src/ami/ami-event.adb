@@ -2,7 +2,7 @@ with Ada.Calendar,
      Ada.Exceptions,
      Ada.Strings.Unbounded;
 
-with AMI.Action,
+with --  AMI.Action,
      AMI.IO,
      AMI.Protocol;
 
@@ -101,57 +101,98 @@ package body AMI.Event is
    --  Uniqueid: 1340807150.33
    procedure Join_Callback (Event_List : in Event_List_Type.Map) is
       Call : Call_List.Call_Type;
+      --  Unknownen
    begin
-      if Event_List.Contains (To_Unbounded_String ("Channel")) then
-         Call.Channel := Event_List.Element (To_Unbounded_String ("Channel"));
-      end if;
-
-      if Event_List.Contains (To_Unbounded_String ("CallerIDNum")) then
-         Call.CallerIDNum := Event_List.Element
-           (To_Unbounded_String ("CallerIDNum"));
-      end if;
-      if Event_List.Contains (To_Unbounded_String ("CallerIDName")) then
-         Call.CallerIDName := Event_List.Element
-           (To_Unbounded_String ("CallerIDName"));
-      end if;
-      if Event_List.Contains (To_Unbounded_String ("Queue")) then
-         Call.Queue := Event_List.Element (To_Unbounded_String ("Queue"));
-      end if;
-      if Event_List.Contains (To_Unbounded_String ("Position")) then
-         Call.Position := Integer'Value (To_String (
-           Event_List.Element (To_Unbounded_String ("Position"))));
-      end if;
-      if Event_List.Contains (To_Unbounded_String ("Count")) then
-         Call.Count := Integer'Value (To_String (
-           Event_List.Element (To_Unbounded_String ("Count"))));
-      end if;
       if Event_List.Contains (To_Unbounded_String ("Uniqueid")) then
-         Call.Uniqueid := Event_List.Element
-           (To_Unbounded_String ("Uniqueid"));
+         --  The call should exsists at this point.
+         Call := Call_List.Get_Call
+           (Event_List.Element (To_Unbounded_String ("Uniqueid")));
       end if;
-      Call.Arrived := Ada.Calendar.Clock;
 
-      declare
-         State : Unbounded_String;
-      begin
-         AMI.Action.Action_Manager.Get_Var
-           (Channel      => To_String (Call.Channel),
-            VariableName => "CallState",
-            Value        => State);
-
-         if To_String (State) = "(null)" or else To_String (State) = "" then
-            Call_List.Add (Call => Call);
+      if Call = null_Call then
+         if Event_List.Contains (To_Unbounded_String ("Channel")) then
+            Yolk.Log.Trace (Yolk.Log.Error,
+                            "Got a Join evnet, "&
+                              "on a call there is not in the call list. " &
+                              "Channel: " &
+                              To_String (Event_List.Element
+                (To_Unbounded_String ("Channel"))));
+         else
+            Yolk.Log.Trace (Yolk.Log.Error,
+                            "Got a Join Event, on a call that don't exsist" &
+                              " and do not have a Channel");
          end if;
-      end;
+      end if;
+
+      if Call.State = Call_List.Unknown then
+         Call.State := Call_List.Queued;
+
+         if Event_List.Contains (To_Unbounded_String ("Queue")) then
+            Call.Queue := Event_List.Element
+              (To_Unbounded_String ("Queue"));
+         end if;
+      elsif Call.State = Call_List.OnHold then
+         null;
+      else
+         Yolk.Log.Trace (Yolk.Log.Error, "Join Event, Call with bad state: " &
+                           Call.State'Img);
+      end if;
+
+--        if Event_List.Contains (To_Unbounded_String ("Channel")) then
+--           Current_Call.Channel := Event_List.Element
+--            (To_Unbounded_String ("Channel"));
+--        end if;
+--
+--        if Event_List.Contains (To_Unbounded_String ("CallerIDNum")) then
+--           Current_Call.CallerIDNum := Event_List.Element
+--             (To_Unbounded_String ("CallerIDNum"));
+--        end if;
+--        if Event_List.Contains (To_Unbounded_String ("CallerIDName")) then
+--           Current_Call.CallerIDName := Event_List.Element
+--             (To_Unbounded_String ("CallerIDName"));
+--        end if;
+--        if Event_List.Contains (To_Unbounded_String ("Queue")) then
+--           Current_Call.Queue := Event_List.Element
+--             (To_Unbounded_String ("Queue"));
+--        end if;
+--        if Event_List.Contains (To_Unbounded_String ("Position")) then
+--           Current_Call.Position := Integer'Value (To_String (
+--             Event_List.Element (To_Unbounded_String ("Position"))));
+--        end if;
+--        if Event_List.Contains (To_Unbounded_String ("Count")) then
+--           Current_Call.Count := Integer'Value (To_String (
+--             Event_List.Element (To_Unbounded_String ("Count"))));
+--        end if;
+--        if Event_List.Contains (To_Unbounded_String ("Uniqueid")) then
+--           Current_Call.Uniqueid := Event_List.Element
+--             (To_Unbounded_String ("Uniqueid"));
+--        end if;
+--        Current_Call.Arrived := Ada.Calendar.Clock;
+
+      --  TODO, this event tells which queue the call entered.
+      --  If it exists with state <Unknownen> then it is a new call
+      --  if not, then it is propperly a parked call.
+
+--           State : Unbounded_String;
+--        begin
+--           AMI.Action.Action_Manager.Get_Var
+--             (Channel      => To_String (Call.Channel),
+--              VariableName => "CallState",
+--              Value        => State);
+--
+--         if To_String (State) = "(null)" or else To_String (State) = "" then
+--              Call_List.Add (Call => Call);
+--           end if;
+--        end;
    end Join_Callback;
 
    procedure Login (Asterisk_AMI : in Asterisk_AMI_Type;
                     Username     : in String;
                     Secret       : in String) is
-      Command : constant String := AMI.Protocol.Login (Username, Secret);
+         Command : constant String := AMI.Protocol.Login (Username, Secret,
+                                                          Async =>  False);
    begin
       AMI.IO.Send (Asterisk_AMI.Channel, Command);
-
    end Login;
 
    procedure Login_Callback (Event_List : in Event_List_Type.Map) is
@@ -186,7 +227,12 @@ package body AMI.Event is
 
       if Event_List.Contains (To_Unbounded_String ("Uniqueid")) then
          Call.Uniqueid :=  Event_List.Element
-            (To_Unbounded_String ("Uniqueid"));
+           (To_Unbounded_String ("Uniqueid"));
+      end if;
+
+      if Event_List.Contains (To_Unbounded_String ("Exten")) then
+         Call.Extension :=  Event_List.Element
+           (To_Unbounded_String ("Exten"));
       end if;
 
       Call_List.Add (Call);
@@ -357,7 +403,6 @@ package body AMI.Event is
    procedure Start (channel  : in AWS.Net.Std.Socket_Type;
                     Username : in String;
                     Secret   : in String) is
-      use Task_Controller;
 
    begin
       Asterisk := (Greeting  => new String'(Read_Line (channel)),
