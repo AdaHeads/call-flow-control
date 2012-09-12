@@ -190,11 +190,11 @@ Handler_Get_Organization_Contacts_Full /get/organization_contacts_full
 #
 # The URI for the /get/organization_contacts_full resource.
 
-Handler_Get_Organization /get/organization
+Handler_Organization /organization
 # String.
-# Default: /get/organization
+# Default: /organization
 #
-# The URI for the /get/organization resource.
+# The URI for the /organization resource.
 
 Handler_Get_Queue /get/queue
 # String.

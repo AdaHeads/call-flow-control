@@ -46,13 +46,20 @@ private
 
    type Row is
       record
-         JSON                   : Common.JSON_String;
+         Org_JSON               : Common.JSON_String;
          Org_Id                 : Natural;
          Org_Id_Column_Name     : Unbounded_String;
          Org_Name               : Unbounded_String;
          Org_Name_Column_Name   : Unbounded_String;
          Identifier             : Unbounded_String;
          Identifier_Column_Name : Unbounded_String;
+         Ce_Id                  : Natural;
+         Ce_Id_Column_Name      : Unbounded_String;
+         Ce_Name                : Unbounded_String;
+         Ce_Name_Column_Name    : Unbounded_String;
+         Is_Human               : Boolean;
+         Is_Human_Column_Name   : Unbounded_String;
+         Attr_JSON              : Common.JSON_String;
       end record;
 
    function Element
