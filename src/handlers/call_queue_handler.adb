@@ -1,8 +1,7 @@
 with Ada.Containers,
      Ada.Strings.Unbounded;
 
-with AMI.Action,
-     Call_List,
+with Call_List,
      Call_Queue_JSON,
      Common,
      HTTP_Codes,
@@ -94,8 +93,6 @@ package body Call_Queue_Handler is
       JSON : JSON_String;
       Status_Code : AWS.Messages.Status_Code;
    begin
-      AMI.Action.Action_Manager.Ping;
-
       Queue := Call_List.Get;
       Queue_Length := Call_List.Length;
 

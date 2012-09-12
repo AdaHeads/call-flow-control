@@ -24,7 +24,7 @@ package Routines is
                        Status    :    out Status_Type);
    --  Takes a call from the call_Queue, and redirects it to the Agent.
 
-   procedure Get_Version; --  return String;
+--     procedure Get_Version; --  return String;
 
    procedure Park (Call_ID : in     String;
                    Status   :    out Status_Type);

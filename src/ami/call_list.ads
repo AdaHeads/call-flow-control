@@ -7,7 +7,7 @@ package Call_List is
    use Ada.Strings.Unbounded;
 
    type Call_State is
-     (Unknownen, Queued, Speaking, Ringing, OnHold, Delegated, Hung);
+     (Unknown, Queued, Speaking, Ringing, OnHold, Delegated, Hung);
    type Priority_Level is (Low, Normal, High);
 
    type Call_Type is

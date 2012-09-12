@@ -25,6 +25,7 @@ package body AMI.Std is
    end AMI_Action_Task;
 
    task body AMI_Action_Task is
+      use Ada.Strings.Unbounded;
       Reconnect_Delay : constant Duration := 1.0;
 
       Server_Host : Unbounded_String;
@@ -37,19 +38,20 @@ package body AMI.Std is
                          Server_Port : in Positive;
                          Username    : in String;
                          Secret      : in String) do
-         AMI_Service.Server_Host := To_Unbounded_String (Server_Host);
-         AMI_Service.Server_Port := Server_Port;
+         AMI_Action_Task.Server_Host := To_Unbounded_String (Server_Host);
+         AMI_Action_Task.Server_Port := Server_Port;
 
-         AMI_Service.Username := To_Unbounded_String (Username);
-         AMI_Service.Secret   := To_Unbounded_String (Secret);
+         AMI_Action_Task.Username := To_Unbounded_String (Username);
+         AMI_Action_Task.Secret   := To_Unbounded_String (Secret);
       end Initialize;
 
-      Reconnect:
+      Reconnect :
       loop
          begin
             AWS.Net.Std.Connect (Socket => Action_Socket,
                                  Host   => To_String (Server_Host),
                                  Port   => Server_Port);
+
             Yolk.Log.Trace (Yolk.Log.Info,
                             "AMI Action socket connected - Host: "
                             & To_String (Server_Host)
@@ -62,11 +64,13 @@ package body AMI.Std is
                                "ami-std, AMI Action, " &
                                  "ExceptionName: " &
                                  Ada.Exceptions.Exception_Name (Err));
-         end
+         end;
          if Shutdown then
-            Yolk.Log.Trace (Yolk.Log.Info, "PBX Action connection Closed")
+            Yolk.Log.Trace (Yolk.Log.Info, "PBX Action connection Closed");
             exit Reconnect;
          end if;
+
+         delay Reconnect_Delay;
       end loop Reconnect;
    end AMI_Action_Task;
 
@@ -76,10 +80,7 @@ package body AMI.Std is
       entry Initialize (Server_Host : in String;
                         Server_Port : in Positive;
                         Username : in String;
-                        Secret   : in String);(Server_Host : in String;
-                                               Server_Port : in Positive;
-                                               Username : in String;
-                                               Secret   : in String);
+                        Secret   : in String);
    end AMI_Event_Task;
 
    task body AMI_Event_Task is
@@ -99,11 +100,11 @@ package body AMI.Std is
                          Server_Port : in Positive;
                          Username    : in String;
                          Secret      : in String) do
-         AMI_Service.Server_Host := To_Unbounded_String (Server_Host);
-         AMI_Service.Server_Port := Server_Port;
+         AMI_Event_Task.Server_Host := To_Unbounded_String (Server_Host);
+         AMI_Event_Task.Server_Port := Server_Port;
 
-         AMI_Service.Username := To_Unbounded_String (Username);
-         AMI_Service.Secret   := To_Unbounded_String (Secret);
+         AMI_Event_Task.Username := To_Unbounded_String (Username);
+         AMI_Event_Task.Secret   := To_Unbounded_String (Secret);
       end Initialize;
 
       Reconnect :

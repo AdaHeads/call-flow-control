@@ -107,6 +107,6 @@ private
    procedure SIPPeers_Callback;
    procedure NewState_Callback;
    procedure Bridge_Callback;
---     procedure Agents;
+   --  procedure Agents;
 
 end AMI.Event;
