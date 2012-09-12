@@ -168,7 +168,7 @@ begin
           ". Listening on port" &
           AWS.Config.Server_Port (Web_Server_Config)'Img);
    --  We're alive! Log this fact to the Info trace.
-   Yolk.Log.Trace (Yolk.Log.Info, "Wait is comming up!");
+
    Wait;
    --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
 
