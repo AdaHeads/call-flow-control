@@ -126,7 +126,7 @@ package body My_Handlers is
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Get_Organization),
+         URI        => My.Config.Get (My.Handler_Organization),
          Action     => Organization.Callback);
 
       AWS.Services.Dispatchers.URI.Register

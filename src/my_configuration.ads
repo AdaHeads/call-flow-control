@@ -52,7 +52,7 @@ package My_Configuration is
                  Handler_Get_Organization_Contacts,
                  Handler_Get_Organization_Contacts_Attributes,
                  Handler_Get_Organization_Contacts_Full,
-                 Handler_Get_Organization,
+                 Handler_Organization,
                  Handler_Get_Queue,
                  Handler_Get_Queue_Length,
                  Handler_Notifications);
@@ -107,8 +107,8 @@ package My_Configuration is
                        => Util.TUS ("/get/organization_contacts_attributes"),
                        Handler_Get_Organization_Contacts_Full
                        => Util.TUS ("/get/organization_contacts_full"),
-                       Handler_Get_Organization
-                       => Util.TUS ("/get/organization"),
+                       Handler_Organization
+                       => Util.TUS ("/organization"),
                        Handler_Get_Queue
                        => Util.TUS ("/get/queue"),
                        Handler_Get_Queue_Length
