@@ -46,12 +46,7 @@ package My_Configuration is
                  Handler_Call_Park,
                  Handler_Call_Unpark,
                  Handler_Get_Call,
-                 Handler_Get_Contact,
-                 Handler_Get_Contact_Attributes,
-                 Handler_Get_Contact_Full,
-                 Handler_Get_Organization_Contacts,
-                 Handler_Get_Organization_Contacts_Attributes,
-                 Handler_Get_Organization_Contacts_Full,
+                 Handler_Contact,
                  Handler_Organization,
                  Handler_Get_Queue,
                  Handler_Get_Queue_Length,
@@ -95,18 +90,8 @@ package My_Configuration is
                        => Util.TUS ("/get/unpark"),
                        Handler_Get_Call
                        => Util.TUS ("/get/call"),
-                       Handler_Get_Contact
-                       => Util.TUS ("/get/contact"),
-                       Handler_Get_Contact_Attributes
-                       => Util.TUS ("/get/contact_attributes"),
-                       Handler_Get_Contact_Full
-                       => Util.TUS ("/get/contact_full"),
-                       Handler_Get_Organization_Contacts
-                       => Util.TUS ("/get/organization_contacts"),
-                       Handler_Get_Organization_Contacts_Attributes
-                       => Util.TUS ("/get/organization_contacts_attributes"),
-                       Handler_Get_Organization_Contacts_Full
-                       => Util.TUS ("/get/organization_contacts_full"),
+                       Handler_Contact
+                       => Util.TUS ("/contact"),
                        Handler_Organization
                        => Util.TUS ("/organization"),
                        Handler_Get_Queue

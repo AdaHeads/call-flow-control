@@ -46,12 +46,17 @@ private
 
    type Row is
       record
-         Ce_Id                : Natural;
-         Ce_Id_Column_Name    : Unbounded_String;
-         Ce_Name              : Unbounded_String;
-         Ce_Name_Column_Name  : Unbounded_String;
-         Is_Human             : Boolean;
-         Is_Human_Column_Name : Unbounded_String;
+         Ce_Id                   : Natural;
+         Ce_Id_Column_Name       : Unbounded_String;
+         Ce_Name                 : Unbounded_String;
+         Ce_Name_Column_Name     : Unbounded_String;
+         Is_Human                : Boolean;
+         Is_Human_Column_Name    : Unbounded_String;
+         Attr_JSON               : Common.JSON_String;
+         Attr_Org_Id             : Natural;
+         Attr_Org_Id_Column_Name : Unbounded_String;
+         Attr_Ce_Id              : Natural;
+         Attr_Ce_Id_Column_Name  : Unbounded_String;
       end record;
 
    function Element

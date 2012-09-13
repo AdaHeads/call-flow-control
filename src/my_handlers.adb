@@ -24,14 +24,9 @@
 with AWS.Dispatchers.Callback;
 with AWS.Net.WebSocket.Registry;
 with Contact;
-with Contact_Attributes;
-with Contact_Full;
 with My_Configuration;
 with Notifications;
 with Organization;
-with Organization_Contacts;
-with Organization_Contacts_Attributes;
-with Organization_Contacts_Full;
 with Yolk.Not_Found;
 with Call_Queue_Handler;
 
@@ -94,35 +89,8 @@ package body My_Handlers is
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Get_Contact),
+         URI        => My.Config.Get (My.Handler_Contact),
          Action     => Contact.Callback);
-
-      AWS.Services.Dispatchers.URI.Register
-        (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Get_Contact_Attributes),
-         Action     => Contact_Attributes.Callback);
-
-      AWS.Services.Dispatchers.URI.Register
-        (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Get_Contact_Full),
-         Action     => Contact_Full.Callback);
-
-      AWS.Services.Dispatchers.URI.Register
-        (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Get_Organization_Contacts),
-         Action     => Organization_Contacts.Callback);
-
-      AWS.Services.Dispatchers.URI.Register
-        (Dispatcher => RH,
-         URI        => My.Config.Get
-           (My.Handler_Get_Organization_Contacts_Attributes),
-         Action     => Organization_Contacts_Attributes.Callback);
-
-      AWS.Services.Dispatchers.URI.Register
-        (Dispatcher => RH,
-         URI        => My.Config.Get
-           (My.Handler_Get_Organization_Contacts_Full),
-         Action     => Organization_Contacts_Full.Callback);
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,

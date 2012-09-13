@@ -154,41 +154,11 @@ Handler_Get_Call /get/call
 #
 # The URI for the /get/call resource.
 
-Handler_Get_Contact /get/contact
+Handler_Contact /contact
 # String.
-# Default: /get/contact
+# Default: /contact
 #
-# The URI for the /get/contact resource.
-
-Handler_Get_Contact_Attributes /get/contact_attributes
-# String.
-# Default: /get/contact_attributes
-#
-# The URI for the /get/contact_attributes resource.
-
-Handler_Get_Contact_Full /get/contact_full
-# String.
-# Default: /get/contact_full
-#
-# The URI for the /get/contact_full resource.
-
-Handler_Get_Organization_Contacts /get/organization_contacts
-# String.
-# Default: /get/organization_contacts
-#
-# The URI for the /get/organization_contacts resource.
-
-Handler_Get_Organization_Contacts_Attributes /get/organization_contacts_attributes
-# String.
-# Default: /get/organization_contacts_attributes
-#
-# The URI for the /get/organization_contact_attributes resource.
-
-Handler_Get_Organization_Contacts_Full /get/organization_contacts_full
-# String.
-# Default: /get/organization_contacts_full
-#
-# The URI for the /get/organization_contacts_full resource.
+# The URI for the /contact resource.
 
 Handler_Organization /organization
 # String.
