@@ -12,12 +12,12 @@ with Yolk.Log;
 
 with AWS.Messages;
 
-package body Call_Queue_Handler is
+package body Call_Queue is
    use Common;
    use AWS.Status;
 
    --  returns the first call in the list.
-   function Get_Call (Request : in AWS.Status.Data)
+   function Call_Answer (Request : in AWS.Status.Data)
                       return AWS.Response.Data is
       use Call_List;
       Agent : constant String := Parameters (Request).Get ("agent");
@@ -61,56 +61,9 @@ package body Call_Queue_Handler is
         (Request => Request,
          Content => JSON,
          Status  => Status_Code);
-   end Get_Call;
+   end Call_Answer;
 
-   --  returns the number of calls waiting in the calling queue.
-   function Get_Length (Request : in AWS.Status.Data)
-                        return AWS.Response.Data is
-      Count : Ada.Containers.Count_Type;
-      JSON  : JSON_String;
-   begin
-      Count := Call_List.Length;
-      --  Make the Internal calls
-
-      JSON := Call_Queue_JSON.Convert_Length (Count);
-      --  Convert it to JSON
-
-      --  wrap it and send it.
-      return  Response.Build_JSON_Response
-        (Request => Request,
-         Content => JSON,
-         Status  => HTTP_Codes.OK);
-   end Get_Length;
-
-   --  returns the entire Call Queue, in JSON format.
-   function Get_Queue (Request : in AWS.Status.Data)
-                       return AWS.Response.Data is
-      use Ada.Containers;
-
-      Queue : Call_List.Call_List_Type.Vector;
-      Queue_Length : Ada.Containers.Count_Type;
-
-      JSON : JSON_String;
-      Status_Code : AWS.Messages.Status_Code;
-   begin
-      Queue := Call_List.Get;
-      Queue_Length := Call_List.Length;
-
-      if Queue_Length /= 0 then
-         JSON := Call_Queue_JSON.Convert_Queue (Queue);
-         Status_Code := HTTP_Codes.OK;
-      else
-         JSON := To_JSON_String ("{}");
-         Status_Code := HTTP_Codes.No_Content;
-      end if;
-
-      return  Response.Build_JSON_Response
-        (Request => Request,
-         Content => JSON,
-         Status  => Status_Code);
-   end Get_Queue;
-
-   function Hangup (Request : in AWS.Status.Data)
+   function Call_Hangup (Request : in AWS.Status.Data)
                     return AWS.Response.Data is
       use Ada.Strings.Unbounded;
 
@@ -176,9 +129,9 @@ package body Call_Queue_Handler is
            (Request => Request,
             Content => JSON,
             Status  => HTTP_Codes.Internal_Server_Error);
-   end Hangup;
+   end Call_Hangup;
 
-   function Park_Call (Request : in AWS.Status.Data)
+   function Call_Park (Request : in AWS.Status.Data)
                        return AWS.Response.Data is
       Status_Code : AWS.Messages.Status_Code;
       Status : Routines.Status_Type;
@@ -219,7 +172,96 @@ package body Call_Queue_Handler is
         (Request => Request,
          Content => JSON,
          Status  => Status_Code);
-   end Park_Call;
+   end Call_Park;
+
+--     function Call_Unpark (Request : in AWS.Status.Data)
+--                            return AWS.Response.Data is
+--        Call_ID : constant String := Parameters (Request).Get ("call_id");
+--        Status : Routines.Status_Type;
+--        Status_Code : AWS.Messages.Status_Code;
+--        JSON : JSON_String;
+--     begin
+--        Yolk.Log.Trace (Yolk.Log.Debug, "Unpark_Call");
+--        Routines.UnPark ( --  Agent_ID   => Agent,
+--                         Call_ID => Call_ID,
+--                         Status  => Status);
+--
+--        --  TODO maybe you should get the call out here.
+--        case Status is
+--           when Routines.Success =>
+--              Status_Code := HTTP_Codes.OK;
+--              JSON := Call_Queue_JSON.Status_Message
+--                ("Success",
+--                 "No problem, the call was undirected");
+--           when Routines.No_Agent_Found =>
+--              Status_Code := HTTP_Codes.Bad_Request;
+--              JSON := Call_Queue_JSON.Status_Message
+--                ("No Agent",
+--                 "There was no Agent by that name");
+--           when Routines.No_Call_Found =>
+--              Status_Code := HTTP_Codes.Bad_Request;
+--              JSON := Call_Queue_JSON.Status_Message
+--                ("No Call",
+--                 "This is not the call you are looking for");
+--           when others =>
+--              Status_Code := HTTP_Codes.Bad_Request;
+--              JSON := Call_Queue_JSON.Status_Message
+--                ("Unknonen Error",
+--                 "There happen to be an unknownen error");
+--        end case;
+--
+--        return  Response.Build_JSON_Response
+--          (Request => Request,
+--           Content => JSON,
+--           Status  => Status_Code);
+--     end Call_Unpark;
+
+   --  returns the entire Call Queue, in JSON format.
+   function Get_Queue (Request : in AWS.Status.Data)
+                       return AWS.Response.Data is
+      use Ada.Containers;
+
+      Queue : Call_List.Call_List_Type.Vector;
+      Queue_Length : Ada.Containers.Count_Type;
+
+      JSON : JSON_String;
+      Status_Code : AWS.Messages.Status_Code;
+   begin
+      Queue := Call_List.Get;
+      Queue_Length := Call_List.Length;
+
+      if Queue_Length /= 0 then
+         JSON := Call_Queue_JSON.Convert_Queue (Queue);
+         Status_Code := HTTP_Codes.OK;
+      else
+         JSON := To_JSON_String ("{}");
+         Status_Code := HTTP_Codes.No_Content;
+      end if;
+
+      return  Response.Build_JSON_Response
+        (Request => Request,
+         Content => JSON,
+         Status  => Status_Code);
+   end Get_Queue;
+
+   --  returns the number of calls waiting in the calling queue.
+   function Length (Request : in AWS.Status.Data)
+                        return AWS.Response.Data is
+      Count : Ada.Containers.Count_Type;
+      JSON  : JSON_String;
+   begin
+      Count := Call_List.Length;
+      --  Make the Internal calls
+
+      JSON := Call_Queue_JSON.Convert_Length (Count);
+      --  Convert it to JSON
+
+      --  wrap it and send it.
+      return  Response.Build_JSON_Response
+        (Request => Request,
+         Content => JSON,
+         Status  => HTTP_Codes.OK);
+   end Length;
 
 --     function Set_Call_On_Hold (Request : in AWS.Status.Data)
 --                                return AWS.Response.Data is
@@ -257,46 +299,4 @@ package body Call_Queue_Handler is
 --           Content => JSON,
 --           Status  => Status_Code);
 --     end Set_Call_On_Hold;
-
-   function Unpark_Call (Request : in AWS.Status.Data)
-                          return AWS.Response.Data is
-      Call_ID : constant String := Parameters (Request).Get ("call_id");
-      Status : Routines.Status_Type;
-      Status_Code : AWS.Messages.Status_Code;
-      JSON : JSON_String;
-   begin
-      Yolk.Log.Trace (Yolk.Log.Debug, "Unpark_Call");
-      Routines.UnPark ( --  Agent_ID   => Agent,
-                       Call_ID => Call_ID,
-                       Status  => Status);
-
-      --  TODO maybe you should get the call out here.
-      case Status is
-         when Routines.Success =>
-            Status_Code := HTTP_Codes.OK;
-            JSON := Call_Queue_JSON.Status_Message
-              ("Success",
-               "No problem, the call was undirected");
-         when Routines.No_Agent_Found =>
-            Status_Code := HTTP_Codes.Bad_Request;
-            JSON := Call_Queue_JSON.Status_Message
-              ("No Agent",
-               "There was no Agent by that name");
-         when Routines.No_Call_Found =>
-            Status_Code := HTTP_Codes.Bad_Request;
-            JSON := Call_Queue_JSON.Status_Message
-              ("No Call",
-               "This is not the call you are looking for");
-         when others =>
-            Status_Code := HTTP_Codes.Bad_Request;
-            JSON := Call_Queue_JSON.Status_Message
-              ("Unknonen Error",
-               "There happen to be an unknownen error");
-      end case;
-
-      return  Response.Build_JSON_Response
-        (Request => Request,
-         Content => JSON,
-         Status  => Status_Code);
-   end Unpark_Call;
-end Call_Queue_Handler;
+end Call_Queue;

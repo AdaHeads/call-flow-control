@@ -28,7 +28,7 @@ with My_Configuration;
 with Notifications;
 with Organization;
 with Yolk.Not_Found;
-with Call_Queue_Handler;
+with Call_Queue;
 
 package body My_Handlers is
 
@@ -67,25 +67,19 @@ package body My_Handlers is
         (Dispatcher => RH,
          URI        => My.Config.Get (My.Handler_Call_Hangup),
          Action     => Create
-           (Callback => Call_Queue_Handler.Hangup'Access));
+           (Callback => Call_Queue.Call_Hangup'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => My.Config.Get (My.Handler_Call_Park),
          Action     => Create
-           (Callback => Call_Queue_Handler.Park_Call'Access));
+           (Callback => Call_Queue.Call_Park'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Call_Unpark),
+         URI        => My.Config.Get (My.Handler_Call_Answer),
          Action     => Create
-           (Callback => Call_Queue_Handler.Unpark_Call'Access));
-
-      AWS.Services.Dispatchers.URI.Register
-        (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Get_Call),
-         Action     => Create
-           (Callback => Call_Queue_Handler.Get_Call'Access));
+           (Callback => Call_Queue.Call_Answer'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
@@ -99,15 +93,15 @@ package body My_Handlers is
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Get_Queue),
+         URI        => My.Config.Get (My.Handler_Queue),
          Action     => Create
-           (Callback => Call_Queue_Handler.Get_Queue'Access));
+           (Callback => Call_Queue.Get_Queue'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Get_Queue_Length),
+         URI        => My.Config.Get (My.Handler_Queue_Length),
          Action     => Create
-           (Callback => Call_Queue_Handler.Get_Length'Access));
+           (Callback => Call_Queue.Length'Access));
    end Set;
 
    ------------------------------

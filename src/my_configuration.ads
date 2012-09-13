@@ -42,14 +42,13 @@ package My_Configuration is
                  DB2_Password,
                  DB2_Port,
                  DB2_User,
+                 Handler_Call_Answer,
                  Handler_Call_Hangup,
                  Handler_Call_Park,
-                 Handler_Call_Unpark,
-                 Handler_Get_Call,
                  Handler_Contact,
                  Handler_Organization,
-                 Handler_Get_Queue,
-                 Handler_Get_Queue_Length,
+                 Handler_Queue,
+                 Handler_Queue_Length,
                  Handler_Notifications);
 
    type Defaults_Array is array (Keys) of
@@ -82,22 +81,20 @@ package My_Configuration is
                        => Util.TUS ("5432"),
                        DB2_User
                        => Util.TUS ("alice"),
+                       Handler_Call_Answer
+                       => Util.TUS ("/call/answer"),
                        Handler_Call_Hangup
-                       => Util.TUS ("/get/hangup"),
+                       => Util.TUS ("/call/hangup"),
                        Handler_Call_Park
-                       => Util.TUS ("/get/park"),
-                       Handler_Call_Unpark
-                       => Util.TUS ("/get/unpark"),
-                       Handler_Get_Call
-                       => Util.TUS ("/get/call"),
+                       => Util.TUS ("/call/park"),
                        Handler_Contact
                        => Util.TUS ("/contact"),
                        Handler_Organization
                        => Util.TUS ("/organization"),
-                       Handler_Get_Queue
-                       => Util.TUS ("/get/queue"),
-                       Handler_Get_Queue_Length
-                       => Util.TUS ("/get/queue_length"),
+                       Handler_Queue
+                       => Util.TUS ("/queue"),
+                       Handler_Queue_Length
+                       => Util.TUS ("/queue_length"),
                        Handler_Notifications
                        => Util.TUS ("/notifications"));
 

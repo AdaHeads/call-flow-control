@@ -19,7 +19,8 @@ Cache_Size_Contact 10_000
 # Positive.
 # Default: 10_000
 #
-# The size of the contact entity related caches. When the cache reach
+# The maximum amount of contact objects the cache will hold. When the cache
+# reach
 #
 #     Cache_Size_Contact + 1
 #
@@ -41,7 +42,8 @@ Cache_Size_Organization 1_000
 # Positive.
 # Default: 1_000
 #
-# The size of the organization related caches. When the cache reach
+# The maximum amount of organization objects the cache will hold. When the
+# cache reach
 #
 #     Cache_Size_Organization + 1
 #
@@ -123,63 +125,68 @@ DB2_User alice
 #
 # The readonly backup database user.
 
-##################################
-#        Resource handlers       #
-##################################
+################################################
+#        Resource handlers and interfaces      #
+################################################
 
-# These Key/Value pairs define which dispatcher is used for a given resource.
-# All resource handlers are specified in the My_Handlers package.
+# These Key/Value pairs define which dispatcher is used for a given resource or
+# interface. All resource handlers and interfaces are specified in the
+# My_Handlers package.
 
-Handler_Call_Hangup /get/hangup
+Handler_Call_Answer /call/answer
 # String.
-# Default: /get/hangup
+# Default: /call/answer
 #
-# The URI for the /get/hangup resource.
+# The URI for the /call/answer interface. This interface enables an agent to
+# answer either the oldest unanswered call in the call queue or a call
+# designated by a provided unique id.
+
+Handler_Call_Hangup /call/hangup
+# String.
+# Default: /call/hangup
+#
+# The URI for the /call/hangup interface. This interface enables an agent to
+# hangup the currently active call.
 
 Handler_Call_Park /get/park
 # String.
 # Default: /get/park
 #
-# The URI for the /get/park resource.
-
-Handler_Call_Unpark /get/unpark
-# String.
-# Default: /get/unpark
-#
-# The URI for the /get/unpark resource.
-
-Handler_Get_Call /get/call
-# String.
-# Default: /get/call
-#
-# The URI for the /get/call resource.
+# The URI for the /call/park interface. This interface enables an agent to park
+# the currently active call. Calls parked by agent X can only be answered by
+# agent X. If agent X logs off while having parked calls, all those calls are
+# reverted to being available to all agents.
 
 Handler_Contact /contact
 # String.
 # Default: /contact
 #
-# The URI for the /contact resource.
-
-Handler_Organization /organization
-# String.
-# Default: /organization
-#
-# The URI for the /organization resource.
-
-Handler_Get_Queue /get/queue
-# String.
-# Default: /get/queue
-#
-# The URI for the /get/queue resource
-
-Handler_Get_Queue_Length /get/queue_length
-# String.
-# Default: /get/queue_length
-#
-# The URI for the /get/queue_length resource
+# The URI for the /contact resource. This resource returns a JSON object
+# containing one complete contact entity.
 
 Handler_Notifications /notifications
 # String.
 # Default: /notifications
 #
 # The URI for the /notifications websocket resource.
+
+Handler_Organization /organization
+# String.
+# Default: /organization
+#
+# The URI for the /organization resource. This resource returns a JSON object
+# containing on complete organization.
+
+Handler_Queue /queue
+# String.
+# Default: /queue
+#
+# The URI for the /queue resource. Returns a JSON object containing the entire
+# current call queue.
+
+Handler_Queue_Length /queue_length
+# String.
+# Default: /queue_length
+#
+# The URI for the /queue_length resource. Returns a JSON object containing the
+# length of the current call queue, including calls already answered and
