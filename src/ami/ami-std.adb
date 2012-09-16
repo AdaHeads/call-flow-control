@@ -24,8 +24,8 @@
 with Ada.Strings.Unbounded,
      Ada.Exceptions;
 
-with AMI.Event;
---       AMI.Action;
+with AMI.Event,
+     AMI.Action;
 
 --  with Routines;
 
@@ -35,6 +35,11 @@ with AWS.Net.Std,
      AWS.Net.Buffered;
 
 package body AMI.Std is
+   function TS
+     (US : in Ada.Strings.Unbounded.Unbounded_String)
+      return String
+      renames Ada.Strings.Unbounded.To_String;
+
    Event_Socket : AWS.Net.Std.Socket_Type;
    Action_Socket : AWS.Net.Std.Socket_Type;
    Shutdown : Boolean := False;
@@ -80,7 +85,9 @@ package body AMI.Std is
                             & To_String (Server_Host)
                             & " Port: " & Server_Port'Img);
 
-            --  TODO, Start the work here.
+            AMI.Action.Start (Socket => Action_Socket,
+                              Username => TS (Username),
+                              Secret => TS (Secret));
          exception
             when Err : others =>
                Yolk.Log.Trace (Yolk.Log.Info,

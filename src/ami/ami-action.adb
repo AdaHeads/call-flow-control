@@ -550,7 +550,7 @@ package body AMI.Action is
 --        end if;
    end Set_Var;
 
-   procedure Start (Socket  : in AWS.Net.Std.Socket_Type;
+   procedure Start (Socket   : in AWS.Net.Std.Socket_Type;
                     Username : in String;
                     Secret   : in String) is
       use Ada.Strings.Unbounded;

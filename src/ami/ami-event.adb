@@ -35,11 +35,21 @@ with Call_List,
 with Yolk.Log;
 
 package body AMI.Event is
-   use Ada.Strings.Unbounded;
+   --  use Ada.Strings.Unbounded;
    use Call_List;
    use Ada.Exceptions;
    use AMI.IO;
    use Peers;
+
+   function TS
+     (US : in Ada.Strings.Unbounded.Unbounded_String)
+      return String
+      renames Ada.Strings.Unbounded.To_String;
+
+   function TUS
+     (S : in String)
+      return Ada.Strings.Unbounded.Unbounded_String
+      renames Ada.Strings.Unbounded.To_Unbounded_String;
 
    Asterisk : Asterisk_AMI_Type;
 
@@ -86,9 +96,10 @@ package body AMI.Event is
    --  DestUniqueID: 1340097427.11
    --  Dialstring: softphone1
    procedure Dial_Callback (Event_List : in Event_List_Type.Map) is
+      use Ada.Strings.Unbounded;
    begin
-      if Event_List.Contains (To_Unbounded_String ("Message")) and then
-        Event_List.Element  (To_Unbounded_String ("Message")) =
+      if Event_List.Contains (TUS ("Message")) and then
+        Event_List.Element  (TUS ("Message")) =
         "Authentication accepted" then
          Asterisk.Logged_In := True;
       end if;
@@ -104,42 +115,52 @@ package body AMI.Event is
    --  Cause-txt: Normal Clearing
    procedure Hangup_Callback (Event_List : in Event_List_Type.Map) is
       Call : Call_Type;
+      Uniqueid : Unbounded_String;
    begin
-      if Event_List.Contains (To_Unbounded_String ("Uniqueid")) then
-         Call := Call_List.Remove (Event_List.Element (
-           To_Unbounded_String ("Uniqueid")));
+      if Event_List.Contains (TUS ("Uniqueid")) then
+         Uniqueid := Event_List.Element (TUS ("Uniqueid"));
+         Call := Call_List.Remove (Uniqueid);
+
          Yolk.Log.Trace (Yolk.Log.Debug, "This call have been hangup: " &
-                           "Channel: " & To_String (Call.Channel) &
-                           "UniqueID: " & To_String (Call.Uniqueid));
+                           "Channel: " & TS (Call.Channel) &
+                           "UniqueID: " & TS (Call.Uniqueid));
+         if Call = null_Call then
+            Yolk.Log.Trace
+              (Yolk.Log.info,
+               "Got a hangup on a call, that was not in the Calls list." &
+                 " Uniqueid: " & TS (Uniqueid))
+         end if;
       end if;
    end Hangup_Callback;
 
    --  Event: Join
-   --  Channel: SIP/TP-Softphone-00000021
+   --  Privilege: call,all
+   --  Channel: SIP/TP-Softphone-00000036
    --  CallerIDNum: TP-Softphone
    --  CallerIDName: unknown
-   --  Queue: testqueue1
+   --  Queue: org_id1
    --  Position: 1
-   --  Count 1
-   --  Uniqueid: 1340807150.33
+   --  Count: 1
+   --  Uniqueid: 1347875403.105
    procedure Join_Callback (Event_List : in Event_List_Type.Map) is
-      Call : Call_List.Call_Type;
+      Call : Call_List.Call_Type := null_Call;
       --  Unknownen
    begin
-      if Event_List.Contains (To_Unbounded_String ("Uniqueid")) then
+      if Event_List.Contains (TUS ("Uniqueid")) then
          --  The call should exsists at this point.
          Call := Call_List.Get_Call
-           (Event_List.Element (To_Unbounded_String ("Uniqueid")));
+           (Event_List.Element (TUS ("Uniqueid")));
       end if;
 
+      --  There are no call with that ID, something is wrong.
       if Call = null_Call then
-         if Event_List.Contains (To_Unbounded_String ("Channel")) then
+         if Event_List.Contains (TUS ("Channel")) then
             Yolk.Log.Trace (Yolk.Log.Error,
                             "Got a Join evnet, "&
                               "on a call there is not in the call list. " &
                               "Channel: " &
-                              To_String (Event_List.Element
-                (To_Unbounded_String ("Channel"))));
+                              TS (Event_List.Element
+                (TUS ("Channel"))));
          else
             Yolk.Log.Trace (Yolk.Log.Error,
                             "Got a Join Event, on a call that don't exsist" &
@@ -150,9 +171,9 @@ package body AMI.Event is
       if Call.State = Call_List.Unknown then
          Call.State := Call_List.Queued;
 
-         if Event_List.Contains (To_Unbounded_String ("Queue")) then
+         if Event_List.Contains (TUS ("Queue")) then
             Call.Queue := Event_List.Element
-              (To_Unbounded_String ("Queue"));
+              (TUS ("Queue"));
          end if;
       elsif Call.State = Call_List.OnHold then
          null;
@@ -160,53 +181,6 @@ package body AMI.Event is
          Yolk.Log.Trace (Yolk.Log.Error, "Join Event, Call with bad state: " &
                            Call.State'Img);
       end if;
-
---        if Event_List.Contains (To_Unbounded_String ("Channel")) then
---           Current_Call.Channel := Event_List.Element
---            (To_Unbounded_String ("Channel"));
---        end if;
---
---        if Event_List.Contains (To_Unbounded_String ("CallerIDNum")) then
---           Current_Call.CallerIDNum := Event_List.Element
---             (To_Unbounded_String ("CallerIDNum"));
---        end if;
---        if Event_List.Contains (To_Unbounded_String ("CallerIDName")) then
---           Current_Call.CallerIDName := Event_List.Element
---             (To_Unbounded_String ("CallerIDName"));
---        end if;
---        if Event_List.Contains (To_Unbounded_String ("Queue")) then
---           Current_Call.Queue := Event_List.Element
---             (To_Unbounded_String ("Queue"));
---        end if;
---        if Event_List.Contains (To_Unbounded_String ("Position")) then
---           Current_Call.Position := Integer'Value (To_String (
---             Event_List.Element (To_Unbounded_String ("Position"))));
---        end if;
---        if Event_List.Contains (To_Unbounded_String ("Count")) then
---           Current_Call.Count := Integer'Value (To_String (
---             Event_List.Element (To_Unbounded_String ("Count"))));
---        end if;
---        if Event_List.Contains (To_Unbounded_String ("Uniqueid")) then
---           Current_Call.Uniqueid := Event_List.Element
---             (To_Unbounded_String ("Uniqueid"));
---        end if;
---        Current_Call.Arrived := Ada.Calendar.Clock;
-
-      --  TODO, this event tells which queue the call entered.
-      --  If it exists with state <Unknownen> then it is a new call
-      --  if not, then it is propperly a parked call.
-
---           State : Unbounded_String;
---        begin
---           AMI.Action.Action_Manager.Get_Var
---             (Channel      => To_String (Call.Channel),
---              VariableName => "CallState",
---              Value        => State);
---
---         if To_String (State) = "(null)" or else To_String (State) = "" then
---              Call_List.Add (Call => Call);
---           end if;
---        end;
    end Join_Callback;
 
    procedure Login (Asterisk_AMI : in Asterisk_AMI_Type;
@@ -219,14 +193,15 @@ package body AMI.Event is
    end Login;
 
    procedure Login_Callback (Event_List : in Event_List_Type.Map) is
+      use Ada.Strings.Unbounded;
       Message : Unbounded_String;
    begin
 
-      if Event_List.Contains (To_Unbounded_String ("Message")) then
+      if Event_List.Contains (TUS ("Message")) then
          Message := Event_List.Element
-           (To_Unbounded_String ("Message"));
+           (TUS ("Message"));
 
-         if To_String (Message) =  "Authentication accepted" then
+         if TS (Message) =  "Authentication accepted" then
             Asterisk.Logged_In := True;
          else
             Asterisk.Logged_In := False;
@@ -236,27 +211,36 @@ package body AMI.Event is
    end Login_Callback;
 
    --  Event: Newchannel
-   --  Channel: Zap/2-1
-   --  State: Rsrvd
-   --  Callerid: <unknown>
-   --  Uniqueid: 1094154427.11
+   --  Privilege: call,all
+   --  Channel: SIP/TP-Softphone-00000036
+   --  ChannelState: 0
+   --  ChannelStateDesc: Down
+   --  CallerIDNum: TP-Softphone
+   --  CallerIDName:
+   --  AccountCode:
+   --  Exten: 7001
+   --  Context: LocalSets
+   --  Uniqueid: 1347875403.105
    procedure Newchannel_Callback (Event_List : in Event_List_Type.Map) is
       Call : Call_Type;
    begin
-      if Event_List.Contains (To_Unbounded_String ("Channel")) then
+      if Event_List.Contains (TUS ("Channel")) then
          Call.Channel := Event_List.Element
-            (To_Unbounded_String ("Channel"));
+            (TUS ("Channel"));
       end if;
 
-      if Event_List.Contains (To_Unbounded_String ("Uniqueid")) then
+      if Event_List.Contains (TUS ("Uniqueid")) then
          Call.Uniqueid :=  Event_List.Element
-           (To_Unbounded_String ("Uniqueid"));
+           (TUS ("Uniqueid"));
       end if;
 
-      if Event_List.Contains (To_Unbounded_String ("Exten")) then
+      if Event_List.Contains (TUS ("Exten")) then
          Call.Extension :=  Event_List.Element
-           (To_Unbounded_String ("Exten"));
+           (TUS ("Exten"));
       end if;
+
+      --  Save the time when the call came in.
+      Call.Arrived := Ada.Calendar.Clock;
 
       Call_List.Add (Call);
    end Newchannel_Callback;
@@ -272,7 +256,7 @@ package body AMI.Event is
    procedure NewState_Callback is
    begin
       Yolk.Log.Trace (Yolk.Log.Debug, "NewState_Callback not implemented");
-      raise NOT_IMPLEMENTED;
+--        raise NOT_IMPLEMENTED;
    end NewState_Callback;
 
    --  Event: PeerStatus
@@ -280,6 +264,7 @@ package body AMI.Event is
    --  PeerStatus: Registered
    procedure PeerStatus_Callback (Event_List : in Event_List_Type.Map) is
       use Peers.Peer_List_Type;
+      use Ada.Strings.Unbounded;
       Peer        : Peer_Type;
       Map_Key     : Unbounded_String;
       Exsist      : Boolean := False;
@@ -300,21 +285,21 @@ package body AMI.Event is
             Peer.Peer := Tail (Source => Text,
                                Count  => Length (Text) - Seperator_Index);
             Peer.ChannelType := Head (Text, Seperator_Index - 1);
-            if To_String (Peer.ChannelType) /= "SIP" then
-               Yolk.Log.Trace (Yolk.Log.Alert, To_String (Peer.ChannelType));
+            if TS (Peer.ChannelType) /= "SIP" then
+               Yolk.Log.Trace (Yolk.Log.Alert, TS (Peer.ChannelType));
             end if;
          else
             Yolk.Log.Trace (Yolk.Log.Debug,
                             "Set_PhoneInfo:" &
                               "This peer does not have a Channeltype: "
-                            & To_String (Text));
+                            & TS (Text));
          end if;
       end Set_PhoneInfo;
 
    begin
-      if Event_List.Contains (To_Unbounded_String ("Peer")) then
+      if Event_List.Contains (TUS ("Peer")) then
          Set_PhoneInfo (Peer,
-                        Event_List.Element (To_Unbounded_String ("Peer")));
+                        Event_List.Element (TUS ("Peer")));
          Map_Key := Peer.Peer;
       end if;
 
@@ -339,32 +324,32 @@ package body AMI.Event is
       --      (To_Unbounded_String ("ChannelType"));
       --  end if;
 
-      if Event_List.Contains (To_Unbounded_String ("Address")) then
+      if Event_List.Contains (TUS ("Address")) then
          Peer.Address := Event_List.Element
-           (To_Unbounded_String ("Address"));
+           (TUS ("Address"));
       end if;
 
-      if Event_List.Contains (To_Unbounded_String ("Port")) then
-         Peer.Port := Event_List.Element (To_Unbounded_String ("Port"));
+      if Event_List.Contains (TUS ("Port")) then
+         Peer.Port := Event_List.Element (TUS ("Port"));
       end if;
 
-      if Event_List.Contains (To_Unbounded_String ("PeerStatus")) then
-         if To_String (Event_List.Element (To_Unbounded_String ("PeerStatus")))
+      if Event_List.Contains (TUS ("PeerStatus")) then
+         if TS (Event_List.Element (TUS ("PeerStatus")))
            = "Unregistered"  then
             Peer.Status := Unregistered;
             Yolk.Log.Trace (Yolk.Log.Debug,
                             "Got peer with unregistrered status");
 
-         elsif To_String (Event_List.Element (
-           To_Unbounded_String ("PeerStatus"))) = "Registered" then
+         elsif TS (Event_List.Element (
+           TUS ("PeerStatus"))) = "Registered" then
             Peer.Status := Registered;
             Yolk.Log.Trace (Yolk.Log.Debug,
                             "Got peer with registrered status");
 
          else
             Yolk.Log.Trace (Yolk.Log.Debug, "Peer Status, unknown state: " &
-                To_String (Event_List.Element
-                (To_Unbounded_String ("PeerStatus"))));
+                TS (Event_List.Element
+                (TUS ("PeerStatus"))));
          end if;
       else
          Yolk.Log.Trace (Yolk.Log.Info,
@@ -379,7 +364,7 @@ package body AMI.Event is
          if Exten = Null_Unbounded_String then
             Yolk.Log.Trace (Yolk.Log.Warning,
                             "There is not registrated any extension to agent: "
-                            & To_String (Peer.Peer));
+                            & TS (Peer.Peer));
             raise Program_Error;
          else
             Peer.Exten := Exten;
@@ -423,13 +408,13 @@ package body AMI.Event is
 
    --  TODO: Write up and
    --    architecture that uses a queue to send requests, or blocks
-   procedure Start (channel  : in AWS.Net.Std.Socket_Type;
+   procedure Start (Channel  : in AWS.Net.Std.Socket_Type;
                     Username : in String;
                     Secret   : in String) is
-
+      use Ada.Strings.Unbounded;
    begin
-      Asterisk := (Greeting  => new String'(Read_Line (channel)),
-                   Channel   => channel,
+      Asterisk := (Greeting  => new String'(Read_Line (Channel)),
+                   Channel   => Channel,
                    Logged_In => False);
 
       Yolk.Log.Trace (Yolk.Log.Debug, "Event Greetings: " &
@@ -443,17 +428,15 @@ package body AMI.Event is
 
       loop
          declare
-            Event_String : constant Unbounded_String := Read_Package (channel);
+            Event_String : constant Unbounded_String := Read_Package (Channel);
             Event_List : Event_List_Type.Map;
          begin
             Event_List := Parse (Event_String);
             --  Basically we have responses, or events
-            if Event_List.Contains (To_Unbounded_String ("Event")) then
+            if Event_List.Contains (TUS ("Event")) then
                begin
-                  Event_Callback_Routine
-                    (AMI.Event.Event'Value (To_String
-                     (Event_List.Element
-                        (To_Unbounded_String ("Event")))))(Event_List);
+                  Event_Callback_Routine (AMI.Event.Event'Value (TS
+                     (Event_List.Element (TUS ("Event")))))(Event_List);
                exception
                   when others =>
                      null;
@@ -482,7 +465,7 @@ package body AMI.Event is
    procedure Unlink_Callback (Event_List : in Event_List_Type.Map) is
    begin
       Yolk.Log.Trace (Yolk.Log.Debug, "Unlink_Callback not implemented");
-      if Event_List.Contains (To_Unbounded_String
+      if Event_List.Contains (TUS
                               ("I'm not implemented but needed anyway")) then
          null;
       end if;

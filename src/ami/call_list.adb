@@ -284,7 +284,9 @@ package body Call_List is
       return Protected_Call_List.Length;
    end Length;
 
-      --  Removes a specific call from the call queue.
+   --  Removes a specific call from the call queue.
+   --  if the call is not in the list, a null_call is returned otherwise,
+   --   the call is returned.
    function Remove (Uniqueid : in Unbounded_String) return Call_Type is
       Call : Call_Type;
    begin
