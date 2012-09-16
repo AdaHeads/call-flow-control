@@ -133,14 +133,6 @@ DB2_User alice
 # interface. All resource handlers and interfaces are specified in the
 # My_Handlers package.
 
-Handler_Call_Answer /call/answer
-# String.
-# Default: /call/answer
-#
-# The URI for the /call/answer interface. This interface enables an agent to
-# answer either the oldest unanswered call in the call queue or a call
-# designated by a provided unique id.
-
 Handler_Call_Hangup /call/hangup
 # String.
 # Default: /call/hangup
@@ -148,14 +140,22 @@ Handler_Call_Hangup /call/hangup
 # The URI for the /call/hangup interface. This interface enables an agent to
 # hangup the currently active call.
 
-Handler_Call_Park /get/park
+Handler_Call_Hold /call/hold
 # String.
-# Default: /get/park
+# Default: /call/hold
 #
-# The URI for the /call/park interface. This interface enables an agent to park
-# the currently active call. Calls parked by agent X can only be answered by
-# agent X. If agent X logs off while having parked calls, all those calls are
-# reverted to being available to all agents.
+# The URI for the /call/hold interface. This interface enables an agent to put
+# the currently active call on hold. Calls put on hold by agent X can only be
+# answered by agent X. If agent X logs off while having parked calls, all those
+# calls are reverted to being available to all agents.
+
+Handler_Call_Pickup /call/pickup
+# String.
+# Default: /call/pickup
+#
+# The URI for the /call/pickup interface. This interface enables an agent to
+# pickup either the oldest unanswered call in the call queue or a call
+# designated by a provided call_id.
 
 Handler_Contact /contact
 # String.

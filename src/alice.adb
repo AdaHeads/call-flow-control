@@ -90,9 +90,9 @@ procedure Alice is
             Callback   => Yolk.Log.AWS_Error_Log_Writer'Access,
             Name       => "AWS Error Log");
          --  Start the access and error logs.
-
-         AMI.Std.Connect;
       end if;
+
+      AMI.Std.Connect;
 
       Trace (Handle  => Info,
              Message => "Started " &
