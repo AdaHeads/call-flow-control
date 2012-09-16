@@ -72,9 +72,6 @@ procedure Alice is
          --  If sessions are enabled and the Session_Data_File exists, then
          --  load the old session data.
       end if;
-      Trace (Error, "Calling AMI.Std.connect in Alice");
-      AMI.Std.Connect;
-      Trace (Error, "Done Calling AMI.Std.connect in Alice");
 
       AWS.Server.Start (Web_Server => Web_Server,
                         Dispatcher => Resource_Handlers,
@@ -93,6 +90,8 @@ procedure Alice is
             Callback   => Yolk.Log.AWS_Error_Log_Writer'Access,
             Name       => "AWS Error Log");
          --  Start the access and error logs.
+
+         AMI.Std.Connect;
       end if;
 
       Trace (Handle  => Info,
@@ -111,6 +110,8 @@ procedure Alice is
    procedure Stop_Server
    is
    begin
+      AMI.Std.Disconnect;
+
       if AWS.Config.Session (Web_Server_Config) then
          AWS.Session.Save (Config.Get (Session_Data_File));
          --  If sessions are enabled, then save the session data to the
@@ -171,8 +172,6 @@ begin
 
    Wait;
    --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
-
-   AMI.Std.Disconnect;
 
    Stop_Server;
 
