@@ -46,10 +46,4 @@ package Call_Queue is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
    --  Return the entire call queue.
-
-   function Length
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Return the amount of calls waiting in the call queue.
-
 end Call_Queue;

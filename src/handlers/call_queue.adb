@@ -21,7 +21,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers;
 with AWS.Messages;
 with Call_List;
 with Call_Queue_JSON;
@@ -30,9 +29,13 @@ with HTTP_Codes;
 with Response;
 with Routines;
 with Yolk.Log;
-with Yolk.Utilities;
+with Ada.Strings.Unbounded;
 
 package body Call_Queue is
+   function TUS
+     (S : in String)
+      return Ada.Strings.Unbounded.Unbounded_String
+      renames Ada.Strings.Unbounded.To_Unbounded_String;
 
    -------------------
    --  Call_Hangup  --
@@ -45,7 +48,6 @@ package body Call_Queue is
       use Common;
       use HTTP_Codes;
       use Yolk.Log;
-      use Yolk.Utilities;
 
       JSON        : JSON_String;
       Status      : Routines.Status_Type;
@@ -60,12 +62,12 @@ package body Call_Queue is
       declare
          use AWS.Status;
 
-         Agent : constant String := Parameters (Request).Get ("agent");
+         Call_ID : constant String := Parameters (Request).Get ("Call_id");
          --  ???? Agent? This constant is used with the Routines.Hangup
          --  procedure which takes a Call_Id. Bug or by design?
       begin
-         Trace (Debug, "Hangup handle: agent=" & Agent);
-         Routines.Hangup (TUS (Agent), Status);
+         Trace (Debug, "Hangup handle: call_id=" & Call_ID);
+         Routines.Hangup (TUS (Call_ID), Status);
          --  ???? Why the conversion to Unbounded_String here? In most of the
          --  other Routines methods you take a plain String and convert in the
          --  method instead.
@@ -143,21 +145,17 @@ package body Call_Queue is
       use Common;
       use HTTP_Codes;
       use Yolk.Log;
+      use AWS.Status;
 
       JSON        : JSON_String;
       Status      : Routines.Status_Type;
       Status_Code : AWS.Messages.Status_Code;
+
+      Call_Id : constant String := Parameters (Request).Get ("Call_ID");
    begin
       Trace (Debug, "Call_Queue_Handler.Park started");
 
-      --   ???? Why this block?
-      declare
-         use AWS.Status;
-
-         Call_Id : constant String := Parameters (Request).Get ("Call_ID");
-      begin
-         Routines.Park (Call_Id, Status);
-      end;
+      Routines.Park (Call_Id, Status);
 
       case Status is
          when Routines.Success =>
@@ -258,14 +256,12 @@ package body Call_Queue is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
-      use Ada.Containers;
       use Common;
       use HTTP_Codes;
 
       JSON         : JSON_String;
       Queue        : Call_List.Call_List_Type.Vector;
       --  ???? Odd naming. See ???? comment for Call_List.Call_List_Type.
-      Queue_Length : Count_Type;
       Status_Code  : AWS.Messages.Status_Code;
    begin
       --  ???? If we're ultimately just interested in getting a queue JSON
@@ -274,58 +270,14 @@ package body Call_Queue is
       --  Why not just have a function in the Call_List package that return
       --  the final JSON and use that directly in the Build_JSON_Response call?
       Queue := Call_List.Get;
-      Queue_Length := Call_List.Length;
 
-      if Queue_Length /= 0 then
-         JSON := Call_Queue_JSON.Convert_Queue (Queue);
-         Status_Code := OK;
-      else
-         JSON := To_JSON_String ("{}");
-         --  ???? The GNATCOLL.JSON.Create_Object call is perhaps a more clean
-         --  way of getting an empty JSON document.
-         Status_Code := No_Content;
-         --  ???? No_Content makes no sense here, because you've just built
-         --  the simple content {}
-         --  If the call to Get_Queue is successful, you should probably just
-         --  set OK. The only reason for setting a different HTTP code is if
-         --  something really awkward has happened.
-      end if;
+      JSON := Call_Queue_JSON.Convert_Queue (Queue);
+      Status_Code := OK;
 
       return  Response.Build_JSON_Response
         (Request => Request,
          Content => JSON,
          Status  => Status_Code);
    end Get_Queue;
-
-   --------------
-   --  Length  --
-   --------------
-
-   function Length
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data
-   is
-      use Ada.Containers;
-      use Common;
-      use HTTP_Codes;
-
-      Count : Count_Type;
-      JSON  : JSON_String;
-   begin
-      Count := Call_List.Length;
-      --  Make the Internal calls
-
-      JSON := Call_Queue_JSON.Convert_Length (Count);
-      --  Convert it to JSON
-
-      --  ???? Why the need for a conversion step here? Wouldn't this be more
-      --  cleanly handled in Call_List.Length using an overloaded Length
-      --  function?
-
-      return  Response.Build_JSON_Response
-        (Request => Request,
-         Content => JSON,
-         Status  => OK);
-   end Length;
 
 end Call_Queue;
