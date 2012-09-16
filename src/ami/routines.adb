@@ -1,3 +1,26 @@
+-------------------------------------------------------------------------------
+--                                                                           --
+--                                  Alice                                    --
+--                                                                           --
+--                                 Routines                                  --
+--                                                                           --
+--                                  BODY                                     --
+--                                                                           --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
+--                                                                           --
+--  This is free software;  you can redistribute it and/or modify it         --
+--  under terms of the  GNU General Public License  as published by the      --
+--  Free Software  Foundation;  either version 3,  or (at your  option) any  --
+--  later version. This library is distributed in the hope that it will be   --
+--  useful, but WITHOUT ANY WARRANTY;  without even the implied warranty of  --
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                     --
+--  You should have received a copy of the GNU General Public License and    --
+--  a copy of the GCC Runtime Library Exception along with this program;     --
+--  see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+--  <http://www.gnu.org/licenses/>.                                          --
+--                                                                           --
+-------------------------------------------------------------------------------
+
 with AMI.Action,
 --       Ada.Calendar,
 --       Ada.Containers,
@@ -8,15 +31,15 @@ with Yolk.Log;
 
 package body Routines is
       --  Takes two channels, and bridge the them together.
-   procedure Bridge_Call (Call_ID1 : in     Unbounded_String;
-                          Call_ID2 : in     Unbounded_String;
-                          Status   :    out Status_Type) is
+   procedure Bridge_Call (Call_Id_1 : in     Unbounded_String;
+                          Call_Id_2 : in     Unbounded_String;
+                          Status    :    out Status_Type) is
       use Call_List;
       Call1, Call2 : Call_Type;
    begin
-      Status := Unknowen_Error;
-      Call1 := Call_List.Get_Call (Call_ID1);
-      Call2 := Call_List.Get_Call (Call_ID2);
+      Status := Unknown_Error;
+      Call1 := Call_List.Get_Call (Call_Id_1);
+      Call2 := Call_List.Get_Call (Call_Id_2);
 
       if Call1 = null_Call or else Call2 = null_Call then
          Status := No_Call_Found;
@@ -76,8 +99,8 @@ package body Routines is
 
    --  Get the specific call with UniqueId matching
    --  If unitqueID is null, then the first call in the queue is taken.
-   procedure Get_Call (Unique_ID : in     String;
-                       Agent_ID  : in     String;
+   procedure Get_Call (Unique_Id : in     String;
+                       Agent_Id  : in     String;
                        Status    :    out Status_Type) is
       use Call_List;
       use Peers;
@@ -86,35 +109,35 @@ package body Routines is
       Temp_Call : Call_Type;
       Peer : Peer_Type;
    begin
-      Status := Unknowen_Error;
-      Peer := Peers.Get_Peer (Agent_ID => To_Unbounded_String (Agent_ID));
+      Status := Unknown_Error;
+      Peer := Peers.Get_Peer (Agent_ID => To_Unbounded_String (Agent_Id));
 
       --  Check if there exsist an Agent by that name.
       if Peer = null_Peer then
          Yolk.Log.Trace (Yolk.Log.Debug, "Get_Call: " &
                            "We have no agent registred by that ID: [" &
-                           Agent_ID & "]");
+                           Agent_Id & "]");
          Status := No_Agent_Found;
          return;
       end if;
 
       --  Now that we know that there exists a Peer,
       --   is the SIP phone registreted?
-      Yolk.Log.Trace (Yolk.Log.Debug, "Get_Call - Agent_ID: " & Agent_ID &
-                        " ask for Call_ID: " & Unique_ID);
+      Yolk.Log.Trace (Yolk.Log.Debug, "Get_Call - Agent_ID: " & Agent_Id &
+                        " ask for Call_ID: " & Unique_Id);
       if Peer.Status = Unregistered then
          Yolk.Log.Trace (Yolk.Log.Debug, "Get_Call: " &
-                           "The following agent is unregistred: " & Agent_ID);
-         Status := Unregistred_Agent;
+                           "The following agent is unregistred: " & Agent_Id);
+         Status := Unregistered_Agent;
          return;
       end if;
 
       Temp_Call := Call_List.Get_Call (UniqueID =>
-                                         To_Unbounded_String (Unique_ID));
+                                         To_Unbounded_String (Unique_Id));
 
       if Temp_Call = null_Call then
          Yolk.Log.Trace (Yolk.Log.Debug,
-                         "Get_Call: No Call to take with ID: " & Unique_ID);
+                         "Get_Call: No Call to take with ID: " & Unique_Id);
          Status := No_Call_Found;
       end if;
 
@@ -147,7 +170,7 @@ package body Routines is
 --  --        return To_String (Version);
 --     end Get_Version;
 
-   procedure Hangup (Call_ID : in     Unbounded_String;
+   procedure Hangup (Call_Id : in     Unbounded_String;
                      Status  :    out Status_Type) is
       use Peers;
       use Call_List;
@@ -155,16 +178,16 @@ package body Routines is
       Call : Call_Type;
    begin
       Yolk.Log.Trace (Yolk.Log.Debug, "Hangup: routine started");
-      Status := Unknowen_Error;
+      Status := Unknown_Error;
 
-      Call := Call_List.Get_Call (UniqueID => Call_ID);
+      Call := Call_List.Get_Call (UniqueID => Call_Id);
 
       if Call = null_Call then
          Status := No_Call_Found;
       end if;
 
       Yolk.Log.Trace (Yolk.Log.Debug,
-                      "Hangup Call: " & To_String (Call_ID));
+                      "Hangup Call: " & To_String (Call_Id));
 
       AMI.Action.Hangup
         (Ada.Strings.Unbounded.To_String (Call.Channel));
@@ -177,8 +200,8 @@ package body Routines is
    --  TODO Refactor, in case something goes wrong,
    --    the steps are taken in the wrong order.
    --  Sends the agent's current call on hold / park.
-   procedure Park (Call_ID  : in     String;
-                   Status    :    out Status_Type) is
+   procedure Park (Call_Id : in     String;
+                   Status  :    out Status_Type) is
       use Peers;
       use Peers.Peer_List_Type;
       use Call_List;
@@ -186,7 +209,7 @@ package body Routines is
       Call : Call_Type;
    begin
       --  Default fallback status.
-      Status := Unknowen_Error;
+      Status := Unknown_Error;
 
       --  Finds the Agent, to get the call to park.
 --        Peer := Peers.Get_Peer (Agent_ID => To_Unbounded_String (Agent_ID));
@@ -205,17 +228,17 @@ package body Routines is
 --           return;
 --        end if;
 
-      Call := Call_List.Get_Call (UniqueID => To_Unbounded_String (Call_ID));
+      Call := Call_List.Get_Call (UniqueID => To_Unbounded_String (Call_Id));
 
       if Call = Call_List.null_Call then
          Yolk.Log.Trace (Yolk.Log.Debug,
-                         "Park_Call: Call not found, ID: " & Call_ID);
+                         "Park_Call: Call not found, ID: " & Call_Id);
          Status := No_Call_Found;
          return;
       end if;
 
       Yolk.Log.Trace (Yolk.Log.Debug,
-                      "Park: Action send, Call_ID => " & Call_ID);
+                      "Park: Action send, Call_ID => " & Call_Id);
 
       --  Move the call back to the Queue, which will act like a parking lot.
 
@@ -234,14 +257,14 @@ package body Routines is
                             "Routines.Park: " &
                               "The Call does not have an Extension Variable" &
                               "Call ID: " & To_String (Call.Uniqueid));
-            Status := Routines.Unknowen_Error;
+            Status := Routines.Unknown_Error;
             return;
       elsif To_String (Call.Extension) = "" then
             Yolk.Log.Trace (Yolk.Log.Debug,
                             "Routines.Park: " &
                               "The Call have an empty extension variable" &
                               "Call ID: " & To_String (Call.Uniqueid));
-            Status := Routines.Unknowen_Error;
+            Status := Routines.Unknown_Error;
             return;
       end if;
 
@@ -264,29 +287,29 @@ package body Routines is
       Status := Success;
    end Park;
 
-   procedure Register_Agent (PhoneName   : in Unbounded_String;
-                             Computer_ID : in Unbounded_String) is
+   procedure Register_Agent (Phone_Name  : in Unbounded_String;
+                             Computer_Id : in Unbounded_String) is
       use Peers;
       Peer : Peer_Type;
       Peer_Index : Peer_List_Type.Cursor;
       Peer_List : constant Peer_List_Type.Map := Peers.Get_Peers_List;
    begin
       Peer_Index := Peer_List_Type.Find (Container => Peer_List,
-                                         Key       => PhoneName);
+                                         Key       => Phone_Name);
       if Peer_List_Type.Has_Element (Peer_Index) then
          --  The phone allready exsist in the list.
          Peer := Peer_List_Type.Element (Position => Peer_Index);
-         Peer.Computer_ID := Computer_ID;
+         Peer.Computer_ID := Computer_Id;
          Peers.Replace_Peer (Item => Peer);
       else
-         Peer.Peer := PhoneName;
+         Peer.Peer := Phone_Name;
          Peer.ChannelType := To_Unbounded_String ("SIP");
-         Peer.Computer_ID := Computer_ID;
+         Peer.Computer_ID := Computer_Id;
          Peers.Insert_Peer (New_Item  => Peer);
       end if;
    end Register_Agent;
 
-   procedure StartUpSequence is
+   procedure Startup_Sequence is
 --        Call_List : AMI.Action.Call_List.Vector;
    begin
       Yolk.Log.Trace (Yolk.Log.Debug, "Calling QueueStatus");
@@ -294,9 +317,9 @@ package body Routines is
 --        for i in Call_List.First_Index .. Call_List.Last_Index loop
 --           Call_List.Enqueue (Call => Call_List.Element (i));
 --        end loop;
-   end StartUpSequence;
+   end Startup_Sequence;
 
-   procedure TEST_StatusPrint is
+   procedure Test_Status_Print is
       use Peers;
    begin
       Yolk.Log.Trace (Yolk.Log.Debug, "Peers");
@@ -305,10 +328,10 @@ package body Routines is
                          (Peer_List_Type.Element (Peer).Peer));
 --           Peers.Print_Peer (Peer_List_Type.Element (Peer));
       end loop;
-   end TEST_StatusPrint;
+   end Test_Status_Print;
 
-   procedure UnPark (Call_ID  : in     String;
-                     Status   :    out Status_Type) is
+   procedure UnPark (Call_Id : in     String;
+                     Status  :    out Status_Type) is
       use Peers;
       use Call_List;
       use Peers.Call_List;
@@ -317,7 +340,7 @@ package body Routines is
       Peer : Peers.Peer_Type;
       Call : Call_Type;
    begin
-      Status := Unknowen_Error;
+      Status := Unknown_Error;
 
 --        Peer := Peers.Get_Peer (To_Unbounded_String (Agent_ID));
 --        if Peer = null_Peer then
@@ -381,7 +404,7 @@ package body Routines is
 --              Peer_Cursor := Next (Peer_Cursor);
 --        end loop Find_Parked_Call;
 
-      Call := Call_List.Get_Call (To_Unbounded_String (Call_ID));
+      Call := Call_List.Get_Call (To_Unbounded_String (Call_Id));
 
       --  Checks if a call with that ID exsist
       if Call = null_Call then
@@ -392,7 +415,7 @@ package body Routines is
       --  Makes sure that the call is not in a state,
       --   where it would be inappropriate to change it's state.
       if Call.State /= Speaking then
-         Status := Unknowen_Error;
+         Status := Unknown_Error;
          return;
       end if;
 

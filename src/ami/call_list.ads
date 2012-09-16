@@ -1,3 +1,26 @@
+-------------------------------------------------------------------------------
+--                                                                           --
+--                                  Alice                                    --
+--                                                                           --
+--                                Call_List                                  --
+--                                                                           --
+--                                  SPEC                                     --
+--                                                                           --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
+--                                                                           --
+--  This is free software;  you can redistribute it and/or modify it         --
+--  under terms of the  GNU General Public License  as published by the      --
+--  Free Software  Foundation;  either version 3,  or (at your  option) any  --
+--  later version. This library is distributed in the hope that it will be   --
+--  useful, but WITHOUT ANY WARRANTY;  without even the implied warranty of  --
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                     --
+--  You should have received a copy of the GNU General Public License and    --
+--  a copy of the GCC Runtime Library Exception along with this program;     --
+--  see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+--  <http://www.gnu.org/licenses/>.                                          --
+--                                                                           --
+-------------------------------------------------------------------------------
+
 with Ada.Calendar,
      Ada.Containers,
      Ada.Containers.Vectors,
@@ -36,6 +59,13 @@ package Call_List is
    package Call_List_Type is new
      Ada.Containers.Vectors (Index_Type   => Positive,
                              Element_Type => Call_Type);
+   --  ???? Naming is a bit "odd". This is not really a type as such, but a
+   --  package containing the Vector type. Perhaps a better solution would be
+   --  to rename the parent package from Call_List to Calls and this package
+   --  to Queue, then you'd have a naming scheme like this:
+   --      Calls.Queue.Vector
+   --  instead of
+   --      Call_List.Call_List_Type.Vector
 
    null_Call : constant Call_Type :=
      (Agent_ID       => Null_Unbounded_String,
