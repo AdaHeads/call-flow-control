@@ -22,11 +22,8 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
-with My_Configuration;
 
 package Common is
-
-   package My renames My_Configuration;
 
    type JSON_String is new Ada.Strings.Unbounded.Unbounded_String;
 
