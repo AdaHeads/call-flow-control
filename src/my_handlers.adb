@@ -40,8 +40,7 @@ package body My_Handlers is
      (RH : out AWS.Services.Dispatchers.URI.Handler)
    is
       use AWS.Dispatchers.Callback;
-
-      package My renames My_Configuration;
+      use My_Configuration;
    begin
       -----------------------------------------
       --  Unknown Resource (404) Dispatcher  --
@@ -65,41 +64,41 @@ package body My_Handlers is
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Call_Hangup),
+         URI        => Config.Get (Handler_Call_Hangup),
          Action     => Create
            (Callback => Call_Queue.Call_Hangup'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Call_Park),
+         URI        => Config.Get (Handler_Call_Hold),
          Action     => Create
-           (Callback => Call_Queue.Call_Park'Access));
+           (Callback => Call_Queue.Call_Hold'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Call_Answer),
+         URI        => Config.Get (Handler_Call_Pickup),
          Action     => Create
-           (Callback => Call_Queue.Call_Answer'Access));
+           (Callback => Call_Queue.Call_Pickup'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Contact),
+         URI        => Config.Get (Handler_Contact),
          Action     => Contact.Callback);
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Organization),
+         URI        => Config.Get (Handler_Organization),
          Action     => Organization.Callback);
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Queue),
+         URI        => Config.Get (Handler_Queue),
          Action     => Create
            (Callback => Call_Queue.Get_Queue'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => My.Config.Get (My.Handler_Queue_Length),
+         URI        => Config.Get (Handler_Queue_Length),
          Action     => Create
            (Callback => Call_Queue.Length'Access));
    end Set;
@@ -110,9 +109,10 @@ package body My_Handlers is
 
    procedure Set_WebSocket_Handlers
    is
+      use My_Configuration;
    begin
       AWS.Net.WebSocket.Registry.Register
-        (URI     => "/notifications",
+        (URI     => Config.Get (Handler_Notifications),
          Factory => Notifications.Create'Access);
    end Set_WebSocket_Handlers;
 

@@ -42,9 +42,9 @@ package My_Configuration is
                  DB2_Password,
                  DB2_Port,
                  DB2_User,
-                 Handler_Call_Answer,
                  Handler_Call_Hangup,
-                 Handler_Call_Park,
+                 Handler_Call_Pickup,
+                 Handler_Call_Hold,
                  Handler_Contact,
                  Handler_Organization,
                  Handler_Queue,
@@ -81,12 +81,12 @@ package My_Configuration is
                        => Util.TUS ("5432"),
                        DB2_User
                        => Util.TUS ("alice"),
-                       Handler_Call_Answer
-                       => Util.TUS ("/call/answer"),
                        Handler_Call_Hangup
                        => Util.TUS ("/call/hangup"),
-                       Handler_Call_Park
-                       => Util.TUS ("/call/park"),
+                       Handler_Call_Hold
+                       => Util.TUS ("/call/hold"),
+                       Handler_Call_Pickup
+                       => Util.TUS ("/call/pickup"),
                        Handler_Contact
                        => Util.TUS ("/contact"),
                        Handler_Organization

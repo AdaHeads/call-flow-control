@@ -31,7 +31,7 @@ with My_Configuration;
 
 package body Storage is
 
-   package My renames My_Configuration;
+   use My_Configuration;
 
    Null_Pool : constant DB_Conn_Pool :=
                  (others => Null_Database_Connection);
@@ -61,19 +61,19 @@ package body Storage is
    DB_Descriptions : constant array (DB_Conn_Type) of
      GNATCOLL.SQL.Exec.Database_Description :=
        (Primary   => GNATCOLL.SQL.Postgres.Setup
-            (Database      => My.Config.Get (My.DB_Name),
-             User          => My.Config.Get (My.DB_User),
-             Host          => My.Config.Get (My.DB_Host) &
-                                DB_Port_String (My.Config.Get (My.DB_Port)),
-             Password      => My.Config.Get (My.DB_Password),
+            (Database      => Config.Get (DB_Name),
+             User          => Config.Get (DB_User),
+             Host          => Config.Get (DB_Host) &
+                                DB_Port_String (Config.Get (DB_Port)),
+             Password      => Config.Get (DB_Password),
              SSL           => GNATCOLL.SQL.Postgres.Allow,
              Cache_Support => True),
         Secondary => GNATCOLL.SQL.Postgres.Setup
-          (Database      => My.Config.Get (My.DB2_Name),
-           User          => My.Config.Get (My.DB2_User),
-           Host          => My.Config.Get (My.DB2_Host) &
-                              DB_Port_String (My.Config.Get (My.DB2_Port)),
-           Password      => My.Config.Get (My.DB2_Password),
+          (Database      => Config.Get (DB2_Name),
+           User          => Config.Get (DB2_User),
+           Host          => Config.Get (DB2_Host) &
+                              DB_Port_String (Config.Get (DB2_Port)),
+           Password      => Config.Get (DB2_Password),
            SSL           => GNATCOLL.SQL.Postgres.Allow,
            Cache_Support => True));
 
