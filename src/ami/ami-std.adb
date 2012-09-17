@@ -30,11 +30,21 @@ with My_Configuration;
 with Yolk.Log;
 
 package body AMI.Std is
+   use My_Configuration;
+   AMI_Action_Error : exception;
+   AMI_Event_Error : exception;
 
    Action_Socket : AWS.Net.Std.Socket_Type;
    Event_Socket  : AWS.Net.Std.Socket_Type;
---     Timeout       : constant Duration := 1.0;
+   Reconnect_Delay   : constant Duration := 1.0;
+   Socket_Connect_Timeout : constant Duration := 2.0;
+   Task_Start_Timeout     : constant Duration := 3.0;
    Shutdown      : Boolean := False;
+
+   Timed_Out_Message : constant String :=
+        "Connecting to " &
+        Config.Get (PBX_Host) & ":" & Config.Get (PBX_Port)
+        & " timed out";
 
    task AMI_Action_Task is
       entry Start;
@@ -52,26 +62,26 @@ package body AMI.Std is
 
    task body AMI_Action_Task
    is
-      use My_Configuration;
       use Yolk.Log;
 
-      Reconnect_Delay : constant Duration := 1.0;
       Connected : Boolean := False;
    begin
       select
          accept Start do
-            Trace (Info, "AMI_Action_Task.Start, first line");
-            AWS.Net.Std.Connect (Socket => Action_Socket,
-                                 Host   => Config.Get (PBX_Host),
-                                 Port   => Config.Get (PBX_Port));
-            Connected := True;
+            select
+               delay Socket_Connect_Timeout;
+               raise AMI_Action_Error with Timed_Out_Message;
+            then abort
+               AWS.Net.Std.Connect (Socket => Action_Socket,
+                                    Host   => Config.Get (PBX_Host),
+                                    Port   => Config.Get (PBX_Port));
+               Connected := True;
+            end select;
          end Start;
       or
-         delay 3.0;
-         Trace (Error, "DEBUGGING POINT!");
-         raise Program_Error;
+         delay Task_Start_Timeout;
+         raise AMI_Action_Error with "Start entry not called within time";
       end select;
-      Trace (Info, "Dropped out...of schoooool");
 
       Reconnect :
       loop
@@ -112,11 +122,6 @@ package body AMI.Std is
 
          delay Reconnect_Delay;
       end loop Reconnect;
-   exception
-      when Program_Error =>
-         Trace (Error, "Program Error DEBUG");
---        when AWS.Net.Socket_Error =>
---           Trace (Error, "AWS.Net.Socket_Error => DEBUG");
    end AMI_Action_Task;
 
    ----------------------
@@ -125,32 +130,25 @@ package body AMI.Std is
 
    task body AMI_Event_Task
    is
-      use Ada.Exceptions;
-      use My_Configuration;
       use Yolk.Log;
 
-      Reconnect_Delay : constant Duration := 1.0;
       Connected : Boolean := False;
    begin
-      --  accept Start;
-      --  socket coonect
-      --  AWS.Net.Std.Connect (Socket => Event_Socket,
-      --                       Host   => Config.Get (PBX_Host),
-      --                       Port   => Config.Get (PBX_Port));
       select
          accept Start do
-            Yolk.Log.Trace (Yolk.Log.Info, "AMI Evnet connecting to: " &
-                              Config.Get (PBX_Host) & ":" &
-                              Config.Get (PBX_Port));
-
-            AWS.Net.Std.Connect (Socket => Event_Socket,
-                                 Host   => Config.Get (PBX_Host),
-                                 Port   => Config.Get (PBX_Port));
-            Connected := True;
+            select
+               delay Socket_Connect_Timeout;
+               raise AMI_Event_Error with Timed_Out_Message;
+            then abort
+               AWS.Net.Std.Connect (Socket => Event_Socket,
+                                    Host   => Config.Get (PBX_Host),
+                                    Port   => Config.Get (PBX_Port));
+               Connected := True;
+            end select;
          end Start;
       or
-         delay 3.0;
-         raise Program_Error;
+         delay Task_Start_Timeout;
+         raise AMI_Event_Error with "Start entry not called within time";
       end select;
 
       Reconnect :
@@ -171,12 +169,9 @@ package body AMI.Std is
                              Secret   => Config.Get (PBX_Event_Secret));
             Connected := False;
          exception
-            when Err : others =>
-               Trace (Error,
-                      "ami-std, AMI Event, " &
-                        "ExceptionName: " &
-                        Ada.Exceptions.Exception_Name (Err));
-            Connected := False;
+            when AWS.Net.Socket_Error =>
+               Connected := False;
+
          end;
 
          if Shutdown then
@@ -189,14 +184,6 @@ package body AMI.Std is
 
          delay Reconnect_Delay;
       end loop Reconnect;
---     exception
---        when AWS.Net.Socket_Error =>
---           Trace (Error, "AWS.Net.Socket_Error => DEBUG");
---        when Err : others =>
---           Trace
---             (Debug,
---              "Exception in AMI-STD.AMI_Service:" &
---                Exception_Name (Err) & "|:|" & Exception_Message (Err));
    end AMI_Event_Task;
 
    ---------------
@@ -205,32 +192,10 @@ package body AMI.Std is
 
    procedure Connect
    is
-      use My_Configuration;
       use Yolk.Log;
    begin
-      Trace (Info, "DEBUG, Calling AMI_Event_Task.Start, in std connect");
-
       AMI_Event_Task.Start;
-
-      Trace (Info, "AMI event socket initialized.");
-
       AMI_Action_Task.Start;
-
-      Trace (Info, "AMI action socket initialized.");
-
-   exception
-      when AWS.Net.Socket_Error =>
-         Trace (Error,
-                "The hostname specified in the configuration file, " &
-                  "could not be reached." &
-                  Config.Get (PBX_Host) & ":" & Config.Get (PBX_Port));
-         raise;
-      when Err : others =>
-         --  TODO change this to the appropriate Exception Type
-         Yolk.Log.Trace (Yolk.Log.Error,
-                         "AMI-STD.connect failed with exception" &
-                           Ada.Exceptions.Exception_Name (Err));
-         raise AWS.Net.Socket_Error;
    end Connect;
 
    ------------------

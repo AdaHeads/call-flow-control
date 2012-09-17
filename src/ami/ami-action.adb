@@ -527,6 +527,7 @@ package body AMI.Action is
             Event_List := Parse (Event_String);
             if Event_List.Contains (To_Unbounded_String ("Event")) then
                begin
+                  --  TODO make a procedure for this. LESS UGLY.
                   --  Cast the event in String type to response type.
                   Event_Name := Response_Type'Value (To_String
                     (Event_List.Element

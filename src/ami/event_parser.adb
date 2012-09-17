@@ -29,8 +29,12 @@ with Yolk.Log;
 
 package body Event_Parser is
 
-   function Parse (Event_Text : in Unbounded_String)
-                   return Event_List_Type.Map is
+   function Parse
+     (Event_Text : in Unbounded_String)
+      return Event_List_Type.Map
+   is
+      use Yolk.Log;
+
       package Char renames Ada.Characters.Latin_1;
 
       List            : Event_List_Type.Map;
@@ -76,9 +80,7 @@ package body Event_Parser is
          Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Name (Err));
          Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (Err));
          Ada.Text_IO.Put_Line ("Event_Parser.Parse");
-         for item of List loop
-            Yolk.Log.Trace (Yolk.Log.Debug, To_String (item));
-         end loop;
+         Trace (Error, "Unknown format: " & To_String (Event_Text));
          return List;
    end Parse;
 end Event_Parser;

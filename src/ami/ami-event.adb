@@ -413,6 +413,7 @@ package body AMI.Event is
                     Username : in String;
                     Secret   : in String) is
       use Ada.Strings.Unbounded;
+      use Yolk.Log;
    begin
       Asterisk := (Greeting  => new String'(Read_Line (Channel)),
                    Channel   => Channel,
@@ -440,7 +441,8 @@ package body AMI.Event is
                      (Event_List.Element (TUS ("Event")))))(Event_List);
                exception
                   when others =>
-                     null;
+                     --  TODO turn this block into a more readable method.
+                     Trace (Error, "Unknown event");
                end;
             end if;
          exception
@@ -449,10 +451,6 @@ package body AMI.Event is
                Yolk.Log.Trace (Yolk.Log.Debug, Exception_Message (Error));
          end;
       end loop;
-   exception
-      when AWS.Net.Socket_Error =>
-         --  When the socket is terminated the Read_Package throws an exception
-         Yolk.Log.Trace (Yolk.Log.Info, "AMI Socket Shutdown");
    end Start;
 
    --  Event: Unlink
