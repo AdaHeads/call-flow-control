@@ -22,7 +22,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
---  with Ada.Exceptions;
+with Ada.Exceptions;
 with AMI.IO,
      AMI.Protocol;
 
@@ -557,6 +557,12 @@ package body AMI.Action is
       use AMI.IO;
    begin
       AMI.Action.Socket := Socket;
+
+      --  Reads the grettings message
+      --  Assumes that no one has read on the socket before.
+      Yolk.Log.Trace (Yolk.Log.Debug, "Action Greetings: " &
+                        AMI.IO.Read_Line (Socket));
+
       Logged_In := Login (Username => Username,
                           Secret   => Secret);
 
@@ -585,9 +591,16 @@ package body AMI.Action is
          end;
       end loop;
    exception
-      when others =>
-         --  when Err : others =>
+      when Err : others =>
          Logged_In := False;
+         Yolk.Log.Trace (Yolk.Log.Info,
+                               "AMI-Action.start, " &
+                                 "Exception. Name: " &
+                           Ada.Exceptions.Exception_Name (Err) &
+                           " Message: " &
+                           Ada.Exceptions.Exception_Message (Err) &
+                           " Information: " &
+                           Ada.Exceptions.Exception_Information (Err));
          --  raise Err;
    end Start;
 end AMI.Action;

@@ -88,6 +88,8 @@ package body AMI.Std is
             AMI.Action.Start (Socket => Action_Socket,
                               Username => TS (Username),
                               Secret => TS (Secret));
+            Yolk.Log.Trace
+              (Yolk.Log.Debug, "AMI Action returned out of start");
          exception
             when Err : others =>
                Yolk.Log.Trace (Yolk.Log.Info,

@@ -114,6 +114,7 @@ package body AMI.Event is
    --  Cause: 16
    --  Cause-txt: Normal Clearing
    procedure Hangup_Callback (Event_List : in Event_List_Type.Map) is
+      use Ada.Strings.Unbounded;
       Call : Call_Type;
       Uniqueid : Unbounded_String;
    begin
@@ -126,9 +127,9 @@ package body AMI.Event is
                            "UniqueID: " & TS (Call.Uniqueid));
          if Call = null_Call then
             Yolk.Log.Trace
-              (Yolk.Log.info,
+              (Yolk.Log.Info,
                "Got a hangup on a call, that was not in the Calls list." &
-                 " Uniqueid: " & TS (Uniqueid))
+                 " Uniqueid: " & TS (Uniqueid));
          end if;
       end if;
    end Hangup_Callback;
