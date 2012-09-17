@@ -104,15 +104,15 @@ package My_Configuration is
                        Handler_Notifications
                        => Util.TUS ("/notifications"),
                       PBX_Action_Secret
-                       => Util.TUS ("reaction"),
+                       => Util.TUS ("Action_Secret"),
                       PBX_Action_User
-                       => Util.TUS ("action"),
+                       => Util.TUS ("Action_Username"),
                       PBX_Event_Secret
-                       => Util.TUS ("filtertest"),
+                       => Util.TUS ("Event_Secret"),
                       PBX_Event_User
-                       => Util.TUS ("filtertest"),
+                       => Util.TUS ("Event_Username"),
                       PBX_Host
-                       => Util.TUS ("asterisk1"),
+                       => Util.TUS ("Asterisk_Host"),
                       PBX_Port
                        => Util.TUS ("5038"));
 

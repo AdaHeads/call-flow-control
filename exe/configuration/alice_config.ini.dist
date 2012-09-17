@@ -129,40 +129,36 @@ DB2_User alice
 #        PBX event socket access        #
 #########################################
 
-PBX_Action_Secret reaction
+PBX_Action_Secret Action_Secret
 # String.
-# Default: reaction
+# Default: Action_Secret
 #
-# TODO: Write comment
+# The PBX Action password
+
+PBX_Action_User Action_User
+# String.
+# Default: Action_User
+#
+# The PBX Action user
+
+PBX_Event_Secret Event_Secret
+# String.
+# Default: Event_Secret
+#
+# The PBX Event password
 # TODO: Come up with a more sane default
 
-PBX_Action_User action
+PBX_Event_User Event_User
 # String.
-# Default: action
+# Default: Event_User
 #
-# TODO: Write comment
-# TODO: Come up with a more sane default
+# The PBX Event user
 
-PBX_Event_Secret filtertest
-# String.
-# Default: filtertest
-#
-# TODO: Write comment
-# TODO: Come up with a more sane default
-
-PBX_Event_User filtertest
-# String.
-# Default: filtertest
-#
-# TODO: Write comment
-# TODO: Come up with a more sane default
-
-PBX_Host asterisk1
+PBX_Host Asterisk_Host
 # String
-# Default: asterisk1
+# Default: Asterisk_Host
 #
 # Host where the PBX event socket is located.
-# TODO: Come up with a more sane default
 
 PBX_Port 5038
 # Positive.
