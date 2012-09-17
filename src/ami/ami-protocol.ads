@@ -32,6 +32,7 @@ package AMI.Protocol is
 
    function Get_Var (Channel      : in String;
                      VariableName : in String;
+                     ActionID     : in String := "";
                      Async        : in Boolean := True)
                      return String with inline;
 

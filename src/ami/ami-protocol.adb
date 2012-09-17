@@ -89,13 +89,15 @@ package body AMI.Protocol is
         Line_Termination_String;
    end CoreSettings;
 
-   function Get_Var (Channel : in String;
+   function Get_Var (Channel      : in String;
                      VariableName : in String;
-                     Async    : in Boolean := True) return String is
+                     ActionID     : in String := "";
+                     Async        : in Boolean := True) return String is
    begin
       return Action_String & GetVar_String & Line_Termination_String &
         Channel_String & Channel           & Line_Termination_String &
         Variable_String & VariableName     & Line_Termination_String &
+        ActionID_String & ActionID         & Line_Termination_String &
         Async_String & Async'Img           & Line_Termination_String &
         Line_Termination_String;
    end Get_Var;
