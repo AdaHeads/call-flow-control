@@ -22,13 +22,10 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
-with Ada.Exceptions;
-with AMI.IO,
-     AMI.Protocol;
-
-with Yolk.Log;
-
+with AMI.IO;
+with AMI.Protocol;
 with AWS.Net;
+with Yolk.Log;
 
 package body AMI.Action is
    use AWS.Net.Std;
@@ -268,23 +265,6 @@ package body AMI.Action is
    begin
       Yolk.Log.Trace (Yolk.Log.Debug, "Hangup command [" & Command & "]");
       AMI.IO.Send (Socket, Command);
---        Read_Response :
---        loop
---           declare
---              Event : Event_List_Type.Map;
---           begin
---              Event := Read_Event_List;
---              if Event.Contains (To_Unbounded_String ("Response")) then
---                 if To_String
---                   (Event.Element (To_Unbounded_String ("Response"))) /=
---                   "Success" then
---                    Yolk.Log.Trace (Yolk.Log.Debug, "Hangup failed.");
---                 end if;
---                 exit Read_Response;
---              end if;
---              Yolk.Log.Trace (Yolk.Log.Debug, "Hangup: i'm reading forever");
---           end;
---        end loop Read_Response;
    end Hangup;
 
    --  Private Function
@@ -295,7 +275,7 @@ package body AMI.Action is
                                                    Secret   => Secret);
    begin
 
-      Yolk.Log.Trace (Yolk.Log.Debug, "Log-In: " & Command);
+--        Yolk.Log.Trace (Yolk.Log.Debug, "Log-In: " & Command);
       AMI.IO.Send (Socket, Command);
 
       declare
@@ -304,11 +284,9 @@ package body AMI.Action is
       begin
          --  Response: Success
          --  Message: Authentication accepted
-         Yolk.Log.Trace (Yolk.Log.Debug, To_String (Response.First_Element));
-         for item in Response.Iterate loop
-            Yolk.Log.Trace (Yolk.Log.Debug,
-                            To_String (Event_List_Type.Element (item)));
-         end loop;
+         --  Yolk.Log.Trace (Yolk.Log.Debug,
+         --   To_String (Response.First_Element));
+
          if
            To_String (Response.Element (To_Unbounded_String ("Response")))
            = "Success"
@@ -346,15 +324,6 @@ package body AMI.Action is
       Command : constant String := Protocol.Ping;
    begin
       AMI.IO.Send (Socket, Command);
---        --  read Pong
---        declare
---           use Ada.Strings.Unbounded;
---         Pong : constant Event_Parser.Event_List_Type.Map := Read_Event_List;
---        begin
---           Yolk.Log.Trace (Yolk.Log.Debug,
---             To_String (Pong.Element
---               (To_Unbounded_String ("Ping"))));
---        end;
    end Ping;
 
 --     function QueueStatus (ActionID : in String := "")
@@ -477,6 +446,7 @@ package body AMI.Action is
    end QueueStatus;
 
    --  Private Function
+   --  Reads an event, and parse it.
    function Read_Event_List return Event_Parser.Event_List_Type.Map is
       use Ada.Strings.Unbounded;
       package EP renames Event_Parser;
@@ -500,19 +470,7 @@ package body AMI.Action is
          Exten    => Exten,
          Priority => 1);
    begin
-
       AMI.IO.Send (Socket, Command);
-
---        declare
---           use Ada.Strings.Unbounded;
---           Response : constant Event_List_Type.Map := Read_Event_List;
---        begin
---           if Response.Contains (To_Unbounded_String ("Message")) and then
---             To_String (Response.Element (To_Unbounded_String ("Message"))) =
---             "Redirect successful" then
---              null;
---           end if;
---        end;
    end Redirect;
 
    procedure Set_Var (Channel      : in String;
@@ -525,29 +483,18 @@ package body AMI.Action is
                               Value        => Value);
    begin
       AMI.IO.Send (Socket, Command);
+      --  TODO Find out if this feature is nessesary.
+      --       and what to do, if the request fails.
+      --       possibility: Command Stack (First commit the stuff local,
+      --                    when success)
 
---        if not Event.Contains (To_Unbounded_String ("Response")) then
---       Yolk.Log.Trace (Yolk.Log.Debug, "AMI-Action.Set_Var is out of sync");
---           Yolk.Log.Trace (Yolk.Log.Debug,
---                           "Channel: " & Channel &
---                             " VariableName: " & VariableName &
---                             " Value: " & Value);
---           for item of Event loop
---              Yolk.Log.Trace (Yolk.Log.Debug, To_String (item));
---           end loop;
---
---           return;
---        end if;
---
---        if To_String (Event.Element (To_Unbounded_String ("Response"))) /=
---          "Success" then
---           Yolk.Log.Trace (Yolk.Log.Debug,
---                           "Something went wrong inside AMI-Action.Set_Var");
---           Yolk.Log.Trace (Yolk.Log.Debug,
---                           "Channel: " & Channel &
---                             " VariableName: " & VariableName &
---                             " Value: " & Value);
---        end if;
+      --  Action: Setvar
+      --  Channel: SIP/TP-Softphone-00000000
+      --  Variable: testings
+      --  Value: This is now set
+
+      --  Response: Success
+      --  Message: Variable Set
    end Set_Var;
 
    procedure Start (Socket   : in AWS.Net.Std.Socket_Type;
@@ -575,32 +522,30 @@ package body AMI.Action is
          declare
             Event_String : constant Unbounded_String := Read_Package (Socket);
             Event_List : Event_List_Type.Map;
+            Event_Name : Response_Type;
          begin
             Event_List := Parse (Event_String);
             if Event_List.Contains (To_Unbounded_String ("Event")) then
                begin
+                  --  Cast the event in String type to response type.
+                  Event_Name := Response_Type'Value (To_String
+                    (Event_List.Element
+                       (To_Unbounded_String ("Event"))));
+                  --  Calls the relevant function for that event.
                   CallBack_Routine
-                    (Response_Type'Value (To_String
-                     (Event_List.Element
-                        (To_Unbounded_String ("Event")))))(Event_List);
+                    (Event_Name)(Event_List);
+
                exception
-                  when others =>
-                     null;
+                     --  If it's not possible to cast the event name
+                     --   to a Response type, then it trows an Constraint Error
+                  when Constraint_Error =>
+                     Yolk.Log.Trace (Yolk.Log.Error,
+                       "Got an unknown Response Type in Action: "
+                       & To_String (Event_List.Element
+                         (To_Unbounded_String ("Event"))));
                end;
             end if;
          end;
       end loop;
-   exception
-      when Err : others =>
-         Logged_In := False;
-         Yolk.Log.Trace (Yolk.Log.Info,
-                               "AMI-Action.start, " &
-                                 "Exception. Name: " &
-                           Ada.Exceptions.Exception_Name (Err) &
-                           " Message: " &
-                           Ada.Exceptions.Exception_Message (Err) &
-                           " Information: " &
-                           Ada.Exceptions.Exception_Information (Err));
-         --  raise Err;
    end Start;
 end AMI.Action;
