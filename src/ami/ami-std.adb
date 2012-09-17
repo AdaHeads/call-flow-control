@@ -33,6 +33,7 @@ package body AMI.Std is
 
    Action_Socket : AWS.Net.Std.Socket_Type;
    Event_Socket  : AWS.Net.Std.Socket_Type;
+--     Timeout       : constant Duration := 1.0;
    Shutdown      : Boolean := False;
 
    task AMI_Action_Task is
@@ -55,33 +56,55 @@ package body AMI.Std is
       use Yolk.Log;
 
       Reconnect_Delay : constant Duration := 1.0;
+      Connected : Boolean := False;
    begin
-      accept Start;
+      select
+         accept Start do
+            Trace (Info, "AMI_Action_Task.Start, first line");
+            AWS.Net.Std.Connect (Socket => Action_Socket,
+                                 Host   => Config.Get (PBX_Host),
+                                 Port   => Config.Get (PBX_Port));
+            Connected := True;
+         end Start;
+      or
+         delay 3.0;
+         Trace (Error, "DEBUGGING POINT!");
+         raise Program_Error;
+      end select;
+      Trace (Info, "Dropped out...of schoooool");
 
       Reconnect :
       loop
          begin
-            AWS.Net.Std.Connect (Socket => Action_Socket,
-                                 Host   => Config.Get (PBX_Host),
-                                 Port   => Config.Get (PBX_Port));
+            if not Connected then
+               AWS.Net.Std.Connect (Socket => Action_Socket,
+                                    Host   => Config.Get (PBX_Host),
+                                    Port   => Config.Get (PBX_Port));
+            else
+               Trace (Info, "DEBUG, action is connected, and do not try.");
+            end if;
 
             Trace (Info,
                    "AMI action socket connected - Host: "
                    & Config.Get (PBX_Host)
                    & " Port: " & Config.Get (PBX_Port));
 
+            Trace (Info, "DEBUG, Calling Action Start");
             AMI.Action.Start (Socket   => Action_Socket,
                               Username => Config.Get (PBX_Action_User),
                               Secret   => Config.Get (PBX_Action_Secret));
             Trace (Debug, "AMI action returned out of start");
+
          exception
+            when AWS.Net.Socket_Error =>
+               Trace (Error, "AMI.Action lost connection");
             when Err : others =>
-               Trace (Info,
+               Trace (Error,
                       "ami-std, AMI Action, " &
                         "ExceptionName: " &
                         Ada.Exceptions.Exception_Name (Err));
          end;
-
+         Connected := False;
          if Shutdown then
             Trace (Info, "AMI action connection Closed");
             exit Reconnect;
@@ -89,6 +112,11 @@ package body AMI.Std is
 
          delay Reconnect_Delay;
       end loop Reconnect;
+   exception
+      when Program_Error =>
+         Trace (Error, "Program Error DEBUG");
+--        when AWS.Net.Socket_Error =>
+--           Trace (Error, "AWS.Net.Socket_Error => DEBUG");
    end AMI_Action_Task;
 
    ----------------------
@@ -102,16 +130,37 @@ package body AMI.Std is
       use Yolk.Log;
 
       Reconnect_Delay : constant Duration := 1.0;
+      Connected : Boolean := False;
    begin
-      accept Start;
+      --  accept Start;
+      --  socket coonect
+      --  AWS.Net.Std.Connect (Socket => Event_Socket,
+      --                       Host   => Config.Get (PBX_Host),
+      --                       Port   => Config.Get (PBX_Port));
+      select
+         accept Start do
+            Yolk.Log.Trace (Yolk.Log.Info, "AMI Evnet connecting to: " &
+                              Config.Get (PBX_Host) & ":" &
+                              Config.Get (PBX_Port));
+
+            AWS.Net.Std.Connect (Socket => Event_Socket,
+                                 Host   => Config.Get (PBX_Host),
+                                 Port   => Config.Get (PBX_Port));
+            Connected := True;
+         end Start;
+      or
+         delay 3.0;
+         raise Program_Error;
+      end select;
 
       Reconnect :
       loop
          begin
-            AWS.Net.Std.Connect (Socket => Event_Socket,
-                                 Host   => Config.Get (PBX_Host),
-                                 Port   => Config.Get (PBX_Port));
-
+            if not Connected then
+               AWS.Net.Std.Connect (Socket => Event_Socket,
+                                    Host   => Config.Get (PBX_Host),
+                                    Port   => Config.Get (PBX_Port));
+            end if;
             Trace (Info,
                    "AMI event socket connected - Host: "
                    & Config.Get (PBX_Host)
@@ -120,13 +169,14 @@ package body AMI.Std is
             AMI.Event.Start (Channel  => Event_Socket,
                              Username => Config.Get (PBX_Event_User),
                              Secret   => Config.Get (PBX_Event_Secret));
+            Connected := False;
          exception
             when Err : others =>
-               Trace (Info,
+               Trace (Error,
                       "ami-std, AMI Event, " &
                         "ExceptionName: " &
                         Ada.Exceptions.Exception_Name (Err));
-
+            Connected := False;
          end;
 
          if Shutdown then
@@ -134,17 +184,19 @@ package body AMI.Std is
             exit Reconnect;
          else
             --  send message out to websocket about system failure.
-            Trace (Error, "No connection to AMI.");
+            Trace (Error, "No connection to AMI.Event");
          end if;
 
          delay Reconnect_Delay;
       end loop Reconnect;
-   exception
-      when Err : others =>
-         Trace
-           (Debug,
-            "Exception in AMI-STD.AMI_Service:" &
-              Exception_Name (Err) & "|:|" & Exception_Message (Err));
+--     exception
+--        when AWS.Net.Socket_Error =>
+--           Trace (Error, "AWS.Net.Socket_Error => DEBUG");
+--        when Err : others =>
+--           Trace
+--             (Debug,
+--              "Exception in AMI-STD.AMI_Service:" &
+--                Exception_Name (Err) & "|:|" & Exception_Message (Err));
    end AMI_Event_Task;
 
    ---------------
@@ -156,6 +208,8 @@ package body AMI.Std is
       use My_Configuration;
       use Yolk.Log;
    begin
+      Trace (Info, "DEBUG, Calling AMI_Event_Task.Start, in std connect");
+
       AMI_Event_Task.Start;
 
       Trace (Info, "AMI event socket initialized.");
@@ -164,10 +218,19 @@ package body AMI.Std is
 
       Trace (Info, "AMI action socket initialized.");
 
-      --  ???? Should we block here until the sockets are actually connected?
-      --  If we don't block, we run the risk of clients connecting to Alice
-      --  while she's in a state where we're not actually able to  communicate
-      --  with the AMI.
+   exception
+      when AWS.Net.Socket_Error =>
+         Trace (Error,
+                "The hostname specified in the configuration file, " &
+                  "could not be reached." &
+                  Config.Get (PBX_Host) & ":" & Config.Get (PBX_Port));
+         raise;
+      when Err : others =>
+         --  TODO change this to the appropriate Exception Type
+         Yolk.Log.Trace (Yolk.Log.Error,
+                         "AMI-STD.connect failed with exception" &
+                           Ada.Exceptions.Exception_Name (Err));
+         raise AWS.Net.Socket_Error;
    end Connect;
 
    ------------------
@@ -179,6 +242,7 @@ package body AMI.Std is
    begin
       Shutdown := True;
       AWS.Net.Buffered.Shutdown (Event_Socket);
+      AWS.Net.Buffered.Shutdown (Action_Socket);
    end Disconnect;
 
 end AMI.Std;
