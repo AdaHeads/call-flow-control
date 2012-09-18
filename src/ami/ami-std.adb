@@ -30,20 +30,24 @@ with My_Configuration;
 with Yolk.Log;
 
 package body AMI.Std is
---     function TS
---       (US : in Ada.Strings.Unbounded.Unbounded_String)
---        return String
---        renames Ada.Strings.Unbounded.To_String;
 
-   Event_Socket : AWS.Net.Std.Socket_Type;
    Action_Socket : AWS.Net.Std.Socket_Type;
-   Shutdown : Boolean := False;
-   --  it has package scope because, we need it to shutdown the connection.
+   Event_Socket  : AWS.Net.Std.Socket_Type;
+   Shutdown      : Boolean := False;
 
    task AMI_Action_Task is
-      entry Initialize;
+      entry Start;
       --  TODO: Write comment
    end AMI_Action_Task;
+
+   task AMI_Event_Task is
+      entry Start;
+      --  TODO: Write comment.
+   end AMI_Event_Task;
+
+   -----------------------
+   --  AMI_Action_Task  --
+   -----------------------
 
    task body AMI_Action_Task
    is
@@ -52,7 +56,7 @@ package body AMI.Std is
 
       Reconnect_Delay : constant Duration := 1.0;
    begin
-      accept Initialize;
+      accept Start;
 
       Reconnect :
       loop
@@ -87,21 +91,19 @@ package body AMI.Std is
       end loop Reconnect;
    end AMI_Action_Task;
 
-   --  AMI-Event needs to have it's own Thread,
-   --   because it constantly reads from the socket.
-   task AMI_Event_Task is
-      entry Initialize;
-      --  TODO: Write comment.
-   end AMI_Event_Task;
+   ----------------------
+   --  AMI_Event_Task  --
+   ----------------------
 
-   task body AMI_Event_Task is
+   task body AMI_Event_Task
+   is
       use Ada.Exceptions;
       use My_Configuration;
       use Yolk.Log;
 
       Reconnect_Delay : constant Duration := 1.0;
    begin
-      accept Initialize;
+      accept Start;
 
       Reconnect :
       loop
@@ -145,16 +147,20 @@ package body AMI.Std is
               Exception_Name (Err) & "|:|" & Exception_Message (Err));
    end AMI_Event_Task;
 
+   ---------------
+   --  Connect  --
+   ---------------
+
    procedure Connect
    is
       use My_Configuration;
       use Yolk.Log;
    begin
-      AMI_Event_Task.Initialize;
+      AMI_Event_Task.Start;
 
       Trace (Info, "AMI event socket initialized.");
 
-      AMI_Action_Task.Initialize;
+      AMI_Action_Task.Start;
 
       Trace (Info, "AMI action socket initialized.");
 
@@ -164,10 +170,15 @@ package body AMI.Std is
       --  with the AMI.
    end Connect;
 
+   ------------------
+   --  Disconnect  --
+   ------------------
+
    procedure Disconnect
    is
    begin
       Shutdown := True;
       AWS.Net.Buffered.Shutdown (Event_Socket);
    end Disconnect;
+
 end AMI.Std;
