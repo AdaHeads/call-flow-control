@@ -49,7 +49,13 @@ package My_Configuration is
                  Handler_Organization,
                  Handler_Queue,
                  Handler_Queue_Length,
-                 Handler_Notifications);
+                 Handler_Notifications,
+                 PBX_Action_Secret,
+                 PBX_Action_User,
+                 PBX_Event_Secret,
+                 PBX_Event_User,
+                 PBX_Host,
+                 PBX_Port);
 
    type Defaults_Array is array (Keys) of
      Ada.Strings.Unbounded.Unbounded_String;
@@ -96,7 +102,19 @@ package My_Configuration is
                        Handler_Queue_Length
                        => Util.TUS ("/queue_length"),
                        Handler_Notifications
-                       => Util.TUS ("/notifications"));
+                       => Util.TUS ("/notifications"),
+                      PBX_Action_Secret
+                       => Util.TUS ("reaction"),
+                      PBX_Action_User
+                       => Util.TUS ("action"),
+                      PBX_Event_Secret
+                       => Util.TUS ("filtertest"),
+                      PBX_Event_User
+                       => Util.TUS ("filtertest"),
+                      PBX_Host
+                       => Util.TUS ("asterisk1"),
+                      PBX_Port
+                       => Util.TUS ("5038"));
 
    package Config is new Yolk.Config_File_Parser
      (Key_Type            => Keys,

@@ -21,24 +21,19 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded,
-     Ada.Exceptions;
-
-with AMI.Event,
-     AMI.Action;
-
---  with Routines;
-
+with Ada.Exceptions;
+with AMI.Action;
+with AMI.Event;
+with AWS.Net.Std;
+with AWS.Net.Buffered;
+with My_Configuration;
 with Yolk.Log;
 
-with AWS.Net.Std,
-     AWS.Net.Buffered;
-
 package body AMI.Std is
-   function TS
-     (US : in Ada.Strings.Unbounded.Unbounded_String)
-      return String
-      renames Ada.Strings.Unbounded.To_String;
+--     function TS
+--       (US : in Ada.Strings.Unbounded.Unbounded_String)
+--        return String
+--        renames Ada.Strings.Unbounded.To_String;
 
    Event_Socket : AWS.Net.Std.Socket_Type;
    Action_Socket : AWS.Net.Std.Socket_Type;
@@ -46,59 +41,45 @@ package body AMI.Std is
    --  it has package scope because, we need it to shutdown the connection.
 
    task AMI_Action_Task is
-      entry Initialize (Server_Host : in String;
-                        Server_Port : in Positive;
-                        Username : in String;
-                        Secret   : in String);
+      entry Initialize;
+      --  TODO: Write comment
    end AMI_Action_Task;
 
-   task body AMI_Action_Task is
-      use Ada.Strings.Unbounded;
+   task body AMI_Action_Task
+   is
+      use My_Configuration;
+      use Yolk.Log;
+
       Reconnect_Delay : constant Duration := 1.0;
-
-      Server_Host : Unbounded_String;
-      Server_Port : Positive;
-
-      Username : Unbounded_String;
-      Secret   : Unbounded_String;
    begin
-      accept Initialize (Server_Host : in String;
-                         Server_Port : in Positive;
-                         Username    : in String;
-                         Secret      : in String) do
-         AMI_Action_Task.Server_Host := To_Unbounded_String (Server_Host);
-         AMI_Action_Task.Server_Port := Server_Port;
-
-         AMI_Action_Task.Username := To_Unbounded_String (Username);
-         AMI_Action_Task.Secret   := To_Unbounded_String (Secret);
-      end Initialize;
+      accept Initialize;
 
       Reconnect :
       loop
          begin
             AWS.Net.Std.Connect (Socket => Action_Socket,
-                                 Host   => To_String (Server_Host),
-                                 Port   => Server_Port);
+                                 Host   => Config.Get (PBX_Host),
+                                 Port   => Config.Get (PBX_Port));
 
-            Yolk.Log.Trace (Yolk.Log.Info,
-                            "AMI Action socket connected - Host: "
-                            & To_String (Server_Host)
-                            & " Port: " & Server_Port'Img);
+            Trace (Info,
+                   "AMI action socket connected - Host: "
+                   & Config.Get (PBX_Host)
+                   & " Port: " & Config.Get (PBX_Port));
 
-            AMI.Action.Start (Socket => Action_Socket,
-                              Username => TS (Username),
-                              Secret => TS (Secret));
-            Yolk.Log.Trace
-              (Yolk.Log.Debug, "AMI Action returned out of start");
+            AMI.Action.Start (Socket   => Action_Socket,
+                              Username => Config.Get (PBX_Action_User),
+                              Secret   => Config.Get (PBX_Action_Secret));
+            Trace (Debug, "AMI action returned out of start");
          exception
             when Err : others =>
-               Yolk.Log.Trace (Yolk.Log.Info,
-                               "ami-std, AMI Action, " &
-                                 "ExceptionName: " &
-                                 Ada.Exceptions.Exception_Name (Err));
+               Trace (Info,
+                      "ami-std, AMI Action, " &
+                        "ExceptionName: " &
+                        Ada.Exceptions.Exception_Name (Err));
          end;
+
          if Shutdown then
-            Yolk.Log.Trace (Yolk.Log.Info, "PBX Action connection Closed");
+            Trace (Info, "AMI action connection Closed");
             exit Reconnect;
          end if;
 
@@ -109,100 +90,82 @@ package body AMI.Std is
    --  AMI-Event needs to have it's own Thread,
    --   because it constantly reads from the socket.
    task AMI_Event_Task is
-      entry Initialize (Server_Host : in String;
-                        Server_Port : in Positive;
-                        Username : in String;
-                        Secret   : in String);
+      entry Initialize;
+      --  TODO: Write comment.
    end AMI_Event_Task;
 
    task body AMI_Event_Task is
-      use Ada.Strings.Unbounded;
       use Ada.Exceptions;
+      use My_Configuration;
+      use Yolk.Log;
 
       Reconnect_Delay : constant Duration := 1.0;
-
-      Server_Host : Unbounded_String;
-      Server_Port : Positive;
-
-      Username : Unbounded_String;
-      Secret   : Unbounded_String;
-
    begin
-      accept Initialize (Server_Host : in String;
-                         Server_Port : in Positive;
-                         Username    : in String;
-                         Secret      : in String) do
-         AMI_Event_Task.Server_Host := To_Unbounded_String (Server_Host);
-         AMI_Event_Task.Server_Port := Server_Port;
-
-         AMI_Event_Task.Username := To_Unbounded_String (Username);
-         AMI_Event_Task.Secret   := To_Unbounded_String (Secret);
-      end Initialize;
+      accept Initialize;
 
       Reconnect :
       loop
          begin
             AWS.Net.Std.Connect (Socket => Event_Socket,
-                                 Host   => To_String (Server_Host),
-                                 Port   => Server_Port);
-            Yolk.Log.Trace (Yolk.Log.Info,
-                            "AMI Event socket connected - Host: "
-                            & To_String (Server_Host)
-                            & " Port: " & Server_Port'Img);
+                                 Host   => Config.Get (PBX_Host),
+                                 Port   => Config.Get (PBX_Port));
 
-            AMI.Event.Start (Event_Socket, To_String (Username),
-                             To_String (Secret));
+            Trace (Info,
+                   "AMI event socket connected - Host: "
+                   & Config.Get (PBX_Host)
+                   & " Port: " & Config.Get (PBX_Port));
+
+            AMI.Event.Start (Channel  => Event_Socket,
+                             Username => Config.Get (PBX_Event_User),
+                             Secret   => Config.Get (PBX_Event_Secret));
          exception
             when Err : others =>
-               Yolk.Log.Trace (Yolk.Log.Info,
-                               "ami-std, AMI Event, " &
-                                 "ExceptionName: " &
-                                 Ada.Exceptions.Exception_Name (Err));
+               Trace (Info,
+                      "ami-std, AMI Event, " &
+                        "ExceptionName: " &
+                        Ada.Exceptions.Exception_Name (Err));
 
          end;
+
          if Shutdown then
-            Yolk.Log.Trace (Yolk.Log.Info, "PBX connection closed.");
+            Trace (Info, "AMI socket connection closed.");
             exit Reconnect;
          else
             --  send message out to websocket about system failure.
-            Yolk.Log.Trace (Yolk.Log.Error,
-                            "No connection to PBX.");
+            Trace (Error, "No connection to AMI.");
          end if;
-         delay Reconnect_Delay;
 
+         delay Reconnect_Delay;
       end loop Reconnect;
    exception
       when Err : others =>
-         Yolk.Log.Trace
-           (Yolk.Log.Debug,
+         Trace
+           (Debug,
             "Exception in AMI-STD.AMI_Service:" &
               Exception_Name (Err) & "|:|" & Exception_Message (Err));
    end AMI_Event_Task;
 
-   procedure Connect (Server_Host     : in String   := "Asterisk1";
-                      Server_Port     : in Positive := 5038;
-                      Event_Username  : in String   := "filtertest";
-                      Event_Secret    : in String   := "filtertest";
-                      Action_Username : in String   := "action";
-                      Action_Secret   : in String   := "reaction"
-                     ) is
-
+   procedure Connect
+   is
+      use My_Configuration;
+      use Yolk.Log;
    begin
-      --  Socket connecting
+      AMI_Event_Task.Initialize;
 
-      --  Setting up event Socket.
-      AMI_Event_Task.Initialize (Server_Host, Server_Port,
-                              Event_Username, Event_Secret);
-      Yolk.Log.Trace (Yolk.Log.Debug, "AMI Event Initialized.");
+      Trace (Info, "AMI event socket initialized.");
 
-      AMI_Action_Task.Initialize (Server_Host, Server_Port,
-                              Action_Username, Action_Secret);
-      Yolk.Log.Trace (Yolk.Log.Debug, "AMI Action Initialized.");
+      AMI_Action_Task.Initialize;
 
-      --        Routines.StartUpSequence;
+      Trace (Info, "AMI action socket initialized.");
+
+      --  ???? Should we block here until the sockets are actually connected?
+      --  If we don't block, we run the risk of clients connecting to Alice
+      --  while she's in a state where we're not actually able to  communicate
+      --  with the AMI.
    end Connect;
 
-   procedure Disconnect is
+   procedure Disconnect
+   is
    begin
       Shutdown := True;
       AWS.Net.Buffered.Shutdown (Event_Socket);

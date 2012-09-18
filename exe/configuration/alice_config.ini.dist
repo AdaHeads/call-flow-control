@@ -125,6 +125,51 @@ DB2_User alice
 #
 # The readonly backup database user.
 
+#########################################
+#        PBX event socket access        #
+#########################################
+
+PBX_Action_Secret reaction
+# String.
+# Default: reaction
+#
+# TODO: Write comment
+# TODO: Come up with a more sane default
+
+PBX_Action_User action
+# String.
+# Default: action
+#
+# TODO: Write comment
+# TODO: Come up with a more sane default
+
+PBX_Event_Secret filtertest
+# String.
+# Default: filtertest
+#
+# TODO: Write comment
+# TODO: Come up with a more sane default
+
+PBX_Event_User filtertest
+# String.
+# Default: filtertest
+#
+# TODO: Write comment
+# TODO: Come up with a more sane default
+
+PBX_Host asterisk1
+# String
+# Default: asterisk1
+#
+# Host where the PBX event socket is located.
+# TODO: Come up with a more sane default
+
+PBX_Port 5038
+# Positive.
+# Default: 5038
+#
+# Port for the PBX event socket.
+
 ################################################
 #        Resource handlers and interfaces      #
 ################################################
