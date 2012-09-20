@@ -34,17 +34,18 @@ package body AMI.Std is
    AMI_Action_Error : exception;
    AMI_Event_Error : exception;
 
-   Action_Socket : AWS.Net.Std.Socket_Type;
-   Event_Socket  : AWS.Net.Std.Socket_Type;
-   Reconnect_Delay   : constant Duration := 1.0;
+   Action_Socket          : AWS.Net.Std.Socket_Type;
+   Event_Socket           : AWS.Net.Std.Socket_Type;
+   Reconnect_Delay        : constant Duration := 1.0;
    Socket_Connect_Timeout : constant Duration := 2.0;
+   Shutdown               : Boolean := False;
    Task_Start_Timeout     : constant Duration := 3.0;
-   Shutdown      : Boolean := False;
-
-   Timed_Out_Message : constant String :=
-        "Connecting to " &
-        Config.Get (PBX_Host) & ":" & Config.Get (PBX_Port)
-        & " timed out";
+   Timed_Out_Message      : constant String :=
+                              "Connecting to " &
+                              Config.Get (PBX_Host) &
+                              ":" &
+                              Config.Get (PBX_Port) &
+                              " timed out";
 
    task AMI_Action_Task is
       entry Start;
