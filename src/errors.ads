@@ -37,11 +37,16 @@ package Errors is
      (Message : in String);
    --  Log error messages to the Error trace.
 
+   procedure Error_Handler
+     (Event   : in Ada.Exceptions.Exception_Occurrence;
+      Message : in String);
+   --  Log error messages to the Error trace.
+
    function Exception_Handler
      (Event   : in Ada.Exceptions.Exception_Occurrence;
       Message : in String)
       return Common.JSON_String;
-   --  Log exception messages to the Error trace and returns a JSON String
-   --  containing the exception.
+   --  Log exception messages to the Error trace and returns a JSON document
+   --  containing the status and description of the error.
 
 end Errors;
