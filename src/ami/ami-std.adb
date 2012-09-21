@@ -30,68 +30,66 @@ with My_Configuration;
 with Yolk.Log;
 
 package body AMI.Std is
+
    use My_Configuration;
-   AMI_Event_Error : exception;
 
-   Action_Socket          : AWS.Net.Std.Socket_Type;
-   Event_Socket           : AWS.Net.Std.Socket_Type;
+   type AMI_Connection_Type is (Action, Event);
 
-   Connect_Delay          : constant Duration := 0.5;
-   Host_Port              : constant String := Config.Get (PBX_Host) &
-                              ":" &
-                              Config.Get (PBX_Port);
-   Socket_Connect_Timeout : constant Duration := 2.0;
-   Shutdown               : Boolean := False;
-   Task_Start_Timeout     : constant Duration := 3.0;
-   Timed_Out_Message      : constant String := "Connecting to "
-                              & Host_Port
-                              & " timed out";
+   type Callback is access procedure (Socket   : in AWS.Net.Std.Socket_Type;
+                                      Username : in String;
+                                      Secret   : in String);
 
-   task AMI_Action_Task is
+   type String_Ptr is not null access all String;
+
+   Action_Secret     : aliased String := Config.Get (PBX_Action_Secret);
+   Action_User       : aliased String := Config.Get (PBX_Action_User);
+   Event_Secret      : aliased String := Config.Get (PBX_Event_Secret);
+   Event_User        : aliased String := Config.Get (PBX_Event_User);
+
+   Action_Secret_Ptr : constant String_Ptr := Action_Secret'Access;
+   Action_User_Ptr   : constant String_Ptr := Action_User'Access;
+   Event_Secret_Ptr  : constant String_Ptr := Event_Secret'Access;
+   Event_User_Ptr    : constant String_Ptr := Event_User'Access;
+
+   Host_Port         : constant String := Config.Get (PBX_Host) &
+                         ":" &
+                         Config.Get (PBX_Port);
+   Socket_List       : array (AMI_Connection_Type) of AWS.Net.Std.Socket_Type;
+   Shutdown          : Boolean := False;
+
+   task type AMI_Socket
+     (AMI_Type     : AMI_Connection_Type;
+      AMI_Callback : Callback;
+      Secret       : String_Ptr;
+      User         : String_Ptr)
+   is
       entry Start;
       --  TODO: Write comment.
-   end AMI_Action_Task;
+   end AMI_Socket;
+   --  TODO: Write comment.
 
-   task AMI_Event_Task is
-      entry Start;
-      --  TODO: Write comment.
-   end AMI_Event_Task;
+   ------------------
+   --  AMI_Socket  --
+   ------------------
 
-   -----------------------
-   --  AMI_Action_Task  --
-   -----------------------
-
-   task body AMI_Action_Task
+   task body AMI_Socket
    is
       use Errors;
       use Yolk.Log;
 
-      Socket_Event : AWS.Net.Event_Set;
+      Connect_Delay   : constant Duration := 0.5;
+      Host            : constant String := Config.Get (PBX_Host);
+      Port            : constant Positive := Config.Get (PBX_Port);
+      Socket_Event    : AWS.Net.Event_Set;
    begin
-      --        select
-      --           accept Start do
-      --              select
-      --                 delay Socket_Connect_Timeout;
-      --                 raise AMI_Action_Error with Timed_Out_Message;
-      --              then abort
-      --                 AWS.Net.Std.Connect (Socket => Action_Socket,
-      --                                      Host   => Config.Get (PBX_Host),
-      --                                      Port   => Config.Get (PBX_Port));
-      --                 Connected := True;
-      --              end select;
-      --           end Start;
-      --        or
-      --           delay Task_Start_Timeout;
-      --     raise AMI_Action_Error with "Start entry not called within time";
-      --        end select;
       accept Start;
 
       Socket_Connection :
       loop
          begin
-            AWS.Net.Std.Connect (Socket => Action_Socket,
-                                 Host   => Config.Get (PBX_Host),
-                                 Port   => Config.Get (PBX_Port),
+            AWS.Net.Std.Connect (Socket => Socket_List (AMI_Type),
+                                 Host   => Host,
+                                 Port   => Port,
                                  Wait   => False);
 
             delay Connect_Delay;
@@ -100,7 +98,7 @@ package body AMI.Std is
             --  case being able to tweak this value is probably a good idea.
 
             Socket_Event := AWS.Net.Check
-              (Socket  => Action_Socket,
+              (Socket  => Socket_List (AMI_Type),
                Events  => (AWS.Net.Input => True, AWS.Net.Output => True));
 
             if Socket_Event (AWS.Net.Input)
@@ -108,19 +106,23 @@ package body AMI.Std is
             then
                Trace (Info, "Connection to "
                       & Host_Port
-                      & " AMI Action socket succeeded.");
+                      & " AMI "
+                      & AMI_Connection_Type'Image (AMI_Type)
+                      & " socket succeeded.");
 
-               AMI.Action.Start (Socket   => Action_Socket,
-                                 Username => Config.Get (PBX_Action_User),
-                                 Secret   => Config.Get (PBX_Action_Secret));
+               AMI_Callback (Socket   => Socket_List (AMI_Type),
+                             Username => User.all,
+                             Secret   => Secret.all);
             else
                --  Socket not ready, for some reason or another. Lets do a
                --  precautionary shutdown and then try connecting again.
-               AWS.Net.Buffered.Shutdown (Action_Socket);
+               AWS.Net.Buffered.Shutdown (Socket_List (AMI_Type));
 
                Error_Handler ("Connection to "
                               & Host_Port
-                              & " AMI Action socket failed.");
+                              & " AMI "
+                              & AMI_Connection_Type'Image (AMI_Type)
+                              & "socket failed.");
             end if;
 
          exception
@@ -128,17 +130,20 @@ package body AMI.Std is
                if not Shutdown then
                   Error_Handler
                     (Event   => E,
-                     Message =>
-                       "AMI_Action_Task lost connection to AMI socket");
+                     Message => "Lost connection to AMI "
+                     & AMI_Connection_Type'Image (AMI_Type)
+                     & " socket");
                end if;
             when E : others =>
                Error_Handler
                  (Event   => E,
-                  Message => "Error in AMI_Action_Task. We might've lost the"
-                  & " connection to the AMI socket. Precautionary socket"
-                  & " shutdown under way and then we'll try connecting again");
+                  Message => "Error! We might've lost the connection to the"
+                  & " AMI "
+                  & AMI_Connection_Type'Image (AMI_Type)
+                  & " socket. Precautionary socket shutdown under way and then"
+                  & " we'll try connecting again");
 
-               AWS.Net.Buffered.Shutdown (Action_Socket);
+               AWS.Net.Buffered.Shutdown (Socket_List (AMI_Type));
          end;
 
          if Shutdown then
@@ -146,71 +151,23 @@ package body AMI.Std is
          end if;
       end loop Socket_Connection;
 
-      Trace (Info, "AMI_Action_Task exited its main loop."
+      Trace (Info, "AMI "
+             & AMI_Connection_Type'Image (AMI_Type)
+             & " socket exited its main loop."
              & " Task completion imminent.");
-   end AMI_Action_Task;
+   end AMI_Socket;
 
-   ----------------------
-   --  AMI_Event_Task  --
-   ----------------------
+   Action_Socket : AMI_Socket
+     (AMI_Type     => Action,
+      AMI_Callback => AMI.Action.Start'Access,
+      Secret       => Action_Secret_Ptr,
+      User         => Action_User_Ptr);
 
-   task body AMI_Event_Task
-   is
-      use Yolk.Log;
-
-      Connected : Boolean := False;
-   begin
-      select
-         accept Start do
-            select
-               delay Socket_Connect_Timeout;
-               raise AMI_Event_Error with Timed_Out_Message;
-            then abort
-               AWS.Net.Std.Connect (Socket => Event_Socket,
-                                    Host   => Config.Get (PBX_Host),
-                                    Port   => Config.Get (PBX_Port));
-               Connected := True;
-            end select;
-         end Start;
-      or
-         delay Task_Start_Timeout;
-         raise AMI_Event_Error with "Start entry not called within time";
-      end select;
-
-      Reconnect :
-      loop
-         begin
-            if not Connected then
-               AWS.Net.Std.Connect (Socket => Event_Socket,
-                                    Host   => Config.Get (PBX_Host),
-                                    Port   => Config.Get (PBX_Port));
-            end if;
-            Trace (Info,
-                   "AMI event socket connected - Host: "
-                   & Config.Get (PBX_Host)
-                   & " Port: " & Config.Get (PBX_Port));
-
-            AMI.Event.Start (Channel  => Event_Socket,
-                             Username => Config.Get (PBX_Event_User),
-                             Secret   => Config.Get (PBX_Event_Secret));
-            Connected := False;
-         exception
-            when AWS.Net.Socket_Error =>
-               Connected := False;
-
-         end;
-
-         if Shutdown then
-            Trace (Info, "AMI socket connection closed.");
-            exit Reconnect;
-         else
-            --  send message out to websocket about system failure.
-            Trace (Error, "No connection to AMI.Event");
-         end if;
-
-         delay Connect_Delay;
-      end loop Reconnect;
-   end AMI_Event_Task;
+   Event_Socket : AMI_Socket
+     (AMI_Type     => Event,
+      AMI_Callback => AMI.Event.Start'Access,
+      Secret       => Event_Secret_Ptr,
+      User         => Event_User_Ptr);
 
    ---------------
    --  Connect  --
@@ -218,10 +175,9 @@ package body AMI.Std is
 
    procedure Connect
    is
-      use Yolk.Log;
    begin
-      AMI_Event_Task.Start;
-      AMI_Action_Task.Start;
+      Action_Socket.Start;
+      Event_Socket.Start;
    end Connect;
 
    ------------------
@@ -234,15 +190,15 @@ package body AMI.Std is
    begin
       Shutdown := True;
 
-      Trace (Info, "Shutting down connection to "
-                   & Host_Port
-                   & " AMI Action socket.");
-      AWS.Net.Buffered.Shutdown (Action_Socket);
+      for AMI_Type in AMI_Connection_Type'Range loop
+         AWS.Net.Buffered.Shutdown (Socket_List (AMI_Type));
 
-      Trace (Info, "Shutting down connection to "
-                   & Host_Port
-                   & " AMI Event socket.");
-      AWS.Net.Buffered.Shutdown (Event_Socket);
+         Trace (Info, "Shutting down connection to "
+                & Host_Port
+                & " AMI "
+                & AMI_Connection_Type'Image (AMI_Type)
+                & " socket.");
+      end loop;
    end Disconnect;
 
 end AMI.Std;

@@ -29,7 +29,7 @@ package AMI.Event is
 
    type Asterisk_AMI_Type is private;
 
-   procedure Start (Channel  : in AWS.Net.Std.Socket_Type;
+   procedure Start (Socket   : in AWS.Net.Std.Socket_Type;
                     Username : in String;
                     Secret   : in String);
    --  Here starts the part of the program, that listens for events

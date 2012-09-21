@@ -23,7 +23,7 @@
 
 package AMI.Std is
 
-   procedure Connect;
+      procedure Connect;
    --  TODO: Write comment
 
    procedure Disconnect;

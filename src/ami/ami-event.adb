@@ -409,14 +409,14 @@ package body AMI.Event is
 
    --  TODO: Write up and
    --    architecture that uses a queue to send requests, or blocks
-   procedure Start (Channel  : in AWS.Net.Std.Socket_Type;
+   procedure Start (Socket   : in AWS.Net.Std.Socket_Type;
                     Username : in String;
                     Secret   : in String) is
       use Ada.Strings.Unbounded;
       use Yolk.Log;
    begin
-      Asterisk := (Greeting  => new String'(Read_Line (Channel)),
-                   Channel   => Channel,
+      Asterisk := (Greeting  => new String'(Read_Line (Socket)),
+                   Channel   => Socket,
                    Logged_In => False);
 
       Yolk.Log.Trace (Yolk.Log.Debug, "Event Greetings: " &
@@ -430,7 +430,7 @@ package body AMI.Event is
 
       loop
          declare
-            Event_String : constant Unbounded_String := Read_Package (Channel);
+            Event_String : constant Unbounded_String := Read_Package (Socket);
             Event_List : Event_List_Type.Map;
          begin
             Event_List := Parse (Event_String);
