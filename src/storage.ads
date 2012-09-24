@@ -84,37 +84,38 @@ package Storage is
    --  function is here because the errors thrown by PostgreSQL is postfixed
    --  with a \n which we must remove before sending the message to syslogd.
 
+   -----------------------------
+   --  Generic_Query_To_JSON  --
+   -----------------------------
+
    generic
 
       type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with private;
 
       with function Query
         return GNATCOLL.SQL.Exec.Prepared_Statement;
-      --  TODO: Write comment
+      --  The prepared statement that is used to fetch data from the SQL
+      --  database.
 
-      with procedure JSONIFY
+      with procedure To_JSON
         (C     : in out Cursor;
          Value : in out Common.JSON_String);
-      --  TODO: Write comment
+      --  Turn the rows in Cursor into JSON nodes.
 
       with function Query_Parameters
         (Request : in AWS.Status.Data)
          return GNATCOLL.SQL.Exec.SQL_Parameters;
-      --  TODO: Write comment
-
-      with procedure Write_To_Cache
-        (Key   : in String;
-         Value : in Common.JSON_String);
-      --  TODO: Write comment
+      --  The parameters needed by the prepared statement given in Query.
 
    package Generic_Query_To_JSON is
 
       procedure Generate
-        (Key     : in      String;
-         Request : in      AWS.Status.Data;
-         Status  :     out AWS.Messages.Status_Code;
-         Value   :     out Common.JSON_String);
-      --  TODO: Write comment
+        (Cacheable      :    out Boolean;
+         Request        : in     AWS.Status.Data;
+         Status         :    out AWS.Messages.Status_Code;
+         Value          :    out Common.JSON_String);
+      --  Generates the Value JSON document and sets the corresponding Status
+      --  code.
 
    end Generic_Query_To_JSON;
 

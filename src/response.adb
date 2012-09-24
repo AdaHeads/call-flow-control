@@ -24,11 +24,13 @@
 with Ada.Strings.Fixed;
 with AWS.Response.Set;
 with AWS.URL;
-with AWS.Utils;
 with Errors;
 with HTTP_Codes;
 
 package body Response is
+
+   Database_Error      : exception;
+   GET_Parameter_Error : exception;
 
    JSON_MIME_Type : constant String := "application/json; charset=utf-8";
 
@@ -135,47 +137,11 @@ package body Response is
       return D;
    end Build_JSON_Response;
 
-   -------------------------------
-   --  Check_Ce_Id_Parameter  --
-   -------------------------------
+   ---------------------------------
+   --  Generic_Response_From_SQL  --
+   ---------------------------------
 
-   procedure Check_Ce_Id_Parameter
-     (Request : in AWS.Status.Data)
-   is
-      use AWS.Utils;
-      use Errors;
-
-      P : constant String := Get_Ce_Id_Key (Request);
-   begin
-      if not Is_Number (P) then
-         raise GET_Parameter_Error with
-           "ce_id must be a valid natural integer";
-      end if;
-   end Check_Ce_Id_Parameter;
-
-   ------------------------------
-   --  Check_Org_Id_Parameter  --
-   ------------------------------
-
-   procedure Check_Org_Id_Parameter
-     (Request : in AWS.Status.Data)
-   is
-      use AWS.Utils;
-      use Errors;
-
-      P : constant String := Get_Org_Id_Key (Request);
-   begin
-      if not Is_Number (P) then
-         raise GET_Parameter_Error with
-           "org_id must be a valid natural integer";
-      end if;
-   end Check_Org_Id_Parameter;
-
-   --------------------
-   --  Generic_Read  --
-   --------------------
-
-   package body Generic_Response is
+   package body Generic_Response_From_SQL is
 
       ----------------
       --  Generate  --
@@ -191,20 +157,30 @@ package body Response is
          use Errors;
          use HTTP_Codes;
 
-         Key    : constant String := Get_Cache_Key (Request);
-         Status : AWS.Messages.Status_Code;
-         Valid  : Boolean;
-         Value  : JSON_String;
+         Cacheable : Boolean;
+         Cache_Key : Natural;
+         Status    : AWS.Messages.Status_Code;
+         Valid     : Boolean;
+         Value     : JSON_String;
       begin
-         Read_From_Cache (Key      => Key,
+         Cache_Key := Get_Cache_Key (Request);
+
+         Read_From_Cache (Key      => Cache_Key,
                           Is_Valid => Valid,
                           Value    => Value);
 
          if Valid then
             Status := OK;
          else
-            Check_Request_Parameters (Request);
-            Query_To_JSON.Generate (Key, Request, Status, Value);
+            To_JSON (Cacheable => Cacheable,
+                     Request   => Request,
+                     Status    => Status,
+                     Value     => Value);
+
+            if Cacheable then
+               Write_To_Cache (Key   => Cache_Key,
+                               Value => Value);
+            end if;
          end if;
 
          return Build_JSON_Response
@@ -216,20 +192,20 @@ package body Response is
          when Event : Database_Error =>
             return Build_JSON_Response
               (Request => Request,
-               Content => Exception_Handler
+               Content => Log_Exception
                  (Event   => Event,
                   Message => "Requested resource: " & URL (URI (Request))),
                Status  => Server_Error);
          when Event : others =>
             return Build_JSON_Response
               (Request => Request,
-               Content => Exception_Handler
+               Content => Log_Exception
                  (Event   => Event,
                   Message => "Requested resource: " & URL (URI (Request))),
                Status  => Bad_Request);
       end Generate;
 
-   end Generic_Response;
+   end Generic_Response_From_SQL;
 
    ---------------------
    --  Get_Ce_Id_Key  --
@@ -237,11 +213,16 @@ package body Response is
 
    function Get_Ce_Id_Key
      (Request : in AWS.Status.Data)
-      return String
+      return Natural
    is
       use AWS.Status;
+      use Errors;
    begin
-      return Parameters (Request).Get ("ce_id");
+      return Natural'Value (Parameters (Request).Get ("ce_id"));
+   exception
+      when others =>
+         raise GET_Parameter_Error with
+           "ce_id must be a valid natural integer";
    end Get_Ce_Id_Key;
 
    ----------------------
@@ -250,11 +231,16 @@ package body Response is
 
    function Get_Org_Id_Key
      (Request : in AWS.Status.Data)
-      return String
+      return Natural
    is
       use AWS.Status;
+      use Errors;
    begin
-      return Parameters (Request).Get ("org_id");
+      return Natural'Value (Parameters (Request).Get ("org_id"));
+   exception
+      when others =>
+         raise GET_Parameter_Error with
+           "org_id must be a valid natural integer";
    end Get_Org_Id_Key;
 
 end Response;

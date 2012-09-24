@@ -24,14 +24,16 @@
 with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
 with Ada.Task_Attributes;
-with Errors;
 with GNATCOLL.SQL.Postgres;
 with HTTP_Codes;
 with My_Configuration;
+with Yolk.Log;
 
 package body Storage is
 
    use My_Configuration;
+
+   Database_Error : exception;
 
    Null_Pool : constant DB_Conn_Pool :=
                  (others => Null_Database_Connection);
@@ -85,8 +87,8 @@ package body Storage is
      (Connection_Pool : in out DB_Conn_Pool;
       Connection_Type : in     DB_Conn_Type)
    is
-      use Errors;
       use GNATCOLL.SQL;
+      use Yolk.Log;
 
       Trimmed_DB_Error : constant String
         := Trim (Exec.Error (Connection_Pool (Connection_Type).Host));
@@ -102,7 +104,7 @@ package body Storage is
       if Connection_Type = DB_Conn_Type'Last then
          raise Database_Error with Message;
       else
-         Error_Handler (Message);
+         Trace (Info, Message);
       end if;
    end Failed_Query;
 
@@ -113,10 +115,10 @@ package body Storage is
    package body Generic_Query_To_JSON is
 
       procedure Generate
-        (Key              : in      String;
-         Request          : in      AWS.Status.Data;
-         Status           :     out AWS.Messages.Status_Code;
-         Value            :     out Common.JSON_String)
+        (Cacheable :    out Boolean;
+         Request   : in      AWS.Status.Data;
+         Status    :    out AWS.Messages.Status_Code;
+         Value     :    out Common.JSON_String)
       is
          use GNATCOLL.SQL.Exec;
          use HTTP_Codes;
@@ -125,8 +127,9 @@ package body Storage is
          C              : Cursor;
          DB_Connections : DB_Conn_Pool := Get_DB_Connections;
       begin
+         Cacheable := False;
+
          Status := Server_Error;
-         --  Assume the worst.
 
          Fetch_Data :
          for k in DB_Connections'Range loop
@@ -135,12 +138,10 @@ package body Storage is
                      Params => Query_Parameters (Request));
 
             if DB_Connections (k).Host.Success then
-               JSONIFY (C, Value);
+               To_JSON (C, Value);
 
                if C.Processed_Rows > 0 then
-                  Write_To_Cache (Key   => Key,
-                                  Value => Value);
-
+                  Cacheable := True;
                   Status := OK;
                else
                   Status := Not_Found;

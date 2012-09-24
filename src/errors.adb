@@ -27,39 +27,10 @@ with Yolk.Log;
 package body Errors is
 
    ---------------------
-   --  Error_Handler  --
+   --  Log_Exception  --
    ---------------------
 
-   procedure Error_Handler
-     (Message : in String)
-   is
-      use Yolk.Log;
-   begin
-      Trace (Error, Message);
-   end Error_Handler;
-
-   ---------------------
-   --  Error_Handler  --
-   ---------------------
-
-   procedure Error_Handler
-     (Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String)
-   is
-      use Ada.Exceptions;
-      use Yolk.Log;
-
-      E_Name : constant String := Exception_Name (Event);
-      E_Msg  : constant String := Exception_Message (Event);
-   begin
-      Trace (Error, E_Name & "-" & E_Msg & "-" & Message);
-   end Error_Handler;
-
-   -------------------------
-   --  Exception_Handler  --
-   -------------------------
-
-   function Exception_Handler
+   function Log_Exception
      (Event   : in Ada.Exceptions.Exception_Occurrence;
       Message : in String)
       return Common.JSON_String
@@ -85,6 +56,23 @@ package body Errors is
       JSON.Set_Field (Field_Name => "message",
                              Field      => Message);
       return To_JSON_String (JSON.Write);
-   end Exception_Handler;
+   end Log_Exception;
+
+   ---------------------
+   --  Log_Exception  --
+   ---------------------
+
+   procedure Log_Exception
+     (Event   : in Ada.Exceptions.Exception_Occurrence;
+      Message : in String)
+   is
+      use Ada.Exceptions;
+      use Yolk.Log;
+
+      E_Name : constant String := Exception_Name (Event);
+      E_Msg  : constant String := Exception_Message (Event);
+   begin
+      Trace (Error, E_Name & "-" & E_Msg & "-" & Message);
+   end Log_Exception;
 
 end Errors;

@@ -30,8 +30,6 @@ package My_Configuration is
    package Util renames Yolk.Utilities;
 
    type Keys is (Cache_Max_Element_Age,
-                 Cache_Size_Contact,
-                 Cache_Size_Organization,
                  DB_Host,
                  DB_Name,
                  DB_Password,
@@ -63,10 +61,6 @@ package My_Configuration is
    Default_Values : constant Defaults_Array :=
                       (Cache_Max_Element_Age
                        => Util.TUS ("86_400"),
-                       Cache_Size_Contact
-                       => Util.TUS ("10_000"),
-                       Cache_Size_Organization
-                       => Util.TUS ("1_000"),
                        DB_Host
                        => Util.TUS ("pg.adaheads.com"),
                        DB_Name

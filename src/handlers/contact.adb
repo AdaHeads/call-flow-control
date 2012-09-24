@@ -169,7 +169,7 @@ package body Contact is
    is
       use GNATCOLL.SQL.Exec;
    begin
-      return (1 => +Natural'Value (Response.Get_Ce_Id_Key (Request)));
+      return (1 => +Response.Get_Ce_Id_Key (Request));
    end Query_Parameters;
 
 end Contact;

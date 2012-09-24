@@ -205,7 +205,7 @@ package body Organization is
    is
       use GNATCOLL.SQL.Exec;
    begin
-      return (1 => +Natural'Value (Response.Get_Org_Id_Key (Request)));
+      return (1 => +Response.Get_Org_Id_Key (Request));
    end Query_Parameters;
 
 end Organization;

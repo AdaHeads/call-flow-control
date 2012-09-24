@@ -26,27 +26,16 @@ with Common;
 
 package Errors is
 
-   Database_Error : exception;
-   --  Is raised for ANY fatal database errors.
-
-   GET_Parameter_Error : exception;
-   --  Is raised if one or more GET parameters are missing/wrong or otherwise
-   --  in bad condition.
-
-   procedure Error_Handler
-     (Message : in String);
-   --  Log error messages to the Error trace.
-
-   procedure Error_Handler
-     (Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String);
-   --  Log error messages to the Error trace.
-
-   function Exception_Handler
+   function Log_Exception
      (Event   : in Ada.Exceptions.Exception_Occurrence;
       Message : in String)
       return Common.JSON_String;
-   --  Log exception messages to the Error trace and returns a JSON document
+   --  Log exception messages to the Error trace and return a JSON document
    --  containing the status and description of the error.
+
+   procedure Log_Exception
+     (Event   : in Ada.Exceptions.Exception_Occurrence;
+      Message : in String);
+   --  Log exception and message to the Error trace.
 
 end Errors;

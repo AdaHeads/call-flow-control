@@ -25,7 +25,6 @@ with AWS.Messages;
 with AWS.Response;
 with AWS.Status;
 with Common;
-with Storage;
 
 package Response is
 
@@ -40,59 +39,57 @@ package Response is
    --      ?jsoncallback=foo
    --  GET parameter is present.
 
-   procedure Check_Ce_Id_Parameter
-     (Request : in AWS.Status.Data)
-   with inline;
-   --  Check if the request parameter ce_id is numeric. Raise
-   --  GET_Parameter_Error if not.
-
    function Get_Ce_Id_Key
      (Request : in AWS.Status.Data)
-      return String
+      return Natural
    with inline;
-   --  Return the value of the ce_id request parameter.
-
-   procedure Check_Org_Id_Parameter
-     (Request : in AWS.Status.Data)
-   with inline;
-   --  Check if the request parameter org_id is numeric. Raise
-   --  GET_Parameter_Error if not.
+   --  Return the value of the ce_id request parameter. Raise
+   --  GET_Parameter_Error if ce_id is not a Natural.
 
    function Get_Org_Id_Key
      (Request : in AWS.Status.Data)
-      return String
+      return Natural
    with inline;
-   --  Return the value of the org_id request parameter.
+   --  Return the value of the org_id request parameter. Raise
+   --  GET_Parameter_Error if org_id is not a Natural.
+
+   ---------------------------------
+   --  Generic_Response_From_SQL  --
+   ---------------------------------
 
    generic
 
-      with procedure Check_Request_Parameters
-        (Request : in AWS.Status.Data);
-      --  Check the validity of all required request parameters.
-      --  Must raise the Errors.GET_Parameter_Error exception if one or more
-      --  the request parameters aren't valid.
-
       with function Get_Cache_Key
         (Request : in AWS.Status.Data)
-      return String;
+      return Natural;
       --  Return the key used to identify an object in a cache.
 
       with procedure Read_From_Cache
-        (Key      : in     String;
+        (Key      : in     Natural;
          Is_Valid :    out Boolean;
          Value    :    out Common.JSON_String);
       --  Find Key in a cache.
 
-      with package Query_To_JSON is new Storage.Generic_Query_To_JSON (<>);
-      --  This package enables reading data from persistent storage.
+      with procedure To_JSON
+        (Cacheable :    out Boolean;
+         Request   : in     AWS.Status.Data;
+         Status    :    out AWS.Messages.Status_Code;
+         Value     :    out Common.JSON_String);
+      --  Generate the JSON document that is delivered to the client. If
+      --  Cacheable is set to True, then the JSON document can be cached.
 
-   package Generic_Response is
+      with procedure Write_To_Cache
+        (Key   : in Natural;
+         Value : in Common.JSON_String);
+      --  Add Key/Value to a cache.
+
+   package Generic_Response_From_SQL is
 
       function Generate
         (Request : in AWS.Status.Data)
          return AWS.Response.Data;
-      --   TODO: Write comment
+      --   Generate the object that is delivered to the user.
 
-   end Generic_Response;
+   end Generic_Response_From_SQL;
 
 end Response;

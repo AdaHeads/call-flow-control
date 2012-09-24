@@ -154,24 +154,24 @@ package body AMI.Std is
                --  precautionary shutdown and then try connecting again.
                AWS.Net.Buffered.Shutdown (Socket_List (AMI_Type));
 
-               Error_Handler ("Connection to "
-                              & Host_Port
-                              & " AMI "
-                              & AMI_Connection_Type'Image (AMI_Type)
-                              & "socket failed.");
+               Trace (Error, "Connection to "
+                      & Host_Port
+                      & " AMI "
+                      & AMI_Connection_Type'Image (AMI_Type)
+                      & "socket failed.");
             end if;
 
          exception
             when E : AWS.Net.Socket_Error =>
                if not Shutdown then
-                  Error_Handler
+                  Log_Exception
                     (Event   => E,
                      Message => "Lost connection to AMI "
                      & AMI_Connection_Type'Image (AMI_Type)
                      & " socket");
                end if;
             when E : others =>
-               Error_Handler
+               Log_Exception
                  (Event   => E,
                   Message => "Error! We might've lost the connection to the"
                   & " AMI "
