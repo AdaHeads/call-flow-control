@@ -62,7 +62,9 @@ package Event_Parser is
       Message,
       Exten,
       Address,
-      Port);
+      Port,
+      Privilege,
+      ChannelType);
 
    function Hash_Function (Key : in Event_Keywords)
                            return Ada.Containers.Hash_Type;

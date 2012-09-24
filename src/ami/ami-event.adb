@@ -147,6 +147,7 @@ package body AMI.Event is
       --  Unknownen
       Temp_Value : Unbounded_String;
    begin
+      Trace (Debug, "------------- JOIN EVENT-------------");
       if Try_Get (Event_List, Uniqueid, Temp_Value) then
          --  The call should exsists at this point.
          Call := Call_List.Get_Call (Temp_Value);
@@ -154,6 +155,7 @@ package body AMI.Event is
 
       --  There are no call with that ID, something is wrong.
       if Call = Null_Call then
+         Trace (Debug, "------ JOIN EVENT --- NO CALL -----");
          if Try_Get (Event_List, Channel, Temp_Value) then
             Trace (Error,
                    "Got a Join evnet, " &
@@ -165,9 +167,11 @@ package body AMI.Event is
                    "Got a Join Event, on a call that don't exsist" &
                      " and do not have a Channel");
          end if;
+         return;
       end if;
 
       if Call.State = Call_List.Unknown then
+         Trace (Debug, "------- JOIN EVENT --- Call unknown state ------");
          Call.State := Call_List.Queued;
 
          if Try_Get (Event_List, Queue, Temp_Value) then
@@ -180,6 +184,8 @@ package body AMI.Event is
          Yolk.Log.Trace (Yolk.Log.Error, "Join Event, Call with bad state: " &
                            Call.State'Img);
       end if;
+      Trace (Debug, "------- JOIN EVENT --- Call Upadete ------");
+      Call_List.Update (Call);
    end Join_Callback;
 
    procedure Login (Asterisk_AMI : in Asterisk_AMI_Type;
@@ -435,7 +441,7 @@ package body AMI.Event is
                exception
                   when others =>
                      --  TODO turn this block into a more readable method.
-                     Trace (Error, "Unknown event");
+                     Trace (Error, "Unknown event: " & To_String (Temp_Value));
                end;
             end if;
          exception
