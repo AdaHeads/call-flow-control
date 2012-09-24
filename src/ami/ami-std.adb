@@ -21,6 +21,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Calendar;
 with AMI.Action;
 with AMI.Event;
 with AWS.Net.Std;
@@ -39,34 +40,60 @@ package body AMI.Std is
                                       Username : in String;
                                       Secret   : in String);
 
-   type String_Ptr is not null access all String;
-
-   Action_Secret     : aliased String := Config.Get (PBX_Action_Secret);
-   Action_User       : aliased String := Config.Get (PBX_Action_User);
-   Event_Secret      : aliased String := Config.Get (PBX_Event_Secret);
-   Event_User        : aliased String := Config.Get (PBX_Event_User);
-
-   Action_Secret_Ptr : constant String_Ptr := Action_Secret'Access;
-   Action_User_Ptr   : constant String_Ptr := Action_User'Access;
-   Event_Secret_Ptr  : constant String_Ptr := Event_Secret'Access;
-   Event_User_Ptr    : constant String_Ptr := Event_User'Access;
+   task type AMI_Socket
+     (AMI_Type     : AMI_Connection_Type;
+      AMI_Callback : Callback)
+   is
+      entry Start;
+      --  Dummy entry call, to make it visible that we are starting AMI.
+   end AMI_Socket;
 
    Host_Port         : constant String := Config.Get (PBX_Host) &
-                         ":" &
-                         Config.Get (PBX_Port);
+     ":" & Config.Get (PBX_Port);
    Socket_List       : array (AMI_Connection_Type) of AWS.Net.Std.Socket_Type;
    Shutdown          : Boolean := False;
 
-   task type AMI_Socket
-     (AMI_Type     : AMI_Connection_Type;
-      AMI_Callback : Callback;
-      Secret       : String_Ptr;
-      User         : String_Ptr)
+   function AMI_Secret
+     (AMI_Type : in AMI_Connection_Type)
+      return String
+   with inline;
+   --  Returns AMI password for AMI_Type.
+
+   function AMI_Username
+     (AMI_Type : in AMI_Connection_Type)
+      return String
+   with inline;
+   --  Returns AMI username for AMI_Type.
+
+   ------------------
+   --  AMI_Secret  --
+   ------------------
+
+   function AMI_Secret (AMI_Type : in AMI_Connection_Type) return String
    is
-      entry Start;
-      --  TODO: Write comment.
-   end AMI_Socket;
-   --  TODO: Write comment.
+   begin
+      case AMI_Type is
+         when Action =>
+            return Config.Get (PBX_Action_Secret);
+         when Event =>
+            return Config.Get (PBX_Event_Secret);
+      end case;
+   end AMI_Secret;
+
+   --------------------
+   --  AMI_Username  --
+   --------------------
+
+   function AMI_Username (AMI_Type : in AMI_Connection_Type) return String
+   is
+   begin
+      case AMI_Type is
+         when Action =>
+            return Config.Get (PBX_Action_User);
+         when Event =>
+            return Config.Get (PBX_Event_User);
+      end case;
+   end AMI_Username;
 
    ------------------
    --  AMI_Socket  --
@@ -77,8 +104,8 @@ package body AMI.Std is
       use Errors;
       use Yolk.Log;
 
-      Connect_Delay   : constant Duration := 0.5;
-      Host            : constant String := Config.Get (PBX_Host);
+      Reconnect_Delay : constant Duration := 0.5;
+      Host            : constant String   := Config.Get (PBX_Host);
       Port            : constant Positive := Config.Get (PBX_Port);
       Socket_Event    : AWS.Net.Event_Set;
    begin
@@ -86,20 +113,29 @@ package body AMI.Std is
 
       Socket_Connection :
       loop
+         declare
+            use Ada.Calendar;
+
+            Wait_Until : constant Time := Clock + 3.0;
          begin
             AWS.Net.Std.Connect (Socket => Socket_List (AMI_Type),
                                  Host   => Host,
                                  Port   => Port,
                                  Wait   => False);
 
-            delay Connect_Delay;
-            --  TODO: Make this delay a configuration parameter. We could be
-            --  trying to connect to an exceptionally slow server, in which
-            --  case being able to tweak this value is probably a good idea.
+            Wait_For_Connect :
+            loop
+               Socket_Event := AWS.Net.Check
+                 (Socket  => Socket_List (AMI_Type),
+                  Events  => (AWS.Net.Input => True, AWS.Net.Output => True));
 
-            Socket_Event := AWS.Net.Check
-              (Socket  => Socket_List (AMI_Type),
-               Events  => (AWS.Net.Input => True, AWS.Net.Output => True));
+               exit Wait_For_Connect when Socket_Event (AWS.Net.Input)
+                 and then Socket_Event (AWS.Net.Output);
+
+               exit Wait_For_Connect when Wait_Until < Clock;
+
+               delay 0.01;
+            end loop Wait_For_Connect;
 
             if Socket_Event (AWS.Net.Input)
               and then Socket_Event (AWS.Net.Output)
@@ -111,8 +147,8 @@ package body AMI.Std is
                       & " socket succeeded.");
 
                AMI_Callback (Socket   => Socket_List (AMI_Type),
-                             Username => User.all,
-                             Secret   => Secret.all);
+                             Username => AMI_Username (AMI_Type),
+                             Secret   => AMI_Secret (AMI_Type));
             else
                --  Socket not ready, for some reason or another. Lets do a
                --  precautionary shutdown and then try connecting again.
@@ -149,6 +185,8 @@ package body AMI.Std is
          if Shutdown then
             exit Socket_Connection;
          end if;
+
+         delay Reconnect_Delay;
       end loop Socket_Connection;
 
       Trace (Info, "AMI "
@@ -159,15 +197,11 @@ package body AMI.Std is
 
    Action_Socket : AMI_Socket
      (AMI_Type     => Action,
-      AMI_Callback => AMI.Action.Start'Access,
-      Secret       => Action_Secret_Ptr,
-      User         => Action_User_Ptr);
+      AMI_Callback => AMI.Action.Start'Access);
 
    Event_Socket : AMI_Socket
      (AMI_Type     => Event,
-      AMI_Callback => AMI.Event.Start'Access,
-      Secret       => Event_Secret_Ptr,
-      User         => Event_User_Ptr);
+      AMI_Callback => AMI.Event.Start'Access);
 
    ---------------
    --  Connect  --

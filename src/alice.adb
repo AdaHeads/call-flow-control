@@ -65,6 +65,8 @@ procedure Alice is
    is
       use Ada.Directories;
    begin
+      AMI.Std.Connect;
+
       if AWS.Config.Session (Web_Server_Config)
         and then Exists (Config.Get (Session_Data_File))
       then
@@ -91,8 +93,6 @@ procedure Alice is
             Name       => "AWS Error Log");
          --  Start the access and error logs.
       end if;
-
-      AMI.Std.Connect;
 
       Trace (Handle  => Info,
              Message => "Started " &
