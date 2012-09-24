@@ -29,6 +29,7 @@ with Yolk.Log;
 
 package body AMI.Action is
    use AWS.Net.Std;
+   use Yolk.Log;
 
    type Response_Type is
      (Ping,
@@ -274,13 +275,14 @@ package body AMI.Action is
       Command : constant String := Protocol.Login (Username => Username,
                                                    Secret   => Secret);
    begin
-
 --        Yolk.Log.Trace (Yolk.Log.Debug, "Log-In: " & Command);
       AMI.IO.Send (Socket, Command);
 
       declare
          Response : constant Event_Parser.Event_List_Type.Map :=
-           Read_Event_List;
+                      Read_Event_List;
+         Temp_Value : Unbounded_String;
+         Result : Boolean := False;
       begin
          --  Response: Success
          --  Message: Authentication accepted
@@ -288,19 +290,33 @@ package body AMI.Action is
          --   To_String (Response.First_Element));
 
          if
-           To_String (Response.Element (To_Unbounded_String ("Response")))
-           = "Success"
-           and then
-             To_String (Response.Element (To_Unbounded_String ("Message")))
-           = "Authentication accepted" then
+           Event_Parser.Try_Get
+             (Response, Event_Parser.Response, Temp_Value)
+         then
+            if To_String (Temp_Value) = "Success" then
+               Result := True;
+            end if;
+         end if;
 
-            return True;
-         else
+         if
+           Event_Parser.Try_Get
+             (Response, Event_Parser.Message, Temp_Value)
+         then
+            if To_String (Temp_Value) = "Authentication accepted" then
+               --  If the response was Success, then this will just be
+               --  True and True = True
+               Result := Result and True;
+            else
+               Result := False;
+            end if;
+         end if;
+
+         if not Result then
             Yolk.Log.Trace (Yolk.Log.Notice,
                             "AMI Action was not logged in with: " &
                               "Username: " & Username & " Secret: " & Secret);
-            return False;
          end if;
+         return Result;
       end;
    end Login;
 
@@ -523,15 +539,15 @@ package body AMI.Action is
             Event_String : constant Unbounded_String := Read_Package (Socket);
             Event_List : Event_List_Type.Map;
             Event_Name : Response_Type;
+            Temp_Value : Unbounded_String;
          begin
             Event_List := Parse (Event_String);
-            if Event_List.Contains (To_Unbounded_String ("Event")) then
+            if Try_Get (Event_List, Event, Temp_Value) then
                begin
                   --  TODO make a procedure for this. LESS UGLY.
                   --  Cast the event in String type to response type.
-                  Event_Name := Response_Type'Value (To_String
-                    (Event_List.Element
-                       (To_Unbounded_String ("Event"))));
+                  Event_Name := Response_Type'Value
+                    (To_String (Temp_Value));
                   --  Calls the relevant function for that event.
                   CallBack_Routine
                     (Event_Name)(Event_List);
@@ -540,10 +556,9 @@ package body AMI.Action is
                      --  If it's not possible to cast the event name
                      --   to a Response type, then it trows an Constraint Error
                   when Constraint_Error =>
-                     Yolk.Log.Trace (Yolk.Log.Error,
+                     Trace (Error,
                        "Got an unknown Response Type in Action: "
-                       & To_String (Event_List.Element
-                         (To_Unbounded_String ("Event"))));
+                       & To_String (Temp_Value));
                end;
             end if;
          end;

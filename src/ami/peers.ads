@@ -55,34 +55,34 @@ package Peers is
          --  Dete skal kun symbolere de informationen, der måtte komme senere
       end record;
 
-      null_Peer : Peer_Type :=
-     (Agent_ID     => Null_Unbounded_String,
-      Defined      => False,
-      Status       => Unregistered,
-      ChannelType  => Null_Unbounded_String,
-      Peer         => Null_Unbounded_String,
-      Port         => Null_Unbounded_String,
-      Address      => Null_Unbounded_String,
-      Paused       => False,
-      Last_Seen    => Ada.Calendar.Clock,
-      Exten        => Null_Unbounded_String,
-      Computer_ID  => Null_Unbounded_String);
+   Null_Peer : Peer_Type :=
+                 (Agent_ID     => Null_Unbounded_String,
+                  Defined      => False,
+                  Status       => Unregistered,
+                  ChannelType  => Null_Unbounded_String,
+                  Peer         => Null_Unbounded_String,
+                  Port         => Null_Unbounded_String,
+                  Address      => Null_Unbounded_String,
+                  Paused       => False,
+                  Last_Seen    => Ada.Calendar.Clock,
+                  Exten        => Null_Unbounded_String,
+                  Computer_ID  => Null_Unbounded_String);
 
-   type Peer_type_access is access Peer_Type;
+   type Peer_Type_Access is access Peer_Type;
 
    function Hash (Peer_Address : in Unbounded_String) return Hash_Type;
 
    package Peer_List_Type is new Ada.Containers.Hashed_Maps
-     (Key_Type => Unbounded_String,
-      Element_Type => Peer_type,
-      Hash => Hash,
+     (Key_Type        => Unbounded_String,
+      Element_Type    => Peer_Type,
+      Hash            => Hash,
       Equivalent_Keys => "=");
 
    function Get_Peers_List return Peer_List_Type.Map;
    function Get_Exten (Peer : in Unbounded_String) return Unbounded_String;
    function Get_Peer (Agent_ID : in Unbounded_String) return Peer_Type;
 
---     procedure Print_Peer (Peer : in Peer_Type);
+   --     procedure Print_Peer (Peer : in Peer_Type);
    procedure Insert_Peer (New_Item : in Peer_Type);
    procedure Replace_Peer (Item : in Peer_Type);
 

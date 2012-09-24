@@ -21,19 +21,66 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Ordered_Maps,
-     Ada.Strings.Unbounded;
+with Ada.Containers.Hashed_Maps;
+with Ada.Strings.Unbounded;
 
 --  This package can parse, the Events that comes from Asterisk.
 package Event_Parser is
    use Ada.Strings.Unbounded;
 
-   package Event_List_Type is new Ada.Containers.Ordered_Maps
-     (Unbounded_String, Unbounded_String);
+   type Event_Keywords is
+     (Event,
+      Response,
+      Channel,
+      Channel1,
+      Channel2,
+      CallerID,
+      CallerIDName,
+      Queue,
+      Position,
+      Count,
+      Uniqueid,
+      Uniqueid1,
+      Uniqueid2,
+      State,
+      Cause,
+      Source,
+      Destination,
+      SrcUniqueID,
+      DestUniqueID,
+      Extension,
+      Priority,
+      Application,
+      AppData,
+      Oldname,
+      Newname,
+      Shutdown,
+      Restart,
+      Peer,
+      PeerStatus,
+      Time,
+      Message,
+      Exten,
+      Address,
+      Port);
+
+   function Hash_Function (Key : in Event_Keywords)
+                           return Ada.Containers.Hash_Type;
+   function Hash_Equivalent_Keys (Left, Right : in Event_Keywords)
+                                  return Boolean;
+
+   package Event_List_Type is new Ada.Containers.Hashed_Maps
+     (Key_Type => Event_Keywords,
+      Element_Type => Unbounded_String,
+      Hash => Hash_Function,
+      Equivalent_Keys => Hash_Equivalent_Keys);
 
    --  Takes a line of text, with key-value pairs structured:
    --  Key: Value<CRLF>
    function Parse (Event_Text : in Unbounded_String)
                    return Event_List_Type.Map;
 
+   function Try_Get (Events     : in     Event_List_Type.Map;
+                     Field_Name : in     Event_Keywords;
+                     Value      :    out Unbounded_String) return Boolean;
 end Event_Parser;

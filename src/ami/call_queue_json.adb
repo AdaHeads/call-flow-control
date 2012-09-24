@@ -28,6 +28,8 @@ with Ada.Calendar,
 
 with Interfaces.C;
 
+with Yolk.Log;
+
 package body Call_Queue_JSON is
    use GNATCOLL.JSON;
 
@@ -70,6 +72,8 @@ package body Call_Queue_JSON is
       CompanyID : Ada.Strings.Unbounded.Unbounded_String;
       Compnay_prefix : constant String := "org_id";
    begin
+      Yolk.Log.Trace (Yolk.Log.Debug, "DEBUG - " &
+                        Ada.Strings.Unbounded.To_String (Call.Queue));
       if Call /= Call_List.null_Call then
          CompanyID := Ada.Strings.Unbounded.Tail
            (Call.Queue,
@@ -115,20 +119,15 @@ package body Call_Queue_JSON is
       Value     : JSON_Value;
 
       Result : constant JSON_Value := Create_Object;
-      Cursor : Call_List_Type.Cursor;
    begin
       JSON_List := Empty_Array;
 
-      Cursor := Queue.First;
-      loop
-         exit when not Call_List_Type.Has_Element (Cursor);
-         Value := Convert_Call_To_JSON_Object
-           (Call_List_Type.Element (Cursor));
+      for item of Queue loop
+         Value := Convert_Call_To_JSON_Object (item);
          Append (JSON_List, Value);
       end loop;
-         --------------------------------------------------------------
-         Result.Set_Field ("calls",
-                           JSON_List);
+
+      Result.Set_Field ("calls", JSON_List);
 
       return To_JSON_String (Result.Write);
    end Convert_Queue;
