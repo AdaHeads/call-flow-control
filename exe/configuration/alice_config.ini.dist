@@ -15,52 +15,6 @@ Cache_Max_Element_Age 86_400.0
 # Cached elements that are older than Cache_Max_Element_Age seconds are
 # automatically invalidated and removed from the cache.
 
-Cache_Size_Contact 10_000
-# Positive.
-# Default: 10_000
-#
-# The maximum amount of contact objects the cache will hold. When the cache
-# reach
-#
-#     Cache_Size_Contact + 1
-#
-# in size, the automatic cleanup functionality kicks in. The cache will first
-# try to flush elements that are older than Cache_Max_Element_Age and if that
-# doesn't bring down the size of the cache to <= Cache_Size_Contact, then
-# random elements will be removed from the cache until there are no more than
-# Cache_Size_Contact elements in the cache.
-#
-# NOTE:
-# The automatic cleanup functionality can be quite expensive, so be sure to set
-# Cache_Size_Contact to a size that either equals or are above the actual
-# amount of potential objects. Setting it to for example 1_000 for a system
-# with 1_000_000 contacts is bound to leave you with a cache object that will
-# be wasting a lot of CPU on the automatic cleanup functionality. On the other
-# hand setting it too high will waste a lot of memory.
-
-Cache_Size_Organization 1_000
-# Positive.
-# Default: 1_000
-#
-# The maximum amount of organization objects the cache will hold. When the
-# cache reach
-#
-#     Cache_Size_Organization + 1
-#
-# in size, the automatic cleanup functionality kicks in. The cache will first
-# try to flush elements that are older than Cache_Max_Element_Age and if that
-# doesn't bring down the size of the cache to <= Cache_Size_Organization, then
-# random elements will be removed from the cache until there are no more than
-# Cache_Size_Organization elements in the cache.
-#
-# NOTE:
-# The automatic cleanup functionality can be quite expensive, so be sure to set
-# Cache_Size_Organization to a size that either equals or are above the actual
-# amount of potential objects. Setting it to for example 1_000 for a system
-# with 1_000_000 organizations is bound to leave you with a cache object that
-# will be wasting a lot of CPU on the automatic cleanup functionality. On the
-# other hand setting it too high will waste a lot of memory.
-
 ##################################
 #            Database            #
 ##################################

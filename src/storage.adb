@@ -113,10 +113,10 @@ package body Storage is
    package body Generic_Query_To_JSON is
 
       procedure Generate
-        (Key              : in      String;
-         Request          : in      AWS.Status.Data;
-         Status           :     out AWS.Messages.Status_Code;
-         Value            :     out Common.JSON_String)
+        (Cache_Key : in      Natural;
+         Request   : in      AWS.Status.Data;
+         Status    :     out AWS.Messages.Status_Code;
+         Value     :     out Common.JSON_String)
       is
          use GNATCOLL.SQL.Exec;
          use HTTP_Codes;
@@ -138,7 +138,7 @@ package body Storage is
                JSONIFY (C, Value);
 
                if C.Processed_Rows > 0 then
-                  Write_To_Cache (Key   => Key,
+                  Write_To_Cache (Key   => Cache_Key,
                                   Value => Value);
 
                   Status := OK;
