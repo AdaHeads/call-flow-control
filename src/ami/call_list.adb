@@ -221,9 +221,12 @@ package body Call_List is
 
       procedure Update (Call : in Call_Type) is
       begin
-         --  find waldos code.
-         --  TODO implement me please.
-         raise Program_Error;
+         for Index in Integer range List.First_Index .. List.Last_Index loop
+            if List.Element (Index).Uniqueid = Call.Uniqueid then
+               List.Replace_Element (Index => Index, New_Item => Call);
+               return;
+            end if;
+         end loop;
       end Update;
    end Protected_Call_List;
 

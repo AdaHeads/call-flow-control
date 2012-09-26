@@ -32,6 +32,7 @@ with Call_List,
      Peers;
 
 with Yolk.Log;
+with Errors;
 
 package body AMI.Event is
 --  use Ada.Strings.Unbounded;
@@ -270,12 +271,11 @@ package body AMI.Event is
    procedure PeerStatus_Callback (Event_List : in Event_List_Type.Map) is
       use Peers.Peer_List_Type;
       use Ada.Strings.Unbounded;
-      Peer        : Peer_Type;
-      Map_Key     : Unbounded_String;
-      Exsist      : Boolean := False;
+      Peer    : Peer_Type;
+      Map_Key : Unbounded_String;
 
       --  Extracts the channel type, and the phonename,
-      --    and saves them in the peer
+      --    and saves them in the peer. Format: ChannelType/phonename
       procedure Set_PhoneInfo (Peer : in out Peer_Type;
                                Text : in Unbounded_String);
 
@@ -314,20 +314,17 @@ package body AMI.Event is
          Temp_Peer := Peers.Get_Peer (Map_Key);
 
          if Temp_Peer /= Peers.Null_Peer then
+            --  Update the timestamp
+            Peer.Last_Seen := Ada.Calendar.Clock;
             Peer := Temp_Peer;
-            Exsist := True;
+            Peers.Replace_Peer (Item => Peer);
+            return;
          end if;
       exception
          when Err : others =>
             Yolk.Log.Trace (Yolk.Log.Debug, Exception_Name (Err) & "|:|" &
                               Exception_Message (Err));
       end;
-
-      --  This parameter is set at the Set_PhoneInfo.
-      --  if Event_List.Contains (To_Unbounded_String ("ChannelType")) then
-      --      Peer.ChannelType := Event_List.Element
-      --      (To_Unbounded_String ("ChannelType"));
-      --  end if;
 
       if Try_Get (Event_List, Address, Temp_Value) then
          Peer.Address := Temp_Value;
@@ -337,16 +334,19 @@ package body AMI.Event is
          Peer.Port := Temp_Value;
       end if;
 
+      --  Setting the State - Registrated or not.
       if Try_Get (Event_List, PeerStatus, Temp_Value) then
          if TS (Temp_Value) = "Unregistered"  then
             Peer.Status := Unregistered;
             Yolk.Log.Trace (Yolk.Log.Debug,
-                            "Got peer with unregistrered status");
+                            "Got peer: " & TS (Peer.Peer) &
+                              " with unregistrered status");
 
          elsif TS (Temp_Value) = "Registered" then
             Peer.Status := Registered;
             Yolk.Log.Trace (Yolk.Log.Debug,
-                            "Got peer with registrered status");
+                            "Got peer: " & TS (Peer.Peer) &
+                              " with registrered status");
 
          else
             Yolk.Log.Trace (Yolk.Log.Debug, "Peer Status, unknown state: " &
@@ -357,9 +357,9 @@ package body AMI.Event is
                          "PeerStatus_CallbackHandler had no PeerStatus");
       end if;
 
+      --  Gathering Extension.
       declare
          Exten : Unbounded_String;
-         --  Gathering Extension.
       begin
          Exten := Peers.Get_Exten (Peer.Peer);
          if Exten = Null_Unbounded_String then
@@ -371,15 +371,9 @@ package body AMI.Event is
             Peer.Exten := Exten;
          end if;
       end;
-
-      --  Update the timestamp
+      --  Insert Timestamp
       Peer.Last_Seen := Ada.Calendar.Clock;
-
-      if Exsist then
-         Peers.Replace_Peer (Item => Peer);
-      else
-         Peers.Insert_Peer (Peer);
-      end if;
+      Peers.Insert_Peer (Peer);
    end PeerStatus_Callback;
 
    --  Lists the SIP peers. Returns a PeerEntry event for each
@@ -413,6 +407,33 @@ package body AMI.Event is
                     Username : in String;
                     Secret   : in String) is
       use Ada.Strings.Unbounded;
+
+      procedure Dispatch_Event (Event_List : in Event_List_Type.Map;
+                                Event_Name : in Unbounded_String);
+
+      procedure Dispatch_Event (Event_List : in Event_List_Type.Map;
+                                Event_Name : in Unbounded_String) is
+         --  TODO find a good name for this variable.
+         Event_Something : Event;
+      begin
+         begin
+            Event_Something := AMI.Event.Event'Value (TS (Event_Name));
+         exception
+            when Constraint_Error =>
+               Trace (Error, "Unknown Event: " & To_String (Event_Name));
+         end;
+
+         Event_Callback_Routine (Event_Something) (Event_List);
+      exception
+         when Err : others =>
+            if Event_Callback_Routine (Event_Something) = null then
+               Trace (Info, "Unhandled Event: " & Event_Something'Img);
+            else
+               Errors.Log_Exception (Err, "Event_Name: " &
+                                    To_String (Event_Name));
+            end if;
+      end Dispatch_Event;
+
    begin
       Asterisk := (Greeting  => new String'(Read_Line (Socket)),
                    Channel   => Socket,
@@ -435,20 +456,13 @@ package body AMI.Event is
          begin
             Event_List := Parse (Event_String);
             if Try_Get (Event_List, Event_Parser.Event, Temp_Value) then
-               begin
-                  Event_Callback_Routine (AMI.Event.Event'Value (
-                    TS (Temp_Value))) (Event_List);
-               exception
-                  when others =>
-                     --  TODO turn this block into a more readable method.
-                     Trace (Error, "Unknown event: " & To_String (Temp_Value));
-               end;
+               Dispatch_Event (Event_List, Temp_Value);
             end if;
          exception
             when Error : others =>
                Trace (Debug, "---DEBUG - Event Exception---");
-               Yolk.Log.Trace (Yolk.Log.Debug, Exception_Name (Error));
-               Yolk.Log.Trace (Yolk.Log.Debug, Exception_Message (Error));
+               Trace (Debug, Exception_Name (Error));
+               Trace (Debug, Exception_Message (Error));
          end;
       end loop;
    end Start;
