@@ -25,7 +25,6 @@ with AWS.Messages;
 with AWS.Response;
 with AWS.Status;
 with Common;
-with Storage;
 
 package Response is
 
@@ -54,9 +53,9 @@ package Response is
    --  Return the value of the org_id request parameter. Raise
    --  GET_Parameter_Error if org_id is not a Natural.
 
-   ------------------------
-   --  Generic_Response  --
-   ------------------------
+   ---------------------------------
+   --  Generic_Response_From_SQL  --
+   ---------------------------------
 
    generic
 
@@ -71,16 +70,26 @@ package Response is
          Value    :    out Common.JSON_String);
       --  Find Key in a cache.
 
-      with package Query_To_JSON is new Storage.Generic_Query_To_JSON (<>);
-      --  This package enables reading data from persistent storage.
+      with procedure To_JSON
+        (Cacheable :    out Boolean;
+         Request   : in     AWS.Status.Data;
+         Status    :    out AWS.Messages.Status_Code;
+         Value     :    out Common.JSON_String);
+      --  Generate the JSON document that is delivered to the client. If
+      --  Cacheable is set to True, then the JSON document can be cached.
 
-   package Generic_Response is
+      with procedure Write_To_Cache
+        (Key   : in Natural;
+         Value : in Common.JSON_String);
+      --  Add Key/Value to a cache.
+
+   package Generic_Response_From_SQL is
 
       function Generate
         (Request : in AWS.Status.Data)
          return AWS.Response.Data;
       --   Generate the object that is delivered to the user.
 
-   end Generic_Response;
+   end Generic_Response_From_SQL;
 
 end Response;

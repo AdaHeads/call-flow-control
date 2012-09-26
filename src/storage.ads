@@ -97,7 +97,7 @@ package Storage is
       --  The prepared statement that is used to fetch data from the SQL
       --  database.
 
-      with procedure JSONIFY
+      with procedure To_JSON
         (C     : in out Cursor;
          Value : in out Common.JSON_String);
       --  Turn the rows in Cursor into JSON nodes.
@@ -107,18 +107,13 @@ package Storage is
          return GNATCOLL.SQL.Exec.SQL_Parameters;
       --  The parameters needed by the prepared statement given in Query.
 
-      with procedure Write_To_Cache
-        (Key   : in Natural;
-         Value : in Common.JSON_String);
-      --  Procedure that handles writing to the cache.
-
    package Generic_Query_To_JSON is
 
       procedure Generate
-        (Cache_Key : in      Natural;
-         Request   : in      AWS.Status.Data;
-         Status    :     out AWS.Messages.Status_Code;
-         Value     :     out Common.JSON_String);
+        (Cacheable      :    out Boolean;
+         Request        : in     AWS.Status.Data;
+         Status         :    out AWS.Messages.Status_Code;
+         Value          :    out Common.JSON_String);
       --  Generates the Value JSON document and sets the corresponding Status
       --  code.
 

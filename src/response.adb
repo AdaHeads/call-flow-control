@@ -29,6 +29,9 @@ with HTTP_Codes;
 
 package body Response is
 
+   Database_Error      : exception;
+   GET_Parameter_Error : exception;
+
    JSON_MIME_Type : constant String := "application/json; charset=utf-8";
 
    procedure Add_CORS_Headers
@@ -134,11 +137,11 @@ package body Response is
       return D;
    end Build_JSON_Response;
 
-   --------------------
-   --  Generic_Read  --
-   --------------------
+   ---------------------------------
+   --  Generic_Response_From_SQL  --
+   ---------------------------------
 
-   package body Generic_Response is
+   package body Generic_Response_From_SQL is
 
       ----------------
       --  Generate  --
@@ -154,6 +157,7 @@ package body Response is
          use Errors;
          use HTTP_Codes;
 
+         Cacheable : Boolean;
          Cache_Key : Natural;
          Status    : AWS.Messages.Status_Code;
          Valid     : Boolean;
@@ -168,10 +172,15 @@ package body Response is
          if Valid then
             Status := OK;
          else
-            Query_To_JSON.Generate (Cache_Key => Cache_Key,
-                                    Request   => Request,
-                                    Status    => Status,
-                                    Value     => Value);
+            To_JSON (Cacheable => Cacheable,
+                     Request   => Request,
+                     Status    => Status,
+                     Value     => Value);
+
+            if Cacheable then
+               Write_To_Cache (Key   => Cache_Key,
+                               Value => Value);
+            end if;
          end if;
 
          return Build_JSON_Response
@@ -183,20 +192,20 @@ package body Response is
          when Event : Database_Error =>
             return Build_JSON_Response
               (Request => Request,
-               Content => Exception_Handler
+               Content => Log_Exception
                  (Event   => Event,
                   Message => "Requested resource: " & URL (URI (Request))),
                Status  => Server_Error);
          when Event : others =>
             return Build_JSON_Response
               (Request => Request,
-               Content => Exception_Handler
+               Content => Log_Exception
                  (Event   => Event,
                   Message => "Requested resource: " & URL (URI (Request))),
                Status  => Bad_Request);
       end Generate;
 
-   end Generic_Response;
+   end Generic_Response_From_SQL;
 
    ---------------------
    --  Get_Ce_Id_Key  --
