@@ -21,18 +21,15 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Calendar,
-     Ada.Exceptions,
-     Ada.Strings.Unbounded;
-
-with AMI.IO,
-     AMI.Protocol;
-
-with Call_List,
-     Peers;
-
-with Yolk.Log;
+with Ada.Calendar;
+with Ada.Exceptions;
+with Ada.Strings.Unbounded;
+with AMI.IO;
+with AMI.Protocol;
+with Call_List;
 with Errors;
+with Peers;
+with Yolk.Log;
 
 package body AMI.Event is
 --  use Ada.Strings.Unbounded;

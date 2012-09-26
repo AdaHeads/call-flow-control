@@ -21,16 +21,17 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Calendar,
-     Ada.Containers.Hashed_Maps,
-     Ada.Containers.Vectors,
-     Ada.Strings.Hash,
-     Ada.Strings.Unbounded;
-
+with Ada.Calendar;
+with Ada.Containers.Hashed_Maps;
+with Ada.Containers.Vectors;
+with Ada.Strings.Hash;
+with Ada.Strings.Unbounded;
 with Call_List;
+
 package Peers is
    use Ada.Containers;
    use Ada.Strings.Unbounded;
+
    type SIP_Peer_Status_Type is (Unregistered, Registered);
 
    package Call_List is new

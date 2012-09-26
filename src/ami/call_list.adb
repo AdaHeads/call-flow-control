@@ -21,8 +21,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Characters.Latin_1,
-     Yolk.Log;
+with Ada.Characters.Latin_1;
+with Yolk.Log;
 
 package body Call_List is
 

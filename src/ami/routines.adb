@@ -21,10 +21,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AMI.Action,
---       Ada.Calendar,
---       Ada.Containers,
-     Ada.Exceptions;
+with Ada.Exceptions;
+with AMI.Action;
 with Call_List;
 with Peers;
 with Yolk.Log;
