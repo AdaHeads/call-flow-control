@@ -24,27 +24,51 @@
 with Yolk.Log;
 
 package body Peers is
+   use Yolk.Log;
    ----------------------------------------------------------------------------
    --  TODO Navngivning, Der er brug for nogle bedre navne her.
    protected Peers_List is
       function Get_Peers_List return Peer_List_Type.Map;
-      function Get_Peer (Agent_ID : in Unbounded_String) return Peer_Type;
+      function Get_Peer_By_ID (Agent_ID : in Unbounded_String)
+                               return Peer_Type;
+      function Get_Peer_By_PhoneName (PhoneName : in Unbounded_String)
+                                      return Peer_Type;
       procedure Replace_Peer (Item : in Peer_Type);
       procedure Insert (New_Item : in Peer_Type);
+      function List_As_String return String;
    private
       List : Peer_List_Type.Map;
    end Peers_List;
 
    protected body Peers_List is
-      function Get_Peer (Agent_ID : in Unbounded_String) return Peer_Type is
+      function Get_Peer_By_ID (Agent_ID : in Unbounded_String)
+                               return Peer_Type is
       begin
          for item in List.Iterate loop
+            Trace (Debug, "Peers.Get_Peer. [" & To_String (
+                        Peer_List_Type.Element (item).Agent_ID) &
+                        "] = ["
+                       & To_String (Agent_ID) & "]");
             if Peer_List_Type.Element (item).Agent_ID = Agent_ID then
                return Peer_List_Type.Element (item);
             end if;
          end loop;
          return Null_Peer;
-      end Get_Peer;
+      end Get_Peer_By_ID;
+
+      function Get_Peer_By_PhoneName (PhoneName : in Unbounded_String)
+                                      return Peer_Type is
+         use Peer_List_Type;
+         Peer_Cursor : constant Peer_List_Type.Cursor := List.Find (PhoneName);
+      begin
+         if Peer_Cursor = Peer_List_Type.No_Element then
+            return Null_Peer;
+         else
+            --  ???? Hvorfor kan jeg ikke få lov (continued)
+            --       til at bruge den cursor jeg har - Peer_Cursor
+            return List.Element (PhoneName);
+         end if;
+      end Get_Peer_By_PhoneName;
 
       function Get_Peers_List return Peer_List_Type.Map is
       begin
@@ -59,6 +83,16 @@ package body Peers is
                                 Key       => New_Item.Peer,
                                 New_Item  => New_Item);
       end Insert;
+
+      function List_As_String return String is
+         Result : Unbounded_String;
+         CRLF : constant String := (ASCII.CR, ASCII.LF);
+      begin
+         for Item of List loop
+            Append (Result, Item.Peer & CRLF);
+         end loop;
+         return To_String (Result);
+      end List_As_String;
 
       procedure Replace_Peer (Item : in Peer_Type) is
          use Peer_List_Type;
@@ -96,10 +130,16 @@ package body Peers is
       return Exten;
    end Get_Exten;
 
-   function Get_Peer (Agent_ID : in Unbounded_String) return Peer_Type is
+   function Get_Peer_By_ID (Agent_ID : in Unbounded_String) return Peer_Type is
    begin
-      return Peers_List.Get_Peer (Agent_ID);
-   end Get_Peer;
+      return Peers_List.Get_Peer_By_ID (Agent_ID);
+   end Get_Peer_By_ID;
+
+   function Get_Peer_By_PhoneName (PhoneName : in Unbounded_String)
+                                      return Peer_Type is
+   begin
+      return Peers_List.Get_Peer_By_PhoneName (PhoneName);
+   end Get_Peer_By_PhoneName;
 
    function Get_Peers_List return Peer_List_Type.Map is
    begin
@@ -138,6 +178,10 @@ package body Peers is
 --        New_Line;
 --
 --     end Print_Peer;
+   function List_As_String return String is
+   begin
+      return Peers_List.List_As_String;
+   end List_As_String;
 
    procedure Replace_Peer (Item : in Peer_Type) is
    begin

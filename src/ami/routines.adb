@@ -28,6 +28,8 @@ with Peers;
 with Yolk.Log;
 
 package body Routines is
+   use Yolk.Log;
+
 --  Takes two channels, and bridge the them together.
    procedure Bridge_Call (Call_Id_1 : in     Unbounded_String;
                           Call_Id_2 : in     Unbounded_String;
@@ -108,7 +110,8 @@ package body Routines is
       Peer      : Peer_Type;
    begin
       Status := Unknown_Error;
-      Peer := Peers.Get_Peer (Agent_ID => To_Unbounded_String (Agent_Id));
+--        Peer := Peers.Get_Peer (Agent_ID => To_Unbounded_String (Agent_Id));
+      Peer := Peers.Get_Peer_By_PhoneName (To_Unbounded_String (Agent_Id));
 
       --  Check if there exsist an Agent by that name.
       if Peer = Null_Peer then
@@ -138,7 +141,7 @@ package body Routines is
                          "Get_Call: No Call to take with ID: " & Unique_Id);
          Status := No_Call_Found;
       end if;
-
+      Trace (Debug, "Pickup Call - Channel: " & To_String (Temp_Call.Channel));
       --  If there is a call to anwser.
       Status := Success;
 
@@ -417,7 +420,7 @@ package body Routines is
          return;
       end if;
 
-      Peer := Peers.Get_Peer (Call.Agent_ID);
+      Peer := Peers.Get_Peer_By_ID (Call.Agent_ID);
 
       if Peer = Null_Peer then
          Status := No_Agent_Found;

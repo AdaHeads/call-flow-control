@@ -308,7 +308,7 @@ package body AMI.Event is
       declare
          Temp_Peer : Peer_Type;
       begin
-         Temp_Peer := Peers.Get_Peer (Map_Key);
+         Temp_Peer := Peers.Get_Peer_By_PhoneName (Map_Key);
 
          if Temp_Peer /= Peers.Null_Peer then
             --  Update the timestamp
@@ -316,6 +316,10 @@ package body AMI.Event is
             Peer := Temp_Peer;
             Peers.Replace_Peer (Item => Peer);
             return;
+
+         else
+            Trace (Debug, "Peer not found: [" & TS (Map_Key) & "]");
+            Trace (Debug, Peers.List_As_String);
          end if;
       exception
          when Err : others =>
