@@ -67,7 +67,7 @@ package Call_List is
    --  instead of
    --      Call_List.Call_List_Type.Vector
 
-   null_Call : constant Call_Type :=
+   Null_Call : constant Call_Type :=
      (Agent_ID       => Null_Unbounded_String,
       State          => Hung,
       Queue_Priority => Low,

@@ -120,7 +120,7 @@ private
    procedure Login_Callback      (Event_List : in Event_List_Type.Map);
    procedure Newchannel_Callback (Event_List : in Event_List_Type.Map);
    procedure PeerStatus_Callback (Event_List : in Event_List_Type.Map);
-   procedure Unlink_Callback     (Event_List : in Event_List_Type.Map);
+   --  procedure Unlink_Callback     (Event_List : in Event_List_Type.Map);
 
    --  Commands
    procedure Login (Asterisk_AMI : in Asterisk_AMI_Type;

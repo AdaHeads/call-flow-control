@@ -42,7 +42,7 @@ package body Peers is
                return Peer_List_Type.Element (item);
             end if;
          end loop;
-         return null_Peer;
+         return Null_Peer;
       end Get_Peer;
 
       function Get_Peers_List return Peer_List_Type.Map is
