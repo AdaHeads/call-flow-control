@@ -141,7 +141,7 @@ package body Response is
    --  Generic_Response_From_SQL  --
    ---------------------------------
 
-   package body Generic_Response_From_SQL is
+   package body Generic_Cached_Response is
 
       ----------------
       --  Generate  --
@@ -205,7 +205,7 @@ package body Response is
                Status  => Bad_Request);
       end Generate;
 
-   end Generic_Response_From_SQL;
+   end Generic_Cached_Response;
 
    ---------------------
    --  Get_Ce_Id_Key  --

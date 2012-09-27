@@ -100,7 +100,7 @@ private
    --  Turn the data found by Query and Query_Parameters into a JSON string and
    --  if the JSON_String object is not empty then write it to cache.
 
-   package JSON_Response is new Response.Generic_Response_From_SQL
+   package JSON_Response is new Response.Generic_Cached_Response
      (Get_Cache_Key   => Response.Get_Ce_Id_Key,
       Read_From_Cache => Cache.Read,
       To_JSON         => Query_To_JSON.Generate,

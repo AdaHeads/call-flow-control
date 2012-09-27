@@ -83,13 +83,13 @@ package Response is
          Value : in Common.JSON_String);
       --  Add Key/Value to a cache.
 
-   package Generic_Response_From_SQL is
+   package Generic_Cached_Response is
 
       function Generate
         (Request : in AWS.Status.Data)
          return AWS.Response.Data;
       --   Generate the object that is delivered to the user.
 
-   end Generic_Response_From_SQL;
+   end Generic_Cached_Response;
 
 end Response;
