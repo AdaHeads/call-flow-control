@@ -21,11 +21,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with AWS.Status;
 with Database;
 with GNATCOLL.JSON;
 with Yolk.Utilities;
 
 package body Contact is
+
+   Bad_Ce_Id : exception;
 
    ----------------
    --  Callback  --
@@ -42,17 +45,20 @@ package body Contact is
    --  Create_JSON  --
    -------------------
 
-   procedure Create_JSON
-     (C     : in out Cursor;
-      Value : in out Common.JSON_String)
+--     procedure Create_JSON
+--       (C               : in out Cursor;
+--        Response_Object : in out Response.Object)
+   function Create_JSON
+     (C : in out Cursor)
+      return Common.JSON_String
    is
       use Common;
       use GNATCOLL.JSON;
       use Yolk.Utilities;
 
-      Attr_Array      : JSON_Array;
-      Attr_JSON       : JSON_Value;
-      JSON            : JSON_Value;
+      Attr_Array : JSON_Array;
+      Attr_JSON  : JSON_Value;
+      JSON       : JSON_Value;
    begin
       JSON := Create_Object;
 
@@ -94,7 +100,8 @@ package body Contact is
          JSON.Set_Field ("attributes", Attr_Array);
       end if;
 
-      Value := To_JSON_String (JSON.Write);
+      --        Response_Object.Set_Content (To_JSON_String (JSON.Write));
+      return To_JSON_String (JSON.Write);
    end Create_JSON;
 
    ---------------
@@ -120,6 +127,25 @@ package body Contact is
                   Attr_Ce_Id              => C.Integer_Value (5, Default => 0),
                   Attr_Ce_Id_Column_Name  => TUS (C.Field_Name (5)));
    end Element;
+
+   ---------------------
+   --  Get_Ce_Id_Key  --
+   ---------------------
+
+   function Get_Ce_Id_Key
+     (Response_Object : in Response.Object)
+      return Natural
+   is
+      use AWS.Status;
+      --  use Errors;
+   begin
+      return Natural'Value
+        (Parameters (Response_Object.Get_Request).Get ("ce_id"));
+   exception
+      when others =>
+         raise Bad_Ce_Id with
+           "ce_id must be a valid natural integer";
+   end Get_Ce_Id_Key;
 
    ----------------------
    --  Prepared_Query  --
@@ -165,12 +191,12 @@ package body Contact is
    ------------------------
 
    function Query_Parameters
-     (Request : in AWS.Status.Data)
+     (Response_Object : in Response.Object)
       return GNATCOLL.SQL.Exec.SQL_Parameters
    is
       use GNATCOLL.SQL.Exec;
    begin
-      return (1 => +Response.Get_Ce_Id_Key (Request));
+      return (1 => +Get_Ce_Id_Key (Response_Object));
    end Query_Parameters;
 
 end Contact;

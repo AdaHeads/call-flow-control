@@ -23,14 +23,12 @@
 
 with Ada.Strings.Fixed;
 with AWS.Response.Set;
-with AWS.URL;
-with Errors;
-with HTTP_Codes;
+--  with AWS.URL;
 
 package body Response is
 
    Database_Error      : exception;
-   GET_Parameter_Error : exception;
+   --  GET_Parameter_Error : exception;
 
    JSON_MIME_Type : constant String := "application/json; charset=utf-8";
 
@@ -107,14 +105,12 @@ package body Response is
       return Content;
    end Add_JSONP_Callback;
 
-   ---------------------------
-   --  Build_JSON_Response  --
-   ---------------------------
+   -------------
+   --  Build  --
+   -------------
 
-   function Build_JSON_Response
-     (Request : in AWS.Status.Data;
-      Content : in Common.JSON_String;
-      Status  : in AWS.Messages.Status_Code)
+   function Build
+     (O : in Object)
       return AWS.Response.Data
    is
       use AWS.Messages;
@@ -123,19 +119,95 @@ package body Response is
       use Common;
 
       D        : AWS.Response.Data;
-      Encoding : constant Content_Encoding := Preferred_Coding (Request);
+      Encoding : constant Content_Encoding := Preferred_Coding (O.Request);
    begin
       D :=  Build (Content_Type  => JSON_MIME_Type,
                    Message_Body  =>
-                     To_String (Add_JSONP_Callback (Content, Request)),
-                   Status_Code   => Status,
+                     To_String (Add_JSONP_Callback
+                       (O.Content, O.Request)),
+                   Status_Code   => O.HTTP_Status_Code,
                    Encoding      => Encoding,
                    Cache_Control => No_Cache);
 
-      Add_CORS_Headers (Request, D);
+      Add_CORS_Headers (O.Request, D);
 
       return D;
-   end Build_JSON_Response;
+   end Build;
+
+   ---------------
+   --  Factory  --
+   ---------------
+
+   function Factory
+     (Request : in AWS.Status.Data)
+      return Object
+   is
+   begin
+      return O : Object do
+         O.Request := Request;
+      end return;
+   end Factory;
+
+   -------------------
+   --  Get_Request  --
+   -------------------
+
+   function Get_Request
+     (O : in Object)
+      return AWS.Status.Data
+   is
+   begin
+      return O.Request;
+   end Get_Request;
+
+   ---------------------
+   --  Set_Cacheable  --
+   ---------------------
+
+   procedure Set_Cacheable
+     (O     :    out Object;
+      Value : in     Boolean)
+   is
+   begin
+      O.Is_Cacheable := Value;
+   end Set_Cacheable;
+
+   -------------------
+   --  Set_Content  --
+   -------------------
+
+   procedure Set_Content
+     (O     :    out Object;
+      Value : in     Common.JSON_String)
+   is
+   begin
+      O.Content := Value;
+   end Set_Content;
+
+   ----------------------------
+   --  Set_HTTP_Status_Code  --
+   ----------------------------
+
+   procedure Set_HTTP_Status_Code
+     (O     :    out Object;
+      Value : in     AWS.Messages.Status_Code)
+   is
+   begin
+      O.HTTP_Status_Code := Value;
+   end Set_HTTP_Status_Code;
+
+      ----------------------------
+   --  Set_HTTP_Status_Code  --
+   ----------------------------
+
+   procedure Set_Notification
+     (O     :    out Object;
+      Value : in     System_Message.Notification_Object)
+   is
+   begin
+      O.Content := Value.JSON;
+      O.HTTP_Status_Code := Value.Status_Code;
+   end Set_Notification;
 
    ---------------------------------
    --  Generic_Response_From_SQL  --
@@ -152,95 +224,63 @@ package body Response is
       return AWS.Response.Data
       is
          use AWS.Status;
-         use AWS.URL;
+         --  use AWS.URL;
          use Common;
-         use Errors;
+         --  use Errors;
          use HTTP_Codes;
+         --  use System_Message;
 
-         Cacheable : Boolean;
-         Cache_Key : Natural;
-         Status    : AWS.Messages.Status_Code;
-         Valid     : Boolean;
-         Value     : JSON_String;
+         Cache_Key       : Natural;
+         Response_Object : Object := Factory (Request);
+         Valid_Cache     : Boolean;
       begin
-         Cache_Key := Get_Cache_Key (Request);
+         Cache_Key := Get_Cache_Key (Response_Object);
 
          Read_From_Cache (Key      => Cache_Key,
-                          Is_Valid => Valid,
-                          Value    => Value);
+                          Is_Valid => Valid_Cache,
+                          Value    => Response_Object.Content);
 
-         if Valid then
-            Status := OK;
-         else
-            To_JSON (Cacheable => Cacheable,
-                     Request   => Request,
-                     Status    => Status,
-                     Value     => Value);
+         if not Valid_Cache then
+            To_JSON (Response_Object => Response_Object);
 
-            if Cacheable then
+            if Response_Object.Is_Cacheable then
                Write_To_Cache (Key   => Cache_Key,
-                               Value => Value);
+                               Value => Response_Object.Content);
             end if;
          end if;
 
-         return Build_JSON_Response
-           (Request => Request,
-            Content => Value,
-            Status  => Status);
+         return Response_Object.Build;
+--           return Build_JSON_Response
+--             (Request         => Request,
+--              Response_Object => Response_Object);
 
       exception
          when Event : Database_Error =>
-            return Build_JSON_Response
-              (Request => Request,
-               Content => Log_Exception
-                 (Event   => Event,
-                  Message => "Requested resource: " & URL (URI (Request))),
-               Status  => Server_Error);
+            pragma Unreferenced (Event);
+            return Response_Object.Build;
+--              return Build_JSON_Response
+--                (Request      => Request,
+--                 Notification => Notify (System_Message.Database_Error, ""));
+--                (Request => Request,
+--                 Content => Log_Exception
+--                   (Err     => Errors.Database_Error,
+--                    Event   => Event,
+--                    Message => "Requested resource: " & URL (URI (Request))),
+--                 Status  => Server_Error);
          when Event : others =>
-            return Build_JSON_Response
-              (Request => Request,
-               Content => Log_Exception
-                 (Event   => Event,
-                  Message => "Requested resource: " & URL (URI (Request))),
-               Status  => Bad_Request);
+            pragma Unreferenced (Event);
+            return Response_Object.Build;
+--              return Build_JSON_Response
+--                (Request      => Request,
+--                 Notification => Notify (System_Message.Database_Error, ""));
+--                (Request => Request,
+--                 Content => Log_Exception
+--                   (Err     => Errors.Database_Error,
+--                    Event   => Event,
+--                    Message => "Requested resource: " & URL (URI (Request))),
+--                 Status  => Bad_Request);
       end Generate;
 
    end Generic_Cached_Response;
-
-   ---------------------
-   --  Get_Ce_Id_Key  --
-   ---------------------
-
-   function Get_Ce_Id_Key
-     (Request : in AWS.Status.Data)
-      return Natural
-   is
-      use AWS.Status;
-      use Errors;
-   begin
-      return Natural'Value (Parameters (Request).Get ("ce_id"));
-   exception
-      when others =>
-         raise GET_Parameter_Error with
-           "ce_id must be a valid natural integer";
-   end Get_Ce_Id_Key;
-
-   ----------------------
-   --  Get_Org_Id_Key  --
-   ----------------------
-
-   function Get_Org_Id_Key
-     (Request : in AWS.Status.Data)
-      return Natural
-   is
-      use AWS.Status;
-      use Errors;
-   begin
-      return Natural'Value (Parameters (Request).Get ("org_id"));
-   exception
-      when others =>
-         raise GET_Parameter_Error with
-           "org_id must be a valid natural integer";
-   end Get_Org_Id_Key;
 
 end Response;

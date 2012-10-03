@@ -25,33 +25,45 @@ with AWS.Messages;
 with AWS.Response;
 with AWS.Status;
 with Common;
+with HTTP_Codes;
+with System_Message;
+--  with Errors;
 
 package Response is
 
-   function Build_JSON_Response
-     (Request : in AWS.Status.Data;
-      Content : in Common.JSON_String;
-      Status  : in AWS.Messages.Status_Code)
-      return AWS.Response.Data
-   with inline;
+   type Object is tagged limited private;
+
+   function Build
+     (O : in Object)
+      return AWS.Response.Data;
    --  Build the response and compress it if the client supports it. Also
    --  wraps JSON string in foo(JSON string) if the
    --      ?jsoncallback=foo
    --  GET parameter is present.
 
-   function Get_Ce_Id_Key
+   function Factory
      (Request : in AWS.Status.Data)
-      return Natural
-   with inline;
-   --  Return the value of the ce_id request parameter. Raise
-   --  GET_Parameter_Error if ce_id is not a Natural.
+      return Object;
 
-   function Get_Org_Id_Key
-     (Request : in AWS.Status.Data)
-      return Natural
-   with inline;
-   --  Return the value of the org_id request parameter. Raise
-   --  GET_Parameter_Error if org_id is not a Natural.
+   function Get_Request
+     (O : in Object)
+      return AWS.Status.Data;
+
+   procedure Set_Cacheable
+     (O     :    out Object;
+      Value : in     Boolean);
+
+   procedure Set_Content
+     (O     :    out Object;
+      Value : in     Common.JSON_String);
+
+   procedure Set_HTTP_Status_Code
+     (O     :    out Object;
+      Value : in     AWS.Messages.Status_Code);
+
+   procedure Set_Notification
+     (O     :    out Object;
+      Value : in     System_Message.Notification_Object);
 
    ---------------------------------
    --  Generic_Response_From_SQL  --
@@ -60,7 +72,7 @@ package Response is
    generic
 
       with function Get_Cache_Key
-        (Request : in AWS.Status.Data)
+        (Response_Object : in Object)
       return Natural;
       --  Return the key used to identify an object in a cache.
 
@@ -71,10 +83,7 @@ package Response is
       --  Find Key in a cache.
 
       with procedure To_JSON
-        (Cacheable :    out Boolean;
-         Request   : in     AWS.Status.Data;
-         Status    :    out AWS.Messages.Status_Code;
-         Value     :    out Common.JSON_String);
+        (Response_Object : in out Object);
       --  Generate the JSON document that is delivered to the client. If
       --  Cacheable is set to True, then the JSON document can be cached.
 
@@ -88,8 +97,18 @@ package Response is
       function Generate
         (Request : in AWS.Status.Data)
          return AWS.Response.Data;
-      --   Generate the object that is delivered to the user.
+      --   Generate the data that is delivered to the user.
 
    end Generic_Cached_Response;
+
+private
+
+   type Object is tagged limited
+      record
+         Content          : Common.JSON_String := Common.Null_JSON_String;
+         HTTP_Status_Code : AWS.Messages.Status_Code := HTTP_Codes.OK;
+         Is_Cacheable     : Boolean := False;
+         Request          : AWS.Status.Data;
+      end record;
 
 end Response;

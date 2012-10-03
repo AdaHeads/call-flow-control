@@ -21,10 +21,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Status;
-with AWS.Messages;
+--  with AWS.Status;
+--  with AWS.Messages;
 with Common;
 with GNATCOLL.SQL.Exec;
+with Response;
 
 package Storage is
 
@@ -97,23 +98,20 @@ package Storage is
       --  The prepared statement that is used to fetch data from the SQL
       --  database.
 
-      with procedure To_JSON
-        (C     : in out Cursor;
-         Value : in out Common.JSON_String);
-      --  Turn the rows in Cursor into JSON nodes.
+      with function To_JSON
+        (C : in out Cursor)
+        return Common.JSON_String;
+      --  Turn the rows in Cursor into a JSON String.
 
       with function Query_Parameters
-        (Request : in AWS.Status.Data)
+        (Response_Object : in Response.Object)
          return GNATCOLL.SQL.Exec.SQL_Parameters;
       --  The parameters needed by the prepared statement given in Query.
 
    package Generic_Query_To_JSON is
 
       procedure Generate
-        (Cacheable      :    out Boolean;
-         Request        : in     AWS.Status.Data;
-         Status         :    out AWS.Messages.Status_Code;
-         Value          :    out Common.JSON_String);
+        (Response_Object : in out Response.Object);
       --  Generates the Value JSON document and sets the corresponding Status
       --  code.
 

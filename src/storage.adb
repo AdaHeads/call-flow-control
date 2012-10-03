@@ -115,10 +115,7 @@ package body Storage is
    package body Generic_Query_To_JSON is
 
       procedure Generate
-        (Cacheable :    out Boolean;
-         Request   : in     AWS.Status.Data;
-         Status    :    out AWS.Messages.Status_Code;
-         Value     :    out Common.JSON_String)
+        (Response_Object : in out Response.Object)
       is
          use GNATCOLL.SQL.Exec;
          use HTTP_Codes;
@@ -127,24 +124,20 @@ package body Storage is
          C              : Cursor;
          DB_Connections : DB_Conn_Pool := Get_DB_Connections;
       begin
-         Cacheable := False;
-
-         Status := Server_Error;
-
          Fetch_Data :
          for k in DB_Connections'Range loop
             C.Fetch (DB_Connections (k).Host,
                      Query,
-                     Params => Query_Parameters (Request));
+                     Params => Query_Parameters (Response_Object));
 
             if DB_Connections (k).Host.Success then
-               To_JSON (C, Value);
+               Response_Object.Set_Content (To_JSON (C));
 
                if C.Processed_Rows > 0 then
-                  Cacheable := True;
-                  Status := OK;
+                  Response_Object.Set_Cacheable (True);
+                  Response_Object.Set_HTTP_Status_Code (OK);
                else
-                  Status := Not_Found;
+                  Response_Object.Set_HTTP_Status_Code (Not_Found);
                end if;
 
                exit Fetch_Data;

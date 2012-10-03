@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                  Errors                                   --
+--                              System_Message                               --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,46 +21,30 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Exceptions;
+--  with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with AWS.Messages;
 with Common;
+with Yolk.Log;
 
-package Errors is
+package System_Message is
 
-   type Error_Type is (Database_Error, GET_Parameter_Error);
+   type Notification_Type is (Database_Error, GET_Parameter_Error);
 
-   type Error_Record is tagged private;
+   type Notification_Object is tagged private;
 
    function JSON
-     (Err : in Error_Record)
+     (O : in Notification_Object)
       return Common.JSON_String;
    --  TODO: Write comment.
 
-   function Log_Exception
-     (Err     : in Error_Type;
-      Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String)
-      return Error_Record;
-   --  Log Event exception to the Error trace and return an Error_Record
-   --  containing the status and description of the error as a JSON document
-   --  and the corresponding HTTP status code.
-
-   function Log_Exception
-     (Err     : in Error_Type;
-      Message : in String)
-      return Error_Record;
-   --  Log Err to the Error trace and return a JSON document containing the
-   --  status and description of the error. Message is appended to the
-   --  Error_Messages (Err).Description.
-
-   procedure Log_Exception
-     (Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String);
-   --  Log Event exception and message to the Error trace.
+   function Notify
+     (Notification : in Notification_Type;
+      Message      : in String)
+      return Notification_Object;
 
    function Status_Code
-     (Err : in Error_Record)
+     (Notification : in Notification_Object)
       return AWS.Messages.Status_Code;
    --  TODO: Write comment.
 
@@ -68,12 +52,13 @@ private
 
    use Ada.Strings.Unbounded;
 
-   type Error_Record is tagged
+   type Notification_Object is tagged
       record
          Description : Unbounded_String;
-         Status      : Unbounded_String;
          JSON        : Common.JSON_String;
+         Log_Trace   : Yolk.Log.Trace_Handles;
+         Status      : Unbounded_String;
          Status_Code : AWS.Messages.Status_Code;
       end record;
 
-end Errors;
+end System_Message;

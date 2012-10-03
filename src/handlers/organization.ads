@@ -23,7 +23,6 @@
 
 with Ada.Strings.Unbounded;
 with AWS.Dispatchers.Callback;
-with AWS.Status;
 with Common;
 with GNATCOLL.SQL.Exec;
 with My_Configuration;
@@ -68,6 +67,13 @@ private
    --  Transforms the low level index based Cursor into the more readable Row
    --  record.
 
+   function Get_Org_Id_Key
+     (Response_Object : in Response.Object)
+      return Natural
+   with Inline;
+   --  Return the value of the org_id request parameter. Raise
+   --  GET_Parameter_Error if org_id is not a Natural.
+
    function Prepared_Query
      return GNATCOLL.SQL.Exec.Prepared_Statement
    with inline;
@@ -76,18 +82,16 @@ private
    --  to make it more readable due to local use clauses.
 
    function Query_Parameters
-     (Request : in AWS.Status.Data)
+     (Response_Object : in Response.Object)
       return GNATCOLL.SQL.Exec.SQL_Parameters
    with inline;
    --  Generate the SQL parameters from given request parameters.
 
-   procedure Create_JSON
-     (C     : in out Cursor;
-      Value : in out Common.JSON_String)
-   with inline;
-   --  Generate a JSON_String from the Row record(s) found in the Cursor and
-   --  place it in Value.
-   --  If C is empty, then Value is an empty JSON_String, ie. {}.
+   function Create_JSON
+     (C : in out Cursor)
+      return Common.JSON_String;
+   --  Generate a JSON_String from the Row record(s) found in the Cursor.
+   --  If C is empty, then return an empty JSON_String, ie. {}.
 
    package Cache is new Yolk.Cache.Discrete_Keys
      (Key_Type        => Natural,
@@ -104,7 +108,7 @@ private
    --  if the JSON_String object is not empty then write it to cache.
 
    package JSON_Response is new Response.Generic_Cached_Response
-     (Get_Cache_Key   => Response.Get_Org_Id_Key,
+     (Get_Cache_Key   => Get_Org_Id_Key,
       Read_From_Cache => Cache.Read,
       To_JSON         => Query_To_JSON.Generate,
       Write_To_Cache  => Cache.Write);

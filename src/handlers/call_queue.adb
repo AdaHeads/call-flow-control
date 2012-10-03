@@ -49,12 +49,13 @@ package body Call_Queue is
       use HTTP_Codes;
       use Yolk.Log;
 
-      JSON        : JSON_String;
-      Status      : Routines.Status_Type;
+      JSON            : JSON_String;
+      Response_Object : Response.Object := Response.Factory (Request);
+      Status          : Routines.Status_Type;
       --  ???? Perhaps renaming Status to Call_Status, PBX_Status or something
       --  else would make things more clear? It clashes somewhat with the
       --  HTTP request Status_Code.
-      Status_Code : AWS.Messages.Status_Code;
+      Status_Code     : AWS.Messages.Status_Code;
    begin
       --   ???? Why do we have a block here? All it seems to do is catch
       --  "unknown" exceptions. Can't these just as well be caught in the main
@@ -79,10 +80,10 @@ package body Call_Queue is
                                                     "Something went wrong");
             --  ???? Why not use the Error.Exception_Handler function instead?
 
-            return Response.Build_JSON_Response
-              (Request => Request,
-               Content => JSON,
-               Status  => Server_Error);
+            Response_Object.Set_HTTP_Status_Code (Server_Error);
+            Response_Object.Set_Content (JSON);
+
+            return Response_Object.Build;
       end;
 
       --  ???? It seems to me that this case block is more or less repeated
@@ -116,10 +117,10 @@ package body Call_Queue is
              & "Status code: " & Status_Code'Img & ". JSON:"
              & To_String (JSON));
 
-      return  Response.Build_JSON_Response
-        (Request => Request,
-         Content => JSON,
-         Status  => Status_Code);
+      Response_Object.Set_HTTP_Status_Code (Status_Code);
+      Response_Object.Set_Content (JSON);
+
+      return Response_Object.Build;
    exception
       when others =>
          --  ???? What exceptions are we expecting, and why do we not catch
@@ -128,10 +129,10 @@ package body Call_Queue is
          JSON := Call_Queue_JSON.Status_Message ("Exception",
                                                  "Something went wrong");
 
-         return  Response.Build_JSON_Response
-           (Request => Request,
-            Content => JSON,
-            Status  => Server_Error);
+         Response_Object.Set_HTTP_Status_Code (Server_Error);
+         Response_Object.Set_Content (JSON);
+
+         return Response_Object.Build;
    end Call_Hangup;
 
    -----------------
@@ -147,9 +148,10 @@ package body Call_Queue is
       use Yolk.Log;
       use AWS.Status;
 
-      JSON        : JSON_String;
-      Status      : Routines.Status_Type;
-      Status_Code : AWS.Messages.Status_Code;
+      JSON            : JSON_String;
+      Response_Object : Response.Object := Response.Factory (Request);
+      Status          : Routines.Status_Type;
+      Status_Code     : AWS.Messages.Status_Code;
 
       Call_Id : constant String := Parameters (Request).Get ("Call_ID");
    begin
@@ -182,10 +184,10 @@ package body Call_Queue is
                "Something went wrong");
       end case;
 
-      return  Response.Build_JSON_Response
-        (Request => Request,
-         Content => JSON,
-         Status  => Status_Code);
+      Response_Object.Set_HTTP_Status_Code (Status_Code);
+      Response_Object.Set_Content (JSON);
+
+      return Response_Object.Build;
       --  ???? No exception handler? Is the caller of Call_Hold expected to
       --  deal with unhandled issues happening in for example Routines.Park,
       --  Parameters, Call_Queue_JSON.Status_Message or Build_JSON_Response?
@@ -207,9 +209,10 @@ package body Call_Queue is
       Agent       : constant String := Parameters (Request).Get ("agent");
       Unique_Id   : constant String := Parameters (Request).Get ("uniqueid");
 
-      JSON        : JSON_String;
-      Status      : Routines.Status_Type;
-      Status_Code : AWS.Messages.Status_Code;
+      JSON            : JSON_String;
+      Response_Object : Response.Object := Response.Factory (Request);
+      Status          : Routines.Status_Type;
+      Status_Code     : AWS.Messages.Status_Code;
    begin
       Routines.Get_Call (Unique_Id   => Unique_Id,
                          Agent_Id    => Agent,
@@ -242,10 +245,10 @@ package body Call_Queue is
                "Something went wrong at the server");
       end case;
 
-      return  Response.Build_JSON_Response
-        (Request => Request,
-         Content => JSON,
-         Status  => Status_Code);
+      Response_Object.Set_HTTP_Status_Code (Status_Code);
+      Response_Object.Set_Content (JSON);
+
+      return Response_Object.Build;
    end Call_Pickup;
 
    -----------------
@@ -259,10 +262,10 @@ package body Call_Queue is
       use Common;
       use HTTP_Codes;
 
-      JSON         : JSON_String;
-      Queue        : Call_List.Call_List_Type.Vector;
+      JSON            : JSON_String;
+      Response_Object : Response.Object := Response.Factory (Request);
+      Queue           : Call_List.Call_List_Type.Vector;
       --  ???? Odd naming. See ???? comment for Call_List.Call_List_Type.
-      Status_Code  : AWS.Messages.Status_Code;
    begin
       --  ???? If we're ultimately just interested in getting a queue JSON
       --  document, be it empty or filled with calls, why go through all the
@@ -272,12 +275,11 @@ package body Call_Queue is
       Queue := Call_List.Get;
 
       JSON := Call_Queue_JSON.Convert_Queue (Queue);
-      Status_Code := OK;
 
-      return  Response.Build_JSON_Response
-        (Request => Request,
-         Content => JSON,
-         Status  => Status_Code);
+      Response_Object.Set_HTTP_Status_Code (OK);
+      Response_Object.Set_Content (JSON);
+
+      return Response_Object.Build;
    end Get_Queue;
 
 end Call_Queue;

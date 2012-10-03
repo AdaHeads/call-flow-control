@@ -22,40 +22,154 @@
 -------------------------------------------------------------------------------
 
 with GNATCOLL.JSON;
+with HTTP_Codes;
 with Yolk.Log;
 
 package body Errors is
+
+   use HTTP_Codes;
+
+   function U
+     (S : in String)
+      return Unbounded_String
+      renames To_Unbounded_String;
+
+   function Build_Error_Record
+     (Description : in String;
+      Status      : in String;
+      Status_Code : in AWS.Messages.Status_Code)
+      return Error_Record;
+   --  TODO: Write comment.
+
+   --------------------------
+   --  Build_Error_Record  --
+   --------------------------
+
+   function Build_Error_Record
+     (Description     : in String;
+      Status          : in String;
+      Status_Code     : in AWS.Messages.Status_Code)
+      return Error_Record
+   is
+      use Common;
+      use GNATCOLL.JSON;
+      use Yolk.Log;
+   begin
+      return (JSON        => Null_JSON_String,
+              Description => U (Description),
+              Status      => U (Status),
+              Status_Code => Status_Code);
+   end Build_Error_Record;
+
+   Error_Messages : array (Error_Type) of Error_Record :=
+                      (Database_Error      => Build_Error_Record
+                         (Description     => "",
+                          Status          => "database error",
+                          Status_Code     => Server_Error),
+                       GET_Parameter_Error => Build_Error_Record
+                         (Description     => "",
+                          Status          => "parameter error",
+                          Status_Code     => Bad_Request));
+
+   ------------
+   --  JSON  --
+   ------------
+
+   function JSON
+     (Err : in Error_Record)
+      return Common.JSON_String
+   is
+   begin
+      return Err.JSON;
+   end JSON;
 
    ---------------------
    --  Log_Exception  --
    ---------------------
 
    function Log_Exception
-     (Event   : in Ada.Exceptions.Exception_Occurrence;
+     (Err     : in Error_Type;
+      Event   : in Ada.Exceptions.Exception_Occurrence;
       Message : in String)
-      return Common.JSON_String
+      return Error_Record
    is
       use Ada.Exceptions;
       use Common;
       use GNATCOLL.JSON;
       use Yolk.Log;
 
-      E_Name : constant String     := Exception_Name (Event);
-      E_Msg  : constant String     := Exception_Message (Event);
-      JSON   : constant JSON_Value := Create_Object;
+      E_Name : constant String := Exception_Name (Event);
+      E_Msg  : constant String := Exception_Message (Event);
+      J      : JSON_Value;
    begin
-      Trace (Error, E_Name & "-" & E_Msg & "-" & Message);
+      Trace (Error, Error_Type'Image (Err)
+             & " - "
+             & E_Name
+             & " - "
+             & E_Msg
+             & " - "
+             & Message);
 
-      --  TODO: This JSON needs fixing, as we no longer bother with the actual
-      --  exception message. Instead we just need "status" and "description"
-      --  nodes.
-      JSON.Set_Field (Field_Name => "exception",
-                             Field      => E_Name);
-      JSON.Set_Field (Field_Name => "exception_message",
-                             Field      => E_Msg);
-      JSON.Set_Field (Field_Name => "message",
-                             Field      => Message);
-      return To_JSON_String (JSON.Write);
+      if Message /= "" then
+         Append (Source   => Error_Messages (Err).Description,
+                 New_Item => " - " & Message);
+      end if;
+
+      J := Create_Object;
+
+      J.Set_Field (Field_Name => "description",
+                   Field      => Error_Messages (Err).Description);
+      J.Set_Field (Field_Name => "status",
+                   Field      => Error_Messages (Err).Status);
+
+      Error_Messages (Err).JSON := To_JSON_String (J.Write);
+
+      return Error_Messages (Err);
+   end Log_Exception;
+
+   ---------------------
+   --  Log_Exception  --
+   ---------------------
+
+   function Log_Exception
+     (Err     : in Error_Type;
+      Message : in String)
+      return Error_Record
+   is
+      use Common;
+      use GNATCOLL.JSON;
+      use Yolk.Log;
+
+      J : JSON_Value;
+
+      SC : constant String := AWS.Messages.Status_Code'Image
+        (Error_Messages (Err).Status_Code);
+   begin
+      J := Create_Object;
+
+      if Message /= "" then
+         Append (Source   => Error_Messages (Err).Description,
+                 New_Item => " - " & Message);
+      end if;
+
+      Trace (Error, Error_Type'Image (Err)
+             & " - "
+             & To_String (Error_Messages (Err).Status)
+             & " - "
+             & To_String (Error_Messages (Err).Description)
+             & " - "
+             & SC);
+
+      J := Create_Object;
+
+      J.Set_Field (Field_Name => "description",
+                   Field      => Error_Messages (Err).Description);
+      J.Set_Field (Field_Name => "status",
+                   Field      => Error_Messages (Err).Status);
+
+      Error_Messages (Err).JSON := To_JSON_String (J.Write);
+
+      return Error_Messages (Err);
    end Log_Exception;
 
    ---------------------
@@ -72,7 +186,23 @@ package body Errors is
       E_Name : constant String := Exception_Name (Event);
       E_Msg  : constant String := Exception_Message (Event);
    begin
-      Trace (Error, E_Name & "-" & E_Msg & "-" & Message);
+      Trace (Error, E_Name
+             & " - "
+             & E_Msg
+             & " - "
+             & Message);
    end Log_Exception;
+
+   -------------------
+   --  Status_Code  --
+   -------------------
+
+   function Status_Code
+     (Err : in Error_Record)
+      return AWS.Messages.Status_Code
+   is
+   begin
+      return Err.Status_Code;
+   end Status_Code;
 
 end Errors;

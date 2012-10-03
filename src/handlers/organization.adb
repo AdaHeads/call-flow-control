@@ -21,11 +21,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with AWS.Status;
 with Database;
 with GNATCOLL.JSON;
 with Yolk.Utilities;
 
 package body Organization is
+
+   Bad_Org_Id : exception;
 
    ----------------
    --  Callback  --
@@ -42,9 +45,12 @@ package body Organization is
    --  Create_JSON  --
    -------------------
 
-   procedure Create_JSON
-     (C     : in out Cursor;
-      Value : in out Common.JSON_String)
+--     procedure Create_JSON
+--       (C               : in out Cursor;
+--        Response_Object : in out Response.Object)
+   function Create_JSON
+     (C : in out Cursor)
+      return Common.JSON_String
    is
       use Common;
       use GNATCOLL.JSON;
@@ -104,7 +110,8 @@ package body Organization is
          JSON.Set_Field ("contact", Contacts_Array);
       end if;
 
-      Value := To_JSON_String (JSON.Write);
+      --        Response_Object.Set_Content (To_JSON_String (JSON.Write));
+      return To_JSON_String (JSON.Write);
    end Create_JSON;
 
    ---------------
@@ -133,6 +140,25 @@ package body Organization is
                   Is_Human_Column_Name    => TUS (C.Field_Name (6)),
                   Attr_JSON               => To_JSON_String (C.Value (7)));
    end Element;
+
+   ----------------------
+   --  Get_Org_Id_Key  --
+   ----------------------
+
+   function Get_Org_Id_Key
+     (Response_Object : in Response.Object)
+      return Natural
+   is
+      use AWS.Status;
+      --  use Errors;
+   begin
+      return Natural'Value
+        (Parameters (Response_Object.Get_Request).Get ("org_id"));
+   exception
+      when others =>
+         raise Bad_Org_Id with
+           "org_id must be a valid natural integer";
+   end Get_Org_Id_Key;
 
    ----------------------
    --  Prepared_Query  --
@@ -200,12 +226,12 @@ package body Organization is
    ------------------------
 
    function Query_Parameters
-     (Request : in AWS.Status.Data)
+     (Response_Object : in Response.Object)
       return GNATCOLL.SQL.Exec.SQL_Parameters
    is
       use GNATCOLL.SQL.Exec;
    begin
-      return (1 => +Response.Get_Org_Id_Key (Request));
+      return (1 => +Get_Org_Id_Key (Response_Object));
    end Query_Parameters;
 
 end Organization;
