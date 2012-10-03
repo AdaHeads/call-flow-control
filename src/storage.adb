@@ -96,7 +96,7 @@ package body Storage is
       Connection       : constant String
         := DB_Conn_Type'Image (Connection_Type);
 
-      Message : constant String :=  Trimmed_DB_Error &  "-" & Connection;
+      Message : constant String :=  Trimmed_DB_Error &  " - " & Connection;
    begin
       Connection_Pool (Connection_Type).State := Failed;
       Register_Failed_DB_Connection (Pool => Connection_Pool);
@@ -116,7 +116,7 @@ package body Storage is
 
       procedure Generate
         (Cacheable :    out Boolean;
-         Request   : in      AWS.Status.Data;
+         Request   : in     AWS.Status.Data;
          Status    :    out AWS.Messages.Status_Code;
          Value     :    out Common.JSON_String)
       is

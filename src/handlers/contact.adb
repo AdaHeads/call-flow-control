@@ -96,6 +96,7 @@ package body Contact is
 
       Value := To_JSON_String (JSON.Write);
    end Create_JSON;
+
    ---------------
    --  Element  --
    ---------------
