@@ -162,6 +162,22 @@ package body System_Message is
 
    procedure Notify
      (Notice          : in     Notice_Type;
+      Event           : in     Ada.Exceptions.Exception_Occurrence;
+      Response_Object :    out Response.Object)
+   is
+   begin
+      Notify (Notice          => Notice,
+              Event           => Event,
+              Message         => "",
+              Response_Object => Response_Object);
+   end Notify;
+
+   --------------
+   --  Notify  --
+   --------------
+
+   procedure Notify
+     (Notice          : in     Notice_Type;
       Message         : in     String;
       Response_Object :    out Response.Object)
    is
@@ -195,6 +211,39 @@ package body System_Message is
 
       Response_Object.Set_Content (To_JSON_String (JSON.Write));
       Response_Object.Set_HTTP_Status_Code (N.Status_Code);
+   end Notify;
+
+   --------------
+   --  Notify  --
+   --------------
+
+   procedure Notify
+     (Notice          : in     Notice_Type;
+      Event           : in     Ada.Exceptions.Exception_Occurrence;
+      Message         : in     String;
+      Response_Object :    out Response.Object)
+   is
+      use Ada.Exceptions;
+
+      E_Msg       : constant String := Exception_Message (Event);
+      New_Msg     : Unbounded_String;
+   begin
+      if Message'Length > 0 then
+         Append (Source   => New_Msg,
+                 New_Item => Message & " - ");
+      end if;
+
+      Append (Source   => New_Msg,
+              New_Item => Exception_Name (Event) & " - ");
+
+      if E_Msg'Length > 0 then
+         Append (Source   => New_Msg,
+                 New_Item => E_Msg & " - ");
+      end if;
+
+      Notify (Notice          => Notice,
+              Message         => To_String (New_Msg),
+              Response_Object => Response_Object);
    end Notify;
 
 end System_Message;

@@ -58,9 +58,24 @@ package System_Message is
 
    procedure Notify
      (Notice          : in     Notice_Type;
+      Event           : in     Ada.Exceptions.Exception_Occurrence;
+      Response_Object :    out Response.Object);
+   --  Write Notice and Event to log, and set HTTP status code and JSON content
+   --  in Response_Object according to the given Notice.
+
+   procedure Notify
+     (Notice          : in     Notice_Type;
       Message         : in     String;
       Response_Object :    out Response.Object);
    --  Write Notice and Message to log, and set HTTP status code and JSON
    --  content in Response_Object according to the given Notice.
+
+   procedure Notify
+     (Notice          : in     Notice_Type;
+      Event           : in     Ada.Exceptions.Exception_Occurrence;
+      Message         : in     String;
+      Response_Object :    out Response.Object);
+   --  Write Notice, Event and Message to log, and set HTTP status code and
+   --  JSON content in Response_Object according to the given Notice.
 
 end System_Message;
