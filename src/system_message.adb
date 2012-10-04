@@ -21,97 +21,132 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with Ada.Strings.Unbounded;
+with AWS.Messages;
+with Common;
 with HTTP_Codes;
+with Yolk.Log;
+--  with GNATCOLL.JSON;
 --  with Yolk.Log;
 
 package body System_Message is
 
-   use HTTP_Codes;
+   use Ada.Strings.Unbounded;
+
+   type Notification_Record is
+      record
+         Description : Unbounded_String;
+         JSON        : Common.JSON_String;
+         Log_Trace   : Yolk.Log.Trace_Handles;
+         Status      : Unbounded_String;
+         Status_Code : AWS.Messages.Status_Code;
+      end record;
 
    function U
      (S : in String)
       return Unbounded_String
       renames To_Unbounded_String;
 
-   function Build_System_Message_Record
-     (Description : in String;
-      Log_Trace   : in Yolk.Log.Trace_Handles;
-      Status      : in String;
-      Status_Code : in AWS.Messages.Status_Code)
-      return Notification_Object;
-   --  TODO: Write comment.
-
-   -----------------------------------
-   --  Build_System_Message_Record  --
-   -----------------------------------
-
-   function Build_System_Message_Record
-     (Description     : in String;
-      Log_Trace       : in Yolk.Log.Trace_Handles;
-      Status          : in String;
-      Status_Code     : in AWS.Messages.Status_Code)
-      return Notification_Object
-   is
-      use Common;
-      use GNATCOLL.JSON;
-      --  use Yolk.Log;
-   begin
-      return (Description => U (Description),
-              JSON        => Null_JSON_String,
-              Log_Trace   => Log_Trace,
-              Status      => U (Status),
-              Status_Code => Status_Code);
-   end Build_System_Message_Record;
-
-   Notification_List : array (Notification_Type) of Notification_Object :=
-                         (Database_Error      => Build_System_Message_Record
-                            (Description     => "",
-                             Log_Trace       => Yolk.Log.Error,
-                             Status          => "database error",
-                             Status_Code     => Server_Error),
-                          GET_Parameter_Error => Build_System_Message_Record
-                            (Description     => "",
-                             Log_Trace       => Yolk.Log.Error,
-                             Status          => "parameter error",
-                             Status_Code     => Bad_Request));
-
-   ------------
-   --  JSON  --
-   ------------
-
-   function JSON
-     (O : in Notification_Object)
-      return Common.JSON_String
-   is
-   begin
-      return O.JSON;
-   end JSON;
+   Notification_List   : constant array (Notification_Type) of
+     Notification_Record :=
+       (Database_Connection_Error =>
+            (Description => U ("DB connection error description"),
+             JSON        => Common.Null_JSON_String,
+             Log_Trace   => Yolk.Log.Critical,
+             Status      => U ("database connection error"),
+             Status_Code => HTTP_Codes.Server_Error),
+        GET_Parameter_Error        =>
+          (Description  => U ("GET parameter error description"),
+           JSON         => Common.Null_JSON_String,
+           Log_Trace    => Yolk.Log.Error,
+           Status       => U ("parameter error"),
+           Status_Code  => HTTP_Codes.Bad_Request));
 
    --------------
    --  Notify  --
    --------------
 
-   function Notify
-     (Notification : in Notification_Type;
-      Message      : in String)
-      return Notification_Object
+   procedure Notify
+     (Notification : in Notification_Type)
    is
-      pragma Unreferenced (Message);
    begin
-      return Notification_List (Notification);
+      Notify (Notification => Notification,
+              Message      => "");
    end Notify;
 
-   -------------------
-   --  Status_Code  --
-   -------------------
+   --------------
+   --  Notify  --
+   --------------
 
-   function Status_Code
-     (Notification : in Notification_Object)
-      return AWS.Messages.Status_Code
+   procedure Notify
+     (Notification : in Notification_Type;
+      Event        : in Ada.Exceptions.Exception_Occurrence)
    is
    begin
-      return Notification.Status_Code;
-   end Status_Code;
+      Notify (Notification => Notification,
+              Event        => Event,
+              Message      => "");
+   end Notify;
+
+   --------------
+   --  Notify  --
+   --------------
+
+   procedure Notify
+     (Notification : in Notification_Type;
+      Message      : in String)
+   is
+      use Common;
+      use Yolk.Log;
+
+      N : Notification_Record := Notification_List (Notification);
+   begin
+      if Message /= "" then
+         Append (Source   => N.Description,
+                 New_Item => " - " & Message);
+      end if;
+
+      Trace (N.Log_Trace, Notification_Type'Image (Notification)
+             & " - "
+             & To_String (N.Status)
+             & " - "
+             & To_String (N.Description));
+   end Notify;
+
+   --------------
+   --  Notify  --
+   --------------
+
+   procedure Notify
+     (Notification : in Notification_Type;
+      Event        : in Ada.Exceptions.Exception_Occurrence;
+      Message      : in String)
+   is
+      use Ada.Exceptions;
+      use Common;
+      use Yolk.Log;
+
+      E     : Unbounded_String := U (Exception_Name (Event));
+      E_Msg : constant String := Exception_Message (Event);
+      N     : Notification_Record := Notification_List (Notification);
+   begin
+      if Message /= "" then
+         Append (Source   => N.Description,
+                 New_Item => " - " & Message);
+      end if;
+
+      if E_Msg /= "" then
+         Append (Source   => E,
+                 New_Item => " - " & E_Msg);
+      end if;
+
+      Trace (N.Log_Trace, Notification_Type'Image (Notification)
+             & " - "
+             & To_String (N.Status)
+             & " - "
+             & To_String (N.Description)
+             & " - "
+             & To_String (E));
+   end Notify;
 
 end System_Message;

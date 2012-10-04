@@ -24,6 +24,7 @@
 with Ada.Strings.Fixed;
 with AWS.Response.Set;
 --  with AWS.URL;
+with System_Message;
 
 package body Response is
 
@@ -196,19 +197,6 @@ package body Response is
       O.HTTP_Status_Code := Value;
    end Set_HTTP_Status_Code;
 
-      ----------------------------
-   --  Set_HTTP_Status_Code  --
-   ----------------------------
-
-   procedure Set_Notification
-     (O     :    out Object;
-      Value : in     System_Message.Notification_Object)
-   is
-   begin
-      O.Content := Value.JSON;
-      O.HTTP_Status_Code := Value.Status_Code;
-   end Set_Notification;
-
    ---------------------------------
    --  Generic_Response_From_SQL  --
    ---------------------------------
@@ -228,7 +216,7 @@ package body Response is
          use Common;
          --  use Errors;
          use HTTP_Codes;
-         --  use System_Message;
+         use System_Message;
 
          Cache_Key       : Natural;
          Response_Object : Object := Factory (Request);
@@ -257,6 +245,8 @@ package body Response is
       exception
          when Event : Database_Error =>
             pragma Unreferenced (Event);
+            Notify (Notification => Database_Connection_Error,
+                    Message      => "This is just a test");
             return Response_Object.Build;
 --              return Build_JSON_Response
 --                (Request      => Request,

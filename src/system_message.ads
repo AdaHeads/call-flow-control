@@ -21,44 +21,28 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  with Ada.Exceptions;
-with Ada.Strings.Unbounded;
-with AWS.Messages;
-with Common;
-with Yolk.Log;
+with Ada.Exceptions;
 
 package System_Message is
 
-   type Notification_Type is (Database_Error, GET_Parameter_Error);
+   type Notification_Type is
+     (Database_Connection_Error,
+      GET_Parameter_Error);
 
-   type Notification_Object is tagged private;
+   procedure Notify
+     (Notification : in Notification_Type);
 
-   function JSON
-     (O : in Notification_Object)
-      return Common.JSON_String;
-   --  TODO: Write comment.
-
-   function Notify
+   procedure Notify
      (Notification : in Notification_Type;
-      Message      : in String)
-      return Notification_Object;
+      Event        : in Ada.Exceptions.Exception_Occurrence);
 
-   function Status_Code
-     (Notification : in Notification_Object)
-      return AWS.Messages.Status_Code;
-   --  TODO: Write comment.
+   procedure Notify
+     (Notification : in Notification_Type;
+      Message      : in String);
 
-private
-
-   use Ada.Strings.Unbounded;
-
-   type Notification_Object is tagged
-      record
-         Description : Unbounded_String;
-         JSON        : Common.JSON_String;
-         Log_Trace   : Yolk.Log.Trace_Handles;
-         Status      : Unbounded_String;
-         Status_Code : AWS.Messages.Status_Code;
-      end record;
+   procedure Notify
+     (Notification : in Notification_Type;
+      Event        : in Ada.Exceptions.Exception_Occurrence;
+      Message      : in String);
 
 end System_Message;

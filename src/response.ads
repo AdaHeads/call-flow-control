@@ -26,8 +26,6 @@ with AWS.Response;
 with AWS.Status;
 with Common;
 with HTTP_Codes;
-with System_Message;
---  with Errors;
 
 package Response is
 
@@ -60,10 +58,6 @@ package Response is
    procedure Set_HTTP_Status_Code
      (O     :    out Object;
       Value : in     AWS.Messages.Status_Code);
-
-   procedure Set_Notification
-     (O     :    out Object;
-      Value : in     System_Message.Notification_Object);
 
    ---------------------------------
    --  Generic_Response_From_SQL  --
