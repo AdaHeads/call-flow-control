@@ -24,16 +24,15 @@
 with Ada.Strings.Unbounded;
 with AWS.Messages;
 with Common;
+with GNATCOLL.JSON;
 with HTTP_Codes;
 with Yolk.Log;
---  with GNATCOLL.JSON;
---  with Yolk.Log;
 
 package body System_Message is
 
    use Ada.Strings.Unbounded;
 
-   type Notification_Record is
+   type Notice_Record is
       record
          Description : Unbounded_String;
          JSON        : Common.JSON_String;
@@ -47,31 +46,30 @@ package body System_Message is
       return Unbounded_String
       renames To_Unbounded_String;
 
-   Notification_List   : constant array (Notification_Type) of
-     Notification_Record :=
-       (Database_Connection_Error =>
-            (Description => U ("DB connection error description"),
-             JSON        => Common.Null_JSON_String,
-             Log_Trace   => Yolk.Log.Critical,
-             Status      => U ("database connection error"),
-             Status_Code => HTTP_Codes.Server_Error),
-        GET_Parameter_Error        =>
-          (Description  => U ("GET parameter error description"),
-           JSON         => Common.Null_JSON_String,
-           Log_Trace    => Yolk.Log.Error,
-           Status       => U ("parameter error"),
-           Status_Code  => HTTP_Codes.Bad_Request));
+   Notice_List : constant array (Notice_Type) of Notice_Record :=
+                   (Database_Connection_Error  =>
+                      (Description => U ("DB connection error description"),
+                       JSON        => Common.Null_JSON_String,
+                       Log_Trace   => Yolk.Log.Critical,
+                       Status      => U ("database connection error"),
+                       Status_Code => HTTP_Codes.Server_Error),
+                    GET_Parameter_Error        =>
+                      (Description  => U ("GET parameter error description"),
+                       JSON         => Common.Null_JSON_String,
+                       Log_Trace    => Yolk.Log.Error,
+                       Status       => U ("parameter error"),
+                       Status_Code  => HTTP_Codes.Bad_Request));
 
    --------------
    --  Notify  --
    --------------
 
    procedure Notify
-     (Notification : in Notification_Type)
+     (Notice : in Notice_Type)
    is
    begin
-      Notify (Notification => Notification,
-              Message      => "");
+      Notify (Notice  =>  Notice,
+              Message => "");
    end Notify;
 
    --------------
@@ -79,13 +77,13 @@ package body System_Message is
    --------------
 
    procedure Notify
-     (Notification : in Notification_Type;
-      Event        : in Ada.Exceptions.Exception_Occurrence)
+     (Notice : in Notice_Type;
+      Event  : in Ada.Exceptions.Exception_Occurrence)
    is
    begin
-      Notify (Notification => Notification,
-              Event        => Event,
-              Message      => "");
+      Notify (Notice  => Notice,
+              Event   => Event,
+              Message => "");
    end Notify;
 
    --------------
@@ -93,20 +91,20 @@ package body System_Message is
    --------------
 
    procedure Notify
-     (Notification : in Notification_Type;
-      Message      : in String)
+     (Notice  : in Notice_Type;
+      Message : in String)
    is
       use Common;
       use Yolk.Log;
 
-      N : Notification_Record := Notification_List (Notification);
+      N : Notice_Record := Notice_List (Notice);
    begin
-      if Message /= "" then
+      if Message'Length > 0 then
          Append (Source   => N.Description,
                  New_Item => " - " & Message);
       end if;
 
-      Trace (N.Log_Trace, Notification_Type'Image (Notification)
+      Trace (N.Log_Trace, Notice_Type'Image (Notice)
              & " - "
              & To_String (N.Status)
              & " - "
@@ -118,35 +116,85 @@ package body System_Message is
    --------------
 
    procedure Notify
-     (Notification : in Notification_Type;
-      Event        : in Ada.Exceptions.Exception_Occurrence;
-      Message      : in String)
+     (Notice  : in Notice_Type;
+      Event   : in Ada.Exceptions.Exception_Occurrence;
+      Message : in String)
    is
       use Ada.Exceptions;
+
+      E_Msg   : constant String := Exception_Message (Event);
+      New_Msg : Unbounded_String;
+   begin
+      if Message'Length > 0 then
+         Append (Source   => New_Msg,
+                 New_Item => Message & " - ");
+      end if;
+
+      Append (Source   => New_Msg,
+              New_Item => Exception_Name (Event));
+
+      if E_Msg'Length > 0 then
+         Append (Source   => New_Msg,
+                 New_Item => " - " & E_Msg);
+      end if;
+
+      Notify (Notice  => Notice,
+              Message => To_String (New_Msg));
+   end Notify;
+
+   --------------
+   --  Notify  --
+   --------------
+
+   procedure Notify
+     (Notice          : in     Notice_Type;
+      Response_Object :    out Response.Object)
+   is
+   begin
+      Notify (Notice          => Notice,
+              Message         => "",
+              Response_Object => Response_Object);
+   end Notify;
+
+   --------------
+   --  Notify  --
+   --------------
+
+   procedure Notify
+     (Notice          : in     Notice_Type;
+      Message         : in     String;
+      Response_Object :    out Response.Object)
+   is
+      use AWS.Messages;
       use Common;
+      use GNATCOLL.JSON;
       use Yolk.Log;
 
-      E     : Unbounded_String := U (Exception_Name (Event));
-      E_Msg : constant String := Exception_Message (Event);
-      N     : Notification_Record := Notification_List (Notification);
+      JSON        : JSON_Value;
+      N           : Notice_Record := Notice_List (Notice);
+      HTTP_Status : constant String := Status_Code'Image (N.Status_Code);
    begin
       if Message /= "" then
          Append (Source   => N.Description,
                  New_Item => " - " & Message);
       end if;
 
-      if E_Msg /= "" then
-         Append (Source   => E,
-                 New_Item => " - " & E_Msg);
-      end if;
-
-      Trace (N.Log_Trace, Notification_Type'Image (Notification)
+      Trace (N.Log_Trace, Notice_Type'Image (Notice)
              & " - "
              & To_String (N.Status)
              & " - "
              & To_String (N.Description)
              & " - "
-             & To_String (E));
+             & HTTP_Status);
+
+      JSON := Create_Object;
+      JSON.Set_Field (Field_Name => "description",
+                      Field      => N.Description);
+      JSON.Set_Field (Field_Name => "status",
+                      Field      => N.Status);
+
+      Response_Object.Set_Content (To_JSON_String (JSON.Write));
+      Response_Object.Set_HTTP_Status_Code (N.Status_Code);
    end Notify;
 
 end System_Message;

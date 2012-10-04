@@ -245,7 +245,7 @@ package body Response is
       exception
          when Event : Database_Error =>
             pragma Unreferenced (Event);
-            Notify (Notification => Database_Connection_Error,
+            Notify (Notice => Database_Connection_Error,
                     Message      => "This is just a test");
             return Response_Object.Build;
 --              return Build_JSON_Response

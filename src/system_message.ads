@@ -22,27 +22,45 @@
 -------------------------------------------------------------------------------
 
 with Ada.Exceptions;
+with Response;
 
 package System_Message is
 
-   type Notification_Type is
+   type Notice_Type is
      (Database_Connection_Error,
       GET_Parameter_Error);
 
    procedure Notify
-     (Notification : in Notification_Type);
+     (Notice : in Notice_Type);
+   --  Write Notice to log.
 
    procedure Notify
-     (Notification : in Notification_Type;
-      Event        : in Ada.Exceptions.Exception_Occurrence);
+     (Notice : in Notice_Type;
+      Event  : in Ada.Exceptions.Exception_Occurrence);
+   --  Write Notice and Event to log.
 
    procedure Notify
-     (Notification : in Notification_Type;
-      Message      : in String);
+     (Notice  : in Notice_Type;
+      Message : in String);
+   --  Write Notice and Message to log.
 
    procedure Notify
-     (Notification : in Notification_Type;
-      Event        : in Ada.Exceptions.Exception_Occurrence;
-      Message      : in String);
+     (Notice  : in Notice_Type;
+      Event   : in Ada.Exceptions.Exception_Occurrence;
+      Message : in String);
+   --  Write Notice, Event and Message to log.
+
+   procedure Notify
+     (Notice          : in     Notice_Type;
+      Response_Object :    out Response.Object);
+   --  Write Notice to log, and set HTTP status code and JSON content in
+   --  Response_Object according to the given Notice.
+
+   procedure Notify
+     (Notice          : in     Notice_Type;
+      Message         : in     String;
+      Response_Object :    out Response.Object);
+   --  Write Notice and Message to log, and set HTTP status code and JSON
+   --  content in Response_Object according to the given Notice.
 
 end System_Message;
