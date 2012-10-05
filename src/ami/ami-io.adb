@@ -24,8 +24,10 @@
 with Ada.Characters.Latin_1;
 with AWS.Net.Buffered;
 with Yolk.Log;
+
 --  Provides I/O routines for reading from Asterisk AMI.
 package body AMI.IO is
+
    function Read_Line (Socket : in AWS.Net.Std.Socket_Type) return String is
       Text : constant String := AWS.Net.Buffered.Get_Line (Socket => Socket);
    begin

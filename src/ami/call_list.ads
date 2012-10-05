@@ -21,10 +21,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Calendar,
-     Ada.Containers,
-     Ada.Containers.Vectors,
-     Ada.Strings.Unbounded;
+with Ada.Calendar;
+with Ada.Containers;
+with Ada.Containers.Vectors;
+with Ada.Strings.Unbounded;
 
 package Call_List is
    use Ada.Strings.Unbounded;
