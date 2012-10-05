@@ -22,8 +22,9 @@
 -------------------------------------------------------------------------------
 
 with Ada.Characters.Latin_1;
-with Yolk.Log;
 with Errors;
+with Yolk.Log;
+
 package body Event_Parser is
    use Yolk.Log;
 

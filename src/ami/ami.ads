@@ -27,5 +27,4 @@ package AMI is
    pragma Pure;
 
    NOT_IMPLEMENTED : exception;
-
 end AMI;

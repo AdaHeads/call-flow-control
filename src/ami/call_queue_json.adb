@@ -25,9 +25,9 @@ with Ada.Calendar;
 with Ada.Calendar.Conversions;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
+with Errors;
 with Interfaces.C;
 with Yolk.Log;
-with Errors;
 
 package body Call_Queue_JSON is
    use GNATCOLL.JSON;

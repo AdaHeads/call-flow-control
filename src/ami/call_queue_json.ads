@@ -22,8 +22,9 @@
 -------------------------------------------------------------------------------
 
 with Ada.Containers;
-with Call_List,
-     Common;
+with Call_List;
+with Common;
+
 private with GNATCOLL.JSON;
 
 --  This package can return callqueue information and it in JSON format.
