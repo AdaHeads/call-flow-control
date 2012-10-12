@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                  Errors                                   --
+--                           System_Message.Error                            --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,59 +21,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Exceptions;
-with Ada.Strings.Unbounded;
-with AWS.Messages;
-with Common;
+with HTTP_Codes;
 
-package Errors is
+package System_Message.Error is
 
-   type Error_Type is (Database_Error, GET_Parameter_Error);
+   Response_Generate_Error : Error_Log_And_Response_Object := Create
+     (Description => "Exception raised while trying to generate content",
+      Status      => "Server error",
+      Status_Code => HTTP_Codes.Server_Error);
 
-   type Error_Record is tagged private;
-
-   function JSON
-     (Err : in Error_Record)
-      return Common.JSON_String;
-   --  TODO: Write comment.
-
-   function Log_Exception
-     (Err     : in Error_Type;
-      Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String)
-      return Error_Record;
-   --  Log Event exception to the Error trace and return an Error_Record
-   --  containing the status and description of the error as a JSON document
-   --  and the corresponding HTTP status code.
-
-   function Log_Exception
-     (Err     : in Error_Type;
-      Message : in String)
-      return Error_Record;
-   --  Log Err to the Error trace and return a JSON document containing the
-   --  status and description of the error. Message is appended to the
-   --  Error_Messages (Err).Description.
-
-   procedure Log_Exception
-     (Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String);
-   --  Log Event exception and message to the Error trace.
-
-   function Status_Code
-     (Err : in Error_Record)
-      return AWS.Messages.Status_Code;
-   --  TODO: Write comment.
-
-private
-
-   use Ada.Strings.Unbounded;
-
-   type Error_Record is tagged
-      record
-         Description : Unbounded_String;
-         Status      : Unbounded_String;
-         JSON        : Common.JSON_String;
-         Status_Code : AWS.Messages.Status_Code;
-      end record;
-
-end Errors;
+end System_Message.Error;

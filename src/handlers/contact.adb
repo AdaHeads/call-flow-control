@@ -38,7 +38,7 @@ package body Contact is
      return AWS.Dispatchers.Callback.Handler
    is
    begin
-      return AWS.Dispatchers.Callback.Create (JSON_Response.Generate'Access);
+      return AWS.Dispatchers.Callback.Create (JSON_Response'Access);
    end Callback;
 
    -------------------

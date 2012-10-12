@@ -23,7 +23,7 @@
 
 with Ada.Characters.Latin_1;
 with Yolk.Log;
-with Errors;
+
 package body Event_Parser is
    use Yolk.Log;
 
@@ -44,8 +44,6 @@ package body Event_Parser is
      (Event_Text : in Unbounded_String)
       return Event_List_Type.Map
    is
-      use Errors;
-
       procedure Insert_Pair (List       : in out Event_List_Type.Map;
                              Key_Text   : in String;
                              Value      : in Unbounded_String);
@@ -115,8 +113,10 @@ package body Event_Parser is
       end loop;
       return List;
    exception
-      when Err : others =>
-         Log_Exception (Err, "Event: [" & To_String (Event_Text) & "]");
+      when Event : others =>
+         pragma Unreferenced (Event);
+         --  TODO: Switch to System_Message.
+--           Log_Exception (Err, "Event: [" & To_String (Event_Text) & "]");
          return List;
    end Parse;
 

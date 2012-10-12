@@ -22,7 +22,7 @@
 -------------------------------------------------------------------------------
 
 with AWS.Net.WebSocket.Registry;
-with Yolk.Log;
+with System_Message.Info;
 
 package body Notifications is
 
@@ -66,10 +66,9 @@ package body Notifications is
       Request : AWS.Status.Data)
       return AWS.Net.WebSocket.Object'Class
    is
-      use Yolk.Log;
+      use System_Message;
    begin
-      Trace (Handle  => Info,
-             Message => "A /notifications WebSocket was created.");
+      Notify (Info.Notifications_WebSocket_Created);
 
       return Object'(AWS.Net.WebSocket.Object
                      (AWS.Net.WebSocket.Create (Socket, Request))
@@ -87,10 +86,9 @@ package body Notifications is
       pragma Unreferenced (Socket);
       pragma Unreferenced (Message);
 
-      use Yolk.Log;
+      use System_Message;
    begin
-      Trace (Handle  => Info,
-             Message => "A /notifications WebSocket connection was closed.");
+      Notify (Info.Notifications_WebSocket_Closed);
    end On_Close;
 
    ---------------
@@ -104,10 +102,9 @@ package body Notifications is
       pragma Unreferenced (Socket);
       pragma Unreferenced (Message);
 
-      use Yolk.Log;
+      use System_Message;
    begin
-      Trace (Handle  => Info,
-             Message => "A /notifications WebSocket connection was opened");
+      Notify (Info.Notifications_WebSocket_Opened);
    end On_Open;
 
 end Notifications;

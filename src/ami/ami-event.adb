@@ -32,7 +32,6 @@ with Call_List,
      Peers;
 
 with Yolk.Log;
-with Errors;
 
 package body AMI.Event is
 --  use Ada.Strings.Unbounded;
@@ -425,12 +424,17 @@ package body AMI.Event is
 
          Event_Callback_Routine (Event_Something) (Event_List);
       exception
-         when Err : others =>
+         when Event : others =>
+            pragma Unreferenced (Event);
             if Event_Callback_Routine (Event_Something) = null then
-               Trace (Info, "Unhandled Event: " & Event_Something'Img);
+               --  TODO: Switch to System_Message.
+               --  Trace (Info, "Unhandled Event: " & Event_Something'Img);
+               null;
             else
-               Errors.Log_Exception (Err, "Event_Name: " &
-                                    To_String (Event_Name));
+               --  TODO: Switch to System_Message.
+               --  Errors.Log_Exception (Err, "Event_Name: " &
+               --  To_String (Event_Name));
+               null;
             end if;
       end Dispatch_Event;
 

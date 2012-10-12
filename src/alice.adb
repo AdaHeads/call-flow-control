@@ -18,7 +18,6 @@
 -------------------------------------------------------------------------------
 
 with Ada.Directories;
-with Ada.Exceptions;
 with AMI.Std;
 with AWS.Config;
 with AWS.Server;
@@ -26,22 +25,21 @@ with AWS.Server.Log;
 with AWS.Services.Dispatchers.URI;
 with AWS.Session;
 with My_Handlers;
+with System_Message.Info;
+with System_Message.Critical;
 with Yolk.Configuration;
 with Yolk.Log;
 with Yolk.Process_Control;
 with Yolk.Process_Owner;
-with Yolk.Utilities;
 with Yolk.Whoops;
 
 procedure Alice is
 
-   use Ada.Exceptions;
    use My_Handlers;
+   use System_Message;
    use Yolk.Configuration;
-   use Yolk.Log;
    use Yolk.Process_Control;
    use Yolk.Process_Owner;
-   use Yolk.Utilities;
 
    Alice_Version : constant String := "0.39";
 
@@ -50,12 +48,10 @@ procedure Alice is
    Web_Server_Config : constant AWS.Config.Object := Get_AWS_Configuration;
 
    procedure Start_Server;
-   --  Start the AWS server. A short message is written to the Info log trace
-   --  whenever the server is started.
+   --  Start Alice.
 
    procedure Stop_Server;
-   --  Stop the AWS server. A short message is written to the Info log trace
-   --  whenever the server is stopped.
+   --  Stop Alice.
 
    --------------------
    --  Start_Server  --
@@ -94,13 +90,13 @@ procedure Alice is
          --  Start the access and error logs.
       end if;
 
-      Trace (Handle  => Info,
-             Message => "Started " &
-             AWS.Config.Server_Name (Web_Server_Config));
-      Trace (Handle  => Info,
-             Message => "Yolk version " & Yolk.Version);
-      Trace (Handle  => Info,
-             Message => "Alice version " & Alice_Version);
+      Notify (Info.Alice_Startup,
+              "Listening on port"
+              & AWS.Config.Server_Port (Web_Server_Config)'Img
+              & ". Alice version "
+              & Alice_Version
+              & ". Yolk version "
+              & Yolk.Version);
    end Start_Server;
 
    -------------------
@@ -128,26 +124,10 @@ procedure Alice is
          AWS.Server.Log.Stop_Error (Web_Server);
       end if;
 
-      Trace (Handle  => Info,
-             Message => "Stopped " &
-             AWS.Config.Server_Name (Web_Server_Config));
+      Notify (Info.Alice_Stop);
    end Stop_Server;
 begin
    Set_User (Username => Config.Get (Yolk_User));
-
-   for Key in Keys'Range loop
-      if TS (Default_Values (Key)) /= TS (Config.Get (Key)) then
-         Trace (Handle  => Info,
-                Message => "Configuration key " &
-                Keys'Image (Key) & " is not default value.");
-         Trace (Handle  => Info,
-                Message => "    Default is: " & TS (Default_Values (Key)));
-         Trace (Handle  => Info,
-                Message => "    Set value is: " & TS (Config.Get (Key)));
-      end if;
-   end loop;
-   --  Check for configuration settings where the setting differ from the
-   --  default value, and notify the user of these on the Info log trace.
 
    Set (RH => Resource_Handlers);
    --  Populate the Resource_Handlers object.
@@ -163,13 +143,6 @@ begin
 
    Start_Server;
 
-   Trace (Handle  => Info,
-          Message => "Starting " &
-          AWS.Config.Server_Name (Web_Server_Config) &
-          ". Listening on port" &
-          AWS.Config.Server_Port (Web_Server_Config)'Img);
-   --  We're alive! Log this fact to the Info trace.
-
    Wait;
    --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
 
@@ -177,8 +150,6 @@ begin
 
 exception
    when Event : others =>
-      Trace (Handle  => Error,
-             Message => Exception_Information (Event));
-      --  Write the exception information to the rotating Error log trace.
+      Notify (Critical.Alice_Shutdown_With_Exception, Event);
       Stop_Server;
 end Alice;

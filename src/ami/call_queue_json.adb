@@ -27,7 +27,6 @@ with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Interfaces.C;
 with Yolk.Log;
-with Errors;
 
 package body Call_Queue_JSON is
    use GNATCOLL.JSON;
@@ -49,7 +48,6 @@ package body Call_Queue_JSON is
       use Ada.Calendar;
       use Ada.Calendar.Conversions;
       use Call_List;
-      use Errors;
 
       function Unix_Timestamp
         (Date : in Time)
@@ -98,11 +96,14 @@ package body Call_Queue_JSON is
       end if;
       return Value;
    exception
-      when Err : others =>
-         Log_Exception (Err, "Queue: [" &
-                                 Ada.Strings.Unbounded.To_String (Call.Queue) &
-                              "]");
-      raise;
+      when Event : others =>
+         pragma Unreferenced (Event);
+         --  TODO: Switch to the System_Message method of handling error.
+--           Log_Exception (Err, "Queue: [" &
+--                              Ada.Strings.Unbounded.To_String (Call.Queue) &
+--                                "]");
+         null;
+         raise;
    end Convert_Call_To_JSON_Object;
 
    function Convert_Length (Length : in Ada.Containers.Count_Type)

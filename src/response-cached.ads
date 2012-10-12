@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                 Storage                                   --
+--                             Response.Cached                               --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,38 +21,42 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with AWS.Response;
+with AWS.Status;
 with Common;
-with GNATCOLL.SQL.Exec;
-with Response;
 
-package Storage is
+package Response.Cached is
 
    ----------------
-   --  Generare  --
+   --  Generate  --
    ----------------
 
    generic
 
-      type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with private;
+      with function Get_Cache_Key
+        (Response_Object : in Object)
+         return Natural;
+      --  Return the key used to identify an object in a cache.
 
-      with function Query
-        return GNATCOLL.SQL.Exec.Prepared_Statement;
-      --  The prepared statement that is used to fetch data from the SQL
-      --  database.
+      with procedure Read_From_Cache
+        (Key      : in     Natural;
+         Is_Valid :    out Boolean;
+         Value    :    out Common.JSON_String);
+      --  Find Key in a cache.
 
-      with function To_JSON
-        (C : in out Cursor)
-         return Common.JSON_String;
-      --  Turn the rows in Cursor into a JSON String.
+      with procedure To_JSON
+        (Response_Object : in out Object);
+      --  Generate the JSON document that is delivered to the client. If
+      --  Cacheable is set to True, then the JSON document can be cached.
 
-      with function Query_Parameters
-        (Response_Object : in Response.Object)
-         return GNATCOLL.SQL.Exec.SQL_Parameters;
-      --  The parameters needed by the prepared statement given in Query.
+      with procedure Write_To_Cache
+        (Key   : in Natural;
+         Value : in Common.JSON_String);
+      --  Add Key/Value to a cache.
 
-   procedure Generate
-     (Response_Object : in out Response.Object);
-   --  Generates the Value JSON document and sets the corresponding Status
-   --  code.
+   function Generate
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --   Generate the data that is delivered to the user.
 
-end Storage;
+end Response.Cached;

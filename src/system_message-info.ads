@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                 Storage                                   --
+--                            System_Message.Info                            --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,38 +21,21 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Common;
-with GNATCOLL.SQL.Exec;
-with Response;
+package System_Message.Info is
 
-package Storage is
+   Alice_Startup : Info_Log_Object := Create
+     (Status => "Alice startup - Server initialized");
 
-   ----------------
-   --  Generare  --
-   ----------------
+   Alice_Stop : Info_Log_Object := Create
+     (Status => "Alice shutdown - Server killed");
 
-   generic
+   Notifications_WebSocket_Created : Info_Log_Object := Create
+     (Status => "Created a /notifications WebSocket");
 
-      type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with private;
+   Notifications_WebSocket_Opened : Info_Log_Object := Create
+     (Status => "Opened a /notifications WebSocket");
 
-      with function Query
-        return GNATCOLL.SQL.Exec.Prepared_Statement;
-      --  The prepared statement that is used to fetch data from the SQL
-      --  database.
+   Notifications_WebSocket_Closed : Info_Log_Object := Create
+     (Status => "Closed a /notifications WebSocket");
 
-      with function To_JSON
-        (C : in out Cursor)
-         return Common.JSON_String;
-      --  Turn the rows in Cursor into a JSON String.
-
-      with function Query_Parameters
-        (Response_Object : in Response.Object)
-         return GNATCOLL.SQL.Exec.SQL_Parameters;
-      --  The parameters needed by the prepared statement given in Query.
-
-   procedure Generate
-     (Response_Object : in out Response.Object);
-   --  Generates the Value JSON document and sets the corresponding Status
-   --  code.
-
-end Storage;
+end System_Message.Info;

@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                 Storage                                   --
+--                             Response.Cached                               --
 --                                                                           --
---                                  SPEC                                     --
+--                                  BODY                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,38 +21,56 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Common;
-with GNATCOLL.SQL.Exec;
-with Response;
+--  with Ada.Strings.Fixed;
+--  with AWS.Response.Set;
+with AWS.URL;
+with System_Message.Error;
 
-package Storage is
+package body Response.Cached is
+
+   -------------------------------
+   --  Generic_Cached_Response  --
+   -------------------------------
 
    ----------------
-   --  Generare  --
+   --  Generate  --
    ----------------
 
-   generic
+   function Generate
+     (Request : in AWS.Status.Data)
+         return AWS.Response.Data
+   is
+      use AWS.Status;
+      use HTTP_Codes;
+      use System_Message;
 
-      type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with private;
+      Cache_Key       : Natural;
+      Response_Object : Object := Factory (Request);
+      Valid_Cache     : Boolean;
+   begin
+      Cache_Key := Get_Cache_Key (Response_Object);
 
-      with function Query
-        return GNATCOLL.SQL.Exec.Prepared_Statement;
-      --  The prepared statement that is used to fetch data from the SQL
-      --  database.
+      Read_From_Cache (Key      => Cache_Key,
+                       Is_Valid => Valid_Cache,
+                       Value    => Response_Object.Content);
 
-      with function To_JSON
-        (C : in out Cursor)
-         return Common.JSON_String;
-      --  Turn the rows in Cursor into a JSON String.
+      if not Valid_Cache then
+         To_JSON (Response_Object => Response_Object);
 
-      with function Query_Parameters
-        (Response_Object : in Response.Object)
-         return GNATCOLL.SQL.Exec.SQL_Parameters;
-      --  The parameters needed by the prepared statement given in Query.
+         if Response_Object.Is_Cacheable then
+            Write_To_Cache (Key   => Cache_Key,
+                            Value => Response_Object.Content);
+         end if;
+      end if;
 
-   procedure Generate
-     (Response_Object : in out Response.Object);
-   --  Generates the Value JSON document and sets the corresponding Status
-   --  code.
+      return Response_Object.Build;
+   exception
+      when Event : others =>
+         Notify (Error.Response_Generate_Error,
+                 Event,
+                 AWS.URL.URL (URI (Response_Object.Get_Request)),
+                 Response_Object);
+         return Response_Object.Build;
+   end Generate;
 
-end Storage;
+end Response.Cached;

@@ -38,16 +38,13 @@ package body Organization is
      return AWS.Dispatchers.Callback.Handler
    is
    begin
-      return AWS.Dispatchers.Callback.Create (JSON_Response.Generate'Access);
+      return AWS.Dispatchers.Callback.Create (JSON_Response'Access);
    end Callback;
 
    -------------------
    --  Create_JSON  --
    -------------------
 
---     procedure Create_JSON
---       (C               : in out Cursor;
---        Response_Object : in out Response.Object)
    function Create_JSON
      (C : in out Cursor)
       return Common.JSON_String
@@ -110,7 +107,6 @@ package body Organization is
          JSON.Set_Field ("contact", Contacts_Array);
       end if;
 
-      --        Response_Object.Set_Content (To_JSON_String (JSON.Write));
       return To_JSON_String (JSON.Write);
    end Create_JSON;
 
