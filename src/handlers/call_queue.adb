@@ -29,13 +29,8 @@ with HTTP_Codes;
 with Response;
 with Routines;
 with Yolk.Log;
-with Ada.Strings.Unbounded;
 
 package body Call_Queue is
-   function TUS
-     (S : in String)
-      return Ada.Strings.Unbounded.Unbounded_String
-      renames Ada.Strings.Unbounded.To_Unbounded_String;
 
    -------------------
    --  Call_Hangup  --
@@ -68,7 +63,7 @@ package body Call_Queue is
          --  procedure which takes a Call_Id. Bug or by design?
       begin
          Trace (Debug, "Hangup handle: call_id=" & Call_ID);
-         Routines.Hangup (TUS (Call_ID), Status);
+         Routines.Hangup (U (Call_ID), Status);
          --  ???? Why the conversion to Unbounded_String here? In most of the
          --  other Routines methods you take a plain String and convert in the
          --  method instead.

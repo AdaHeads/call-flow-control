@@ -36,4 +36,7 @@ package System_Message.Critical is
       Status      => "No database connection",
       Status_Code => HTTP_Codes.Server_Error);
 
+   Unknown_User : Critical_Log_Object := Create
+     (Status => "Cannot change user for process");
+
 end System_Message.Critical;

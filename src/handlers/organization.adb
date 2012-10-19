@@ -24,7 +24,6 @@
 with AWS.Status;
 with Database;
 with GNATCOLL.JSON;
-with Yolk.Utilities;
 
 package body Organization is
 
@@ -51,7 +50,6 @@ package body Organization is
    is
       use Common;
       use GNATCOLL.JSON;
-      use Yolk.Utilities;
 
       Attr_JSON      : JSON_Value;
       Contacts_Array : JSON_Array;
@@ -68,25 +66,25 @@ package body Organization is
          JSON := GNATCOLL.JSON.Read (To_String (C.Element.Org_JSON),
                                      "org.json.error");
 
-         JSON.Set_Field (TS (C.Element.Org_Id_Column_Name),
+         JSON.Set_Field (To_String (C.Element.Org_Id_Column_Name),
                          C.Element.Org_Id);
 
-         JSON.Set_Field (TS (C.Element.Org_Name_Column_Name),
+         JSON.Set_Field (To_String (C.Element.Org_Name_Column_Name),
                          C.Element.Org_Name);
 
-         JSON.Set_Field (TS (C.Element.Identifier_Column_Name),
+         JSON.Set_Field (To_String (C.Element.Identifier_Column_Name),
                          C.Element.Identifier);
 
          while C.Has_Row loop
             Contact_JSON := Create_Object;
 
-            Contact_JSON.Set_Field (TS (C.Element.Ce_Id_Column_Name),
+            Contact_JSON.Set_Field (To_String (C.Element.Ce_Id_Column_Name),
                                     C.Element.Ce_Id);
 
-            Contact_JSON.Set_Field (TS (C.Element.Ce_Name_Column_Name),
-                                    TS (C.Element.Ce_Name));
+            Contact_JSON.Set_Field (To_String (C.Element.Ce_Name_Column_Name),
+                                    To_String (C.Element.Ce_Name));
 
-            Contact_JSON.Set_Field (TS (C.Element.Is_Human_Column_Name),
+            Contact_JSON.Set_Field (To_String (C.Element.Is_Human_Column_Name),
                                     C.Element.Is_Human);
 
             Attr_JSON := Create_Object;
@@ -119,21 +117,20 @@ package body Organization is
       return Row
    is
       use Common;
-      use Yolk.Utilities;
    begin
       return Row'(Org_JSON                => To_JSON_String (C.Value (0)),
                   Org_Id                  => C.Integer_Value (1, Default => 0),
-                  Org_Id_Column_Name      => TUS (C.Field_Name (1)),
-                  Org_Name                => TUS (C.Value (2)),
-                  Org_Name_Column_Name    => TUS (C.Field_Name (2)),
-                  Identifier              => TUS (C.Value (3)),
-                  Identifier_Column_Name  => TUS (C.Field_Name (3)),
+                  Org_Id_Column_Name      => U (C.Field_Name (1)),
+                  Org_Name                => U (C.Value (2)),
+                  Org_Name_Column_Name    => U (C.Field_Name (2)),
+                  Identifier              => U (C.Value (3)),
+                  Identifier_Column_Name  => U (C.Field_Name (3)),
                   Ce_Id                   => C.Integer_Value (4, Default => 0),
-                  Ce_Id_Column_Name       => TUS (C.Field_Name (4)),
-                  Ce_Name                 => TUS (C.Value (5)),
-                  Ce_Name_Column_Name     => TUS (C.Field_Name (5)),
+                  Ce_Id_Column_Name       => U (C.Field_Name (4)),
+                  Ce_Name                 => U (C.Value (5)),
+                  Ce_Name_Column_Name     => U (C.Field_Name (5)),
                   Is_Human                => C.Boolean_Value (6),
-                  Is_Human_Column_Name    => TUS (C.Field_Name (6)),
+                  Is_Human_Column_Name    => U (C.Field_Name (6)),
                   Attr_JSON               => To_JSON_String (C.Value (7)));
    end Element;
 

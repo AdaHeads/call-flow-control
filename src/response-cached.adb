@@ -21,16 +21,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  with Ada.Strings.Fixed;
---  with AWS.Response.Set;
 with AWS.URL;
 with System_Message.Error;
 
 package body Response.Cached is
-
-   -------------------------------
-   --  Generic_Cached_Response  --
-   -------------------------------
 
    ----------------
    --  Generate  --

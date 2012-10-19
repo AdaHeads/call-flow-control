@@ -28,11 +28,6 @@ package body System_Message is
 
    type Delimiter_Placement is (Fore, Aft, None);
 
-   function U
-     (S : in String)
-      return Unbounded_String
-      renames To_Unbounded_String;
-
    procedure Build_Response_Object
      (Description     : in     Unbounded_String;
       Response_Object :    out Response.Object;
@@ -119,6 +114,7 @@ package body System_Message is
      (Status : in String)
       return Critical_Log_Object
    is
+      use Common;
       use Yolk.Log;
    begin
       return (Log_Trace => Critical,
@@ -135,6 +131,7 @@ package body System_Message is
       Status_Code : in AWS.Messages.Status_Code)
       return Critical_Response_Object
    is
+      use Common;
    begin
       return (Description => U (Description),
               Status      => U (Status),
@@ -151,6 +148,7 @@ package body System_Message is
       Status_Code : in AWS.Messages.Status_Code)
       return Critical_Log_And_Response_Object
    is
+      use Common;
    begin
       return (Description => U (Description),
               Log_Trace   => Yolk.Log.Critical,
@@ -166,6 +164,7 @@ package body System_Message is
      (Status : in String)
       return Error_Log_Object
    is
+      use Common;
       use Yolk.Log;
    begin
       return (Log_Trace => Error,
@@ -182,6 +181,7 @@ package body System_Message is
       Status_Code : in AWS.Messages.Status_Code)
       return Error_Response_Object
    is
+      use Common;
    begin
       return (Description => U (Description),
               Status      => U (Status),
@@ -198,6 +198,7 @@ package body System_Message is
       Status_Code : in AWS.Messages.Status_Code)
       return Error_Log_And_Response_Object
    is
+      use Common;
    begin
       return (Description => U (Description),
               Log_Trace   => Yolk.Log.Error,
@@ -213,6 +214,7 @@ package body System_Message is
      (Status : in String)
       return Info_Log_Object
    is
+      use Common;
       use Yolk.Log;
    begin
       return (Log_Trace => Info,
@@ -229,6 +231,7 @@ package body System_Message is
       Status_Code : in AWS.Messages.Status_Code)
       return Info_Response_Object
    is
+      use Common;
    begin
       return (Description => U (Description),
               Status      => U (Status),
@@ -245,6 +248,7 @@ package body System_Message is
       Status_Code : in AWS.Messages.Status_Code)
       return Info_Log_And_Response_Object
    is
+      use Common;
    begin
       return (Description => U (Description),
               Log_Trace   => Yolk.Log.Info,

@@ -28,7 +28,7 @@ with Response;
 package Storage is
 
    ----------------
-   --  Generare  --
+   --  Generate  --
    ----------------
 
    generic

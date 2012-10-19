@@ -24,10 +24,10 @@
 package System_Message.Info is
 
    Alice_Startup : Info_Log_Object := Create
-     (Status => "Alice startup - Server initialized");
+     (Status => "Alice startup");
 
    Alice_Stop : Info_Log_Object := Create
-     (Status => "Alice shutdown - Server killed");
+     (Status => "Alice controlled shutdown. Goodbye");
 
    Notifications_WebSocket_Created : Info_Log_Object := Create
      (Status => "Created a /notifications WebSocket");
