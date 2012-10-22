@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                              Peers_Handler                                --
+--                           System_Message.Error                            --
 --                                                                           --
---                                  BODY                                     --
+--                                  SPEC                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,15 +21,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Peers;
+with HTTP_Codes;
 
-Package body Peers_handler is
-   use Peers;
+package System_Message.Error is
 
-   Procedure Registate (Request : in AWS.Status.Data) is
-      SIP_Name : String
-      Peer : Peer_Type with Peer => SIP_Name;
-   begin
-      Peers.Insert_Peer (Peer);
-   end Registate;
-end Peers_handler;
+   Response_Generate_Error : Error_Log_And_Response_Object := Create
+     (Description => "Exception raised while trying to generate content",
+      Status      => "Server error",
+      Status_Code => HTTP_Codes.Server_Error);
+
+end System_Message.Error;

@@ -26,7 +26,6 @@ with AMI.Action;
 with AMI.Event;
 with AWS.Net.Std;
 with AWS.Net.Buffered;
-with Errors;
 with My_Configuration;
 with Yolk.Log;
 
@@ -101,7 +100,6 @@ package body AMI.Std is
 
    task body AMI_Socket
    is
-      use Errors;
       use Yolk.Log;
 
       Reconnect_Delay : constant Duration := 0.5;
@@ -162,22 +160,28 @@ package body AMI.Std is
             end if;
 
          exception
-            when E : AWS.Net.Socket_Error =>
+            when Event : AWS.Net.Socket_Error =>
+               pragma Unreferenced (Event);
                if not Shutdown then
-                  Log_Exception
-                    (Event   => E,
-                     Message => "Lost connection to AMI "
-                     & AMI_Connection_Type'Image (AMI_Type)
-                     & " socket");
+                  null;
+                  --  TODO: Switch to System_Message.
+--                    Log_Exception
+--                      (Event   => E,
+--                       Message => "Lost connection to AMI "
+--                       & AMI_Connection_Type'Image (AMI_Type)
+--                       & " socket");
                end if;
-            when E : others =>
-               Log_Exception
-                 (Event   => E,
-                  Message => "Error! We might've lost the connection to the"
-                  & " AMI "
-                  & AMI_Connection_Type'Image (AMI_Type)
-                  & " socket. Precautionary socket shutdown under way and then"
-                  & " we'll try connecting again");
+            when Event : others =>
+               pragma Unreferenced (Event);
+               null;
+               --  TODO: Switch to System_Message.
+--                 Log_Exception
+--                   (Event   => E,
+--                   Message => "Error! We might've lost the connection to the"
+--                    & " AMI "
+--                    & AMI_Connection_Type'Image (AMI_Type)
+--                & " socket. Precautionary socket shutdown under way and then"
+--                    & " we'll try connecting again");
 
                AWS.Net.Buffered.Shutdown (Socket_List (AMI_Type));
          end;

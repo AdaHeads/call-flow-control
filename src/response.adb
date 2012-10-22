@@ -23,21 +23,14 @@
 
 with Ada.Strings.Fixed;
 with AWS.Response.Set;
-with AWS.URL;
-with Errors;
-with HTTP_Codes;
 
 package body Response is
-
-   Database_Error      : exception;
-   GET_Parameter_Error : exception;
 
    JSON_MIME_Type : constant String := "application/json; charset=utf-8";
 
    procedure Add_CORS_Headers
      (Request  : in     AWS.Status.Data;
-      Response : in out AWS.Response.Data)
-   with inline;
+      Response : in out AWS.Response.Data);
    --  If the client sends the Origin: header, add these two CORS headers:
    --    Access-Control-Allow-Origin
    --    Access-Control-Allow-Credentials
@@ -48,8 +41,7 @@ package body Response is
    function Add_JSONP_Callback
      (Content : in Common.JSON_String;
       Request : in AWS.Status.Data)
-      return Common.JSON_String
-   with inline;
+      return Common.JSON_String;
    --  Wrap Content in jsoncallback(Content) if the jsoncallback parameter
    --  is given in the Request. jsonpcallback is replaced with the actual
    --  value of the jsoncallback parameter.
@@ -107,14 +99,12 @@ package body Response is
       return Content;
    end Add_JSONP_Callback;
 
-   ---------------------------
-   --  Build_JSON_Response  --
-   ---------------------------
+   -------------
+   --  Build  --
+   -------------
 
-   function Build_JSON_Response
-     (Request : in AWS.Status.Data;
-      Content : in Common.JSON_String;
-      Status  : in AWS.Messages.Status_Code)
+   function Build
+     (O : in Object)
       return AWS.Response.Data
    is
       use AWS.Messages;
@@ -123,124 +113,81 @@ package body Response is
       use Common;
 
       D        : AWS.Response.Data;
-      Encoding : constant Content_Encoding := Preferred_Coding (Request);
+      Encoding : constant Content_Encoding := Preferred_Coding (O.Request);
    begin
       D :=  Build (Content_Type  => JSON_MIME_Type,
                    Message_Body  =>
-                     To_String (Add_JSONP_Callback (Content, Request)),
-                   Status_Code   => Status,
+                     To_String (Add_JSONP_Callback
+                       (O.Content, O.Request)),
+                   Status_Code   => O.HTTP_Status_Code,
                    Encoding      => Encoding,
                    Cache_Control => No_Cache);
 
-      Add_CORS_Headers (Request, D);
+      Add_CORS_Headers (O.Request, D);
 
       return D;
-   end Build_JSON_Response;
+   end Build;
 
-   ---------------------------------
-   --  Generic_Response_From_SQL  --
-   ---------------------------------
+   ---------------
+   --  Factory  --
+   ---------------
 
-   package body Generic_Response_From_SQL is
+   function Factory
+     (Request : in AWS.Status.Data)
+      return Object
+   is
+   begin
+      return O : Object do
+         O.Request := Request;
+      end return;
+   end Factory;
 
-      ----------------
-      --  Generate  --
-      ----------------
+   -------------------
+   --  Get_Request  --
+   -------------------
 
-      function Generate
-        (Request : in AWS.Status.Data)
-      return AWS.Response.Data
-      is
-         use AWS.Status;
-         use AWS.URL;
-         use Common;
-         use Errors;
-         use HTTP_Codes;
-
-         Cacheable : Boolean;
-         Cache_Key : Natural;
-         Status    : AWS.Messages.Status_Code;
-         Valid     : Boolean;
-         Value     : JSON_String;
-      begin
-         Cache_Key := Get_Cache_Key (Request);
-
-         Read_From_Cache (Key      => Cache_Key,
-                          Is_Valid => Valid,
-                          Value    => Value);
-
-         if Valid then
-            Status := OK;
-         else
-            To_JSON (Cacheable => Cacheable,
-                     Request   => Request,
-                     Status    => Status,
-                     Value     => Value);
-
-            if Cacheable then
-               Write_To_Cache (Key   => Cache_Key,
-                               Value => Value);
-            end if;
-         end if;
-
-         return Build_JSON_Response
-           (Request => Request,
-            Content => Value,
-            Status  => Status);
-
-      exception
-         when Event : Database_Error =>
-            return Build_JSON_Response
-              (Request => Request,
-               Content => Log_Exception
-                 (Event   => Event,
-                  Message => "Requested resource: " & URL (URI (Request))),
-               Status  => Server_Error);
-         when Event : others =>
-            return Build_JSON_Response
-              (Request => Request,
-               Content => Log_Exception
-                 (Event   => Event,
-                  Message => "Requested resource: " & URL (URI (Request))),
-               Status  => Bad_Request);
-      end Generate;
-
-   end Generic_Response_From_SQL;
+   function Get_Request
+     (O : in Object)
+      return AWS.Status.Data
+   is
+   begin
+      return O.Request;
+   end Get_Request;
 
    ---------------------
-   --  Get_Ce_Id_Key  --
+   --  Set_Cacheable  --
    ---------------------
 
-   function Get_Ce_Id_Key
-     (Request : in AWS.Status.Data)
-      return Natural
+   procedure Set_Cacheable
+     (O     :    out Object;
+      Value : in     Boolean)
    is
-      use AWS.Status;
-      use Errors;
    begin
-      return Natural'Value (Parameters (Request).Get ("ce_id"));
-   exception
-      when others =>
-         raise GET_Parameter_Error with
-           "ce_id must be a valid natural integer";
-   end Get_Ce_Id_Key;
+      O.Is_Cacheable := Value;
+   end Set_Cacheable;
 
-   ----------------------
-   --  Get_Org_Id_Key  --
-   ----------------------
+   -------------------
+   --  Set_Content  --
+   -------------------
 
-   function Get_Org_Id_Key
-     (Request : in AWS.Status.Data)
-      return Natural
+   procedure Set_Content
+     (O     :    out Object;
+      Value : in     Common.JSON_String)
    is
-      use AWS.Status;
-      use Errors;
    begin
-      return Natural'Value (Parameters (Request).Get ("org_id"));
-   exception
-      when others =>
-         raise GET_Parameter_Error with
-           "org_id must be a valid natural integer";
-   end Get_Org_Id_Key;
+      O.Content := Value;
+   end Set_Content;
+
+   ----------------------------
+   --  Set_HTTP_Status_Code  --
+   ----------------------------
+
+   procedure Set_HTTP_Status_Code
+     (O     :    out Object;
+      Value : in     AWS.Messages.Status_Code)
+   is
+   begin
+      O.HTTP_Status_Code := Value;
+   end Set_HTTP_Status_Code;
 
 end Response;

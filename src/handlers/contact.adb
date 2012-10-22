@@ -21,11 +21,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with AWS.Status;
 with Database;
 with GNATCOLL.JSON;
-with Yolk.Utilities;
 
 package body Contact is
+
+   Bad_Ce_Id : exception;
 
    ----------------
    --  Callback  --
@@ -35,24 +37,26 @@ package body Contact is
      return AWS.Dispatchers.Callback.Handler
    is
    begin
-      return AWS.Dispatchers.Callback.Create (JSON_Response.Generate'Access);
+      return AWS.Dispatchers.Callback.Create (JSON_Response'Access);
    end Callback;
 
    -------------------
    --  Create_JSON  --
    -------------------
 
-   procedure Create_JSON
-     (C     : in out Cursor;
-      Value : in out Common.JSON_String)
+--     procedure Create_JSON
+--       (C               : in out Cursor;
+--        Response_Object : in out Response.Object)
+   function Create_JSON
+     (C : in out Cursor)
+      return Common.JSON_String
    is
       use Common;
       use GNATCOLL.JSON;
-      use Yolk.Utilities;
 
-      Attr_Array      : JSON_Array;
-      Attr_JSON       : JSON_Value;
-      JSON            : JSON_Value;
+      Attr_Array : JSON_Array;
+      Attr_JSON  : JSON_Value;
+      JSON       : JSON_Value;
    begin
       JSON := Create_Object;
 
@@ -60,13 +64,13 @@ package body Contact is
          --  Cursor can contain more than one row, so we start by building the
          --  main JSON object from the first row, so we don't repeat the JSON
          --  building code for the same data over and over.
-         JSON.Set_Field (TS (C.Element.Ce_Id_Column_Name),
+         JSON.Set_Field (To_String (C.Element.Ce_Id_Column_Name),
                          C.Element.Ce_Id);
 
-         JSON.Set_Field (TS (C.Element.Ce_Name_Column_Name),
+         JSON.Set_Field (To_String (C.Element.Ce_Name_Column_Name),
                          C.Element.Ce_Name);
 
-         JSON.Set_Field (TS (C.Element.Is_Human_Column_Name),
+         JSON.Set_Field (To_String (C.Element.Is_Human_Column_Name),
                          C.Element.Is_Human);
 
          while C.Has_Row loop
@@ -78,11 +82,11 @@ package body Contact is
                   "attr.json.error");
 
                Attr_JSON.Set_Field
-                 (TS (C.Element.Attr_Org_Id_Column_Name),
+                 (To_String (C.Element.Attr_Org_Id_Column_Name),
                   C.Element.Attr_Org_Id);
 
                Attr_JSON.Set_Field
-                 (TS (C.Element.Attr_Ce_Id_Column_Name),
+                 (To_String (C.Element.Attr_Ce_Id_Column_Name),
                   C.Element.Attr_Ce_Id);
 
                Append (Attr_Array, Attr_JSON);
@@ -94,8 +98,10 @@ package body Contact is
          JSON.Set_Field ("attributes", Attr_Array);
       end if;
 
-      Value := To_JSON_String (JSON.Write);
+      --        Response_Object.Set_Content (To_JSON_String (JSON.Write));
+      return To_JSON_String (JSON.Write);
    end Create_JSON;
+
    ---------------
    --  Element  --
    ---------------
@@ -105,20 +111,38 @@ package body Contact is
       return Row
    is
       use Common;
-      use Yolk.Utilities;
    begin
       return Row'(Ce_Id                   => C.Integer_Value (0, Default => 0),
-                  Ce_Id_Column_Name       => TUS (C.Field_Name (0)),
-                  Ce_Name                 => TUS (C.Value (1)),
-                  Ce_Name_Column_Name     => TUS (C.Field_Name (1)),
+                  Ce_Id_Column_Name       => U (C.Field_Name (0)),
+                  Ce_Name                 => U (C.Value (1)),
+                  Ce_Name_Column_Name     => U (C.Field_Name (1)),
                   Is_Human                => C.Boolean_Value (2),
-                  Is_Human_Column_Name    => TUS (C.Field_Name (2)),
+                  Is_Human_Column_Name    => U (C.Field_Name (2)),
                   Attr_JSON               => To_JSON_String (C.Value (3)),
                   Attr_Org_Id             => C.Integer_Value (4, Default => 0),
-                  Attr_Org_Id_Column_Name => TUS (C.Field_Name (4)),
+                  Attr_Org_Id_Column_Name => U (C.Field_Name (4)),
                   Attr_Ce_Id              => C.Integer_Value (5, Default => 0),
-                  Attr_Ce_Id_Column_Name  => TUS (C.Field_Name (5)));
+                  Attr_Ce_Id_Column_Name  => U (C.Field_Name (5)));
    end Element;
+
+   ---------------------
+   --  Get_Ce_Id_Key  --
+   ---------------------
+
+   function Get_Ce_Id_Key
+     (Response_Object : in Response.Object)
+      return Natural
+   is
+      use AWS.Status;
+      --  use Errors;
+   begin
+      return Natural'Value
+        (Parameters (Response_Object.Get_Request).Get ("ce_id"));
+   exception
+      when others =>
+         raise Bad_Ce_Id with
+           "ce_id must be a valid natural integer";
+   end Get_Ce_Id_Key;
 
    ----------------------
    --  Prepared_Query  --
@@ -164,12 +188,12 @@ package body Contact is
    ------------------------
 
    function Query_Parameters
-     (Request : in AWS.Status.Data)
+     (Response_Object : in Response.Object)
       return GNATCOLL.SQL.Exec.SQL_Parameters
    is
       use GNATCOLL.SQL.Exec;
    begin
-      return (1 => +Response.Get_Ce_Id_Key (Request));
+      return (1 => +Get_Ce_Id_Key (Response_Object));
    end Query_Parameters;
 
 end Contact;

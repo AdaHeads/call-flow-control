@@ -25,71 +25,53 @@ with AWS.Messages;
 with AWS.Response;
 with AWS.Status;
 with Common;
+with HTTP_Codes;
 
 package Response is
 
-   function Build_JSON_Response
-     (Request : in AWS.Status.Data;
-      Content : in Common.JSON_String;
-      Status  : in AWS.Messages.Status_Code)
-      return AWS.Response.Data
-   with inline;
+   type Object is tagged limited private;
+
+   function Build
+     (O : in Object)
+      return AWS.Response.Data;
    --  Build the response and compress it if the client supports it. Also
    --  wraps JSON string in foo(JSON string) if the
    --      ?jsoncallback=foo
    --  GET parameter is present.
 
-   function Get_Ce_Id_Key
+   function Factory
      (Request : in AWS.Status.Data)
-      return Natural
-   with inline;
-   --  Return the value of the ce_id request parameter. Raise
-   --  GET_Parameter_Error if ce_id is not a Natural.
+      return Object;
+   --  Initialize a Response.Object object.
 
-   function Get_Org_Id_Key
-     (Request : in AWS.Status.Data)
-      return Natural
-   with inline;
-   --  Return the value of the org_id request parameter. Raise
-   --  GET_Parameter_Error if org_id is not a Natural.
+   function Get_Request
+     (O : in Object)
+      return AWS.Status.Data;
+   --  Return the AWS.Status.Data object that O was initialized with.
 
-   ---------------------------------
-   --  Generic_Response_From_SQL  --
-   ---------------------------------
+   procedure Set_Cacheable
+     (O     :    out Object;
+      Value : in     Boolean);
+   --  Set whether the contents of O is cacheable.
 
-   generic
+   procedure Set_Content
+     (O     :    out Object;
+      Value : in     Common.JSON_String);
+   --  Add content to O.
 
-      with function Get_Cache_Key
-        (Request : in AWS.Status.Data)
-      return Natural;
-      --  Return the key used to identify an object in a cache.
+   procedure Set_HTTP_Status_Code
+     (O     :    out Object;
+      Value : in     AWS.Messages.Status_Code);
+   --  Set the HTTP code that is returned to the client when O.Build is called.
 
-      with procedure Read_From_Cache
-        (Key      : in     Natural;
-         Is_Valid :    out Boolean;
-         Value    :    out Common.JSON_String);
-      --  Find Key in a cache.
+private
 
-      with procedure To_JSON
-        (Cacheable :    out Boolean;
-         Request   : in     AWS.Status.Data;
-         Status    :    out AWS.Messages.Status_Code;
-         Value     :    out Common.JSON_String);
-      --  Generate the JSON document that is delivered to the client. If
-      --  Cacheable is set to True, then the JSON document can be cached.
-
-      with procedure Write_To_Cache
-        (Key   : in Natural;
-         Value : in Common.JSON_String);
-      --  Add Key/Value to a cache.
-
-   package Generic_Response_From_SQL is
-
-      function Generate
-        (Request : in AWS.Status.Data)
-         return AWS.Response.Data;
-      --   Generate the object that is delivered to the user.
-
-   end Generic_Response_From_SQL;
+   type Object is tagged limited
+      record
+         Content          : Common.JSON_String := Common.Null_JSON_String;
+         HTTP_Status_Code : AWS.Messages.Status_Code := HTTP_Codes.OK;
+         Is_Cacheable     : Boolean := False;
+         Request          : AWS.Status.Data;
+      end record;
 
 end Response;

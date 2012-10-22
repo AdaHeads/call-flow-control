@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                  Errors                                   --
+--                             Response.Cached                               --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,21 +21,42 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Exceptions;
+with AWS.Response;
+with AWS.Status;
 with Common;
 
-package Errors is
+package Response.Cached is
 
-   function Log_Exception
-     (Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String)
-      return Common.JSON_String;
-   --  Log exception messages to the Error trace and return a JSON document
-   --  containing the status and description of the error.
+   ----------------
+   --  Generate  --
+   ----------------
 
-   procedure Log_Exception
-     (Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String);
-   --  Log exception and message to the Error trace.
+   generic
 
-end Errors;
+      with function Get_Cache_Key
+        (Response_Object : in Object)
+         return Natural;
+      --  Return the key used to identify an object in a cache.
+
+      with procedure Read_From_Cache
+        (Key      : in     Natural;
+         Is_Valid :    out Boolean;
+         Value    :    out Common.JSON_String);
+      --  Find Key in a cache.
+
+      with procedure To_JSON
+        (Response_Object : in out Object);
+      --  Generate the JSON document that is delivered to the client. If
+      --  Cacheable is set to True, then the JSON document can be cached.
+
+      with procedure Write_To_Cache
+        (Key   : in Natural;
+         Value : in Common.JSON_String);
+      --  Add Key/Value to a cache.
+
+   function Generate
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --   Generate the data that is delivered to the user.
+
+end Response.Cached;

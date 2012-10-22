@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                  Errors                                   --
+--                             Response.Cached                               --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -21,58 +21,50 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
-with Yolk.Log;
+with AWS.URL;
+with System_Message.Error;
 
-package body Errors is
+package body Response.Cached is
 
-   ---------------------
-   --  Log_Exception  --
-   ---------------------
+   ----------------
+   --  Generate  --
+   ----------------
 
-   function Log_Exception
-     (Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String)
-      return Common.JSON_String
+   function Generate
+     (Request : in AWS.Status.Data)
+         return AWS.Response.Data
    is
-      use Ada.Exceptions;
-      use Common;
-      use GNATCOLL.JSON;
-      use Yolk.Log;
+      use AWS.Status;
+      use HTTP_Codes;
+      use System_Message;
 
-      E_Name : constant String     := Exception_Name (Event);
-      E_Msg  : constant String     := Exception_Message (Event);
-      JSON   : constant JSON_Value := Create_Object;
+      Cache_Key       : Natural;
+      Response_Object : Object := Factory (Request);
+      Valid_Cache     : Boolean;
    begin
-      Trace (Error, E_Name & "-" & E_Msg & "-" & Message);
+      Cache_Key := Get_Cache_Key (Response_Object);
 
-      --  TODO: This JSON needs fixing, as we no longer bother with the actual
-      --  exception message. Instead we just need "status" and "description"
-      --  nodes.
-      JSON.Set_Field (Field_Name => "exception",
-                             Field      => E_Name);
-      JSON.Set_Field (Field_Name => "exception_message",
-                             Field      => E_Msg);
-      JSON.Set_Field (Field_Name => "message",
-                             Field      => Message);
-      return To_JSON_String (JSON.Write);
-   end Log_Exception;
+      Read_From_Cache (Key      => Cache_Key,
+                       Is_Valid => Valid_Cache,
+                       Value    => Response_Object.Content);
 
-   ---------------------
-   --  Log_Exception  --
-   ---------------------
+      if not Valid_Cache then
+         To_JSON (Response_Object => Response_Object);
 
-   procedure Log_Exception
-     (Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String)
-   is
-      use Ada.Exceptions;
-      use Yolk.Log;
+         if Response_Object.Is_Cacheable then
+            Write_To_Cache (Key   => Cache_Key,
+                            Value => Response_Object.Content);
+         end if;
+      end if;
 
-      E_Name : constant String := Exception_Name (Event);
-      E_Msg  : constant String := Exception_Message (Event);
-   begin
-      Trace (Error, E_Name & "-" & E_Msg & "-" & Message);
-   end Log_Exception;
+      return Response_Object.Build;
+   exception
+      when Event : others =>
+         Notify (Error.Response_Generate_Error,
+                 Event,
+                 AWS.URL.URL (URI (Response_Object.Get_Request)),
+                 Response_Object);
+         return Response_Object.Build;
+   end Generate;
 
-end Errors;
+end Response.Cached;

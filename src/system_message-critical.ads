@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                               My_Handlers                                 --
+--                            System_Message.Info                            --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,15 +21,22 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  Application specific resource handlers.
+with HTTP_Codes;
 
-with AWS.Services.Dispatchers.URI;
+package System_Message.Critical is
 
-package My_Handlers is
+   Alice_Shutdown_With_Exception : Critical_Log_Object := Create
+     (Status => "Shutting down Alice due to unhandled exception");
 
-   procedure Set
-     (RH : out AWS.Services.Dispatchers.URI.Handler);
-   --  Setup content dispatchers for the server. We set URI dispatchers for
-   --  both regular HTTP requests and for WebSocket connections.
+   Lost_Primary_Database : Critical_Log_Object := Create
+     (Status => "Lost connection to primary database");
 
-end My_Handlers;
+   Lost_Secondary_Database : Critical_Log_And_Response_Object := Create
+     (Description => "Lost connection to both primary and secondary database",
+      Status      => "No database connection",
+      Status_Code => HTTP_Codes.Server_Error);
+
+   Unknown_User : Critical_Log_Object := Create
+     (Status => "Cannot change user for process");
+
+end System_Message.Critical;

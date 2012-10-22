@@ -21,14 +21,16 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Calendar;
-with Ada.Exceptions;
-with Ada.Strings.Unbounded;
-with AMI.IO;
-with AMI.Protocol;
-with Call_List;
-with Errors;
-with Peers;
+with Ada.Calendar,
+     Ada.Exceptions,
+     Ada.Strings.Unbounded;
+
+with AMI.IO,
+     AMI.Protocol;
+
+with Call_List,
+     Peers;
+
 with Yolk.Log;
 
 package body AMI.Event is
@@ -308,7 +310,7 @@ package body AMI.Event is
       declare
          Temp_Peer : Peer_Type;
       begin
-         Temp_Peer := Peers.Get_Peer_By_PhoneName (Map_Key);
+         Temp_Peer := Peers.Get_Peer (Map_Key);
 
          if Temp_Peer /= Peers.Null_Peer then
             --  Update the timestamp
@@ -316,10 +318,6 @@ package body AMI.Event is
             Peer := Temp_Peer;
             Peers.Replace_Peer (Item => Peer);
             return;
-
-         else
-            Trace (Debug, "Peer not found: [" & TS (Map_Key) & "]");
-            Trace (Debug, Peers.List_As_String);
          end if;
       exception
          when Err : others =>
@@ -426,12 +424,17 @@ package body AMI.Event is
 
          Event_Callback_Routine (Event_Something) (Event_List);
       exception
-         when Err : others =>
+         when Event : others =>
+            pragma Unreferenced (Event);
             if Event_Callback_Routine (Event_Something) = null then
-               Trace (Info, "Unhandled Event: " & Event_Something'Img);
+               --  TODO: Switch to System_Message.
+               --  Trace (Info, "Unhandled Event: " & Event_Something'Img);
+               null;
             else
-               Errors.Log_Exception (Err, "Event_Name: " &
-                                    To_String (Event_Name));
+               --  TODO: Switch to System_Message.
+               --  Errors.Log_Exception (Err, "Event_Name: " &
+               --  To_String (Event_Name));
+               null;
             end if;
       end Dispatch_Event;
 

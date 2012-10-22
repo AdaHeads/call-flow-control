@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                              Peers_Handler                                --
+--                            System_Message.Info                            --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,7 +21,21 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Status;
-Package Peers_handler is
-   Procedure Registate (Request : in AWS.Status.Data);
-end Peers_handler;
+package System_Message.Info is
+
+   Alice_Startup : Info_Log_Object := Create
+     (Status => "Alice startup");
+
+   Alice_Stop : Info_Log_Object := Create
+     (Status => "Alice controlled shutdown. Goodbye");
+
+   Notifications_WebSocket_Created : Info_Log_Object := Create
+     (Status => "Created a /notifications WebSocket");
+
+   Notifications_WebSocket_Opened : Info_Log_Object := Create
+     (Status => "Opened a /notifications WebSocket");
+
+   Notifications_WebSocket_Closed : Info_Log_Object := Create
+     (Status => "Closed a /notifications WebSocket");
+
+end System_Message.Info;

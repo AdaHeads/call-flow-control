@@ -22,12 +22,13 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
+with Common;
 with Yolk.Config_File_Parser;
-with Yolk.Utilities;
 
 package My_Configuration is
 
-   package Util renames Yolk.Utilities;
+   use Ada.Strings.Unbounded;
+   use Common;
 
    type Keys is (Cache_Max_Element_Age,
                  DB_Host,
@@ -55,60 +56,59 @@ package My_Configuration is
                  PBX_Host,
                  PBX_Port);
 
-   type Defaults_Array is array (Keys) of
-     Ada.Strings.Unbounded.Unbounded_String;
+   type Defaults_Array is array (Keys) of Unbounded_String;
 
    Default_Values : constant Defaults_Array :=
                       (Cache_Max_Element_Age
-                       => Util.TUS ("86_400"),
+                       => U ("86_400"),
                        DB_Host
-                       => Util.TUS ("pg.adaheads.com"),
+                       => U ("pg.adaheads.com"),
                        DB_Name
-                       => Util.TUS ("customers"),
+                       => U ("customers"),
                        DB_Password
-                       => Util.TUS ("secret"),
+                       => U ("secret"),
                        DB_Port
-                       => Util.TUS ("5432"),
+                       => U ("5432"),
                        DB_User
-                       => Util.TUS ("alice"),
+                       => U ("alice"),
                        DB2_Host
-                       => Util.TUS ("pg2.adaheads.com"),
+                       => U ("pg2.adaheads.com"),
                        DB2_Name
-                       => Util.TUS ("customers"),
+                       => U ("customers"),
                        DB2_Password
-                       => Util.TUS ("secret"),
+                       => U ("secret"),
                        DB2_Port
-                       => Util.TUS ("5432"),
+                       => U ("5432"),
                        DB2_User
-                       => Util.TUS ("alice"),
+                       => U ("alice"),
                        Handler_Call_Hangup
-                       => Util.TUS ("/call/hangup"),
+                       => U ("/call/hangup"),
                        Handler_Call_Hold
-                       => Util.TUS ("/call/hold"),
+                       => U ("/call/hold"),
                        Handler_Call_Pickup
-                       => Util.TUS ("/call/pickup"),
+                       => U ("/call/pickup"),
                        Handler_Contact
-                       => Util.TUS ("/contact"),
+                       => U ("/contact"),
                        Handler_Organization
-                       => Util.TUS ("/organization"),
+                       => U ("/organization"),
                        Handler_Queue
-                       => Util.TUS ("/queue"),
+                       => U ("/queue"),
                        Handler_Queue_Length
-                       => Util.TUS ("/queue_length"),
+                       => U ("/queue_length"),
                        Handler_Notifications
-                       => Util.TUS ("/notifications"),
+                       => U ("/notifications"),
                       PBX_Action_Secret
-                       => Util.TUS ("Action_Secret"),
+                       => U ("Action_Secret"),
                       PBX_Action_User
-                       => Util.TUS ("Action_Username"),
+                       => U ("Action_Username"),
                       PBX_Event_Secret
-                       => Util.TUS ("Event_Secret"),
+                       => U ("Event_Secret"),
                       PBX_Event_User
-                       => Util.TUS ("Event_Username"),
+                       => U ("Event_Username"),
                       PBX_Host
-                       => Util.TUS ("Asterisk_Host"),
+                       => U ("Asterisk_Host"),
                       PBX_Port
-                       => Util.TUS ("5038"));
+                       => U ("5038"));
 
    package Config is new Yolk.Config_File_Parser
      (Key_Type            => Keys,
