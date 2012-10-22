@@ -21,10 +21,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Yolk.Log;
+with System_Messages;
 
 package body Peers is
-   use Yolk.Log;
+   use System_Messages;
    ----------------------------------------------------------------------------
    --  TODO Navngivning, Der er brug for nogle bedre navne her.
    protected Peers_List is
@@ -45,7 +45,7 @@ package body Peers is
                                return Peer_Type is
       begin
          for item in List.Iterate loop
-            Trace (Debug, "Peers.Get_Peer. [" & To_String (
+            System_Messages.Notify (Debug, "Peers.Get_Peer. [" & To_String (
                         Peer_List_Type.Element (item).Agent_ID) &
                         "] = ["
                        & To_String (Agent_ID) & "]");
@@ -77,7 +77,7 @@ package body Peers is
 
       procedure Insert (New_Item : in Peer_Type) is
       begin
-         Yolk.Log.Trace (Yolk.Log.Debug, "Inserted a new peer: " &
+         System_Messages.Notify (Debug, "Inserted a new peer: " &
                            To_String (New_Item.Peer));
          Peer_List_Type.Insert (Container => List,
                                 Key       => New_Item.Peer,
@@ -123,7 +123,7 @@ package body Peers is
       elsif Peer_String = "JSA-N900" then
          Exten := To_Unbounded_String ("104");
       else
-         Yolk.Log.Trace (Yolk.Log.Debug,
+         System_Messages.Notify (Debug,
                          "Could not find an Extension for: " & Peer_String);
          Exten := Null_Unbounded_String;
       end if;

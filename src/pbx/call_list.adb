@@ -22,10 +22,11 @@
 -------------------------------------------------------------------------------
 
 with Ada.Characters.Latin_1;
-with Yolk.Log;
+with System_Messages;
 
 package body Call_List is
-
+   use System_Messages;
+   
    protected Protected_Call_List is
       procedure Add (Call : in Call_Type);
       --  Places a call on the callqueue.
@@ -50,7 +51,7 @@ package body Call_List is
       function Length return Ada.Containers.Count_Type;
       --  Gives the number of calls waiting in the call queue.
 
-      function ToString return Unbounded_String;
+      function Image return String;
       --  Return a Debug friendly String representation of the list.
 
       --        procedure PickupCall (Agent_ID : in Unbounded_String,
@@ -156,16 +157,16 @@ package body Call_List is
             end loop;
          end;
 
-         Yolk.Log.Trace
-           (Yolk.Log.Debug,
-            "Call_List - Remove:" &
-              "This uniqueid could not be found in the call queue." &
-              " Uniqueid: " & To_String (Uniqueid));
+	 System_Messages.Notify 
+	   (Debug,
+	    "Call_List - Remove:" &
+	      "This uniqueid could not be found in the call queue." &
+	      " Uniqueid: " & To_String (Uniqueid));
          Call := Null_Call;
       end Remove;
 
       --  Returns the call list as String.
-      function ToString return Unbounded_String is
+      function Image return String is
          Text : Unbounded_String;
          package Char renames Ada.Characters.Latin_1;
       begin
@@ -175,8 +176,8 @@ package body Call_List is
             Append (Text, Call_List_Type.Element (Call).Uniqueid);
             Append (Text, Char.LF);
          end loop;
-         return Text;
-      end ToString;
+         return To_String(Text);
+      end Image;
 
       --        procedure PickupCall (Agent_ID : in Unbounded_String,
       --                              Uniqueid : in Unbounded_String
@@ -237,14 +238,16 @@ package body Call_List is
    end Add;
 
    --  Returns a call in String format.
-   function Call_To_String (Call : in Call_Type) return String is
+   function Image (Call : in Call_Type) return String is
       Response : Unbounded_String;
    begin
-      Append (Response, "Channel => " & To_String (Call.Channel));
-      Append (Response, ", Queue => " & To_String (Call.Queue));
+      Append (Response, "Channel => "    & To_String (Call.Channel));
+      Append (Response, ", Queue => "    & To_String (Call.Queue));
       Append (Response, ", Uniqueid => " & To_String (Call.Uniqueid));
+      Append (Response, ", State => "    & Call.State'Img);
+      
       return To_String (Response);
-   end Call_To_String;
+   end image;
 
    --     --  Takes the first call with the highest priority
    --     procedure Dequeue (Call : out Call_Type) is
@@ -300,10 +303,10 @@ package body Call_List is
    end Remove;
 
    --  Returns a debug friendly String representation of the call queue.
-   function ToString return Unbounded_String is
+   function Image return String is
    begin
-      return Protected_Call_List.ToString;
-   end ToString;
+      return Protected_Call_List.Image;
+   end Image;
 
    --     function PickupCall (Agent_ID : in Unbounded_String,
    --         Uniqueid : in Unbounded_String) return Call_Type is
