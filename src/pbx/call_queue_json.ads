@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                  AMI.IO                                   --
+--                             Call_Queue_JSON                               --
 --                                                                           --
---                                  BODY                                     --
+--                                  SPEC                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,45 +21,32 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Characters.Latin_1;
-with AWS.Net.Buffered;
-with Yolk.Log;
---  Provides I/O routines for reading from Asterisk AMI.
-package body AMI.IO is
-   function Read_Line (Socket : in AWS.Net.Std.Socket_Type) return String is
-      Text : constant String := AWS.Net.Buffered.Get_Line (Socket => Socket);
-   begin
-      Yolk.Log.Trace (Yolk.Log.Debug, "IO: " & Text);
-      return Text;
-   end Read_Line;
+with Ada.Containers;
+with Call_List;
+with Common;
 
-   --  Reads until it catches an empty line.
-   function Read_Package (Socket : in AWS.Net.Std.Socket_Type)
-                          return Unbounded_String is
+private with GNATCOLL.JSON;
 
-      package Char renames Ada.Characters.Latin_1;
+--  This package can return callqueue information and it in JSON format.
+package Call_Queue_JSON is
+   use Common;
 
-      Newline : constant String := Char.CR & Char.LF;
-      Buffer  : Unbounded_String;
-   begin
-      Collecting_Package :
-      loop
-         declare
-            Line : constant String := Read_Line (Socket);
-         begin
-            exit Collecting_Package when Line = "";
-            Append (Buffer, Line & Newline);
-         end;
+   function Convert_Queue (Queue : in Call_List.Call_List_Type.Vector)
+                           return JSON_String;
+   --  returns the entire Call Queue, in JSON format.
 
-      end loop Collecting_Package;
-      return Buffer;
-   end Read_Package;
+   function Convert_Length (Length : in Ada.Containers.Count_Type)
+                            return JSON_String;
+   --  returns the number of calls waiting in the calling queue.
 
-   procedure Send (Socket : in AWS.Net.Std.Socket_Type;
-                   Item   : in String) is
-   begin
-      Yolk.Log.Trace (Yolk.Log.Debug, "OI: " & Item);
-      AWS.Net.Buffered.Put (Socket, Item);
-      AWS.Net.Buffered.Flush (Socket);
-   end Send;
-end AMI.IO;
+   function Convert_Call (Call : in Call_List.Call_Type)
+                          return JSON_String;
+   --  returns the first call in the list.
+
+   function Status_Message (Title   : in String;
+                            Message : in String) return JSON_String;
+private
+   function Convert_Call_To_JSON_Object (Call : in Call_List.Call_Type)
+                                         return GNATCOLL.JSON.JSON_Value;
+   --  takes a call and converts it to a JSON object.
+end Call_Queue_JSON;

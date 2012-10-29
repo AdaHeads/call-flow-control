@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                               AMI.Action                                  --
+--                                AMI.Event                                  --
 --                                                                           --
---                                  SPEC                                     --
+--                                  BODY                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,45 +21,33 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Net.Std;
-with Event_Parser;
+with Ada.Strings.Unbounded;
+with System_Messages; use System_Messages;
 
---  This package have the purpose of sending Actions/Commands to Asterisk,
---  and read the response
-package AMI.Action is
-   use Event_Parser;
+package body AMI.Event is
+   
+   procedure Dispatch (Callback_Table : in Event_Callback_Table;
+		       Packet         : in Packet_Type) is
+      use Ada.Strings.Unbounded;      
+      Event    : Event_Type;
+   begin
+      Event := Event_Type'Value 
+	(To_String (Packet.Header.Value));
+      
+      -- Launch the callback.
+      Callback_Table (Event) (Packet => Packet); 
+      
+   exception
+      when others =>
+	 System_Messages.Notify (Error, "Unknown Event: " & 
+				   (To_String (Packet.Header.Value)));
+	 
+   end Dispatch;
+   
+   procedure Null_Callback (Packet : in AMI.Parser.Packet_Type) is
+   begin
+      null;
+   end Null_Callback;
+   
 
-   procedure Start (Socket   : in AWS.Net.Std.Socket_Type;
-                    Username : in String;
-                    Secret   : in String);
-
-   --  Actions
-   procedure Bridge (ChannelA : in String;
-                     ChannelB : in String);
---     function  CoreSettings return Event_List_Type.Map;
-   procedure  Get_Var (Channel      : in String;
-                       VariableName : in String);
-
-   procedure Hangup (Channel : String);
-
-   procedure Logoff;
-   procedure Park (Channel          : in String;
-                   Fallback_Channel : in String);
-   procedure Ping;
---     function  QueueStatus (ActionID : in String := "")
---                            return Call_List.Call_List_Type.Vector;
-   procedure QueueStatus (ActionID : in String := "");
-   procedure Redirect (Channel : in String;
-                       Exten   : in String;
-                       Context : in String);
-   procedure Set_Var (Channel      : in String;
-                      VariableName : in String;
-                      Value        : in String);
-
-private
-   --  Utility functions
-   function Read_Event_List return Event_List_Type.Map;
-
-   function Login (Username : in String;
-                   Secret   : in String) return Boolean;
-end AMI.Action;
+end AMI.Event;

@@ -21,16 +21,17 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Calendar,
-     Ada.Containers.Hashed_Maps,
-     Ada.Containers.Vectors,
-     Ada.Strings.Hash,
-     Ada.Strings.Unbounded;
-
+with Ada.Calendar;
+with Ada.Containers.Hashed_Maps;
+with Ada.Containers.Vectors;
+with Ada.Strings.Hash;
+with Ada.Strings.Unbounded;
 with Call_List;
+
 package Peers is
    use Ada.Containers;
    use Ada.Strings.Unbounded;
+
    type SIP_Peer_Status_Type is (Unregistered, Registered);
 
    package Call_List is new
@@ -80,10 +81,15 @@ package Peers is
 
    function Get_Peers_List return Peer_List_Type.Map;
    function Get_Exten (Peer : in Unbounded_String) return Unbounded_String;
-   function Get_Peer (Agent_ID : in Unbounded_String) return Peer_Type;
-
+   function Get_Peer_By_ID (Agent_ID : in Unbounded_String) return Peer_Type;
+   function Get_Peer_By_PhoneName (PhoneName : in Unbounded_String)
+                                   return Peer_Type;
    --     procedure Print_Peer (Peer : in Peer_Type);
    procedure Insert_Peer (New_Item : in Peer_Type);
    procedure Replace_Peer (Item : in Peer_Type);
 
+   --  Debug
+   function List_As_String return String;
+   
+--   function Image return String;
 end Peers;

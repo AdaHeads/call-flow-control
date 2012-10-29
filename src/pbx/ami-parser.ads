@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                               Event_Parser                                --
+--                                 Parser                                    --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -20,17 +20,20 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded;
 
---  This package can parse, the Events that comes from Asterisk.
-package Event_Parser is
-   use Ada.Strings.Unbounded;
-
-   type Event_Keywords is
-     (Event,
+package AMI.Parser is
+   use Ada.Strings.Unbounded;   
+   
+   type AMI_Key_Type is
+     (Null_Key,
+      To,
+      Event,
       Response,
+      Message,
+      Ping,
+      Cause_Txt,
       Channel,
       Channel1,
       Channel2,
@@ -42,6 +45,7 @@ package Event_Parser is
       Uniqueid,
       Uniqueid1,
       Uniqueid2,
+      SSRC,
       State,
       Cause,
       Source,
@@ -59,30 +63,105 @@ package Event_Parser is
       Peer,
       PeerStatus,
       Time,
-      Message,
       Exten,
       Address,
       Port,
       Privilege,
-      ChannelType);
+      SentPackets,
+      ReceivedPackets,
+      LostPackets,
+      Jitter,
+      Transit,
+      RRCount,
+      SRCount,
+      RTT,
+      ChannelType,
+      ChannelState,
+      ChannelStateDesc,
+      CallerIDNum,
+      AccountCode,
+      ActionID,
+      Variable,
+      Value,
+      HoldTime,
+      OriginalPosition,
+      Context,
+      OurSSRC,
+      SentNTP,
+      SentRTP,
+      SentOctets,
+      FractionLost,
+      CumulativeLoss,
+      IAJitter,
+      TheirLastSR,
+      DLSR,
+      RTCPSent,
+      ReportBlock      
+     );
+      
+   subtype AMI_Header_Key_Type is AMI_Key_Type range Event .. Response;
+   
+   BAD_LINE_FORMAT : exception;
+   --  Raised when a malformatted line is encountered by the parser
+   
+   type Pair_Type is
+      record 
+	 Key   : AMI_Key_Type;
+	 Value : Unbounded_String;
+      end record;
+   
+   type Header_Type is
+      record 
+	 Key   : AMI_Header_Key_Type;
+	 Value : Unbounded_String;
+      end record;
 
-   function Hash_Function (Key : in Event_Keywords)
+   Empty_Line : constant Pair_Type := (Key   => Null_Key,
+				       Value => To_Unbounded_String (""));
+   
+   Bad_Line : constant Pair_Type := (Key   => Null_Key,
+				     Value => To_Unbounded_String ("Bad Line"));
+   
+   Null_Pair : constant Pair_Type := (Key   => Null_Key,
+				      Value => Null_Unbounded_String);
+   
+   function Hash_Function (Key : in AMI_Key_Type)
                            return Ada.Containers.Hash_Type;
-   function Hash_Equivalent_Keys (Left, Right : in Event_Keywords)
+   function Hash_Equivalent_Keys (Left, Right : in AMI_Key_Type)
                                   return Boolean;
 
-   package Event_List_Type is new Ada.Containers.Hashed_Maps
-     (Key_Type => Event_Keywords,
+   package Pair_List_Type is new Ada.Containers.Hashed_Maps
+     (Key_Type => AMI_Key_Type,
       Element_Type => Unbounded_String,
       Hash => Hash_Function,
       Equivalent_Keys => Hash_Equivalent_Keys);
-
+   
+   type Packet_Type is
+      record
+	 Header : Pair_Type := Null_Pair;
+	 Fields : Pair_List_Type.Map;
+      end record;
+   
+   New_Packet: constant Packet_Type := (Header => Null_Pair,
+					Fields => Pair_List_Type.Empty_Map);
+   
+      
+   function Parse_Line (Line : in String) return Pair_Type;
    --  Takes a line of text, with key-value pairs structured:
    --  Key: Value<CRLF>
-   function Parse (Event_Text : in Unbounded_String)
-                   return Event_List_Type.Map;
-
-   function Try_Get (Events     : in     Event_List_Type.Map;
-                     Field_Name : in     Event_Keywords;
-                     Value      :    out Unbounded_String) return Boolean;
-end Event_Parser;
+   
+   function Read_Packet (Client : access Client_Type) return Packet_Type;
+   
+   function Try_Get (List  : in     Pair_List_Type.Map;
+                     Key   : in     AMI_Key_Type;
+                     Value :    out Unbounded_String) return Boolean;
+   
+   function Image (Packet : in Packet_Type) return String;
+   
+   function Image (List : in Pair_List_Type.Map) return String;
+   
+   function Image (Item : in Pair_Type) return String;
+      
+private
+   
+end AMI.Parser;

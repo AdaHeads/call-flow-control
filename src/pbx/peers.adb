@@ -21,29 +21,54 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Yolk.Log;
+with System_Messages;
+
 package body Peers is
+   use System_Messages;
    ----------------------------------------------------------------------------
    --  TODO Navngivning, Der er brug for nogle bedre navne her.
    protected Peers_List is
       function Get_Peers_List return Peer_List_Type.Map;
-      function Get_Peer (Agent_ID : in Unbounded_String) return Peer_Type;
+      function Get_Peer_By_ID (Agent_ID : in Unbounded_String)
+                               return Peer_Type;
+      function Get_Peer_By_PhoneName (PhoneName : in Unbounded_String)
+                                      return Peer_Type;
       procedure Replace_Peer (Item : in Peer_Type);
       procedure Insert (New_Item : in Peer_Type);
+      function List_As_String return String;
    private
       List : Peer_List_Type.Map;
    end Peers_List;
 
    protected body Peers_List is
-      function Get_Peer (Agent_ID : in Unbounded_String) return Peer_Type is
+      function Get_Peer_By_ID (Agent_ID : in Unbounded_String)
+                               return Peer_Type is
       begin
          for item in List.Iterate loop
+            System_Messages.Notify (Debug, "Peers.Get_Peer. [" & To_String (
+                        Peer_List_Type.Element (item).Agent_ID) &
+                        "] = ["
+                       & To_String (Agent_ID) & "]");
             if Peer_List_Type.Element (item).Agent_ID = Agent_ID then
                return Peer_List_Type.Element (item);
             end if;
          end loop;
          return Null_Peer;
-      end Get_Peer;
+      end Get_Peer_By_ID;
+
+      function Get_Peer_By_PhoneName (PhoneName : in Unbounded_String)
+                                      return Peer_Type is
+         use Peer_List_Type;
+         Peer_Cursor : constant Peer_List_Type.Cursor := List.Find (PhoneName);
+      begin
+         if Peer_Cursor = Peer_List_Type.No_Element then
+            return Null_Peer;
+         else
+            --  ???? Hvorfor kan jeg ikke få lov (continued)
+            --       til at bruge den cursor jeg har - Peer_Cursor
+            return List.Element (PhoneName);
+         end if;
+      end Get_Peer_By_PhoneName;
 
       function Get_Peers_List return Peer_List_Type.Map is
       begin
@@ -52,12 +77,22 @@ package body Peers is
 
       procedure Insert (New_Item : in Peer_Type) is
       begin
-         Yolk.Log.Trace (Yolk.Log.Debug, "Inserted a new peer: " &
+         System_Messages.Notify (Debug, "Inserted a new peer: " &
                            To_String (New_Item.Peer));
          Peer_List_Type.Insert (Container => List,
                                 Key       => New_Item.Peer,
                                 New_Item  => New_Item);
       end Insert;
+
+      function List_As_String return String is
+         Result : Unbounded_String;
+         CRLF : constant String := (ASCII.CR, ASCII.LF);
+      begin
+         for Item of List loop
+            Append (Result, Item.Peer & CRLF);
+         end loop;
+         return To_String (Result);
+      end List_As_String;
 
       procedure Replace_Peer (Item : in Peer_Type) is
          use Peer_List_Type;
@@ -88,17 +123,23 @@ package body Peers is
       elsif Peer_String = "JSA-N900" then
          Exten := To_Unbounded_String ("104");
       else
-         Yolk.Log.Trace (Yolk.Log.Debug,
+         System_Messages.Notify (Debug,
                          "Could not find an Extension for: " & Peer_String);
          Exten := Null_Unbounded_String;
       end if;
       return Exten;
    end Get_Exten;
 
-   function Get_Peer (Agent_ID : in Unbounded_String) return Peer_Type is
+   function Get_Peer_By_ID (Agent_ID : in Unbounded_String) return Peer_Type is
    begin
-      return Peers_List.Get_Peer (Agent_ID);
-   end Get_Peer;
+      return Peers_List.Get_Peer_By_ID (Agent_ID);
+   end Get_Peer_By_ID;
+
+   function Get_Peer_By_PhoneName (PhoneName : in Unbounded_String)
+                                      return Peer_Type is
+   begin
+      return Peers_List.Get_Peer_By_PhoneName (PhoneName);
+   end Get_Peer_By_PhoneName;
 
    function Get_Peers_List return Peer_List_Type.Map is
    begin
@@ -137,6 +178,10 @@ package body Peers is
 --        New_Line;
 --
 --     end Print_Peer;
+   function List_As_String return String is
+   begin
+      return Peers_List.List_As_String;
+   end List_As_String;
 
    procedure Replace_Peer (Item : in Peer_Type) is
    begin

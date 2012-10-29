@@ -21,10 +21,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Calendar,
-     Ada.Containers,
-     Ada.Containers.Vectors,
-     Ada.Strings.Unbounded;
+with Ada.Calendar;
+with Ada.Containers;
+with Ada.Containers.Vectors;
+with Ada.Strings.Unbounded;
 
 package Call_List is
    use Ada.Strings.Unbounded;
@@ -54,7 +54,9 @@ package Call_List is
          Ended          : Ada.Calendar.Time;
       end record;
 
-   function Call_To_String (Call : in Call_Type) return String;
+   function Image (Call : in Call_Type) return String;
+   function Image return String;
+   --  Returns a debug friendly String representation of the call queue.
 
    package Call_List_Type is new
      Ada.Containers.Vectors (Index_Type   => Positive,
@@ -110,10 +112,7 @@ package Call_List is
 
    function Length return Ada.Containers.Count_Type;
    --  Gives the length of the call queue.
-
-   function ToString return Unbounded_String;
-   --  Returns a debug friendly String representation of the call queue.
-
+   
 --     function PickupCall
 --       (Agent_ID : in Unbounded_String;
 --        Uniqueid : in Unbounded_String := Null_Unbounded_String)

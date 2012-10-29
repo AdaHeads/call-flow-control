@@ -21,12 +21,15 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Characters.Latin_1,
-     Ada.Strings.Fixed;
-package body AMI.Protocol is
+with Ada.Characters.Latin_1;
+with Ada.Strings.Fixed;
+
+with System_Messages; use System_Messages;
+
+package body AMI.Generic_Protocol_Strings is
    --  LF is never enough for some people..
-   package Char renames Ada.Characters.Latin_1;
-   Line_Termination_String : constant String := Char.CR & Char.LF;
+   package Latin_1 renames Ada.Characters.Latin_1;
+   Line_Termination_String : constant String := Latin_1.CR & Latin_1.LF;
 
    --  Value part of request string
    Bridge_String           : constant String := "Bridge";
@@ -58,10 +61,33 @@ package body AMI.Protocol is
    Variable_String         : constant String := "Variable: ";
    Value_String            : constant String := "Value: ";
    Username_String         : constant String := "Username: ";
-
+   
    Paused : constant array (Pause_States) of String (1 .. 1)
      := (Pause => "0", UnPause => "1");
-
+   
+   function Next_Action_ID return Action_ID_Type is
+   begin
+      System_Messages.Notify (Debug,"Next_action_ID");
+      if Asynchronous then
+	 Current_Action_ID := Action_ID_Type'Succ(Current_Action_ID);
+	 return Current_Action_ID;
+      else
+	 return Null_Action_ID;
+      end if;
+   end Next_Action_ID;
+   
+   function Asynchronous_Line (Action_ID : in Action_ID_Type) return String is
+   begin
+      if Asynchronous then
+	 return
+	   Async_String & Asynchronous'Img & Line_Termination_String &
+	   ActionID_String & Action_ID_Type'Image (Action_ID) & 
+	   Line_Termination_String;
+      else
+	 return "";
+      end if;
+   end Asynchronous_Line;
+   
    --  Action: Bridge
    --  [ActionID:] <value>
    --  Channel1: <value>
@@ -71,79 +97,75 @@ package body AMI.Protocol is
    --  Response
    --  Response: Success
    --  Message: Launched bridge thread with success
-   function Bridge (Channel1 : in String;
-                    Channel2 : in String;
-                    Async    : in Boolean := True) return String is
+   function Bridge (Channel1  : in  String;
+                    Channel2  : in  String;
+                    Action_ID : in Action_ID_Type) return String is
    begin
       return Action_String & Bridge_String & Line_Termination_String &
         Channel1_String & Channel1         & Line_Termination_String &
         Channel2_String & Channel2         & Line_Termination_String &
-        Async_String & Async'Img           & Line_Termination_String &
+	Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Bridge;
 
-   function CoreSettings (Async : in Boolean := True) return String is
+   function CoreSettings (Action_ID : in Action_ID_Type) return String is
    begin
-      return Action_String & CoreSettings_String & Line_Termination_String &
-        Async_String & Async'Img                 & Line_Termination_String &
-        Line_Termination_String;
+      return Asynchronous_Line (Action_ID) & Line_Termination_String;
    end CoreSettings;
 
    function Get_Var (Channel      : in String;
                      VariableName : in String;
-                     ActionID     : in String := "";
-                     Async        : in Boolean := True) return String is
+		     Action_ID    : in Action_ID_Type) return String is
    begin
       return Action_String & GetVar_String & Line_Termination_String &
         Channel_String & Channel           & Line_Termination_String &
         Variable_String & VariableName     & Line_Termination_String &
-        ActionID_String & ActionID         & Line_Termination_String &
-        Async_String & Async'Img           & Line_Termination_String &
+	Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Get_Var;
 
-   function Hangup (Channel : in String;
-                    Async   : in Boolean := True) return String is
+   function Hangup (Channel   : in String;
+                    Action_ID : in Action_ID_Type) return String is
    begin
       return Action_String & Hangup_String & Line_Termination_String &
         Channel_String & Channel           & Line_Termination_String &
-        Async_String & Async'Img           & Line_Termination_String &
+	Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Hangup;
 
-   function Login (Username : in String;
-                   Secret   : in String;
-                   Async    : in Boolean := False) return String is
+   function Login (Username  : in String;
+                   Secret    : in String;
+		   Action_ID : in Action_ID_Type) return String is
    begin
       return Action_String & Login_String & Line_Termination_String &
         Username_String & Username        & Line_Termination_String &
         Secret_String & Secret            & Line_Termination_String &
-        Async_String & Async'Img          & Line_Termination_String &
+	Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Login;
 
-   function Logoff (Async : in Boolean := True) return String is
+   function Logoff (Action_ID : in Action_ID_Type) return String is
    begin
       return Action_String & Logoff_String & Line_Termination_String &
-        Async_String & Async'Img           & Line_Termination_String &
+	Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Logoff;
 
    function Park (Channel          : in String;
                   Fallback_Channel : in String;
-                  Async            : in Boolean := True) return String is
+		  Action_ID        : in Action_ID_Type) return String is
    begin
       return Action_String & Park_String   & Line_Termination_String &
         Channel_String & Channel           & Line_Termination_String &
         Channel2_String & Fallback_Channel & Line_Termination_String &
-        Async_String & Async'Img           & Line_Termination_String &
+	Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Park;
 
-   function Ping (Async : in Boolean := True) return String is
+   function Ping (Action_ID : in Action_ID_Type) return String is
    begin
       return Action_String & Ping_String & Line_Termination_String &
-        Async_String & Async'Img         & Line_Termination_String &
+	Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Ping;
 
@@ -152,30 +174,21 @@ package body AMI.Protocol is
    --  Paused: 1
    function QueuePause (DeviceName : in String;
                         State      : in Pause_States;
-                        Async      : in Boolean := True) return String is
+			Action_ID  : in Action_ID_Type) return String is
    begin
       return Action_String & QueuePause_String & Line_Termination_String &
         Interface_String & DeviceName          & Line_Termination_String &
         Paused_String & Paused (State)         & Line_Termination_String &
-        Async_String & Async'Img               & Line_Termination_String &
+	Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end QueuePause;
 
-   function QueueStatus (ActionID : in String := "";
-                         Async    : in Boolean := True) return String is
+   function QueueStatus (Action_ID  : in Action_ID_Type) return String is
    begin
-      if ActionID'Length = 0 then
-         return
-           Action_String & QueueStatus_String & Line_Termination_String &
-           Async_String & Async'Img           & Line_Termination_String &
-           Line_Termination_String;
-      else
-         return
-           Action_String & QueueStatus_String & Line_Termination_String &
-           ActionID_String & ActionID         & Line_Termination_String &
-           Async_String & Async'Img           & Line_Termination_String &
-           Line_Termination_String;
-      end if;
+      return
+	Action_String & QueueStatus_String & Line_Termination_String &
+	Asynchronous_Line (Action_ID) &
+	Line_Termination_String;
    end QueueStatus;
 
    --  Action: Redirect
@@ -183,11 +196,11 @@ package body AMI.Protocol is
    --  Context: localset
    --  Exten: 101
    --  Priority: 1
-   function Redirect (Channel  : in String;
-                      Context  : in String;
-                      Exten    : in String;
-                      Priority : in Integer := 1;
-                      Async    : in Boolean := True) return String is
+   function Redirect (Channel    : in String;
+                      Context    : in String;
+                      Exten      : in String;
+                      Priority   : in Integer := 1;
+		      Action_ID  : in Action_ID_Type) return String is
       Priority_To_String : constant String := Ada.Strings.Fixed.Trim
         (Integer'Image (Priority), Ada.Strings.Left);
    begin
@@ -196,20 +209,21 @@ package body AMI.Protocol is
         Exten_String & Exten                 & Line_Termination_String &
         Context_String & Context             & Line_Termination_String &
         Priority_String & Priority_To_String & Line_Termination_String &
-        Async_String & Async'Img             & Line_Termination_String &
+	Asynchronous_Line (Action_ID) & 
         Line_Termination_String;
    end Redirect;
 
    function Set_Var (Channel      : in String;
                      VariableName : in String;
                      Value        : in String;
-                     Async        : in Boolean := True) return String is
+		     Action_ID    : in Action_ID_Type) return String is
    begin
       return Action_String & SetVar_String & Line_Termination_String &
         Channel_String & Channel           & Line_Termination_String &
         Variable_String & VariableName     & Line_Termination_String &
         Value_String & Value               & Line_Termination_String &
-        Async_String & Async'Img           & Line_Termination_String &
+	Asynchronous_Line (Action_ID) & 
         Line_Termination_String;
    end Set_Var;
-end AMI.Protocol;
+   
+end AMI.Generic_Protocol_Strings;
