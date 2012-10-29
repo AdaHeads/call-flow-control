@@ -28,3 +28,15 @@ debug:
 clean:
 	gnatclean -P alice
 	BUILDTYPE=Debug gnatclean -P alice
+
+tests: asterisk_tests
+
+asterisk_tests:
+	gnatmake -P src/tests/asterisk_tests.gpr
+
+asterisk_tests_clean:
+	gnatclean -P src/tests/asterisk_tests.gpr
+
+cleanup_messy_temp_files:
+	rm *~ src/*~
+

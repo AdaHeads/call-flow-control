@@ -96,19 +96,14 @@ package body My_Handlers is
          Action     => Create
            (Callback => Call_Queue.Get_Queue'Access));
 
-   end Set;
+      --------------------------
+      --  WebSocket handlers  --
+      --------------------------
 
-   ------------------------------
-   --  Set_WebSocket_Handlers  --
-   ------------------------------
-
-   procedure Set_WebSocket_Handlers
-   is
-      use My_Configuration;
-   begin
       AWS.Net.WebSocket.Registry.Register
         (URI     => Config.Get (Handler_Notifications),
          Factory => Notifications.Create'Access);
-   end Set_WebSocket_Handlers;
+
+   end Set;
 
 end My_Handlers;

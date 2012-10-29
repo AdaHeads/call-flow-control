@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                  Errors                                   --
+--                            System_Message.Info                            --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,59 +21,22 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Exceptions;
-with Ada.Strings.Unbounded;
-with AWS.Messages;
-with Common;
+with HTTP_Codes;
 
-package Errors is
+package System_Message.Critical is
 
-   type Error_Type is (Database_Error, GET_Parameter_Error);
+   Alice_Shutdown_With_Exception : Critical_Log_Object := Create
+     (Status => "Shutting down Alice due to unhandled exception");
 
-   type Error_Record is tagged private;
+   Lost_Primary_Database : Critical_Log_Object := Create
+     (Status => "Lost connection to primary database");
 
-   function JSON
-     (Err : in Error_Record)
-      return Common.JSON_String;
-   --  TODO: Write comment.
+   Lost_Secondary_Database : Critical_Log_And_Response_Object := Create
+     (Description => "Lost connection to both primary and secondary database",
+      Status      => "No database connection",
+      Status_Code => HTTP_Codes.Server_Error);
 
-   function Log_Exception
-     (Err     : in Error_Type;
-      Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String)
-      return Error_Record;
-   --  Log Event exception to the Error trace and return an Error_Record
-   --  containing the status and description of the error as a JSON document
-   --  and the corresponding HTTP status code.
+   Unknown_User : Critical_Log_Object := Create
+     (Status => "Cannot change user for process");
 
-   function Log_Exception
-     (Err     : in Error_Type;
-      Message : in String)
-      return Error_Record;
-   --  Log Err to the Error trace and return a JSON document containing the
-   --  status and description of the error. Message is appended to the
-   --  Error_Messages (Err).Description.
-
-   procedure Log_Exception
-     (Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String);
-   --  Log Event exception and message to the Error trace.
-
-   function Status_Code
-     (Err : in Error_Record)
-      return AWS.Messages.Status_Code;
-   --  TODO: Write comment.
-
-private
-
-   use Ada.Strings.Unbounded;
-
-   type Error_Record is tagged
-      record
-         Description : Unbounded_String;
-         Status      : Unbounded_String;
-         JSON        : Common.JSON_String;
-         Status_Code : AWS.Messages.Status_Code;
-      end record;
-
-end Errors;
+end System_Message.Critical;

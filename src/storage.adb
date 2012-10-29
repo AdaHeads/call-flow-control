@@ -27,13 +27,34 @@ with Ada.Task_Attributes;
 with GNATCOLL.SQL.Postgres;
 with HTTP_Codes;
 with My_Configuration;
-with Yolk.Log;
+with System_Message.Critical;
 
 package body Storage is
 
    use My_Configuration;
 
    Database_Error : exception;
+
+   type DB_Conn_Type is (Primary, Secondary);
+   --  The Primary connection is READ/WRITE while the Secondary is READ, so for
+   --  SELECT queries both can be used, whereas INSERT/UPDATE/DELETE will only
+   --  work with the Primary connection.
+
+   type DB_Conn_State is (Uninitialized, Initialized, Failed);
+   --  The state of a database connection.
+   --    Uninitialized : The connection has never been used.
+   --    Initialized   : The connection has been connected to the database.
+   --    Failed        : The connection failed.
+
+   type DB_Conn is
+      record
+         Host  : GNATCOLL.SQL.Exec.Database_Connection;
+         State : DB_Conn_State;
+      end record;
+
+   Null_Database_Connection : constant DB_Conn := (null, Uninitialized);
+
+   type DB_Conn_Pool is array (DB_Conn_Type) of DB_Conn;
 
    Null_Pool : constant DB_Conn_Pool :=
                  (others => Null_Database_Connection);
@@ -46,6 +67,40 @@ package body Storage is
      (Port : in Natural)
       return String;
    --  Return the PostgreSQL port=n part of the connection string.
+
+   procedure Failed_Query
+     (Connection_Pool : in out DB_Conn_Pool;
+      Connection_Type : in     DB_Conn_Type);
+   --  If a query fails:
+   --    1. Set the connection state to Failed.
+   --    2. Raise the Database_Error exception if
+   --         Connection_Type = Database_Connection_Type'Last
+
+   function Get_DB_Connections
+     return DB_Conn_Pool;
+   --  Return an array with the primary and secondary database connections.
+   --
+   --  IMPORTANT:
+   --  Only the primary connection is read/write. The secondary is read only,
+   --  so be sure never to use the secondary connection for any insert/delete/
+   --  update queries.
+
+   procedure Register_Failed_DB_Connection
+     (Pool : in DB_Conn_Pool);
+   --  If a specific connection fails, set it to Storage.Failed and register
+   --  the Database_Connection_Pool object as failed.
+   --
+   --  NOTE:
+   --  A failed database connection is re-tried on every hit to the database,
+   --  so it will be re-initialized as soon as the database host is back online
+   --  again.
+
+   function Trim
+     (Source : in String)
+      return String;
+   --  Trim Source string on both sides. This will clear away \n also. This
+   --  function is here because the errors thrown by PostgreSQL is postfixed
+   --  with a \n which we must remove before sending the message to syslogd.
 
    ----------------------
    --  DB_Port_String  --
@@ -88,67 +143,63 @@ package body Storage is
       Connection_Type : in     DB_Conn_Type)
    is
       use GNATCOLL.SQL;
-      use Yolk.Log;
+      use System_Message;
 
       Trimmed_DB_Error : constant String
         := Trim (Exec.Error (Connection_Pool (Connection_Type).Host));
-
-      Connection       : constant String
-        := DB_Conn_Type'Image (Connection_Type);
-
-      Message : constant String :=  Trimmed_DB_Error &  " - " & Connection;
    begin
       Connection_Pool (Connection_Type).State := Failed;
       Register_Failed_DB_Connection (Pool => Connection_Pool);
 
       if Connection_Type = DB_Conn_Type'Last then
-         raise Database_Error with Message;
+         raise Database_Error with Trimmed_DB_Error;
       else
-         Trace (Info, Message);
+         Notify (Critical.Lost_Primary_Database,
+                 Trimmed_DB_Error);
       end if;
    end Failed_Query;
 
-   --------------------
-   --  Generic_JSON  --
-   --------------------
+   ----------------
+   --  Generate  --
+   ----------------
 
-   package body Generic_Query_To_JSON is
+   procedure Generate
+     (Response_Object : in out Response.Object)
+   is
+      use GNATCOLL.SQL.Exec;
+      use HTTP_Codes;
+      use Storage;
+      use System_Message;
 
-      procedure Generate
-        (Response_Object : in out Response.Object)
-      is
-         use GNATCOLL.SQL.Exec;
-         use HTTP_Codes;
-         use Storage;
+      C              : Cursor;
+      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
+   begin
+      Fetch_Data :
+      for K in DB_Connections'Range loop
+         C.Fetch (DB_Connections (K).Host,
+                  Query,
+                  Params => Query_Parameters (Response_Object));
 
-         C              : Cursor;
-         DB_Connections : DB_Conn_Pool := Get_DB_Connections;
-      begin
-         Fetch_Data :
-         for k in DB_Connections'Range loop
-            C.Fetch (DB_Connections (k).Host,
-                     Query,
-                     Params => Query_Parameters (Response_Object));
+         if DB_Connections (K).Host.Success then
+            Response_Object.Set_Content (To_JSON (C));
 
-            if DB_Connections (k).Host.Success then
-               Response_Object.Set_Content (To_JSON (C));
-
-               if C.Processed_Rows > 0 then
-                  Response_Object.Set_Cacheable (True);
-                  Response_Object.Set_HTTP_Status_Code (OK);
-               else
-                  Response_Object.Set_HTTP_Status_Code (Not_Found);
-               end if;
-
-               exit Fetch_Data;
+            if C.Processed_Rows > 0 then
+               Response_Object.Set_Cacheable (True);
+               Response_Object.Set_HTTP_Status_Code (OK);
             else
-               Storage.Failed_Query (Connection_Pool => DB_Connections,
-                                     Connection_Type => k);
+               Response_Object.Set_HTTP_Status_Code (Not_Found);
             end if;
-         end loop Fetch_Data;
-      end Generate;
 
-   end Generic_Query_To_JSON;
+            exit Fetch_Data;
+         else
+            Storage.Failed_Query (Connection_Pool => DB_Connections,
+                                  Connection_Type => K);
+         end if;
+      end loop Fetch_Data;
+   exception
+      when Event : Database_Error =>
+         Notify (Critical.Lost_Secondary_Database, Event, Response_Object);
+   end Generate;
 
    --------------------------
    --  Get_DB_Connections  --

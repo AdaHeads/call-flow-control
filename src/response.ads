@@ -42,58 +42,27 @@ package Response is
    function Factory
      (Request : in AWS.Status.Data)
       return Object;
+   --  Initialize a Response.Object object.
 
    function Get_Request
      (O : in Object)
       return AWS.Status.Data;
+   --  Return the AWS.Status.Data object that O was initialized with.
 
    procedure Set_Cacheable
      (O     :    out Object;
       Value : in     Boolean);
+   --  Set whether the contents of O is cacheable.
 
    procedure Set_Content
      (O     :    out Object;
       Value : in     Common.JSON_String);
+   --  Add content to O.
 
    procedure Set_HTTP_Status_Code
      (O     :    out Object;
       Value : in     AWS.Messages.Status_Code);
-
-   ---------------------------------
-   --  Generic_Response_From_SQL  --
-   ---------------------------------
-
-   generic
-
-      with function Get_Cache_Key
-        (Response_Object : in Object)
-      return Natural;
-      --  Return the key used to identify an object in a cache.
-
-      with procedure Read_From_Cache
-        (Key      : in     Natural;
-         Is_Valid :    out Boolean;
-         Value    :    out Common.JSON_String);
-      --  Find Key in a cache.
-
-      with procedure To_JSON
-        (Response_Object : in out Object);
-      --  Generate the JSON document that is delivered to the client. If
-      --  Cacheable is set to True, then the JSON document can be cached.
-
-      with procedure Write_To_Cache
-        (Key   : in Natural;
-         Value : in Common.JSON_String);
-      --  Add Key/Value to a cache.
-
-   package Generic_Cached_Response is
-
-      function Generate
-        (Request : in AWS.Status.Data)
-         return AWS.Response.Data;
-      --   Generate the data that is delivered to the user.
-
-   end Generic_Cached_Response;
+   --  Set the HTTP code that is returned to the client when O.Build is called.
 
 private
 

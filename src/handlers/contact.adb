@@ -24,7 +24,6 @@
 with AWS.Status;
 with Database;
 with GNATCOLL.JSON;
-with Yolk.Utilities;
 
 package body Contact is
 
@@ -38,7 +37,7 @@ package body Contact is
      return AWS.Dispatchers.Callback.Handler
    is
    begin
-      return AWS.Dispatchers.Callback.Create (JSON_Response.Generate'Access);
+      return AWS.Dispatchers.Callback.Create (JSON_Response'Access);
    end Callback;
 
    -------------------
@@ -54,7 +53,6 @@ package body Contact is
    is
       use Common;
       use GNATCOLL.JSON;
-      use Yolk.Utilities;
 
       Attr_Array : JSON_Array;
       Attr_JSON  : JSON_Value;
@@ -66,13 +64,13 @@ package body Contact is
          --  Cursor can contain more than one row, so we start by building the
          --  main JSON object from the first row, so we don't repeat the JSON
          --  building code for the same data over and over.
-         JSON.Set_Field (TS (C.Element.Ce_Id_Column_Name),
+         JSON.Set_Field (To_String (C.Element.Ce_Id_Column_Name),
                          C.Element.Ce_Id);
 
-         JSON.Set_Field (TS (C.Element.Ce_Name_Column_Name),
+         JSON.Set_Field (To_String (C.Element.Ce_Name_Column_Name),
                          C.Element.Ce_Name);
 
-         JSON.Set_Field (TS (C.Element.Is_Human_Column_Name),
+         JSON.Set_Field (To_String (C.Element.Is_Human_Column_Name),
                          C.Element.Is_Human);
 
          while C.Has_Row loop
@@ -84,11 +82,11 @@ package body Contact is
                   "attr.json.error");
 
                Attr_JSON.Set_Field
-                 (TS (C.Element.Attr_Org_Id_Column_Name),
+                 (To_String (C.Element.Attr_Org_Id_Column_Name),
                   C.Element.Attr_Org_Id);
 
                Attr_JSON.Set_Field
-                 (TS (C.Element.Attr_Ce_Id_Column_Name),
+                 (To_String (C.Element.Attr_Ce_Id_Column_Name),
                   C.Element.Attr_Ce_Id);
 
                Append (Attr_Array, Attr_JSON);
@@ -113,19 +111,18 @@ package body Contact is
       return Row
    is
       use Common;
-      use Yolk.Utilities;
    begin
       return Row'(Ce_Id                   => C.Integer_Value (0, Default => 0),
-                  Ce_Id_Column_Name       => TUS (C.Field_Name (0)),
-                  Ce_Name                 => TUS (C.Value (1)),
-                  Ce_Name_Column_Name     => TUS (C.Field_Name (1)),
+                  Ce_Id_Column_Name       => U (C.Field_Name (0)),
+                  Ce_Name                 => U (C.Value (1)),
+                  Ce_Name_Column_Name     => U (C.Field_Name (1)),
                   Is_Human                => C.Boolean_Value (2),
-                  Is_Human_Column_Name    => TUS (C.Field_Name (2)),
+                  Is_Human_Column_Name    => U (C.Field_Name (2)),
                   Attr_JSON               => To_JSON_String (C.Value (3)),
                   Attr_Org_Id             => C.Integer_Value (4, Default => 0),
-                  Attr_Org_Id_Column_Name => TUS (C.Field_Name (4)),
+                  Attr_Org_Id_Column_Name => U (C.Field_Name (4)),
                   Attr_Ce_Id              => C.Integer_Value (5, Default => 0),
-                  Attr_Ce_Id_Column_Name  => TUS (C.Field_Name (5)));
+                  Attr_Ce_Id_Column_Name  => U (C.Field_Name (5)));
    end Element;
 
    ---------------------

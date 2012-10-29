@@ -23,20 +23,14 @@
 
 with Ada.Strings.Fixed;
 with AWS.Response.Set;
---  with AWS.URL;
-with System_Message;
 
 package body Response is
-
-   Database_Error      : exception;
-   --  GET_Parameter_Error : exception;
 
    JSON_MIME_Type : constant String := "application/json; charset=utf-8";
 
    procedure Add_CORS_Headers
      (Request  : in     AWS.Status.Data;
-      Response : in out AWS.Response.Data)
-   with inline;
+      Response : in out AWS.Response.Data);
    --  If the client sends the Origin: header, add these two CORS headers:
    --    Access-Control-Allow-Origin
    --    Access-Control-Allow-Credentials
@@ -47,8 +41,7 @@ package body Response is
    function Add_JSONP_Callback
      (Content : in Common.JSON_String;
       Request : in AWS.Status.Data)
-      return Common.JSON_String
-   with inline;
+      return Common.JSON_String;
    --  Wrap Content in jsoncallback(Content) if the jsoncallback parameter
    --  is given in the Request. jsonpcallback is replaced with the actual
    --  value of the jsoncallback parameter.
@@ -196,81 +189,5 @@ package body Response is
    begin
       O.HTTP_Status_Code := Value;
    end Set_HTTP_Status_Code;
-
-   ---------------------------------
-   --  Generic_Response_From_SQL  --
-   ---------------------------------
-
-   package body Generic_Cached_Response is
-
-      ----------------
-      --  Generate  --
-      ----------------
-
-      function Generate
-        (Request : in AWS.Status.Data)
-      return AWS.Response.Data
-      is
-         use AWS.Status;
-         --  use AWS.URL;
-         use Common;
-         --  use Errors;
-         use HTTP_Codes;
-         use System_Message;
-
-         Cache_Key       : Natural;
-         Response_Object : Object := Factory (Request);
-         Valid_Cache     : Boolean;
-      begin
-         Cache_Key := Get_Cache_Key (Response_Object);
-
-         Read_From_Cache (Key      => Cache_Key,
-                          Is_Valid => Valid_Cache,
-                          Value    => Response_Object.Content);
-
-         if not Valid_Cache then
-            To_JSON (Response_Object => Response_Object);
-
-            if Response_Object.Is_Cacheable then
-               Write_To_Cache (Key   => Cache_Key,
-                               Value => Response_Object.Content);
-            end if;
-         end if;
-
-         return Response_Object.Build;
---           return Build_JSON_Response
---             (Request         => Request,
---              Response_Object => Response_Object);
-
-      exception
-         when Event : Database_Error =>
-            pragma Unreferenced (Event);
-            Notify (Notice => Database_Connection_Error,
-                    Message      => "This is just a test");
-            return Response_Object.Build;
---              return Build_JSON_Response
---                (Request      => Request,
---                 Notification => Notify (System_Message.Database_Error, ""));
---                (Request => Request,
---                 Content => Log_Exception
---                   (Err     => Errors.Database_Error,
---                    Event   => Event,
---                    Message => "Requested resource: " & URL (URI (Request))),
---                 Status  => Server_Error);
-         when Event : others =>
-            pragma Unreferenced (Event);
-            return Response_Object.Build;
---              return Build_JSON_Response
---                (Request      => Request,
---                 Notification => Notify (System_Message.Database_Error, ""));
---                (Request => Request,
---                 Content => Log_Exception
---                   (Err     => Errors.Database_Error,
---                    Event   => Event,
---                    Message => "Requested resource: " & URL (URI (Request))),
---                 Status  => Bad_Request);
-      end Generate;
-
-   end Generic_Cached_Response;
 
 end Response;

@@ -20,32 +20,18 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-
-with Event_Parser;
-with AWS.Net.Std;
+with AMI.Callback;
+with AMI.Parser;
 
 package AMI.Event is
-   use Event_Parser;
-
-   type Asterisk_AMI_Type is private;
-
-   procedure Start (Socket   : in AWS.Net.Std.Socket_Type;
-                    Username : in String;
-                    Secret   : in String);
-   --  Here starts the part of the program, that listens for events
-
-private
-   type Asterisk_AMI_Type is
-      record
-         Greeting  : access String := null;
-         Logged_In : Boolean := False;
-         Channel   : AWS.Net.Std.Socket_Type;
-      end record;
-
+   use AMI.Callback;
+   use AMI.Parser;
+   
    --  The following types are derived from
    --  http://www.voip-info.org/wiki/view/asterisk+manager+events
 
-   type Event is
+   type 
+     Event_Type is
      --  Agent Status Events
      (Agentcallbacklogin,
       Agentcallbacklogoff,
@@ -88,48 +74,34 @@ private
       PeerStatus,
       Registry,
       Reload,
+      RTPReceiverStat,
+      RTPSenderStat,
+      RTCPSent,
       Shutdown,
       UserEvent,
       --  Unformatted and Undocumented
       Newstate, -- Appears when channel changes state
       ParkedCallsComplete,
+      QueueCallerAbandon,
       QueueParams,
       QueueMember,
       QueueStatusEnd,
       Status,
       StatusComplete,
+      VarSet,
       ZapShowChannels,
       ZapShowChannelsComplete
      );
-
-   --  Basic signature of our callback routine for responses
-   type Response_Callback_Type is access procedure (Event : String);
-   type Callback_Type is access procedure (Event_List : Event_List_Type.Map);
-
-   --  Callback table for actions
-   --  type Action_Callback_Routine_Table is array (AMI.Action.Action_Type)
-   --    of Callback_Type;
-
-   --  Callback table for log events
-   type Event_Callback_Routine_Table is array (Event) of Callback_Type;
-
-   --  Callbacks
-   procedure Dial_Callback       (Event_List : in Event_List_Type.Map);
-   procedure Hangup_Callback     (Event_List : in Event_List_Type.Map);
-   procedure Join_Callback       (Event_List : in Event_List_Type.Map);
-   procedure Login_Callback      (Event_List : in Event_List_Type.Map);
-   procedure Newchannel_Callback (Event_List : in Event_List_Type.Map);
-   procedure PeerStatus_Callback (Event_List : in Event_List_Type.Map);
-   --  procedure Unlink_Callback     (Event_List : in Event_List_Type.Map);
-
-   --  Commands
-   procedure Login (Asterisk_AMI : in Asterisk_AMI_Type;
-                    Username     : in String;
-                    Secret       : in String);
-
-   procedure SIPPeers_Callback;
-   procedure NewState_Callback;
-   procedure Bridge_Callback;
-   --  procedure Agents;
-
+   
+   type Event_Callback is access procedure (Packet : in Packet_Type);
+   type Event_Callback_Table is array (Event_Type) of Event_Callback;
+   
+   procedure Null_Callback (Packet : in AMI.Parser.Packet_Type);
+   --  Does nothing. Provides the ability to mute events.
+   
+   procedure Dispatch (Callback_Table : in Event_Callback_Table;
+		       Packet         : in Packet_Type);
+   Null_Callback_Table : constant Event_Callback_Table := 
+     (others => AMI.Event.Null_Callback'access);
+   
 end AMI.Event;

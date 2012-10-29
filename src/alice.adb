@@ -17,168 +17,46 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Directories;
-with Ada.Exceptions;
-with AMI.Std;
-with AWS.Config;
-with AWS.Server;
-with AWS.Server.Log;
-with AWS.Services.Dispatchers.URI;
-with AWS.Session;
 with My_Handlers;
 with Yolk.Configuration;
-with Yolk.Log;
 with Yolk.Process_Control;
 with Yolk.Process_Owner;
-with Yolk.Utilities;
+with Yolk.Server;
 with Yolk.Whoops;
+with System_Message.Critical;
+with System_Message.Info;
 
 procedure Alice is
-
-   use Ada.Exceptions;
-   use My_Handlers;
+   use System_Message;
    use Yolk.Configuration;
-   use Yolk.Log;
    use Yolk.Process_Control;
    use Yolk.Process_Owner;
-   use Yolk.Utilities;
+   use Yolk.Server;
 
-   Alice_Version : constant String := "0.39";
+   Alice_Version : constant String := "0.40";
 
-   Resource_Handlers : AWS.Services.Dispatchers.URI.Handler;
-   Web_Server        : AWS.Server.HTTP;
-   Web_Server_Config : constant AWS.Config.Object := Get_AWS_Configuration;
-
-   procedure Start_Server;
-   --  Start the AWS server. A short message is written to the Info log trace
-   --  whenever the server is started.
-
-   procedure Stop_Server;
-   --  Stop the AWS server. A short message is written to the Info log trace
-   --  whenever the server is stopped.
-
-   --------------------
-   --  Start_Server  --
-   --------------------
-
-   procedure Start_Server
-   is
-      use Ada.Directories;
-   begin
-      AMI.Std.Connect;
-
-      if AWS.Config.Session (Web_Server_Config)
-        and then Exists (Config.Get (Session_Data_File))
-      then
-         AWS.Session.Load (Config.Get (Session_Data_File));
-         --  If sessions are enabled and the Session_Data_File exists, then
-         --  load the old session data.
-      end if;
-
-      AWS.Server.Start (Web_Server => Web_Server,
-                        Dispatcher => Resource_Handlers,
-                        Config     => Web_Server_Config);
-
-      if Config.Get (AWS_Access_Log_Activate) then
-         AWS.Server.Log.Start
-           (Web_Server => Web_Server,
-            Callback   => Yolk.Log.AWS_Access_Log_Writer'Access,
-            Name       => "AWS Access Log");
-      end if;
-
-      if Config.Get (AWS_Error_Log_Activate) then
-         AWS.Server.Log.Start_Error
-           (Web_Server => Web_Server,
-            Callback   => Yolk.Log.AWS_Error_Log_Writer'Access,
-            Name       => "AWS Error Log");
-         --  Start the access and error logs.
-      end if;
-
-      Trace (Handle  => Info,
-             Message => "Started " &
-             AWS.Config.Server_Name (Web_Server_Config));
-      Trace (Handle  => Info,
-             Message => "Yolk version " & Yolk.Version);
-      Trace (Handle  => Info,
-             Message => "Alice version " & Alice_Version);
-   end Start_Server;
-
-   -------------------
-   --  Stop_Server  --
-   -------------------
-
-   procedure Stop_Server
-   is
-   begin
-      AMI.Std.Disconnect;
-
-      if AWS.Config.Session (Web_Server_Config) then
-         AWS.Session.Save (Config.Get (Session_Data_File));
-         --  If sessions are enabled, then save the session data to the
-         --  Session_Data_File.
-      end if;
-
-      AWS.Server.Shutdown (Web_Server);
-
-      if AWS.Server.Log.Is_Active (Web_Server) then
-         AWS.Server.Log.Stop (Web_Server);
-      end if;
-
-      if AWS.Server.Log.Is_Error_Active (Web_Server) then
-         AWS.Server.Log.Stop_Error (Web_Server);
-      end if;
-
-      Trace (Handle  => Info,
-             Message => "Stopped " &
-             AWS.Config.Server_Name (Web_Server_Config));
-   end Stop_Server;
+   Web_Server    : HTTP := Create
+     (Set_Dispatchers => My_Handlers.Set'Access,
+      Unexpected      => Yolk.Whoops.Unexpected_Exception_Handler'Access);
 begin
-   Set_User (Username => Config.Get (Yolk_User));
+   Set_User (Config.Get (Yolk_User));
 
-   for Key in Keys'Range loop
-      if TS (Default_Values (Key)) /= TS (Config.Get (Key)) then
-         Trace (Handle  => Info,
-                Message => "Configuration key " &
-                Keys'Image (Key) & " is not default value.");
-         Trace (Handle  => Info,
-                Message => "    Default is: " & TS (Default_Values (Key)));
-         Trace (Handle  => Info,
-                Message => "    Set value is: " & TS (Config.Get (Key)));
-      end if;
-   end loop;
-   --  Check for configuration settings where the setting differ from the
-   --  default value, and notify the user of these on the Info log trace.
+   Web_Server.Start;
 
-   Set (RH => Resource_Handlers);
-   --  Populate the Resource_Handlers object.
-
-   Set_WebSocket_Handlers;
-   --  Register URI's that are WebSocket enabled.
-
-   AWS.Server.Set_Unexpected_Exception_Handler
-     (Web_Server => Web_Server,
-      Handler    => Yolk.Whoops.Unexpected_Exception_Handler'Access);
-   --  Yolk.Whoops.Unexpected_Exception_Handler handles, well, unexpected
-   --  exceptions.
-
-   Start_Server;
-
-   Trace (Handle  => Info,
-          Message => "Starting " &
-          AWS.Config.Server_Name (Web_Server_Config) &
-          ". Listening on port" &
-          AWS.Config.Server_Port (Web_Server_Config)'Img);
-   --  We're alive! Log this fact to the Info trace.
+   Notify (Info.Alice_Startup,
+           "Server version "
+           & Alice_Version);
 
    Wait;
    --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
 
-   Stop_Server;
+   Web_Server.Stop;
 
+   Notify (Info.Alice_Stop);
 exception
+   when Event : Username_Does_Not_Exist =>
+      Notify (Critical.Unknown_User, Event);
    when Event : others =>
-      Trace (Handle  => Error,
-             Message => Exception_Information (Event));
-      --  Write the exception information to the rotating Error log trace.
-      Stop_Server;
+      Notify (Critical.Alice_Shutdown_With_Exception, Event);
+      Web_Server.Stop;
 end Alice;

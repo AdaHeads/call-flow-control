@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                 AMI.Std                                   --
+--                             Response.Cached                               --
 --                                                                           --
---                                  SPEC                                     --
+--                                  BODY                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,12 +21,50 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package AMI.Std is
+with AWS.URL;
+with System_Message.Error;
 
-   procedure Connect;
-   --  TODO: Write comment
+package body Response.Cached is
 
-   procedure Disconnect;
-   --  TODO: Write comment
+   ----------------
+   --  Generate  --
+   ----------------
 
-end AMI.Std;
+   function Generate
+     (Request : in AWS.Status.Data)
+         return AWS.Response.Data
+   is
+      use AWS.Status;
+      use HTTP_Codes;
+      use System_Message;
+
+      Cache_Key       : Natural;
+      Response_Object : Object := Factory (Request);
+      Valid_Cache     : Boolean;
+   begin
+      Cache_Key := Get_Cache_Key (Response_Object);
+
+      Read_From_Cache (Key      => Cache_Key,
+                       Is_Valid => Valid_Cache,
+                       Value    => Response_Object.Content);
+
+      if not Valid_Cache then
+         To_JSON (Response_Object => Response_Object);
+
+         if Response_Object.Is_Cacheable then
+            Write_To_Cache (Key   => Cache_Key,
+                            Value => Response_Object.Content);
+         end if;
+      end if;
+
+      return Response_Object.Build;
+   exception
+      when Event : others =>
+         Notify (Error.Response_Generate_Error,
+                 Event,
+                 AWS.URL.URL (URI (Response_Object.Get_Request)),
+                 Response_Object);
+         return Response_Object.Build;
+   end Generate;
+
+end Response.Cached;

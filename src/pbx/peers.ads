@@ -90,4 +90,6 @@ package Peers is
 
    --  Debug
    function List_As_String return String;
+   
+--   function Image return String;
 end Peers;
