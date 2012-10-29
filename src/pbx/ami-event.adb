@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                  AMI.IO                                   --
+--                                AMI.Event                                  --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -21,47 +21,33 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Characters.Latin_1;
-with AWS.Net.Buffered;
-with Yolk.Log;
+with Ada.Strings.Unbounded;
+with System_Messages; use System_Messages;
 
---  Provides I/O routines for reading from Asterisk AMI.
-package body AMI.IO is
-
-   function Read_Line (Socket : in AWS.Net.Std.Socket_Type) return String is
-      Text : constant String := AWS.Net.Buffered.Get_Line (Socket => Socket);
+package body AMI.Event is
+   
+   procedure Dispatch (Callback_Table : in Event_Callback_Table;
+		       Packet         : in Packet_Type) is
+      use Ada.Strings.Unbounded;      
+      Event    : Event_Type;
    begin
-      Yolk.Log.Trace (Yolk.Log.Debug, "IO: " & Text);
-      return Text;
-   end Read_Line;
-
-   --  Reads until it catches an empty line.
-   function Read_Package (Socket : in AWS.Net.Std.Socket_Type)
-                          return Unbounded_String is
-
-      package Char renames Ada.Characters.Latin_1;
-
-      Newline : constant String := Char.CR & Char.LF;
-      Buffer  : Unbounded_String;
+      Event := Event_Type'Value 
+	(To_String (Packet.Header.Value));
+      
+      -- Launch the callback.
+      Callback_Table (Event) (Packet => Packet); 
+      
+   exception
+      when others =>
+	 System_Messages.Notify (Error, "Unknown Event: " & 
+				   (To_String (Packet.Header.Value)));
+	 
+   end Dispatch;
+   
+   procedure Null_Callback (Packet : in AMI.Parser.Packet_Type) is
    begin
-      Collecting_Package :
-      loop
-         declare
-            Line : constant String := Read_Line (Socket);
-         begin
-            exit Collecting_Package when Line = "";
-            Append (Buffer, Line & Newline);
-         end;
+      null;
+   end Null_Callback;
+   
 
-      end loop Collecting_Package;
-      return Buffer;
-   end Read_Package;
-
-   procedure Send (Socket : in AWS.Net.Std.Socket_Type;
-                   Item   : in String) is
-   begin
-      Yolk.Log.Trace (Yolk.Log.Debug, "OI: " & Item);
-      AWS.Net.Buffered.Put (Socket, Item);
-      AWS.Net.Buffered.Flush (Socket);
-   end Send;
-end AMI.IO;
+end AMI.Event;

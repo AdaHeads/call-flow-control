@@ -29,13 +29,7 @@ package My_Handlers is
 
    procedure Set
      (RH : out AWS.Services.Dispatchers.URI.Handler);
-   --  Setup content dispatchers for the server. Basically this initializes the
-   --  RH object declared in yolk_demo.adb. The handlers registered here are
-   --  specific to this application. Generic content handlers, such as 404
-   --  errors, images and similar, are registered in the core Yolk.Handlers
-   --  package.
-
-      procedure Set_WebSocket_Handlers;
-   --  Setup dispatchers for WebSocket enabled URI's.
+   --  Setup content dispatchers for the server. We set URI dispatchers for
+   --  both regular HTTP requests and for WebSocket connections.
 
 end My_Handlers;

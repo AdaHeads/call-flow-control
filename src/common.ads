@@ -25,6 +25,11 @@ with Ada.Strings.Unbounded;
 
 package Common is
 
+   function U
+     (S : in String)
+      return Ada.Strings.Unbounded.Unbounded_String
+      renames Ada.Strings.Unbounded.To_Unbounded_String;
+
    type JSON_String is new Ada.Strings.Unbounded.Unbounded_String;
 
    Null_JSON_String : constant JSON_String :=

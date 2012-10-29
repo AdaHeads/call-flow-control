@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                               AMI.Action                                  --
+--                             Response.Cached                               --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,45 +21,42 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Net.Std;
-with Event_Parser;
+with AWS.Response;
+with AWS.Status;
+with Common;
 
---  This package have the purpose of sending Actions/Commands to Asterisk,
---  and read the response
-package AMI.Action is
-   use Event_Parser;
+package Response.Cached is
 
-   procedure Start (Socket   : in AWS.Net.Std.Socket_Type;
-                    Username : in String;
-                    Secret   : in String);
+   ----------------
+   --  Generate  --
+   ----------------
 
-   --  Actions
-   procedure Bridge (ChannelA : in String;
-                     ChannelB : in String);
---     function  CoreSettings return Event_List_Type.Map;
-   procedure  Get_Var (Channel      : in String;
-                       VariableName : in String);
+   generic
 
-   procedure Hangup (Channel : String);
+      with function Get_Cache_Key
+        (Response_Object : in Object)
+         return Natural;
+      --  Return the key used to identify an object in a cache.
 
-   procedure Logoff;
-   procedure Park (Channel          : in String;
-                   Fallback_Channel : in String);
-   procedure Ping;
---     function  QueueStatus (ActionID : in String := "")
---                            return Call_List.Call_List_Type.Vector;
-   procedure QueueStatus (ActionID : in String := "");
-   procedure Redirect (Channel : in String;
-                       Exten   : in String;
-                       Context : in String);
-   procedure Set_Var (Channel      : in String;
-                      VariableName : in String;
-                      Value        : in String);
+      with procedure Read_From_Cache
+        (Key      : in     Natural;
+         Is_Valid :    out Boolean;
+         Value    :    out Common.JSON_String);
+      --  Find Key in a cache.
 
-private
-   --  Utility functions
-   function Read_Event_List return Event_List_Type.Map;
+      with procedure To_JSON
+        (Response_Object : in out Object);
+      --  Generate the JSON document that is delivered to the client. If
+      --  Cacheable is set to True, then the JSON document can be cached.
 
-   function Login (Username : in String;
-                   Secret   : in String) return Boolean;
-end AMI.Action;
+      with procedure Write_To_Cache
+        (Key   : in Natural;
+         Value : in Common.JSON_String);
+      --  Add Key/Value to a cache.
+
+   function Generate
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --   Generate the data that is delivered to the user.
+
+end Response.Cached;

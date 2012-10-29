@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                  AMI.IO                                   --
+--                            System_Message.Info                            --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,20 +21,21 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded;
-with AWS.Net.Std;
+package System_Message.Info is
 
-package AMI.IO is
-   use Ada.Strings.Unbounded;
+   Alice_Startup : Info_Log_Object := Create
+     (Status => "Alice startup");
 
-   function Read_Line (Socket : in AWS.Net.Std.Socket_Type)
-                       return String;
-   --  reads a line (seperated by linefeed CRLF)
+   Alice_Stop : Info_Log_Object := Create
+     (Status => "Alice controlled shutdown. Goodbye");
 
-   function Read_Package (Socket : in AWS.Net.Std.Socket_Type)
-                          return Unbounded_String;
-   --  Returns a package.
+   Notifications_WebSocket_Created : Info_Log_Object := Create
+     (Status => "Created a /notifications WebSocket");
 
-   procedure Send (Socket : in AWS.Net.Std.Socket_Type;
-                   Item   : in String);
-end AMI.IO;
+   Notifications_WebSocket_Opened : Info_Log_Object := Create
+     (Status => "Opened a /notifications WebSocket");
+
+   Notifications_WebSocket_Closed : Info_Log_Object := Create
+     (Status => "Closed a /notifications WebSocket");
+
+end System_Message.Info;
