@@ -24,6 +24,7 @@
 with Ada.Strings.Unbounded;
 with AWS.Dispatchers.Callback;
 with Common;
+with GNATCOLL.JSON;
 with GNATCOLL.SQL.Exec;
 with My_Configuration;
 with Response.Cached;
@@ -40,12 +41,13 @@ private
 
    use Ada.Strings.Unbounded;
    use My_Configuration;
+   use GNATCOLL.JSON;
 
    type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null record;
 
    type Row is
       record
-         Org_JSON               : Common.JSON_String;
+         Org_JSON               : JSON_Value;
          Org_Id                 : Natural;
          Org_Id_Column_Name     : Unbounded_String;
          Org_Name               : Unbounded_String;
@@ -58,7 +60,7 @@ private
          Ce_Name_Column_Name    : Unbounded_String;
          Is_Human               : Boolean;
          Is_Human_Column_Name   : Unbounded_String;
-         Attr_JSON              : Common.JSON_String;
+         Attr_JSON              : JSON_Value;
       end record;
 
    function Element

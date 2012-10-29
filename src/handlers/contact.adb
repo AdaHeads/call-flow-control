@@ -23,7 +23,6 @@
 
 with AWS.Status;
 with Database;
-with GNATCOLL.JSON;
 
 package body Contact is
 
@@ -44,61 +43,73 @@ package body Contact is
    --  Create_JSON  --
    -------------------
 
---     procedure Create_JSON
---       (C               : in out Cursor;
---        Response_Object : in out Response.Object)
    function Create_JSON
      (C : in out Cursor)
       return Common.JSON_String
    is
       use Common;
-      use GNATCOLL.JSON;
 
+      procedure Build_Attribute_JSON;
+      --  Build an attribute node for a contact entity.
+
+      A_Row      : Row;
       Attr_Array : JSON_Array;
       Attr_JSON  : JSON_Value;
       JSON       : JSON_Value;
+
+      ----------------------------
+      --  Build_Attribute_JSON  --
+      ----------------------------
+
+      procedure Build_Attribute_JSON
+      is
+      begin
+         if A_Row.Attr_JSON /= JSON_Null then
+            Attr_JSON := A_Row.Attr_JSON;
+
+            Attr_JSON.Set_Field
+              (To_String (A_Row.Attr_Org_Id_Column_Name),
+               A_Row.Attr_Org_Id);
+
+            Attr_JSON.Set_Field
+              (To_String (A_Row.Attr_Ce_Id_Column_Name),
+               A_Row.Attr_Ce_Id);
+
+            Append (Attr_Array, Attr_JSON);
+         end if;
+      end Build_Attribute_JSON;
    begin
       JSON := Create_Object;
 
       if C.Has_Row then
-         --  Cursor can contain more than one row, so we start by building the
-         --  main JSON object from the first row, so we don't repeat the JSON
-         --  building code for the same data over and over.
-         JSON.Set_Field (To_String (C.Element.Ce_Id_Column_Name),
-                         C.Element.Ce_Id);
+         A_Row := C.Element;
 
-         JSON.Set_Field (To_String (C.Element.Ce_Name_Column_Name),
-                         C.Element.Ce_Name);
+         JSON.Set_Field (To_String (A_Row.Ce_Id_Column_Name),
+                         A_Row.Ce_Id);
 
-         JSON.Set_Field (To_String (C.Element.Is_Human_Column_Name),
-                         C.Element.Is_Human);
+         JSON.Set_Field (To_String (A_Row.Ce_Name_Column_Name),
+                         A_Row.Ce_Name);
+
+         JSON.Set_Field (To_String (A_Row.Is_Human_Column_Name),
+                         A_Row.Is_Human);
+
+         Build_Attribute_JSON;
+
+         C.Next;
 
          while C.Has_Row loop
-            if To_String (C.Element.Attr_JSON) /= "" then
-               Attr_JSON := Create_Object;
-
-               Attr_JSON := GNATCOLL.JSON.Read
-                 (To_String (C.Element.Attr_JSON),
-                  "attr.json.error");
-
-               Attr_JSON.Set_Field
-                 (To_String (C.Element.Attr_Org_Id_Column_Name),
-                  C.Element.Attr_Org_Id);
-
-               Attr_JSON.Set_Field
-                 (To_String (C.Element.Attr_Ce_Id_Column_Name),
-                  C.Element.Attr_Ce_Id);
-
-               Append (Attr_Array, Attr_JSON);
-            end if;
-
+            --  If we have more than one row, then we have more than one set of
+            --  attributes.
+            A_Row := C.Element;
+            Build_Attribute_JSON;
             C.Next;
          end loop;
 
-         JSON.Set_Field ("attributes", Attr_Array);
+         if Length (Attr_Array) > 0 then
+            JSON.Set_Field ("attributes", Attr_Array);
+         end if;
       end if;
 
-      --        Response_Object.Set_Content (To_JSON_String (JSON.Write));
       return To_JSON_String (JSON.Write);
    end Create_JSON;
 
@@ -118,7 +129,7 @@ package body Contact is
                   Ce_Name_Column_Name     => U (C.Field_Name (1)),
                   Is_Human                => C.Boolean_Value (2),
                   Is_Human_Column_Name    => U (C.Field_Name (2)),
-                  Attr_JSON               => To_JSON_String (C.Value (3)),
+                  Attr_JSON               => C.Json_Object_Value (3),
                   Attr_Org_Id             => C.Integer_Value (4, Default => 0),
                   Attr_Org_Id_Column_Name => U (C.Field_Name (4)),
                   Attr_Ce_Id              => C.Integer_Value (5, Default => 0),
@@ -134,7 +145,6 @@ package body Contact is
       return Natural
    is
       use AWS.Status;
-      --  use Errors;
    begin
       return Natural'Value
         (Parameters (Response_Object.Get_Request).Get ("ce_id"));
