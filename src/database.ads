@@ -21,7 +21,7 @@ package Database is
       is abstract new SQL_Table (Ta_Contactentity_Attributes, Instance, Index) with
    record
       Ce_Id : SQL_Field_Integer (Ta_Contactentity_Attributes, Instance, N_Ce_Id, Index);
-      Json : SQL_Field_Text (Ta_Contactentity_Attributes, Instance, N_Json, Index);
+      Json : SQL_Field_Json (Ta_Contactentity_Attributes, Instance, N_Json, Index);
       Org_Id : SQL_Field_Integer (Ta_Contactentity_Attributes, Instance, N_Org_Id, Index);
    end record;
 
@@ -34,7 +34,7 @@ package Database is
       is abstract new SQL_Table (Ta_Organization, Instance, Index) with
    record
       Identifier : SQL_Field_Text (Ta_Organization, Instance, N_Identifier, Index);
-      Json : SQL_Field_Text (Ta_Organization, Instance, N_Json, Index);
+      Json : SQL_Field_Json (Ta_Organization, Instance, N_Json, Index);
       Org_Id : SQL_Field_Integer (Ta_Organization, Instance, N_Org_Id, Index);
       Org_Name : SQL_Field_Text (Ta_Organization, Instance, N_Org_Name, Index);
    end record;
