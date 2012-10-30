@@ -26,15 +26,12 @@ with Ada.Exceptions;
 with AMI.Response;
 with AMI.Client;
 
-
 with Call_List;
 with Peers;
 with System_Messages;
---with Yolk.Log;
 
 package body AMI.Action is
    use System_Messages;
-   use Ada.Strings.Unbounded;
    
    procedure Login
      (Client   : access Client_Type;

@@ -1,31 +1,30 @@
 with Ada.Strings.Unbounded;
-with Ada.Text_IO;
 with Ada.Exceptions;
 
-with AMI;
-with AMI.Action; 
-with AMI.Response; 
+with AWS.Net;
+
+with AMI.Action;
+with AMI.Response;
 with AMI.Parser;
 with AMI.Event;
-  
+
 with Connection_Management;
 with Configuration;
-with System_Messages; use  System_Messages;
+with System_Messages;
 with My_Callbacks;
 
-
 package body PBX is
-   use AMI;
+   use Ada.Strings.Unbounded;
    use AMI.Action;
    use AMI.Parser;
    use AMI.Event;
-   use Ada.Strings.Unbounded;
-   
-   package My_Connection_Manager is new Connection_Management 
+   use System_Messages;
+
+   package My_Connection_Manager is new Connection_Management
      (Client   => Client_Access,
       Hostname => Configuration.Hostname,
       Port     => Configuration.Port);
-   
+
    procedure Authenticate is
    begin
       My_Connection_Manager.Wait_For_Connection;
@@ -34,15 +33,17 @@ package body PBX is
 	     Username => Configuration.Username, 
 	     Secret   => Configuration.Secret);
    end Authenticate;
-   
+
    procedure Reconnect is
    begin
-      System_Messages.Notify (Information,"Reader_Loop: Signalling disconnect: ");
-      My_Connection_Manager.Signal_Disconnect;
       Client.Connected := False;
-      Authenticate;
+      if not Shutdown then 
+	System_Messages.Notify (Information,"Reader_Loop: Signalling disconnect: ");
+	My_Connection_Manager.Signal_Disconnect;
+	Authenticate;
+      end if;
    end Reconnect;
-	 
+
    Callbacks : constant AMI.Event.Event_Callback_Table := 
      (Peerstatus => My_Callbacks.Peer_Status'Access,
       Hangup     => My_Callbacks.Hangup'Access,
@@ -80,13 +81,16 @@ package body PBX is
    procedure Parser_Loop is
    begin
       loop
+	 exit when Shutdown;	 
 	 Dispatch (Client_Access,Read_Packet(Client_Access));
       end loop;
    exception
-      when Error: others =>
-	 System_Messages.Notify (Debug,"Reader_Loop: Unexpected exception: ");
-	 System_Messages.Notify (Debug, Ada.Exceptions.Exception_Information(Error));
-	 Reconnect;
+      when Error: AWS.NET.SOCKET_ERROR =>
+	 if not Shutdown then 
+	    System_Messages.Notify (Debug,"Reader_Loop: Unexpected exception: ");
+	    System_Messages.Notify (Debug, Ada.Exceptions.Exception_Information(Error));
+	    Reconnect;
+	 end if;
    end Parser_Loop;
    
    task type Reader_Task is 
@@ -97,32 +101,16 @@ package body PBX is
    begin
       accept Start;
       loop
+	 exit when Shutdown;
 	 Parser_Loop;
       end loop;
    exception
-      when Error: others =>
-	 Ada.Text_IO.Put ("Reader: Unexpected exception: ");
-	 Ada.Text_IO.Put (Ada.Exceptions.Exception_Information(Error));
+      when E: others =>
+	 System_Messages.Notify (Error, "Reader: Unexpected exception: ");
+	 System_Messages.Notify (Error, Ada.Exceptions.Exception_Information(E));
    end Reader_Task;
    
    Reader : Reader_Task;
-   
-   procedure Pingloop is
-   begin
-      loop
-	 while not Client.Connected loop
-	    delay 0.1;
-	 end loop;
-	 Ping (Client_Access);
-      end loop;
-   exception
-      when E : others =>
-	 Ada.Text_IO.Put ("Main task: Unexpected exception: ");
-	 Ada.Text_IO.Put (Ada.Exceptions.Exception_Information(E));
-	 Reconnect;
-   end Pingloop;
-   
-   
    
    procedure Start is
    begin
@@ -131,14 +119,14 @@ package body PBX is
    
       -- Initial authentication
       Authenticate;
-      
       Reader.Start;
       
    end Start;
    
    procedure Stop is
    begin
-      null;
+      Shutdown := True;
+      My_Connection_Manager.Shutdown;
    end Stop;
    
    procedure Status is

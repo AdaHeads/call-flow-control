@@ -12,4 +12,7 @@ package PBX is
    
    procedure Status;
    
+private 
+   Shutdown : Boolean := False;
+   
 end PBX;
