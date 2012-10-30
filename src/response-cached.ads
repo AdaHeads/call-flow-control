@@ -33,28 +33,40 @@ package Response.Cached is
 
    generic
 
+      type Cache_Key_Type is (<>);
+
+      with procedure Bad_Request_Parameters
+        (Response_Object :    out Object;
+         Message         : in     String);
+      --  Response_Object is returned to the client if the request contains bad
+      --  GET/POST parameters, ie. if the Get_Cache_Key function have raised a
+      --  Constraint_Error exception when trying to do the job of casting
+      --  string based HTTP request parameters into whatever Cache_Key_Type
+      --  we actually need.
+
       with function Get_Cache_Key
         (Response_Object : in Object)
-         return Natural;
+         return Cache_Key_Type;
       --  Return the key used to identify an object in a cache.
 
       with procedure Read_From_Cache
-        (Key      : in     Natural;
+        (Key      : in     Cache_Key_Type;
          Is_Valid :    out Boolean;
          Value    :    out Common.JSON_String);
-      --  Find Key in a cache.
+      --  Find Value in the cache.
 
-      with procedure To_JSON
+      with procedure Generate_Document
         (Response_Object : in out Object);
       --  Generate the JSON document that is delivered to the client. If
-      --  Cacheable is set to True, then the JSON document can be cached.
+      --  Response_Object.Cacheable is set to True, then the JSON document is
+      --  cached.
 
       with procedure Write_To_Cache
-        (Key   : in Natural;
+        (Key   : in Cache_Key_Type;
          Value : in Common.JSON_String);
-      --  Add Key/Value to a cache.
+      --  Add Key/Value to the cache.
 
-   function Generate
+   function Generate_Response
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
    --   Generate the data that is delivered to the user.

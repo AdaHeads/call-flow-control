@@ -63,6 +63,10 @@ private
          Attr_JSON              : JSON_Value;
       end record;
 
+   procedure Bad_Org_Id_Key
+     (Response_Object :    out Response.Object;
+      Message         : in     String);
+
    function Element
      (C : in Cursor)
       return Row;
@@ -109,11 +113,13 @@ private
    --  Turn the data found by Query and Query_Parameters into a JSON string and
    --  if the JSON_String object is not empty then write it to cache.
 
-   function JSON_Response is new Response.Cached.Generate
-     (Get_Cache_Key   => Get_Org_Id_Key,
-      Read_From_Cache => Cache.Read,
-      To_JSON         => Query_To_JSON,
-      Write_To_Cache  => Cache.Write);
+   function JSON_Response is new Response.Cached.Generate_Response
+     (Cache_Key_Type         => Natural,
+      Bad_Request_Parameters => Bad_Org_Id_Key,
+      Get_Cache_Key          => Get_Org_Id_Key,
+      Read_From_Cache        => Cache.Read,
+      Generate_Document      => Query_To_JSON,
+      Write_To_Cache         => Cache.Write);
    --  Generate the AWS.Response.Data that ultimately is delivered to the user.
 
 end Organization;

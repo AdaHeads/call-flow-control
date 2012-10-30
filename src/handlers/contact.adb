@@ -23,10 +23,22 @@
 
 with AWS.Status;
 with Database;
+with System_Message.Error;
 
 package body Contact is
 
-   Bad_Ce_Id : exception;
+   ---------------------
+   --  Bad_Ce_Id_Key  --
+   ---------------------
+
+   procedure Bad_Ce_Id_Key
+     (Response_Object :    out Response.Object;
+      Message         : in     String)
+   is
+      use System_Message;
+   begin
+      Notify (Error.Bad_Ce_Id_Key, Message, Response_Object);
+   end Bad_Ce_Id_Key;
 
    ----------------
    --  Callback  --
@@ -148,10 +160,6 @@ package body Contact is
    begin
       return Natural'Value
         (Parameters (Response_Object.Get_Request).Get ("ce_id"));
-   exception
-      when others =>
-         raise Bad_Ce_Id with
-           "ce_id must be a valid natural integer";
    end Get_Ce_Id_Key;
 
    ----------------------

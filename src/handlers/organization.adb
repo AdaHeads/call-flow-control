@@ -23,10 +23,22 @@
 
 with AWS.Status;
 with Database;
+with System_Message.Error;
 
 package body Organization is
 
-   Bad_Org_Id : exception;
+   ---------------------
+   --  Bad_Org_Id_Key  --
+   ---------------------
+
+   procedure Bad_Org_Id_Key
+     (Response_Object :    out Response.Object;
+      Message         : in     String)
+   is
+      use System_Message;
+   begin
+      Notify (Error.Bad_Org_Id_Key, Message, Response_Object);
+   end Bad_Org_Id_Key;
 
    ----------------
    --  Callback  --
@@ -154,10 +166,6 @@ package body Organization is
    begin
       return Natural'Value
         (Parameters (Response_Object.Get_Request).Get ("org_id"));
-   exception
-      when others =>
-         raise Bad_Org_Id with
-           "org_id must be a valid natural integer";
    end Get_Org_Id_Key;
 
    ----------------------
