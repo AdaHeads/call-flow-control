@@ -73,11 +73,13 @@ private
    procedure Generic_Constraint_Error_Response
      (Response_Object :    out Response.Object;
       Message         : in     String);
+   --  Return an error to the user if a Constraint_Error is raised in the
+   --  Get_List_Type call.
 
    function Get_List_Type
      (Response_Object : in Response.Object)
-      return List_Type
-   with Inline;
+      return List_Type;
+   --  Return Full.
 
    function Prepared_Query
      return GNATCOLL.SQL.Exec.Prepared_Statement;

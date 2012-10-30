@@ -66,6 +66,8 @@ private
    procedure Bad_Org_Id_Key
      (Response_Object :    out Response.Object;
       Message         : in     String);
+   --  If the given org_id GET parameter is bad, then return an error to the
+   --  user.
 
    function Element
      (C : in Cursor)
@@ -75,22 +77,19 @@ private
 
    function Get_Org_Id_Key
      (Response_Object : in Response.Object)
-      return Natural
-   with Inline;
+      return Natural;
    --  Return the value of the org_id request parameter. Raise
    --  GET_Parameter_Error if org_id is not a Natural.
 
    function Prepared_Query
-     return GNATCOLL.SQL.Exec.Prepared_Statement
-   with inline;
+     return GNATCOLL.SQL.Exec.Prepared_Statement;
    --  Return an SQL query as a prepared statement. We keep the query in a
    --  function of its own to protect against using sub-queries by accident and
    --  to make it more readable due to local use clauses.
 
    function Query_Parameters
      (Response_Object : in Response.Object)
-      return GNATCOLL.SQL.Exec.SQL_Parameters
-   with inline;
+      return GNATCOLL.SQL.Exec.SQL_Parameters;
    --  Generate the SQL parameters from given request parameters.
 
    function Create_JSON

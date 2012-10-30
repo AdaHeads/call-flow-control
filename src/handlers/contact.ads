@@ -63,6 +63,8 @@ private
    procedure Bad_Ce_Id_Key
      (Response_Object :    out Response.Object;
       Message         : in     String);
+   --  If the given ce_id GET parameter is bad, then return an error to the
+   --  user.
 
    function Create_JSON
      (C : in out Cursor)
@@ -78,8 +80,7 @@ private
 
    function Get_Ce_Id_Key
      (Response_Object : in Response.Object)
-      return Natural
-   with Inline;
+      return Natural;
    --  Return the value of the ce_id request parameter. Raise
    --  GET_Parameter_Error if ce_id is not a Natural.
 
