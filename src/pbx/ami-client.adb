@@ -1,3 +1,26 @@
+-------------------------------------------------------------------------------
+--                                                                           --
+--                                   AMI                                     --
+--                                                                           --
+--                               AMI.Client                                  --
+--                                                                           --
+--                                  BODY                                     --
+--                                                                           --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
+--                                                                           --
+--  This is free software;  you can redistribute it and/or modify it         --
+--  under terms of the  GNU General Public License  as published by the      --
+--  Free Software  Foundation;  either version 3,  or (at your  option) any  --
+--  later version. This library is distributed in the hope that it will be   --
+--  useful, but WITHOUT ANY WARRANTY;  without even the implied warranty of  --
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                     --
+--  You should have received a copy of the GNU General Public License and    --
+--  a copy of the GCC Runtime Library Exception along with this program;     --
+--  see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+--  <http://www.gnu.org/licenses/>.                                          --
+--                                                                           --
+-------------------------------------------------------------------------------
+
 with Ada.Calendar;
 with Ada.Text_IO;
 with Ada.Exceptions;
@@ -6,12 +29,13 @@ with AWS.Net;
 with AWS.Net.Std;
 with AWS.Net.Buffered;
 
-with AMI.Response;
-
 with System_Messages;
 
 package body AMI.Client is
    use System_Messages;
+   use Ada.Strings.Unbounded;
+
+   function Is_Connected (Client  : access Client_Type) return Boolean;
    
    function Is_Connected (Client  : access Client_Type) return Boolean is
       Socket_Event : AWS.Net.Event_Set;       
@@ -28,39 +52,7 @@ package body AMI.Client is
       end if ;
    end Is_Connected;
    --  Determines if a server is connected via a socket.
-   
-   procedure Login
-     (Client   : access Client_Type;
-      Username : in     String;
-      Secret   : in     String;
-      Callback : in     AMI.Callback.Callback_Type 
-	:= AMI.Callback.Login_Callback'Access) is
-      Action_ID : constant Action_ID_Type := 
-	Protocol_Strings.Next_Action_ID;
-   begin
-      AMI.Response.Subscribe (Action_ID,Callback);
-      System_Messages.Notify (Debug, "AMI.Client.Login: Subscribed for " &
-				"a reply with ActionID" & Action_ID'Img);
-      Send (Client => Client, 
-	    Item   => Protocol_Strings.Login 
-	      (Username  => Username,
-	       Secret    => Secret,
-	       Action_ID => Action_ID));
-   end Login;
-   
-   procedure Ping (Client   : access Client_Type;
-		   Callback : in     AMI.Callback.Callback_Type 
-		     := AMI.Callback.Ping_Callback'Access) is
-      Action_ID : Action_ID_Type := 
-	Protocol_Strings.Next_Action_ID;
-   begin
-      AMI.Response.Subscribe (Action_ID,Callback);
-      System_Messages.Notify (Debug, "AMI.Client.Ping: Subscribed for " &
-				"a reply with ActionID" & Action_ID'Img);
-      Send (Client => Client, 
-	    Item   => Protocol_Strings.Ping 
-	      (Action_ID => Action_ID));
-  end Ping;
+  
    
   procedure Connect (Client   : access Client_Type;
 		      Hostname : in   String;
@@ -108,20 +100,6 @@ package body AMI.Client is
 	 raise CONNECT_FAILED with Ada.Exceptions.Exception_Message(Error);
    end Connect;
    
-   procedure Bridge (Client   : access Client_Type;
-		     ChannelA : in     String;
-                     ChannelB : in     String;
-		     Callback : in     AMI.Callback.Callback_Type 
-		     := AMI.Callback.Null_Callback'Access) is
-      Action_ID : Action_ID_Type := 
-	Protocol_Strings.Next_Action_ID;
-   begin
-      AMI.Response.Subscribe (Action_ID,Callback);
-      Send ( Client => Client,
-	     Item   => Protocol_Strings.Bridge (Channel1 => ChannelA, 
-						Channel2 => ChannelB,
-						Action_ID => Action_ID));
-   end Bridge;
    
    procedure Send (Client : access Client_Type; 
 		   Item   : in     String) is
@@ -136,5 +114,8 @@ package body AMI.Client is
 	 raise AMI_SOCKET_NOT_CONNECTED;
    end Send;
    
-   
+   procedure Disconnect (Client : access Client_Type) is
+   begin
+      AWS.Net.Buffered.Shutdown (Client.Socket);
+   end Disconnect;
 end AMI.Client;   

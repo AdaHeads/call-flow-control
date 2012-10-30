@@ -25,6 +25,7 @@ with Yolk.Server;
 with Yolk.Whoops;
 with System_Message.Critical;
 with System_Message.Info;
+with PBX;
 
 procedure Alice is
    use System_Message;
@@ -42,6 +43,7 @@ begin
    Set_User (Config.Get (Yolk_User));
 
    Web_Server.Start;
+   PBX.Start;
 
    Notify (Info.Alice_Startup,
            "Server version "
@@ -51,6 +53,7 @@ begin
    --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
 
    Web_Server.Stop;
+   PBX.Stop;
 
    Notify (Info.Alice_Stop);
 exception

@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                 Parser                                    --
+--                               AMI.Parser                                   --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -29,6 +29,14 @@ package AMI.Parser is
    type AMI_Key_Type is
      (Null_Key,
       To,
+      From,
+      PT,
+      ReceptionReports,
+      SenderSSRC,
+      PacketsLost,
+      HighestSequence,
+      SequenceNumberCycles,
+      LastSR,
       Event,
       Response,
       Message,
@@ -100,6 +108,7 @@ package AMI.Parser is
      );
       
    subtype AMI_Header_Key_Type is AMI_Key_Type range Event .. Response;
+   --  Only these are allowed as headers
    
    BAD_LINE_FORMAT : exception;
    --  Raised when a malformatted line is encountered by the parser
@@ -141,20 +150,24 @@ package AMI.Parser is
 	 Header : Pair_Type := Null_Pair;
 	 Fields : Pair_List_Type.Map;
       end record;
+   --  Every AMI event/response has the same format
    
    New_Packet: constant Packet_Type := (Header => Null_Pair,
 					Fields => Pair_List_Type.Empty_Map);
+   -- Fresh new packet without any data
    
-      
    function Parse_Line (Line : in String) return Pair_Type;
    --  Takes a line of text, with key-value pairs structured:
    --  Key: Value<CRLF>
    
    function Read_Packet (Client : access Client_Type) return Packet_Type;
+   --  Continously calls Read_Line and Parse_Line untill a complete packet has
+   --  been assembled.
    
    function Try_Get (List  : in     Pair_List_Type.Map;
                      Key   : in     AMI_Key_Type;
                      Value :    out Unbounded_String) return Boolean;
+   --  Wraps the contains and element operations of a hashed map
    
    function Image (Packet : in Packet_Type) return String;
    

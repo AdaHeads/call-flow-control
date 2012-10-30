@@ -23,7 +23,6 @@
 
 with AWS.Status;
 with Database;
-with GNATCOLL.JSON;
 
 package body Organization is
 
@@ -49,56 +48,65 @@ package body Organization is
       return Common.JSON_String
    is
       use Common;
-      use GNATCOLL.JSON;
 
-      Attr_JSON      : JSON_Value;
+      procedure Build_Contact_JSON;
+      --  Build an attribute node for a contact entity.
+
+      A_Row          : Row;
       Contacts_Array : JSON_Array;
       Contact_JSON   : JSON_Value;
       JSON           : JSON_Value;
+
+      --------------------------
+      --  Build_Contact_JSON  --
+      --------------------------
+
+      procedure Build_Contact_JSON
+      is
+      begin
+         Contact_JSON := Create_Object;
+
+         Contact_JSON.Set_Field (To_String (A_Row.Ce_Id_Column_Name),
+                                 A_Row.Ce_Id);
+
+         Contact_JSON.Set_Field (To_String (A_Row.Ce_Name_Column_Name),
+                                 To_String (A_Row.Ce_Name));
+
+         Contact_JSON.Set_Field (To_String (A_Row.Is_Human_Column_Name),
+                                 A_Row.Is_Human);
+
+         if A_Row.Attr_JSON /= JSON_Null then
+            Contact_JSON.Set_Field ("attributes", A_Row.Attr_JSON);
+         end if;
+
+         Append (Contacts_Array, Contact_JSON);
+      end Build_Contact_JSON;
    begin
       JSON := Create_Object;
 
       if C.Has_Row then
-         --  C can contain more than one row, so we start by building the main
-         --  JSON object from the first row, so we don't repeat the JSON
-         --  building code for the same data over and over.
+         A_Row := C.Element;
 
-         JSON := GNATCOLL.JSON.Read (To_String (C.Element.Org_JSON),
-                                     "org.json.error");
+         JSON := A_Row.Org_JSON;
 
-         JSON.Set_Field (To_String (C.Element.Org_Id_Column_Name),
-                         C.Element.Org_Id);
+         JSON.Set_Field (To_String (A_Row.Org_Id_Column_Name),
+                         A_Row.Org_Id);
 
-         JSON.Set_Field (To_String (C.Element.Org_Name_Column_Name),
-                         C.Element.Org_Name);
+         JSON.Set_Field (To_String (A_Row.Org_Name_Column_Name),
+                         A_Row.Org_Name);
 
-         JSON.Set_Field (To_String (C.Element.Identifier_Column_Name),
-                         C.Element.Identifier);
+         JSON.Set_Field (To_String (A_Row.Identifier_Column_Name),
+                         A_Row.Identifier);
+
+         Build_Contact_JSON;
+
+         C.Next;
 
          while C.Has_Row loop
-            Contact_JSON := Create_Object;
-
-            Contact_JSON.Set_Field (To_String (C.Element.Ce_Id_Column_Name),
-                                    C.Element.Ce_Id);
-
-            Contact_JSON.Set_Field (To_String (C.Element.Ce_Name_Column_Name),
-                                    To_String (C.Element.Ce_Name));
-
-            Contact_JSON.Set_Field (To_String (C.Element.Is_Human_Column_Name),
-                                    C.Element.Is_Human);
-
-            Attr_JSON := Create_Object;
-
-            if To_String (C.Element.Attr_JSON) /= "" then
-               Attr_JSON := GNATCOLL.JSON.Read
-                 (To_String (C.Element.Attr_JSON),
-                  "organization_attribute.json.error");
-            end if;
-
-            Contact_JSON.Set_Field ("attribute", Attr_JSON);
-
-            Append (Contacts_Array, Contact_JSON);
-
+            --  If we have more than one row, then we have more than one
+            --  contact entity in the organization.
+            A_Row := C.Element;
+            Build_Contact_JSON;
             C.Next;
          end loop;
 
@@ -118,20 +126,20 @@ package body Organization is
    is
       use Common;
    begin
-      return Row'(Org_JSON                => To_JSON_String (C.Value (0)),
-                  Org_Id                  => C.Integer_Value (1, Default => 0),
-                  Org_Id_Column_Name      => U (C.Field_Name (1)),
-                  Org_Name                => U (C.Value (2)),
-                  Org_Name_Column_Name    => U (C.Field_Name (2)),
-                  Identifier              => U (C.Value (3)),
-                  Identifier_Column_Name  => U (C.Field_Name (3)),
-                  Ce_Id                   => C.Integer_Value (4, Default => 0),
-                  Ce_Id_Column_Name       => U (C.Field_Name (4)),
-                  Ce_Name                 => U (C.Value (5)),
-                  Ce_Name_Column_Name     => U (C.Field_Name (5)),
-                  Is_Human                => C.Boolean_Value (6),
-                  Is_Human_Column_Name    => U (C.Field_Name (6)),
-                  Attr_JSON               => To_JSON_String (C.Value (7)));
+      return Row'(Org_JSON               => C.Json_Object_Value (0),
+                  Org_Id                 => C.Integer_Value (1, Default => 0),
+                  Org_Id_Column_Name     => U (C.Field_Name (1)),
+                  Org_Name               => U (C.Value (2)),
+                  Org_Name_Column_Name   => U (C.Field_Name (2)),
+                  Identifier             => U (C.Value (3)),
+                  Identifier_Column_Name => U (C.Field_Name (3)),
+                  Ce_Id                  => C.Integer_Value (4, Default => 0),
+                  Ce_Id_Column_Name      => U (C.Field_Name (4)),
+                  Ce_Name                => U (C.Value (5)),
+                  Ce_Name_Column_Name    => U (C.Field_Name (5)),
+                  Is_Human               => C.Boolean_Value (6),
+                  Is_Human_Column_Name   => U (C.Field_Name (6)),
+                  Attr_JSON              => C.Json_Object_Value (7));
    end Element;
 
    ----------------------
@@ -143,7 +151,6 @@ package body Organization is
       return Natural
    is
       use AWS.Status;
-      --  use Errors;
    begin
       return Natural'Value
         (Parameters (Response_Object.Get_Request).Get ("org_id"));

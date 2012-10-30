@@ -24,6 +24,7 @@
 with Ada.Strings.Unbounded;
 with AWS.Dispatchers.Callback;
 with Common;
+with GNATCOLL.JSON;
 with GNATCOLL.SQL.Exec;
 with My_Configuration;
 with Response.Cached;
@@ -39,6 +40,7 @@ package Contact is
 private
 
    use Ada.Strings.Unbounded;
+   use GNATCOLL.JSON;
    use My_Configuration;
 
    type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null record;
@@ -51,7 +53,7 @@ private
          Ce_Name_Column_Name     : Unbounded_String;
          Is_Human                : Boolean;
          Is_Human_Column_Name    : Unbounded_String;
-         Attr_JSON               : Common.JSON_String;
+         Attr_JSON               : JSON_Value;
          Attr_Org_Id             : Natural;
          Attr_Org_Id_Column_Name : Unbounded_String;
          Attr_Ce_Id              : Natural;

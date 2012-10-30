@@ -12,7 +12,8 @@ package body Connection_Management is
    
    procedure Shutdown is
    begin
-      Shutdown_Pending := True;
+      Connection.Change_State (Shutdown);
+      AMI.Client.Disconnect(Client);
    end Shutdown;
    
    procedure Wait_For_Connection is
@@ -22,16 +23,14 @@ package body Connection_Management is
    
    procedure Signal_Disconnect is
    begin
-      Connection.Change_State (False);
+      Connection.Change_State (Not_Connected);
    end Signal_Disconnect;
    
    task body Reconnection_Task is
-      use AMI.Client;
-      
       procedure Try_Connect is
       begin
 	 if not Client.Connected then
-	    Connect(Client, Hostname, Port);
+	    AMI.Client.Connect(Client, Hostname, Port);
 	 end if;
 	 
       exception 
@@ -45,34 +44,42 @@ package body Connection_Management is
       loop
 	 Connection.Wait_For_Disconnect;
 	 
-	 exit when Shutdown_Pending;
+	 exit when Connection.State = Shutdown;
 	 
 	 Try_Connect;
 	   
 	 if Client.Connected then
-	    Connection.Change_State (True);
+	    Connection.Change_State (Connected);
 	 end if;
 	 
 	 delay Reconnection_Delay;
 	   
       end loop;
+      System_Messages.Notify (Information, "Connection_Manager: Normal shutdown complete");
+
    end Reconnection_Task;
    
    protected body Connection is
-      entry Wait_For_Connect when Connected is
+      entry Wait_For_Connect when Connection.State = Connected or 
+	Connection.State = Shutdown is
       begin
-	 System_Messages.Notify (Debug,"Released (on connect)");
+	 null;
       end Wait_For_Connect;
       
-      entry Wait_For_Disconnect when not Connected is
+      entry Wait_For_Disconnect when Connection.State = Not_Connected or 
+	Connection.State = Shutdown is
       begin
-	 System_Messages.Notify (Debug,"Released (on disconnect)");
+	 null;
       end Wait_For_Disconnect;
       
-      procedure Change_State (Connection : in Boolean) is
+      procedure Change_State (Connection : Connection_State_Type) is
       begin
-	 Connected := Connection;
-	 System_Messages.Notify (Debug,"Connection state changed to " & Connected'Img);
+	 Connection_State := Connection;
       end Change_State;
+      
+      function State return Connection_State_Type is
+      begin
+	 return Connection_State;
+      end State;
    end Connection;
 end Connection_Management;
