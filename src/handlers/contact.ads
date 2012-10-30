@@ -60,6 +60,16 @@ private
          Attr_Ce_Id_Column_Name  : Unbounded_String;
       end record;
 
+   procedure Bad_Ce_Id_Key
+     (Response_Object :    out Response.Object;
+      Message         : in     String);
+
+   function Create_JSON
+     (C : in out Cursor)
+      return Common.JSON_String;
+   --  Generate a JSON_String from the Row record(s) found in the Cursor.
+   --  If C is empty, then return an empty JSON_String, ie. {}.
+
    function Element
      (C : in Cursor)
       return Row;
@@ -74,23 +84,15 @@ private
    --  GET_Parameter_Error if ce_id is not a Natural.
 
    function Prepared_Query
-     return GNATCOLL.SQL.Exec.Prepared_Statement
-   with inline;
+     return GNATCOLL.SQL.Exec.Prepared_Statement;
    --  Return an SQL query as a prepared statement. We keep the query in a
    --  function of its own to protect against using sub-queries by accident and
    --  to make it more readable due to local use clauses.
 
    function Query_Parameters
      (Response_Object : in Response.Object)
-      return GNATCOLL.SQL.Exec.SQL_Parameters
-   with inline;
+      return GNATCOLL.SQL.Exec.SQL_Parameters;
    --  Generate the SQL parameters from given request parameters.
-
-   function Create_JSON
-     (C : in out Cursor)
-      return Common.JSON_String;
-   --  Generate a JSON_String from the Row record(s) found in the Cursor.
-   --  If C is empty, then return an empty JSON_String, ie. {}.
 
    package Cache is new Yolk.Cache.Discrete_Keys
      (Key_Type        => Natural,
@@ -106,11 +108,13 @@ private
    --  Turn the data found by Query and Query_Parameters into a JSON string and
    --  if the JSON_String object is not empty then write it to cache.
 
-   function JSON_Response is new Response.Cached.Generate
-     (Get_Cache_Key   => Get_Ce_Id_Key,
-      Read_From_Cache => Cache.Read,
-      To_JSON         => Query_To_JSON,
-      Write_To_Cache  => Cache.Write);
+   function JSON_Response is new Response.Cached.Generate_Response
+     (Cache_Key_Type         => Natural,
+      Bad_Request_Parameters => Bad_Ce_Id_Key,
+      Get_Cache_Key          => Get_Ce_Id_Key,
+      Read_From_Cache        => Cache.Read,
+      Generate_Document      => Query_To_JSON,
+      Write_To_Cache         => Cache.Write);
    --  Generate the AWS.Response.Data that ultimately is delivered to the user.
 
 end Contact;

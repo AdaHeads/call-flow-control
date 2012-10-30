@@ -19,9 +19,9 @@ Cache_Max_Element_Age 86_400.0
 #            Database            #
 ##################################
 
-DB_Host pg1.adaheads.com
+DB_Host pgprimary.adaheads.com
 # String.
-# Default: pg1.adaheads.com
+# Default: pgprimary.adaheads.com
 #
 # The database host.
 
@@ -49,9 +49,9 @@ DB_User alice
 #
 # The database user.
 
-DB2_Host pg2.adaheads.com
+DB2_Host pgsecondary.adaheads.com
 # String.
-# Default: pg2.adaheads.com
+# Default: pgsecondary.adaheads.com
 #
 # The readonly backup database host.
 
@@ -171,6 +171,13 @@ Handler_Organization /organization
 #
 # The URI for the /organization resource. This resource returns a JSON object
 # containing on complete organization.
+
+Handler_Organization_List /organization/list
+# String.
+# Default: /organization/list
+#
+# The URI for the /organization/list resource. This resource returns a JSON
+# object containing on complete list of all organizations in the databases.
 
 Handler_Queue /queue
 # String.

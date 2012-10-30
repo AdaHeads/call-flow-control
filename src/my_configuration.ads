@@ -46,6 +46,7 @@ package My_Configuration is
                  Handler_Call_Hold,
                  Handler_Contact,
                  Handler_Organization,
+                 Handler_Organization_List,
                  Handler_Queue,
                  Handler_Queue_Length,
                  Handler_Notifications,
@@ -62,7 +63,7 @@ package My_Configuration is
                       (Cache_Max_Element_Age
                        => U ("86_400"),
                        DB_Host
-                       => U ("pg.adaheads.com"),
+                       => U ("pgprimary.adaheads.com"),
                        DB_Name
                        => U ("customers"),
                        DB_Password
@@ -72,7 +73,7 @@ package My_Configuration is
                        DB_User
                        => U ("alice"),
                        DB2_Host
-                       => U ("pg2.adaheads.com"),
+                       => U ("pgsecondary.adaheads.com"),
                        DB2_Name
                        => U ("customers"),
                        DB2_Password
@@ -91,6 +92,8 @@ package My_Configuration is
                        => U ("/contact"),
                        Handler_Organization
                        => U ("/organization"),
+                       Handler_Organization_List
+                       => U ("/organization/list"),
                        Handler_Queue
                        => U ("/queue"),
                        Handler_Queue_Length

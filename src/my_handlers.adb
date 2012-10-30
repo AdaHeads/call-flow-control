@@ -27,6 +27,7 @@ with Contact;
 with My_Configuration;
 with Notifications;
 with Organization;
+with Organization_List;
 with Yolk.Not_Found;
 with Call_Queue;
 
@@ -89,6 +90,11 @@ package body My_Handlers is
         (Dispatcher => RH,
          URI        => Config.Get (Handler_Organization),
          Action     => Organization.Callback);
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => Config.Get (Handler_Organization_List),
+         Action     => Organization_List.Callback);
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,

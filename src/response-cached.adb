@@ -26,45 +26,62 @@ with System_Message.Error;
 
 package body Response.Cached is
 
-   ----------------
-   --  Generate  --
-   ----------------
+   -------------------------
+   --  Generate_Response  --
+   -------------------------
 
-   function Generate
+   function Generate_Response
      (Request : in AWS.Status.Data)
          return AWS.Response.Data
    is
       use AWS.Status;
+      use AWS.URL;
       use HTTP_Codes;
       use System_Message;
 
-      Cache_Key       : Natural;
+      function Found_Cache_Key
+        return Boolean;
+
+      Cache_Key       : Cache_Key_Type;
       Response_Object : Object := Factory (Request);
       Valid_Cache     : Boolean;
+
+      function Found_Cache_Key
+        return Boolean
+      is
+      begin
+         Cache_Key := Get_Cache_Key (Response_Object);
+         return True;
+      exception
+         when others =>
+            Bad_Request_Parameters (Response_Object,
+                                    URL (URI (Response_Object.Get_Request)));
+            return False;
+      end Found_Cache_Key;
    begin
-      Cache_Key := Get_Cache_Key (Response_Object);
+      if Found_Cache_Key then
+         Read_From_Cache (Key      => Cache_Key,
+                          Is_Valid => Valid_Cache,
+                          Value    => Response_Object.Content);
 
-      Read_From_Cache (Key      => Cache_Key,
-                       Is_Valid => Valid_Cache,
-                       Value    => Response_Object.Content);
+         if not Valid_Cache then
+            Generate_Document (Response_Object);
 
-      if not Valid_Cache then
-         To_JSON (Response_Object => Response_Object);
-
-         if Response_Object.Is_Cacheable then
-            Write_To_Cache (Key   => Cache_Key,
-                            Value => Response_Object.Content);
+            if Response_Object.Is_Cacheable then
+               Write_To_Cache (Key   => Cache_Key,
+                               Value => Response_Object.Content);
+            end if;
          end if;
       end if;
 
       return Response_Object.Build;
    exception
       when Event : others =>
-         Notify (Error.Response_Generate_Error,
+         Notify (Error.Unknown_Error,
                  Event,
-                 AWS.URL.URL (URI (Response_Object.Get_Request)),
+                 URL (URI (Response_Object.Get_Request)),
                  Response_Object);
          return Response_Object.Build;
-   end Generate;
+   end Generate_Response;
 
 end Response.Cached;
