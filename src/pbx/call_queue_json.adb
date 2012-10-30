@@ -25,13 +25,13 @@ with Ada.Calendar;
 with Ada.Calendar.Conversions;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
-with Errors;
+
 with Interfaces.C;
-with Yolk.Log;
+with System_Messages;
 
 package body Call_Queue_JSON is
    use GNATCOLL.JSON;
-   use Yolk.Log;
+   use System_Messages;
 
    Length_String : constant String := "Length";
 
@@ -49,7 +49,6 @@ package body Call_Queue_JSON is
       use Ada.Calendar;
       use Ada.Calendar.Conversions;
       use Call_List;
-      use Errors;
 
       function Unix_Timestamp
         (Date : in Time)
@@ -73,10 +72,10 @@ package body Call_Queue_JSON is
       CompanyID : Ada.Strings.Unbounded.Unbounded_String;
       Compnay_prefix : constant String := "org_id";
    begin
-      Trace (Debug, "CALL_QUEUE_JSON DEBUG - " &
+      System_Messages.Notify  (Debug, "CALL_QUEUE_JSON DEBUG - " &
                         Ada.Strings.Unbounded.To_String (Call.Queue));
       if Call /= Call_List.Null_Call then
-         Trace (Debug, "CALL_QUEUE_JSON DEBUG: " & Call.State'Img);
+         System_Messages.Notify (Debug, "CALL_QUEUE_JSON DEBUG: " & Call.State'Img);
          CompanyID := Ada.Strings.Unbounded.Tail
            (Call.Queue,
             Ada.Strings.Unbounded.Length (Call.Queue) -
@@ -98,10 +97,11 @@ package body Call_Queue_JSON is
       end if;
       return Value;
    exception
-      when Err : others =>
-         Log_Exception (Err, "Queue: [" &
-                                 Ada.Strings.Unbounded.To_String (Call.Queue) &
-                              "]");
+      when others =>
+         System_Messages.Notify 
+	   (Error, "Queue: [" &
+	      Ada.Strings.Unbounded.To_String (Call.Queue) &
+	      "]");
       raise;
    end Convert_Call_To_JSON_Object;
 

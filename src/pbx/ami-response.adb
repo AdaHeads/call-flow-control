@@ -1,15 +1,38 @@
+with Ada.Calendar;
 with Ada.Strings.Unbounded;
 with Ada.Exceptions;
   
-with System_Messages; use System_Messages;
+with System_Messages;
 
 package body AMI.Response is 
+   use System_Messages;
+   
    procedure Subscribe (Action_ID : in Action_ID_Type;
 		        Callback  : in Callback_Type) is
    begin
       Reponse_List.Insert (Key => Action_ID, New_Item => Callback);
    end Subscribe;
       
+   function Wait_For (Action_ID : in Action_ID_Type;
+		      Timeout   : in Duration := 3.0) return Boolean is
+      use Ada.Calendar;
+      function Current_Time return Ada.Calendar.Time renames Clock;
+
+      Deadline : constant Ada.Calendar.Time := Current_Time + 3.0;
+   begin
+      loop
+	 exit when Current_Time > Deadline;
+	 
+	 if not Reponse_List.Contains (Action_ID) then
+	    return True;
+	 end if;
+	 
+	 delay 0.1;
+      end loop;
+      return False;
+   end Wait_For;
+      
+   
    procedure Notify (Client : access Client_Type;
 		     Packet : in     AMI.Parser.Packet_Type) is
       use Ada.Strings.Unbounded;

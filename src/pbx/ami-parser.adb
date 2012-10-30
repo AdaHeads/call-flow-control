@@ -23,7 +23,6 @@
 
 --with Errors;
 --with Yolk.Log;
-with Ada.Exceptions;
 with Ada.Strings.Maps;
 with Ada.Strings.Fixed; use Ada.Strings.Fixed; -- For Index
 with Ada.Characters.Latin_1;
@@ -92,7 +91,7 @@ package body AMI.Parser is
    
    --  Tokenizes a line into a key-value Pair_Type
    function Parse_Line (Line : in String) return Pair_Type is 
-      Underscore_Map : Ada.Strings.Maps.Character_Mapping 
+      Underscore_Map : constant Ada.Strings.Maps.Character_Mapping 
 	:= Ada.Strings.Maps.To_Mapping ("-","_");
       
       Seperator_Index : Natural := Index 
@@ -130,12 +129,12 @@ package body AMI.Parser is
 	      Value => To_Unbounded_String 
 		(Line(Line'First+Seperator_Index+1 .. Line'Last)));
    exception
-      when E: CONSTRAINT_ERROR =>
+      when CONSTRAINT_ERROR =>
 	 System_Messages.Notify 
 	   (System_Messages.Error,"AMI.Parser.Parse_Line: Unknown line """ &
 	      Line& """");
 	 return Bad_Line;
-      when E: BAD_LINE_FORMAT =>
+      when BAD_LINE_FORMAT =>
 	 System_Messages.Notify 
 	   (System_Messages.Error,"AMI.Parser.Parse_Line: Malformatted line """ &
 	      Line & """");

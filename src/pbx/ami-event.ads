@@ -20,11 +20,9 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with AMI.Callback;
 with AMI.Parser;
 
 package AMI.Event is
-   use AMI.Callback;
    use AMI.Parser;
    
    --  The following types are derived from
@@ -74,6 +72,7 @@ package AMI.Event is
       PeerStatus,
       Registry,
       Reload,
+      RTCPReceived,
       RTPReceiverStat,
       RTPSenderStat,
       RTCPSent,
@@ -94,13 +93,17 @@ package AMI.Event is
      );
    
    type Event_Callback is access procedure (Packet : in Packet_Type);
+   --  Prototype for an event handler. Every handler must implement this signature
+   
    type Event_Callback_Table is array (Event_Type) of Event_Callback;
+   --  Lookup table for event handlers
    
    procedure Null_Callback (Packet : in AMI.Parser.Packet_Type);
    --  Does nothing. Provides the ability to mute events.
    
    procedure Dispatch (Callback_Table : in Event_Callback_Table;
 		       Packet         : in Packet_Type);
+   
    Null_Callback_Table : constant Event_Callback_Table := 
      (others => AMI.Event.Null_Callback'access);
    

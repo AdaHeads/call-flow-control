@@ -27,10 +27,18 @@ with Call_Queue_JSON;
 with Common;
 with HTTP_Codes;
 with Response;
-with Routines;
-with Yolk.Log;
+
+with AMI.Action;
+
+with PBX;
+
+with System_Messages;
 
 package body Call_Queue is
+   use System_Messages;
+   use AMI.Action;
+
+   package Routines renames AMI.Action;
 
    -------------------
    --  Call_Hangup  --
@@ -42,7 +50,6 @@ package body Call_Queue is
    is
       use Common;
       use HTTP_Codes;
-      use Yolk.Log;
 
       JSON            : JSON_String;
       Response_Object : Response.Object := Response.Factory (Request);
@@ -62,14 +69,14 @@ package body Call_Queue is
          --  ???? Agent? This constant is used with the Routines.Hangup
          --  procedure which takes a Call_Id. Bug or by design?
       begin
-         Trace (Debug, "Hangup handle: call_id=" & Call_ID);
-         Routines.Hangup (U (Call_ID), Status);
+         System_Messages.Notify (Debug, "Hangup handle: call_id=" & Call_ID);
+         AMI.Action.Hangup (PBX.Client_Access, U (Call_ID), Status);
          --  ???? Why the conversion to Unbounded_String here? In most of the
          --  other Routines methods you take a plain String and convert in the
          --  method instead.
       exception
          when others =>
-            Trace (Debug, "Exception in Call_Queue.Call_Hangup");
+            System_Messages.Notify (Debug, "Exception in Call_Queue.Call_Hangup");
 
             JSON := Call_Queue_JSON.Status_Message ("Exception",
                                                     "Something went wrong");
@@ -107,7 +114,7 @@ package body Call_Queue is
             --  ???? Shouldn't this be Server_Error?
       end case;
 
-      Trace (Debug,
+      System_Messages.Notify (Debug,
              "Hangup is now returning the response. "
              & "Status code: " & Status_Code'Img & ". JSON:"
              & To_String (JSON));
@@ -120,7 +127,7 @@ package body Call_Queue is
       when others =>
          --  ???? What exceptions are we expecting, and why do we not catch
          --  exceptions in any of the other methods in this package?
-         Trace (Debug, "Exception in Hangup");
+         System_Messages.Notify (Debug, "Exception in Hangup");
          JSON := Call_Queue_JSON.Status_Message ("Exception",
                                                  "Something went wrong");
 
@@ -140,7 +147,6 @@ package body Call_Queue is
    is
       use Common;
       use HTTP_Codes;
-      use Yolk.Log;
       use AWS.Status;
 
       JSON            : JSON_String;
@@ -150,9 +156,9 @@ package body Call_Queue is
 
       Call_Id : constant String := Parameters (Request).Get ("Call_ID");
    begin
-      Trace (Debug, "Call_Queue_Handler.Park started");
+      System_Messages.Notify (Debug, "Call_Queue_Handler.Park started");
 
-      Routines.Park (Call_Id, Status);
+      Routines.Park (PBX.Client_Access, Call_Id, Status);
 
       case Status is
          when Routines.Success =>
@@ -209,7 +215,8 @@ package body Call_Queue is
       Status          : Routines.Status_Type;
       Status_Code     : AWS.Messages.Status_Code;
    begin
-      Routines.Get_Call (Unique_Id   => Unique_Id,
+      Routines.Get_Call (Client      => PBX.Client_Access,
+			 Unique_Id   => Unique_Id,
                          Agent_Id    => Agent,
                          --  Call     => Call,
                          Status      => Status);
