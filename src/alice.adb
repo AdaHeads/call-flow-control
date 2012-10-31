@@ -42,8 +42,8 @@ procedure Alice is
 begin
    Set_User (Config.Get (Yolk_User));
 
-   Web_Server.Start;
    PBX.Start;
+   Web_Server.Start;
 
    Notify (Info.Alice_Startup,
            "Server version "
@@ -62,4 +62,5 @@ exception
    when Event : others =>
       Notify (Critical.Alice_Shutdown_With_Exception, Event);
       Web_Server.Stop;
+      PBX.Stop;
 end Alice;
