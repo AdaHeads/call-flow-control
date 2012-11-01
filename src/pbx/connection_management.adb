@@ -29,7 +29,7 @@ package body Connection_Management is
    task body Reconnection_Task is
       procedure Try_Connect is
       begin
-	 if not Client.Connected then
+	 if not Client.Connected and Connection.State /= Shutdown then
 	    AMI.Client.Connect(Client, Hostname, Port);
 	 end if;
 	 

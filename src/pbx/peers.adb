@@ -46,10 +46,10 @@ package body Peers is
       begin
          for item in List.Iterate loop
             System_Messages.Notify (Debug, "Peers.Get_Peer. [" & To_String (
-                        Peer_List_Type.Element (item).Agent_ID) &
+                        Peer_List_Type.Element (item).Peer) &
                         "] = ["
                        & To_String (Agent_ID) & "]");
-            if Peer_List_Type.Element (item).Agent_ID = Agent_ID then
+            if Peer_List_Type.Element (item).Peer = Agent_ID then
                return Peer_List_Type.Element (item);
             end if;
          end loop;
@@ -150,6 +150,24 @@ package body Peers is
    begin
       return Ada.Strings.Hash (To_String (Peer_Address));
    end Hash;
+
+   function Image (Item : in Peer_Type) Return String is
+   begin
+      return 
+        "Agent_ID => " & To_String(Item.Agent_ID) & ", " &
+        "Defined => " & Item.Defined'Img & ", " &
+        "Status => " & Item.Status'Img  & ", " &
+        "ChannelType => " & To_String (Item.ChannelType) & ", " &
+        "Peer => " & To_String (Item.Peer) & ", " &
+        
+        "Port => " & To_String (Item.Port) & ", " &
+        "Address => " & To_String (Item.Address) & ", " &
+        "Paused => " & Item.Paused'Img & ", " &
+        --  "Last_Seen => " & Image (Item.Last_Seen) & ", " &
+        "Exten => " & To_String (Item.Exten);
+
+        --   Computer_ID : Unbounded_String;
+   end Image;
 
    procedure Insert_Peer (New_Item : in Peer_Type) is
    begin

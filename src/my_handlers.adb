@@ -98,10 +98,16 @@ package body My_Handlers is
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => Config.Get (Handler_Queue),
+         URI        => Config.Get (Handler_Call_Queue),
          Action     => Create
            (Callback => Call_Queue.Get_Queue'Access));
-
+      
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => Config.Get (Handler_Call_List),
+         Action     => Create
+           (Callback => Call_Queue.Get_Call_List'Access));
+      
       --------------------------
       --  WebSocket handlers  --
       --------------------------

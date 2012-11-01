@@ -76,7 +76,8 @@ package body Call_Queue is
          --  method instead.
       exception
          when others =>
-            System_Messages.Notify (Debug, "Exception in Call_Queue.Call_Hangup");
+            System_Messages.Notify
+              (Debug, "Exception in Call_Queue.Call_Hangup");
 
             JSON := Call_Queue_JSON.Status_Message ("Exception",
                                                     "Something went wrong");
@@ -216,11 +217,10 @@ package body Call_Queue is
       Status_Code     : AWS.Messages.Status_Code;
    begin
       Routines.Get_Call (Client      => PBX.Client_Access,
-			 Unique_Id   => Unique_Id,
+                         Unique_Id   => Unique_Id,
                          Agent_Id    => Agent,
                          --  Call     => Call,
                          Status      => Status);
-
       case Status is
          when Routines.Success =>
             Status_Code := OK;
@@ -276,12 +276,39 @@ package body Call_Queue is
       --  the final JSON and use that directly in the Build_JSON_Response call?
       Queue := Call_List.Get;
 
-      JSON := Call_Queue_JSON.Convert_Queue (Queue);
+      JSON := Call_Queue_JSON.To_JSON_String (Queue);
 
       Response_Object.Set_HTTP_Status_Code (OK);
       Response_Object.Set_Content (JSON);
 
       return Response_Object.Build;
    end Get_Queue;
+
+   function Get_Call_List
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+      use Common;
+      use HTTP_Codes;
+
+      JSON            : JSON_String;
+      Response_Object : Response.Object := Response.Factory (Request);
+      Queue           : Call_List.Call_List_Type.Vector;
+      --  ???? Odd naming. See ???? comment for Call_List.Call_List_Type.
+   begin
+      --  ???? If we're ultimately just interested in getting a queue JSON
+      --  document, be it empty or filled with calls, why go through all the
+      --  hassle of getting a Call_List_Type.Vector? Do we need this here?
+      --  Why not just have a function in the Call_List package that return
+      --  the final JSON and use that directly in the Build_JSON_Response call?
+      Queue := Call_List.Get;
+
+      JSON := Call_Queue_JSON.To_JSON_String (Queue);
+
+      Response_Object.Set_HTTP_Status_Code (OK);
+      Response_Object.Set_Content (JSON);
+
+      return Response_Object.Build;
+   end Get_Call_List;
 
 end Call_Queue;

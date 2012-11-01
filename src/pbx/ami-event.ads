@@ -46,6 +46,7 @@ package AMI.Event is
       Cdr,
       Dial,
       ExtensionStatus,
+      FullyBooted,
       Hangup,
       MusicOnHold,
       Join,

@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                               Call_Queue                                  --
+--                             Call_Queue_JSON                               --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,35 +21,30 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
+with Ada.Calendar;
+with Ada.Containers;
+with Common;
 
-package Call_Queue is
+with Call_List;
 
-   function Call_Hangup
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  TODO: Write comment
+private with GNATCOLL.JSON;
 
-   function Call_Hold
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Put current call on hold.
+package Event_JSON is
+   use Common;
 
-   function Call_Pickup
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Pickup either the oldest call in the queue, or the call identified by
-   --  the call_id GET parameter.
-
-   function Get_Call_List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Returns the full call list, regardless of state.
-
-   function Get_Queue
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Return the current list of calls queued.
-
-end Call_Queue;
+   function Hangup_JSON_String (Call : in Call_List.Call_Type)
+                               return JSON_String;
+   function New_Call_JSON_String (Call : in Call_List.Call_Type)
+                                return JSON_String;
+   
+private
+   --  function To_JSON_Object (Call : in Call_List.Call_Type)
+   --                           return GNATCOLL.JSON.JSON_Value;
+   --  takes a call and converts it to a JSON object.
+   
+   function Unix_Timestamp
+     (Date : in Ada.Calendar.Time)
+     return String;
+   --  Convert and trim an Ada.Calendar.Time type to a Unix timestamp
+   --  String.
+end Event_JSON;

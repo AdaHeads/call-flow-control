@@ -98,6 +98,7 @@ package AMI.Parser is
       SentNTP,
       SentRTP,
       SentOctets,
+      Status,
       FractionLost,
       CumulativeLoss,
       IAJitter,

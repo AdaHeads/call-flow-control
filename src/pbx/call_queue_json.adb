@@ -33,19 +33,19 @@ package body Call_Queue_JSON is
    use GNATCOLL.JSON;
    use System_Messages;
 
-   Length_String : constant String := "Length";
+   Length_String : constant String := "length";
 
-   function Convert_Call (Call : in Call_List.Call_Type)
-                          return JSON_String is
+   function To_JSON_String (Call : in Call_List.Call_Type)
+                                return JSON_String is
       JSON : JSON_Value;
    begin
-      JSON := Convert_Call_To_JSON_Object (Call => Call);
+      JSON := To_JSON_Object (Call => Call);
 
       return To_JSON_String (JSON.Write);
-   end Convert_Call;
+   end To_JSON_String;
 
-   function Convert_Call_To_JSON_Object (Call : in Call_List.Call_Type)
-                                         return GNATCOLL.JSON.JSON_Value is
+   function To_JSON_Object (Call : in Call_List.Call_Type)
+                           return GNATCOLL.JSON.JSON_Value is
       use Ada.Calendar;
       use Ada.Calendar.Conversions;
       use Call_List;
@@ -75,11 +75,11 @@ package body Call_Queue_JSON is
       System_Messages.Notify  (Debug, "CALL_QUEUE_JSON DEBUG - " &
                         Ada.Strings.Unbounded.To_String (Call.Queue));
       if Call /= Call_List.Null_Call then
-         System_Messages.Notify (Debug, "CALL_QUEUE_JSON DEBUG: " & Call.State'Img);
+         System_Messages.Notify
+           (Debug, "CALL_QUEUE_JSON DEBUG: " & Call.State'Img);
          CompanyID := Ada.Strings.Unbounded.Tail
            (Call.Queue,
-            Ada.Strings.Unbounded.Length (Call.Queue) -
-            Compnay_prefix'Length);
+            Ada.Strings.Unbounded.Length (Call.Queue) - Compnay_prefix'Length);
 
          Value.Set_Field ("channel", Call.Channel);
          Value.Set_Field ("caller_id", Call.CallerIDNum);
@@ -98,14 +98,14 @@ package body Call_Queue_JSON is
       return Value;
    exception
       when others =>
-         System_Messages.Notify 
-	   (Error, "Queue: [" &
-	      Ada.Strings.Unbounded.To_String (Call.Queue) &
-	      "]");
+         System_Messages.Notify
+           (Error, "Queue: [" &
+              Ada.Strings.Unbounded.To_String (Call.Queue) &
+              "]");
       raise;
-   end Convert_Call_To_JSON_Object;
+   end To_JSON_Object;
 
-   function Convert_Length (Length : in Ada.Containers.Count_Type)
+   function To_JSON_String (Length : in Ada.Containers.Count_Type)
                             return JSON_String is
 
       Text : constant String :=
@@ -117,9 +117,9 @@ package body Call_Queue_JSON is
       JSON.Set_Field (Length_String, Text);
 
       return To_JSON_String (JSON.Write);
-   end Convert_Length;
+   end To_JSON_String;
 
-   function Convert_Queue (Queue : in Call_List.Call_List_Type.Vector)
+   function To_JSON_String (Queue : in Call_List.Call_List_Type.Vector)
                            return JSON_String is
       use Call_List;
 
@@ -131,14 +131,14 @@ package body Call_Queue_JSON is
       JSON_List := Empty_Array;
 
       for item of Queue loop
-         Value := Convert_Call_To_JSON_Object (item);
+         Value := To_JSON_Object (item);
          Append (JSON_List, Value);
       end loop;
 
       Result.Set_Field ("calls", JSON_List);
 
       return To_JSON_String (Result.Write);
-   end Convert_Queue;
+   end To_JSON_String;
 
    function Status_Message (Title   : in String;
                             Message : in String) return JSON_String is

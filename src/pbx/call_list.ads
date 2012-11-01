@@ -112,7 +112,7 @@ package Call_List is
 
    function Length return Ada.Containers.Count_Type;
    --  Gives the length of the call queue.
-   
+
 --     function PickupCall
 --       (Agent_ID : in Unbounded_String;
 --        Uniqueid : in Unbounded_String := Null_Unbounded_String)

@@ -3,13 +3,13 @@ with Ada.Calendar;
 with Ada.Strings.Unbounded;
 with Ada.Exceptions;
 
-
---with AMI.IO;
 --with AMI.Protocol;
 with Call_List;
---with Errors;
 with Peers;
---with Yolk.Log;
+with Notifications;
+with Common;
+
+with Event_JSON;
 
 package body My_Callbacks is
    use System_Messages;
@@ -19,9 +19,22 @@ package body My_Callbacks is
    --   use AMI.IO;
    use Peers;
    --   use Yolk.Log;
+
+   function Current_Time return Ada.Calendar.Time renames Ada.Calendar.Clock;
+
    --  Event: PeerStatus
-   --  Peer: SIP/2005
+   --  Privilege: system,all
+   --  ChannelType: SIP
+   --  Peer: SIP/softphone1
    --  PeerStatus: Registered
+   --  Address: 192.168.2.142
+   --  Port: 5060
+
+   --  Event: PeerStatus
+   --  Privilege: system,all
+   --  ChannelType: SIP
+   --  Peer: SIP/softphone1
+   --  PeerStatus: Unregistered
    procedure Peer_Status (Packet : in Packet_Type) is
       use Peers.Peer_List_Type;
       use Ada.Strings.Unbounded;
@@ -35,7 +48,6 @@ package body My_Callbacks is
       is
          Seperator_Index : Integer;
       begin
-
          if Ada.Strings.Unbounded.Count (Text, "/") > 0 then
             Seperator_Index := Index (Text, "/");
             Peer.Peer := Tail (Source => Text,
@@ -55,9 +67,9 @@ package body My_Callbacks is
 
       Temp_Value : Unbounded_String;
    begin
-      
-      System_Messages.Notify(Debug,"My_Callbacks.Peerstatus");
-      
+
+      System_Messages.Notify(Debug,"My_Callbacks.Peer_Status");
+
       if Try_Get (Packet.Fields, AMI.Parser.Peer, Temp_Value) then
 	 Set_PhoneInfo (Peer, Temp_Value);
 	 Map_Key := Peer.Peer;
@@ -70,13 +82,16 @@ package body My_Callbacks is
 
          if Temp_Peer /= Peers.Null_Peer then
             --  Update the timestamp
-            Peer.Last_Seen := Ada.Calendar.Clock;
+            Peer.Last_Seen := Current_Time;
             Peer := Temp_Peer;
             Peers.Replace_Peer (Item => Peer);
+            System_Messages.Notify (Debug, "Peer found: [" &
+                                      To_String (Map_Key) & "]");
             return;
 
          else
-            System_Messages.Notify (Debug, "Peer not found: [" & To_String (Map_Key) & "]");
+            System_Messages.Notify (Debug, "Peer not found: [" &
+                                      To_String (Map_Key) & "]");
             System_Messages.Notify (Debug, Peers.List_As_String);
          end if;
       exception
@@ -105,9 +120,9 @@ package body My_Callbacks is
 		 " with unregistrered status");
 	    
 	 elsif To_String (Temp_Value) = "Registered" then
-	    Peer.Status := Registered;
-	    
-	    System_Messages.Notify 
+	    Peer.Status := Idle;
+
+            System_Messages.Notify 
 	      (Debug,
 	       "Got peer: " & To_String (Peer.Peer) &
 		 " with registrered status");
@@ -129,7 +144,8 @@ package body My_Callbacks is
 	 Exten := Peers.Get_Exten (Peer.Peer);
 	 if Exten = Null_Unbounded_String then
 	    System_Messages.Notify (Warning,
-				    "There is not registrated any extension to agent: "
+				    "There is not registrated any extension" &
+                                      " to agent: "
 				      & To_String (Peer.Peer));
 	    raise Program_Error;
 	 else
@@ -137,9 +153,10 @@ package body My_Callbacks is
 	 end if;
       end;
       --  Insert Timestamp
-      Peer.Last_Seen := Ada.Calendar.Clock;
+      Peer.Last_Seen := Current_Time;
       Peers.Insert_Peer (Peer);
-      System_Messages.Notify(Debug,List_As_String);
+      System_Messages.Notify (Debug, "Peer list: " & 
+                                Peers.List_As_String);
    end Peer_Status;
    
    --  Lists agents
@@ -218,7 +235,7 @@ package body My_Callbacks is
 	    "Got a hangup on a call, that was not in the Calls list." &
 	      " Uniqueid: " & To_String (Call_ID));
       end if;
-      
+      Notifications.Broadcast(Event_JSON.Hangup_JSON_String(Call));
    end Hangup;
 
    --  Event: Join
@@ -252,14 +269,16 @@ package body My_Callbacks is
          else
             System_Messages.Notify 
 	      (Error,
-	       "My_Callbacks.Join: Got a Join Event, on a call that don't exsist" &
-		 " and do not have a Channel");
+	       "My_Callbacks.Join: Got a Join Event, on a call that " &
+                 "don't exsist and do not have a Channel");
          end if;
+        
          return;
       end if;
 
       if Call.State = Call_List.Unknown then
-         System_Messages.Notify (Debug, "My_Callbacks.Join: Call unknown state");
+         System_Messages.Notify
+           (Debug, "My_Callbacks.Join: Call unknown state");
          Call.State := Call_List.Queued;
 
          if Try_Get (Packet.Fields, AMI.Parser.Queue, Temp_Value) then
@@ -269,11 +288,14 @@ package body My_Callbacks is
       elsif Call.State = Call_List.OnHold then
          null;
       else
-         System_Messages.Notify (Error, "My_Callbacks.Join: Call with bad state: " &
-      				   Call.State'Img);
+         System_Messages.Notify
+           (Error, "My_Callbacks.Join: Call with bad state: " &
+              Call.State'Img);
       end if;
-      System_Messages.Notify (Debug, "My_Callbacks.Join: Call Updated: " & Image(Call));
+      System_Messages.Notify
+        (Debug, "My_Callbacks.Join: Call Updated: " & Image(Call));
       Call_List.Update (Call);
+      Notifications.Broadcast(Event_JSON.New_Call_JSON_String(Call));
    end Join;
 
    --  Event: Newchannel
@@ -307,7 +329,7 @@ package body My_Callbacks is
       end if;
 
       --  Save the time when the call came in.
-      Call.Arrived := Ada.Calendar.Clock;
+      Call.Arrived := Current_Time;
       Call.State := Unknown;
       Call_List.Add (Call);
    end New_Channel;

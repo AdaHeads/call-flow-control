@@ -26,7 +26,7 @@ with System_Messages;
 
 package body Call_List is
    use System_Messages;
-   
+
    protected Protected_Call_List is
       procedure Add (Call : in Call_Type);
       --  Places a call on the callqueue.
@@ -106,8 +106,8 @@ package body Call_List is
 
       --  Places the call, in the queue.
       procedure Add (Call : in Call_Type) is
-      --           Company_Priority : constant Priority_Level :=
-      --             Get_Company_Priority (Call.Queue);
+         --           Company_Priority : constant Priority_Level :=
+         --             Get_Company_Priority (Call.Queue);
       begin
          List.Append (Call);
          --           Queue_Type.Append (Container => Queue (Company_Priority),
@@ -129,6 +129,20 @@ package body Call_List is
          end loop;
          return Null_Call;
       end Get_Call;
+
+      --  Returns the call list as String.
+      function Image return String is
+         Text : Unbounded_String;
+         package Char renames Ada.Characters.Latin_1;
+      begin
+         for Call in List.Iterate loop
+            Append (Text, Call_List_Type.Element (Call).Channel);
+            Append (Text, ", Uniqueid: ");
+            Append (Text, Call_List_Type.Element (Call).Uniqueid);
+            Append (Text, Char.LF);
+         end loop;
+         return To_String (Text);
+      end Image;
 
       --  Returns the total number of calls.
       function Length return Ada.Containers.Count_Type is
@@ -157,27 +171,13 @@ package body Call_List is
             end loop;
          end;
 
-	 System_Messages.Notify 
-	   (Debug,
-	    "Call_List - Remove:" &
-	      "This uniqueid could not be found in the call queue." &
-	      " Uniqueid: " & To_String (Uniqueid));
+         System_Messages.Notify
+           (Debug,
+            "Call_List - Remove:" &
+              "This uniqueid could not be found in the call queue." &
+              " Uniqueid: " & To_String (Uniqueid));
          Call := Null_Call;
       end Remove;
-
-      --  Returns the call list as String.
-      function Image return String is
-         Text : Unbounded_String;
-         package Char renames Ada.Characters.Latin_1;
-      begin
-         for Call in List.Iterate loop
-            Append (Text, Call_List_Type.Element (Call).Channel);
-            Append (Text, ", Uniqueid: ");
-            Append (Text, Call_List_Type.Element (Call).Uniqueid);
-            Append (Text, Char.LF);
-         end loop;
-         return To_String(Text);
-      end Image;
 
       --        procedure PickupCall (Agent_ID : in Unbounded_String,
       --                              Uniqueid : in Unbounded_String
@@ -237,6 +237,17 @@ package body Call_List is
       Protected_Call_List.Add (Call);
    end Add;
 
+   --  Returns the entire call queue.
+   function Get return Call_List_Type.Vector is
+   begin
+      return Protected_Call_List.Get;
+   end Get;
+
+   function Get_Call (UniqueID : in Unbounded_String) return Call_Type is
+   begin
+      return Protected_Call_List.Get_Call (UniqueID);
+   end Get_Call;
+
    --  Returns a call in String format.
    function Image (Call : in Call_Type) return String is
       Response : Unbounded_String;
@@ -245,9 +256,23 @@ package body Call_List is
       Append (Response, ", Queue => "    & To_String (Call.Queue));
       Append (Response, ", Uniqueid => " & To_String (Call.Uniqueid));
       Append (Response, ", State => "    & Call.State'Img);
-      
+
       return To_String (Response);
-   end image;
+   end Image;
+
+   --  Returns a debug friendly String representation of the call queue.
+   function Image return String is
+   begin
+      return Protected_Call_List.Image;
+   end Image;
+
+   --     function PickupCall (Agent_ID : in Unbounded_String,
+   --         Uniqueid : in Unbounded_String) return Call_Type is
+   --        Call : Call_Type;
+   --     begin
+   --        Protected_Call_List.PickupCall (Agent_ID, Uniqueid, Call);
+   --        return Call;
+   --     end PickupCall;
 
    --     --  Takes the first call with the highest priority
    --     procedure Dequeue (Call : out Call_Type) is
@@ -275,17 +300,6 @@ package body Call_List is
    --        end if;
    --     end Get_Company_Priority;
 
-   --  Returns the entire call queue.
-   function Get return Call_List_Type.Vector is
-   begin
-      return Protected_Call_List.Get;
-   end Get;
-
-   function Get_Call (UniqueID : in Unbounded_String) return Call_Type is
-   begin
-      return Protected_Call_List.Get_Call (UniqueID);
-   end Get_Call;
-
    --  Gives the length of the call queue.
    function Length return Ada.Containers.Count_Type is
    begin
@@ -301,20 +315,6 @@ package body Call_List is
       Protected_Call_List.Remove (Uniqueid, Call);
       return Call;
    end Remove;
-
-   --  Returns a debug friendly String representation of the call queue.
-   function Image return String is
-   begin
-      return Protected_Call_List.Image;
-   end Image;
-
-   --     function PickupCall (Agent_ID : in Unbounded_String,
-   --         Uniqueid : in Unbounded_String) return Call_Type is
-   --        Call : Call_Type;
-   --     begin
-   --        Protected_Call_List.PickupCall (Agent_ID, Uniqueid, Call);
-   --        return Call;
-   --     end PickupCall;
 
    procedure Update (Call : in Call_Type) is
    begin

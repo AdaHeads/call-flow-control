@@ -32,7 +32,7 @@ package Peers is
    use Ada.Containers;
    use Ada.Strings.Unbounded;
 
-   type SIP_Peer_Status_Type is (Unregistered, Registered);
+   type SIP_Peer_Status_Type is (Unregistered, Idle, Busy, Paused);
 
    package Call_List is new
      Ada.Containers.Vectors (Index_Type   => Positive,
@@ -84,12 +84,12 @@ package Peers is
    function Get_Peer_By_ID (Agent_ID : in Unbounded_String) return Peer_Type;
    function Get_Peer_By_PhoneName (PhoneName : in Unbounded_String)
                                    return Peer_Type;
+   function Image (Item : in Peer_Type) Return String;
    --     procedure Print_Peer (Peer : in Peer_Type);
    procedure Insert_Peer (New_Item : in Peer_Type);
    procedure Replace_Peer (Item : in Peer_Type);
 
    --  Debug
    function List_As_String return String;
-   
 --   function Image return String;
 end Peers;

@@ -152,6 +152,21 @@ Handler_Call_Pickup /call/pickup
 # pickup either the oldest unanswered call in the call queue or a call
 # designated by a provided call_id.
 
+
+Handler_Call_List /call/list
+# String.
+# Default: /call/list
+#
+# The URI for the /call/list resource. Returns a JSON object containing the entire
+# current call list.
+
+Handler_Call_Queue /call/queue
+# String.
+# Default: /call/queue
+#
+# The URI for the /call/queue resource. Returns a JSON object containing the entire
+# current call list, excluding answered calls. 
+
 Handler_Contact /contact
 # String.
 # Default: /contact
@@ -178,13 +193,6 @@ Handler_Organization_List /organization/list
 #
 # The URI for the /organization/list resource. This resource returns a JSON
 # object containing on complete list of all organizations in the databases.
-
-Handler_Queue /queue
-# String.
-# Default: /queue
-#
-# The URI for the /queue resource. Returns a JSON object containing the entire
-# current call queue.
 
 Handler_Queue_Length /queue_length
 # String.

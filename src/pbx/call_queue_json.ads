@@ -31,22 +31,22 @@ private with GNATCOLL.JSON;
 package Call_Queue_JSON is
    use Common;
 
-   function Convert_Queue (Queue : in Call_List.Call_List_Type.Vector)
+   function To_JSON_String (Queue : in Call_List.Call_List_Type.Vector)
                            return JSON_String;
    --  returns the entire Call Queue, in JSON format.
 
-   function Convert_Length (Length : in Ada.Containers.Count_Type)
+   function To_JSON_String (Length : in Ada.Containers.Count_Type)
                             return JSON_String;
    --  returns the number of calls waiting in the calling queue.
 
-   function Convert_Call (Call : in Call_List.Call_Type)
-                          return JSON_String;
+   function To_JSON_String (Call : in Call_List.Call_Type)
+                            return JSON_String;
    --  returns the first call in the list.
 
    function Status_Message (Title   : in String;
                             Message : in String) return JSON_String;
 private
-   function Convert_Call_To_JSON_Object (Call : in Call_List.Call_Type)
-                                         return GNATCOLL.JSON.JSON_Value;
+   function To_JSON_Object (Call : in Call_List.Call_Type)
+                            return GNATCOLL.JSON.JSON_Value;
    --  takes a call and converts it to a JSON object.
 end Call_Queue_JSON;

@@ -44,10 +44,11 @@ package My_Configuration is
                  Handler_Call_Hangup,
                  Handler_Call_Pickup,
                  Handler_Call_Hold,
+                 Handler_Call_List,
+                 Handler_Call_Queue,
                  Handler_Contact,
                  Handler_Organization,
                  Handler_Organization_List,
-                 Handler_Queue,
                  Handler_Queue_Length,
                  Handler_Notifications,
                  PBX_Action_Secret,
@@ -86,6 +87,10 @@ package My_Configuration is
                        => U ("/call/hangup"),
                        Handler_Call_Hold
                        => U ("/call/hold"),
+                       Handler_Call_Queue
+                       => U ("/call/queue"),
+                       Handler_Call_List
+                       => U ("/call/list"),
                        Handler_Call_Pickup
                        => U ("/call/pickup"),
                        Handler_Contact
@@ -94,8 +99,6 @@ package My_Configuration is
                        => U ("/organization"),
                        Handler_Organization_List
                        => U ("/organization/list"),
-                       Handler_Queue
-                       => U ("/queue"),
                        Handler_Queue_Length
                        => U ("/queue_length"),
                        Handler_Notifications
