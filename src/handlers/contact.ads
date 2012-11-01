@@ -56,8 +56,6 @@ private
          Attr_JSON               : JSON_Value;
          Attr_Org_Id             : Natural;
          Attr_Org_Id_Column_Name : Unbounded_String;
-         Attr_Ce_Id              : Natural;
-         Attr_Ce_Id_Column_Name  : Unbounded_String;
       end record;
 
    procedure Bad_Ce_Id_Key

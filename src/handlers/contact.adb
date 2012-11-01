@@ -83,10 +83,6 @@ package body Contact is
               (To_String (A_Row.Attr_Org_Id_Column_Name),
                A_Row.Attr_Org_Id);
 
-            Attr_JSON.Set_Field
-              (To_String (A_Row.Attr_Ce_Id_Column_Name),
-               A_Row.Attr_Ce_Id);
-
             Append (Attr_Array, Attr_JSON);
          end if;
       end Build_Attribute_JSON;
@@ -136,16 +132,14 @@ package body Contact is
       use Common;
    begin
       return Row'(Ce_Id                   => C.Integer_Value (0, Default => 0),
-                  Ce_Id_Column_Name       => U (C.Field_Name (0)),
+                  Ce_Id_Column_Name       => U ("contactentity_id"),
                   Ce_Name                 => U (C.Value (1)),
                   Ce_Name_Column_Name     => U (C.Field_Name (1)),
                   Is_Human                => C.Boolean_Value (2),
                   Is_Human_Column_Name    => U (C.Field_Name (2)),
                   Attr_JSON               => C.Json_Object_Value (3),
                   Attr_Org_Id             => C.Integer_Value (4, Default => 0),
-                  Attr_Org_Id_Column_Name => U (C.Field_Name (4)),
-                  Attr_Ce_Id              => C.Integer_Value (5, Default => 0),
-                  Attr_Ce_Id_Column_Name  => U (C.Field_Name (5)));
+                  Attr_Org_Id_Column_Name => U ("organization_id"));
    end Element;
 
    ---------------------
@@ -169,28 +163,25 @@ package body Contact is
    function Prepared_Query
      return GNATCOLL.SQL.Exec.Prepared_Statement
    is
-      package DB renames Database;
-
+      use Database;
       use GNATCOLL.SQL;
       use GNATCOLL.SQL.Exec;
 
       Get_Contact_Full_Left_Join : constant SQL_Left_Join_Table
-        :=  Left_Join (Full    => DB.Contactentity,
-                       Partial => DB.Contactentity_Attributes,
+        :=  Left_Join (Full    => Contactentity,
+                       Partial => Contactentity_Attributes,
                        On      =>
-                         DB.Contactentity.Ce_Id =
-                           DB.Contactentity_Attributes.Ce_Id);
+                         Contactentity_Attributes.FK (Contactentity));
 
       Get_Contact_Full : constant SQL_Query
         := SQL_Select (Fields =>
-                         DB.Contactentity.Ce_Id &             --  0
-                         DB.Contactentity.Ce_Name &           --  1
-                         DB.Contactentity.Is_Human &          --  2
-                         DB.Contactentity_Attributes.Json &   --  3
-                         DB.Contactentity_Attributes.Org_Id & --  4
-                         DB.Contactentity_Attributes.Ce_Id,   --  5
+                         Contactentity.Id &                         --  0
+                         Contactentity.Full_Name &                  --  1
+                         Contactentity.Is_Human &                   --  2
+                         Contactentity_Attributes.Json &            --  3
+                         Contactentity_Attributes.Organization_Id,  --  4
                        From   => Get_Contact_Full_Left_Join,
-                       Where  => DB.Contactentity.Ce_Id = Integer_Param (1));
+                       Where  => Contactentity.Id = Integer_Param (1));
 
       Prepared_Get_Contact_Full : constant Prepared_Statement
         := Prepare (Query         => Get_Contact_Full,

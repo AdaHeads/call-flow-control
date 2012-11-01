@@ -140,13 +140,13 @@ package body Organization is
    begin
       return Row'(Org_JSON               => C.Json_Object_Value (0),
                   Org_Id                 => C.Integer_Value (1, Default => 0),
-                  Org_Id_Column_Name     => U (C.Field_Name (1)),
+                  Org_Id_Column_Name     => U ("organization_id"),
                   Org_Name               => U (C.Value (2)),
                   Org_Name_Column_Name   => U (C.Field_Name (2)),
                   Identifier             => U (C.Value (3)),
                   Identifier_Column_Name => U (C.Field_Name (3)),
                   Ce_Id                  => C.Integer_Value (4, Default => 0),
-                  Ce_Id_Column_Name      => U (C.Field_Name (4)),
+                  Ce_Id_Column_Name      => U ("contactentity_id"),
                   Ce_Name                => U (C.Value (5)),
                   Ce_Name_Column_Name    => U (C.Field_Name (5)),
                   Is_Human               => C.Boolean_Value (6),
@@ -184,41 +184,39 @@ package body Organization is
         := Join (Table1 => DB.Organization,
                  Table2 => DB.Organization_Contactentities,
                  On     =>
-                   DB.Organization.Org_Id =
-                     DB.Organization_Contactentities.Org_Id);
+                   DB.Organization_Contactentities.FK (DB.Organization));
 
       Contacts_Join : constant SQL_Left_Join_Table
         := Join (Table1 => Organization_Contactentities_Join,
                  Table2 => DB.Contactentity,
                  On     =>
-                   DB.Organization_Contactentities.Ce_Id =
-                     DB.Contactentity.Ce_Id);
+                   DB.Organization_Contactentities.FK (DB.Contactentity));
 
       Attributes_Left_Join : constant SQL_Left_Join_Table
         := Left_Join (Full    => Contacts_Join,
                       Partial => DB.Contactentity_Attributes,
                       On      =>
-                        DB.Contactentity.Ce_Id =
-                          DB.Contactentity_Attributes.Ce_Id);
+                        DB.Contactentity_Attributes.FK (DB.Contactentity));
 
       Org_Full : constant SQL_Query
         := SQL_Select (Fields =>
-                         DB.Organization.Json &               --  0
-                         DB.Organization.Org_Id &             --  1
-                         DB.Organization.Org_Name &           --  2
-                         DB.Organization.Identifier &         --  3
-                         DB.Contactentity.Ce_Id &             --  4
-                         DB.Contactentity.Ce_Name &           --  5
-                         DB.Contactentity.Is_Human &          --  6
-                         DB.Contactentity_Attributes.Json,    --  7
+                         DB.Organization.Json &             --  0
+                         DB.Organization.Id &               --  1
+                         DB.Organization.Name &             --  2
+                         DB.Organization.Identifier &       --  3
+                         DB.Contactentity.Id &              --  4
+                         DB.Contactentity.Full_Name &       --  5
+                         DB.Contactentity.Is_Human &        --  6
+                         DB.Contactentity_Attributes.Json,  --  7
                        From   => Attributes_Left_Join,
                        Where  =>
-                         DB.Organization.Org_Id = Integer_Param (1)
+                         DB.Organization.Id = Integer_Param (1)
                        and
-                         (DB.Contactentity_Attributes.Org_Id =
-                                                    Integer_Param (1)
+                         (DB.Contactentity_Attributes.Organization_Id =
+                            Integer_Param (1)
                           or
-                            Is_Null (DB.Contactentity_Attributes.Org_Id)));
+                            Is_Null
+                              (DB.Contactentity_Attributes.Organization_Id)));
 
       Prepared_Get_Organization : constant Prepared_Statement
         := Prepare (Query         => Org_Full,

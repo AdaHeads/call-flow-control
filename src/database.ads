@@ -4,6 +4,11 @@ package Database is
    pragma Style_Checks (Off);
    pragma Elaborate_Body;
 
+   subtype Kind_Id is Integer;
+   Kind_Bcc : constant Kind_Id := 3;
+   Kind_Cc : constant Kind_Id := 2;
+   Kind_To : constant Kind_Id := 1;
+
    type T_Abstract_Contactentity (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Contactentity, Instance, Index) with
    record

@@ -90,7 +90,7 @@ package body Organization_List is
    begin
       return Row'(Org_JSON               => C.Json_Object_Value (0),
                   Org_Id                 => C.Integer_Value (1, Default => 0),
-                  Org_Id_Column_Name     => U (C.Field_Name (1)),
+                  Org_Id_Column_Name     => U ("organization_id"),
                   Org_Name               => U (C.Value (2)),
                   Org_Name_Column_Name   => U (C.Field_Name (2)),
                   Identifier             => U (C.Value (3)),
@@ -130,18 +130,17 @@ package body Organization_List is
    function Prepared_Query
      return GNATCOLL.SQL.Exec.Prepared_Statement
    is
-      package DB renames Database;
-
+      use Database;
       use GNATCOLL.SQL;
       use GNATCOLL.SQL.Exec;
 
       Org_List : constant SQL_Query
         := SQL_Select (Fields =>
-                         DB.Organization.Json &       --  0
-                         DB.Organization.Org_Id &     --  1
-                         DB.Organization.Org_Name &   --  2
-                         DB.Organization.Identifier,  --  3
-                       From => DB.Organization);
+                         Organization.Json &       --  0
+                         Organization.Id &         --  1
+                         Organization.Name &       --  2
+                         Organization.Identifier,  --  3
+                       From => Organization);
 
       Prepared_Get_Organization_List : constant Prepared_Statement
         := Prepare (Query         => Org_List,
