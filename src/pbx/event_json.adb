@@ -44,7 +44,7 @@ package body Event_JSON is
       CompanyID         : Ada.Strings.Unbounded.Unbounded_String;
       Compnay_prefix    : constant String := "org_id";
    begin
-      Call_JSON.Set_Field ("call_id: ", Call.Uniqueid);
+      Call_JSON.Set_Field ("call_id", Call.Uniqueid);
       Notification_JSON.Set_Field ("call", Call_JSON);
       Notification_JSON.Set_Field ("persistent", False);
       Notification_JSON.Set_Field ("event", "hangup_call");
@@ -73,10 +73,10 @@ package body Event_JSON is
       CompanyID         : Ada.Strings.Unbounded.Unbounded_String;
       Compnay_prefix    : constant String := "org_id";
    begin
-      Call_JSON.Set_Field ("call_id: ", Call.Uniqueid);
-      Call_JSON.Set_Field ("arrival_time: ", Unix_Timestamp (Call.Arrived));
-      Call_JSON.Set_Field ("channel: ", Call.Channel);
-      Call_JSON.Set_Field ("org_id: ", Call.CallerIDNum);
+      Call_JSON.Set_Field ("call_id", Call.Uniqueid);
+      Call_JSON.Set_Field ("arrival_time", Unix_Timestamp (Call.Arrived));
+      Call_JSON.Set_Field ("channel", Call.Channel);
+      Call_JSON.Set_Field ("org_id", Call.CallerIDNum);
       Notification_JSON.Set_Field ("call", Call_JSON);
       Notification_JSON.Set_Field ("persistent", False);
       Notification_JSON.Set_Field ("event", "new_call");
