@@ -22,12 +22,10 @@
 -------------------------------------------------------------------------------
 
 with Ada.Calendar;
-with Ada.Containers;
 with Common;
 
+with Peers;
 with Call_List;
-
-private with GNATCOLL.JSON;
 
 package Event_JSON is
    use Common;
@@ -37,6 +35,16 @@ package Event_JSON is
    function New_Call_JSON_String (Call : in Call_List.Call_Type)
                                 return JSON_String;
    
+   function Pickup_Call_JSON_String (Call  : in Call_List.Call_Type;
+                                     Agent : in Peers.Peer_Type)
+                                return JSON_String;
+   
+   function Hold_Call_JSON_String (Call  : in Call_List.Call_Type)
+                                  return JSON_String;
+   
+   function Transfer_Call_JSON_String (Call  : in Call_List.Call_Type)
+                                      return JSON_String;
+
 private
    --  function To_JSON_Object (Call : in Call_List.Call_Type)
    --                           return GNATCOLL.JSON.JSON_Value;
