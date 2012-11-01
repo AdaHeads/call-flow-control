@@ -33,8 +33,8 @@ SET default_with_oids = false;
 --
 
 CREATE TABLE contactentity (
-    ce_id integer NOT NULL,
-    ce_name character varying(256) NOT NULL,
+    id integer NOT NULL,
+    full_name character varying(256) NOT NULL,
     is_human boolean DEFAULT true NOT NULL
 );
 
@@ -46,19 +46,19 @@ ALTER TABLE public.contactentity OWNER TO alice;
 --
 
 CREATE TABLE contactentity_attributes (
-    org_id integer NOT NULL,
-    ce_id integer NOT NULL,
-    json character varying(10000) NOT NULL
+    organization_id integer NOT NULL,
+    contactentity_id integer NOT NULL,
+    json json NOT NULL
 );
 
 
 ALTER TABLE public.contactentity_attributes OWNER TO alice;
 
 --
--- Name: contactentity_ce_id_seq; Type: SEQUENCE; Schema: public; Owner: alice
+-- Name: contactentity_id_seq; Type: SEQUENCE; Schema: public; Owner: alice
 --
 
-CREATE SEQUENCE contactentity_ce_id_seq
+CREATE SEQUENCE contactentity_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -66,24 +66,36 @@ CREATE SEQUENCE contactentity_ce_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.contactentity_ce_id_seq OWNER TO alice;
+ALTER TABLE public.contactentity_id_seq OWNER TO alice;
 
 --
--- Name: contactentity_ce_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: alice
+-- Name: contactentity_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: alice
 --
 
-ALTER SEQUENCE contactentity_ce_id_seq OWNED BY contactentity.ce_id;
+ALTER SEQUENCE contactentity_id_seq OWNED BY contactentity.id;
 
+
+--
+-- Name: contactentity_recipient; Type: TABLE; Schema: public; Owner: alice; Tablespace: 
+--
+
+CREATE TABLE contactentity_recipient (
+    contactentity_id integer NOT NULL,
+    recipient_id integer NOT NULL
+);
+
+
+ALTER TABLE public.contactentity_recipient OWNER TO alice;
 
 --
 -- Name: organization; Type: TABLE; Schema: public; Owner: alice; Tablespace: 
 --
 
 CREATE TABLE organization (
-    org_id integer NOT NULL,
-    org_name character varying(256) NOT NULL,
+    id integer NOT NULL,
+    name character varying(256) NOT NULL,
     identifier character varying(256) NOT NULL,
-    json character varying(10000) NOT NULL
+    json json
 );
 
 
@@ -94,18 +106,18 @@ ALTER TABLE public.organization OWNER TO alice;
 --
 
 CREATE TABLE organization_contactentities (
-    org_id integer NOT NULL,
-    ce_id integer NOT NULL
+    organization_id integer NOT NULL,
+    contactentity_id integer NOT NULL
 );
 
 
 ALTER TABLE public.organization_contactentities OWNER TO alice;
 
 --
--- Name: organization_org_id_seq; Type: SEQUENCE; Schema: public; Owner: alice
+-- Name: organization_id_seq; Type: SEQUENCE; Schema: public; Owner: alice
 --
 
-CREATE SEQUENCE organization_org_id_seq
+CREATE SEQUENCE organization_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -113,27 +125,81 @@ CREATE SEQUENCE organization_org_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.organization_org_id_seq OWNER TO alice;
+ALTER TABLE public.organization_id_seq OWNER TO alice;
 
 --
--- Name: organization_org_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: alice
+-- Name: organization_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: alice
 --
 
-ALTER SEQUENCE organization_org_id_seq OWNED BY organization.org_id;
-
-
---
--- Name: ce_id; Type: DEFAULT; Schema: public; Owner: alice
---
-
-ALTER TABLE ONLY contactentity ALTER COLUMN ce_id SET DEFAULT nextval('contactentity_ce_id_seq'::regclass);
+ALTER SEQUENCE organization_id_seq OWNED BY organization.id;
 
 
 --
--- Name: org_id; Type: DEFAULT; Schema: public; Owner: alice
+-- Name: recipient; Type: TABLE; Schema: public; Owner: alice; Tablespace: 
 --
 
-ALTER TABLE ONLY organization ALTER COLUMN org_id SET DEFAULT nextval('organization_org_id_seq'::regclass);
+CREATE TABLE recipient (
+    id integer NOT NULL,
+    kind_id integer NOT NULL,
+    full_name text,
+    email_address text NOT NULL
+);
+
+
+ALTER TABLE public.recipient OWNER TO alice;
+
+--
+-- Name: recipient_id_seq; Type: SEQUENCE; Schema: public; Owner: alice
+--
+
+CREATE SEQUENCE recipient_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.recipient_id_seq OWNER TO alice;
+
+--
+-- Name: recipient_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: alice
+--
+
+ALTER SEQUENCE recipient_id_seq OWNED BY recipient.id;
+
+
+--
+-- Name: recipient_kind; Type: TABLE; Schema: public; Owner: alice; Tablespace: 
+--
+
+CREATE TABLE recipient_kind (
+    id smallint NOT NULL,
+    kind character varying(3) NOT NULL
+);
+
+
+ALTER TABLE public.recipient_kind OWNER TO alice;
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: alice
+--
+
+ALTER TABLE ONLY contactentity ALTER COLUMN id SET DEFAULT nextval('contactentity_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: alice
+--
+
+ALTER TABLE ONLY organization ALTER COLUMN id SET DEFAULT nextval('organization_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: alice
+--
+
+ALTER TABLE ONLY recipient ALTER COLUMN id SET DEFAULT nextval('recipient_id_seq'::regclass);
 
 
 --
@@ -141,7 +207,7 @@ ALTER TABLE ONLY organization ALTER COLUMN org_id SET DEFAULT nextval('organizat
 --
 
 ALTER TABLE ONLY contactentity_attributes
-    ADD CONSTRAINT contactentity_attributes_pkey PRIMARY KEY (ce_id, org_id);
+    ADD CONSTRAINT contactentity_attributes_pkey PRIMARY KEY (organization_id, contactentity_id);
 
 
 --
@@ -149,7 +215,15 @@ ALTER TABLE ONLY contactentity_attributes
 --
 
 ALTER TABLE ONLY contactentity
-    ADD CONSTRAINT contactentity_pkey PRIMARY KEY (ce_id);
+    ADD CONSTRAINT contactentity_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: contactentity_recipient_pkey; Type: CONSTRAINT; Schema: public; Owner: alice; Tablespace: 
+--
+
+ALTER TABLE ONLY contactentity_recipient
+    ADD CONSTRAINT contactentity_recipient_pkey PRIMARY KEY (contactentity_id, recipient_id);
 
 
 --
@@ -157,7 +231,7 @@ ALTER TABLE ONLY contactentity
 --
 
 ALTER TABLE ONLY organization_contactentities
-    ADD CONSTRAINT organization_contactentities_pkey PRIMARY KEY (org_id, ce_id);
+    ADD CONSTRAINT organization_contactentities_pkey PRIMARY KEY (organization_id, contactentity_id);
 
 
 --
@@ -173,47 +247,166 @@ ALTER TABLE ONLY organization
 --
 
 ALTER TABLE ONLY organization
-    ADD CONSTRAINT organization_pkey PRIMARY KEY (org_id);
+    ADD CONSTRAINT organization_pkey PRIMARY KEY (id);
 
 
 --
--- Name: contactentity_attributes_ce_and_org_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: alice
+-- Name: recipient_kind_id_full_name_email_address_key; Type: CONSTRAINT; Schema: public; Owner: alice; Tablespace: 
+--
+
+ALTER TABLE ONLY recipient
+    ADD CONSTRAINT recipient_kind_id_full_name_email_address_key UNIQUE (kind_id, full_name, email_address);
+
+
+--
+-- Name: recipient_kind_kind_key; Type: CONSTRAINT; Schema: public; Owner: alice; Tablespace: 
+--
+
+ALTER TABLE ONLY recipient_kind
+    ADD CONSTRAINT recipient_kind_kind_key UNIQUE (kind);
+
+
+--
+-- Name: recipient_kind_pkey; Type: CONSTRAINT; Schema: public; Owner: alice; Tablespace: 
+--
+
+ALTER TABLE ONLY recipient_kind
+    ADD CONSTRAINT recipient_kind_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: recipient_pkey; Type: CONSTRAINT; Schema: public; Owner: alice; Tablespace: 
+--
+
+ALTER TABLE ONLY recipient
+    ADD CONSTRAINT recipient_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: contactentity_attributes_contactentity_id_idx; Type: INDEX; Schema: public; Owner: alice; Tablespace: 
+--
+
+CREATE INDEX contactentity_attributes_contactentity_id_idx ON contactentity_attributes USING btree (contactentity_id);
+
+
+--
+-- Name: contactentity_attributes_organization_id_idx; Type: INDEX; Schema: public; Owner: alice; Tablespace: 
+--
+
+CREATE INDEX contactentity_attributes_organization_id_idx ON contactentity_attributes USING btree (organization_id);
+
+
+--
+-- Name: contactentity_id_idx; Type: INDEX; Schema: public; Owner: alice; Tablespace: 
+--
+
+CREATE INDEX contactentity_id_idx ON contactentity USING btree (id);
+
+
+--
+-- Name: contactentity_recipient_contactentity_id_idx; Type: INDEX; Schema: public; Owner: alice; Tablespace: 
+--
+
+CREATE INDEX contactentity_recipient_contactentity_id_idx ON contactentity_recipient USING btree (contactentity_id);
+
+
+--
+-- Name: contactentity_recipient_recipient_id_idx; Type: INDEX; Schema: public; Owner: alice; Tablespace: 
+--
+
+CREATE INDEX contactentity_recipient_recipient_id_idx ON contactentity_recipient USING btree (recipient_id);
+
+
+--
+-- Name: organization_contactentities_contactentity_id_idx; Type: INDEX; Schema: public; Owner: alice; Tablespace: 
+--
+
+CREATE INDEX organization_contactentities_contactentity_id_idx ON organization_contactentities USING btree (contactentity_id);
+
+
+--
+-- Name: organization_contactentities_organization_id_idx; Type: INDEX; Schema: public; Owner: alice; Tablespace: 
+--
+
+CREATE INDEX organization_contactentities_organization_id_idx ON organization_contactentities USING btree (organization_id);
+
+
+--
+-- Name: organization_id_idx; Type: INDEX; Schema: public; Owner: alice; Tablespace: 
+--
+
+CREATE INDEX organization_id_idx ON organization USING btree (id);
+
+
+--
+-- Name: recipient_id_idx; Type: INDEX; Schema: public; Owner: alice; Tablespace: 
+--
+
+CREATE INDEX recipient_id_idx ON recipient USING btree (id);
+
+
+--
+-- Name: contactentity_attributes_contactentity_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: alice
 --
 
 ALTER TABLE ONLY contactentity_attributes
-    ADD CONSTRAINT contactentity_attributes_ce_and_org_id_fkey FOREIGN KEY (ce_id, org_id) REFERENCES organization_contactentities(ce_id, org_id) ON UPDATE CASCADE ON DELETE CASCADE;
+    ADD CONSTRAINT contactentity_attributes_contactentity_id_fkey FOREIGN KEY (contactentity_id) REFERENCES contactentity(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
--- Name: contactentity_attributes_ce_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: alice
---
-
-ALTER TABLE ONLY contactentity_attributes
-    ADD CONSTRAINT contactentity_attributes_ce_id_fkey FOREIGN KEY (ce_id) REFERENCES contactentity(ce_id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: contactentity_attributes_org_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: alice
+-- Name: contactentity_attributes_organization_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: alice
 --
 
 ALTER TABLE ONLY contactentity_attributes
-    ADD CONSTRAINT contactentity_attributes_org_id_fkey FOREIGN KEY (org_id) REFERENCES organization(org_id) ON UPDATE CASCADE ON DELETE CASCADE;
+    ADD CONSTRAINT contactentity_attributes_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES organization(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
--- Name: organization_contactentities_ce_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: alice
+-- Name: contactentity_attributes_organization_id_fkey1; Type: FK CONSTRAINT; Schema: public; Owner: alice
+--
+
+ALTER TABLE ONLY contactentity_attributes
+    ADD CONSTRAINT contactentity_attributes_organization_id_fkey1 FOREIGN KEY (organization_id, contactentity_id) REFERENCES organization_contactentities(organization_id, contactentity_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: contactentity_recipient_contactentity_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: alice
+--
+
+ALTER TABLE ONLY contactentity_recipient
+    ADD CONSTRAINT contactentity_recipient_contactentity_id_fkey FOREIGN KEY (contactentity_id) REFERENCES contactentity(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: contactentity_recipient_recipient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: alice
+--
+
+ALTER TABLE ONLY contactentity_recipient
+    ADD CONSTRAINT contactentity_recipient_recipient_id_fkey FOREIGN KEY (recipient_id) REFERENCES recipient(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: organization_contactentities_contactentity_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: alice
 --
 
 ALTER TABLE ONLY organization_contactentities
-    ADD CONSTRAINT organization_contactentities_ce_id_fkey FOREIGN KEY (ce_id) REFERENCES contactentity(ce_id) ON UPDATE CASCADE ON DELETE CASCADE;
+    ADD CONSTRAINT organization_contactentities_contactentity_id_fkey FOREIGN KEY (contactentity_id) REFERENCES contactentity(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
--- Name: organization_contactentities_org_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: alice
+-- Name: organization_contactentities_organization_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: alice
 --
 
 ALTER TABLE ONLY organization_contactentities
-    ADD CONSTRAINT organization_contactentities_org_id_fkey FOREIGN KEY (org_id) REFERENCES organization(org_id) ON UPDATE CASCADE ON DELETE CASCADE;
+    ADD CONSTRAINT organization_contactentities_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES organization(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: recipient_kind_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: alice
+--
+
+ALTER TABLE ONLY recipient
+    ADD CONSTRAINT recipient_kind_id_fkey FOREIGN KEY (kind_id) REFERENCES recipient_kind(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --

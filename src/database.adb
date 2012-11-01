@@ -4,27 +4,42 @@ package body Database is
 
    function FK (Self : T_Contactentity_Attributes'Class; Foreign : T_Organization'Class) return SQL_Criteria is
    begin
-      return Self.Org_Id = Foreign.Org_Id;
-   end FK;
-
-   function FK (Self : T_Contactentity_Attributes'Class; Foreign : T_Contactentity'Class) return SQL_Criteria is
-   begin
-      return Self.Ce_Id = Foreign.Ce_Id;
+      return Self.Organization_Id = Foreign.Id;
    end FK;
 
    function FK (Self : T_Contactentity_Attributes'Class; Foreign : T_Organization_Contactentities'Class) return SQL_Criteria is
    begin
-      return Self.Ce_Id = Foreign.Ce_Id
-         and Self.Org_Id = Foreign.Org_Id;
+      return Self.Organization_Id = Foreign.Organization_Id
+         and Self.Contactentity_Id = Foreign.Contactentity_Id;
+   end FK;
+
+   function FK (Self : T_Contactentity_Attributes'Class; Foreign : T_Contactentity'Class) return SQL_Criteria is
+   begin
+      return Self.Contactentity_Id = Foreign.Id;
+   end FK;
+
+   function FK (Self : T_Contactentity_Recipient'Class; Foreign : T_Contactentity'Class) return SQL_Criteria is
+   begin
+      return Self.Contactentity_Id = Foreign.Id;
+   end FK;
+
+   function FK (Self : T_Contactentity_Recipient'Class; Foreign : T_Recipient'Class) return SQL_Criteria is
+   begin
+      return Self.Recipient_Id = Foreign.Id;
    end FK;
 
    function FK (Self : T_Organization_Contactentities'Class; Foreign : T_Organization'Class) return SQL_Criteria is
    begin
-      return Self.Org_Id = Foreign.Org_Id;
+      return Self.Organization_Id = Foreign.Id;
    end FK;
 
    function FK (Self : T_Organization_Contactentities'Class; Foreign : T_Contactentity'Class) return SQL_Criteria is
    begin
-      return Self.Ce_Id = Foreign.Ce_Id;
+      return Self.Contactentity_Id = Foreign.Id;
+   end FK;
+
+   function FK (Self : T_Recipient'Class; Foreign : T_Recipient_Kind'Class) return SQL_Criteria is
+   begin
+      return Self.Kind_Id = Foreign.Id;
    end FK;
 end Database;
