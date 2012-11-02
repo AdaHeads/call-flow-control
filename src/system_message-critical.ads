@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                            System_Message.Info                            --
+--                         System_Message.Critical                           --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -25,18 +25,20 @@ with HTTP_Codes;
 
 package System_Message.Critical is
 
-   Alice_Shutdown_With_Exception : Critical_Log_Object := Create
+   Alice_Shutdown_With_Exception : constant Critical_Log_Object := Create
      (Status => "Shutting down Alice due to unhandled exception");
 
-   Lost_Primary_Database : Critical_Log_Object := Create
+   Lost_Primary_Database : constant Critical_Log_Object := Create
      (Status => "Lost connection to primary database");
 
-   Lost_Secondary_Database : Critical_Log_And_Response_Object := Create
-     (Description => "Lost connection to both primary and secondary database",
-      Status      => "No database connection",
-      Status_Code => HTTP_Codes.Server_Error);
+   Lost_Secondary_Database : constant Critical_Log_And_Response_Object
+     := Create
+       (Description =>
+            "Lost connection to both primary and secondary database",
+        Status      => "No database connection",
+        Status_Code => HTTP_Codes.Server_Error);
 
-   Unknown_User : Critical_Log_Object := Create
+   Unknown_User : constant Critical_Log_Object := Create
      (Status => "Cannot change user for process");
 
 end System_Message.Critical;

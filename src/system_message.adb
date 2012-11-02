@@ -261,9 +261,9 @@ package body System_Message is
    --------------
 
    procedure Logger
-     (Status      : in String;
-      Tail        : in String;
-      Log_Trace   : in Yolk.Log.Trace_Handles)
+     (Status    : in String;
+      Tail      : in String;
+      Log_Trace : in Yolk.Log.Trace_Handles)
    is
       use Yolk.Log;
    begin
@@ -293,7 +293,7 @@ package body System_Message is
    --------------
 
    procedure Notify
-     (O : in Notice_Log_Object)
+     (O : in Log_Object'Class)
    is
    begin
       O.Notify (Message => "");
@@ -304,13 +304,13 @@ package body System_Message is
    --------------
 
    procedure Notify
-     (O       : in Notice_Log_Object;
+     (O       : in Log_Object'Class;
       Message : in String)
    is
    begin
-      Logger (Status      => To_String (O.Status),
-              Tail        => Message,
-              Log_Trace   => O.Log_Trace);
+      Logger (Status    => To_String (O.Status),
+              Tail      => Message,
+              Log_Trace => O.Log_Trace);
    end Notify;
 
    --------------
@@ -318,8 +318,8 @@ package body System_Message is
    --------------
 
    procedure Notify
-     (O      : in Notice_Log_Object;
-      Event  : in Ada.Exceptions.Exception_Occurrence)
+     (O     : in Log_Object'Class;
+      Event : in Ada.Exceptions.Exception_Occurrence)
    is
    begin
       O.Notify (Event   => Event,
@@ -331,7 +331,7 @@ package body System_Message is
    --------------
 
    procedure Notify
-     (O       : in Notice_Log_Object;
+     (O       : in Log_Object'Class;
       Event   : in Ada.Exceptions.Exception_Occurrence;
       Message : in String)
    is
@@ -357,7 +357,7 @@ package body System_Message is
    --------------
 
    procedure Notify
-     (O               : in     Notice_Response_Object;
+     (O               : in     Response_Object'Class;
       Response_Object :    out Response.Object)
    is
    begin
@@ -370,7 +370,7 @@ package body System_Message is
    --------------
 
    procedure Notify
-     (O               : in     Notice_Response_Object;
+     (O               : in     Response_Object'Class;
       Message         : in     String;
       Response_Object :    out Response.Object)
    is
@@ -388,12 +388,12 @@ package body System_Message is
    --------------
 
    procedure Notify
-     (O               : in     Notice_Response_Object;
+     (O               : in     Response_Object'Class;
       Event           : in     Ada.Exceptions.Exception_Occurrence;
       Response_Object :    out Response.Object)
    is
    begin
-      O.Notify (Event   => Event,
+      O.Notify (Event           => Event,
                 Message         => "",
                 Response_Object => Response_Object);
    end Notify;
@@ -403,7 +403,7 @@ package body System_Message is
    --------------
 
    procedure Notify
-     (O               : in     Notice_Response_Object;
+     (O               : in     Response_Object'Class;
       Event           : in     Ada.Exceptions.Exception_Occurrence;
       Message         : in     String;
       Response_Object :    out Response.Object)
@@ -431,7 +431,7 @@ package body System_Message is
    --------------
 
    procedure Notify
-     (O               : in     Notice_Log_And_Response_Object;
+     (O               : in     Log_And_Response_Object'Class;
       Response_Object :    out Response.Object)
    is
    begin
@@ -444,7 +444,7 @@ package body System_Message is
    --------------
 
    procedure Notify
-     (O               : in     Notice_Log_And_Response_Object;
+     (O               : in     Log_And_Response_Object'Class;
       Message         : in     String;
       Response_Object :    out Response.Object)
    is
@@ -467,12 +467,12 @@ package body System_Message is
    --------------
 
    procedure Notify
-     (O               : in     Notice_Log_And_Response_Object;
+     (O               : in     Log_And_Response_Object'Class;
       Event           : in     Ada.Exceptions.Exception_Occurrence;
       Response_Object :    out Response.Object)
    is
    begin
-      O.Notify (Event   => Event,
+      O.Notify (Event           => Event,
                 Message         => "",
                 Response_Object => Response_Object);
    end Notify;
@@ -482,7 +482,7 @@ package body System_Message is
    --------------
 
    procedure Notify
-     (O               : in     Notice_Log_And_Response_Object;
+     (O               : in     Log_And_Response_Object'Class;
       Event           : in     Ada.Exceptions.Exception_Occurrence;
       Message         : in     String;
       Response_Object :    out Response.Object)
@@ -503,477 +503,6 @@ package body System_Message is
 
       O.Notify (Message         => To_String (New_Msg),
                 Response_Object => Response_Object);
-   end Notify;
-
-   ---------------------------------------------
-   -- Notify procedures for Critical objects  --
-   ---------------------------------------------
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O : in Critical_Log_Object)
-   is
-   begin
-      Notify (Notice_Log_Object (O));
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O       : in Critical_Log_Object;
-      Message : in String)
-   is
-   begin
-      Notify (Notice_Log_Object (O), Message);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O     : in Critical_Log_Object;
-      Event : in Ada.Exceptions.Exception_Occurrence)
-   is
-   begin
-      Notify (Notice_Log_Object (O), Event, "");
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O       : in Critical_Log_Object;
-      Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String)
-   is
-   begin
-      Notify (Notice_Log_Object (O), Event, Message);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Critical_Response_Object;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Response_Object (O), Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Critical_Response_Object;
-      Message         : in     String;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Response_Object (O), Message, Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Critical_Response_Object;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Response_Object (O), Event, Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Critical_Response_Object;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Message         : in     String;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Response_Object (O), Event, Message, Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Critical_Log_And_Response_Object;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Log_And_Response_Object (O), Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Critical_Log_And_Response_Object;
-      Message         : in     String;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Log_And_Response_Object (O), Message, Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Critical_Log_And_Response_Object;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Log_And_Response_Object (O), Event, Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Critical_Log_And_Response_Object;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Message         : in     String;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify
-        (Notice_Log_And_Response_Object (O), Event, Message, Response_Object);
-   end Notify;
-
-   ------------------------------------------
-   -- Notify procedures for Error objects  --
-   ------------------------------------------
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O : in Error_Log_Object)
-   is
-   begin
-      Notify (Notice_Log_Object (O));
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O       : in Error_Log_Object;
-      Message : in String)
-   is
-   begin
-      Notify (Notice_Log_Object (O), Message);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O     : in Error_Log_Object;
-      Event : in Ada.Exceptions.Exception_Occurrence)
-   is
-   begin
-      Notify (Notice_Log_Object (O), Event, "");
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O       : in Error_Log_Object;
-      Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String)
-   is
-   begin
-      Notify (Notice_Log_Object (O), Event, Message);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Error_Response_Object;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Response_Object (O), Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Error_Response_Object;
-      Message         : in     String;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Response_Object (O), Message, Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Error_Response_Object;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Response_Object (O), Event, Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Error_Response_Object;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Message         : in     String;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Response_Object (O), Event, Message, Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Error_Log_And_Response_Object;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Log_And_Response_Object (O), Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Error_Log_And_Response_Object;
-      Message         : in     String;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Log_And_Response_Object (O), Message, Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Error_Log_And_Response_Object;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Log_And_Response_Object (O), Event, Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Error_Log_And_Response_Object;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Message         : in     String;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify
-        (Notice_Log_And_Response_Object (O), Event, Message, Response_Object);
-   end Notify;
-
-   -----------------------------------------
-   -- Notify procedures for Info objects  --
-   -----------------------------------------
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O : in Info_Log_Object)
-   is
-   begin
-      Notify (Notice_Log_Object (O));
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O       : in Info_Log_Object;
-      Message : in String)
-   is
-   begin
-      Notify (Notice_Log_Object (O), Message);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O     : in Info_Log_Object;
-      Event : in Ada.Exceptions.Exception_Occurrence)
-   is
-   begin
-      Notify (Notice_Log_Object (O), Event, "");
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O       : in Info_Log_Object;
-      Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String)
-   is
-   begin
-      Notify (Notice_Log_Object (O), Event, Message);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Info_Response_Object;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Response_Object (O), Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Info_Response_Object;
-      Message         : in     String;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Response_Object (O), Message, Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Info_Response_Object;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Response_Object (O), Event, Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Info_Response_Object;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Message         : in     String;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Response_Object (O), Event, Message, Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Info_Log_And_Response_Object;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Log_And_Response_Object (O), Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Info_Log_And_Response_Object;
-      Message         : in     String;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Log_And_Response_Object (O), Message, Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Info_Log_And_Response_Object;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify (Notice_Log_And_Response_Object (O), Event, Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Info_Log_And_Response_Object;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Message         : in     String;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Notify
-        (Notice_Log_And_Response_Object (O), Event, Message, Response_Object);
    end Notify;
 
 end System_Message;

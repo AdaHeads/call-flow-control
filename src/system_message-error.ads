@@ -25,22 +25,22 @@ with HTTP_Codes;
 
 package System_Message.Error is
 
-   Bad_Ce_Id_Key : Error_Log_And_Response_Object := Create
+   Bad_Ce_Id_Key : constant Error_Log_And_Response_Object := Create
      (Description => "ce_id must be a valid natural integer",
       Status      => "bad request",
       Status_Code => HTTP_Codes.Bad_Request);
 
-   Bad_Org_Id_Key : Error_Log_And_Response_Object := Create
+   Bad_Org_Id_Key : constant Error_Log_And_Response_Object := Create
      (Description => "org_id must be a valid natural integer",
       Status      => "bad request",
       Status_Code => HTTP_Codes.Bad_Request);
 
-   Generic_Constraint_Error : Error_Log_And_Response_Object := Create
+   Generic_Constraint_Error : constant Error_Log_And_Response_Object := Create
      (Description => "a constraint was violated",
       Status      => "bad request",
       Status_Code => HTTP_Codes.Bad_Request);
 
-   Unknown_Error : Error_Log_And_Response_Object := Create
+   Unknown_Error : constant Error_Log_And_Response_Object := Create
      (Description => "Exception raised while trying to generate content",
       Status      => "Server error",
       Status_Code => HTTP_Codes.Server_Error);
