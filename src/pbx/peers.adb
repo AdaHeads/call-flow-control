@@ -33,8 +33,7 @@ package body Peers is
                                return Peer_Type;
       function Get_Peer_By_PhoneName (PhoneName : in Unbounded_String)
                                       return Peer_Type;
-      procedure Replace_Peer (Item : in Peer_Type);
-      procedure Insert (New_Item : in Peer_Type);
+      procedure Insert (Item : in Peer_Type);
       function List_As_String return String;
    private
       List : Peer_List_Type.Map;
@@ -75,26 +74,17 @@ package body Peers is
          return List;
       end Get_Peers_List;
 
-      procedure Insert (New_Item : in Peer_Type) is
-      begin
-         System_Messages.Notify (Debug, "Inserted a new peer: " &
-                           To_String (New_Item.Peer));
-         Peer_List_Type.Insert (Container => List,
-                                Key       => New_Item.Peer,
-                                New_Item  => New_Item);
-      end Insert;
-
       function List_As_String return String is
          Result : Unbounded_String;
          CRLF : constant String := (ASCII.CR, ASCII.LF);
       begin
          for Item of List loop
-            Append (Result, Item.Peer & CRLF);
+            Append (Result, Image (Item) & CRLF);
          end loop;
          return To_String (Result);
       end List_As_String;
 
-      procedure Replace_Peer (Item : in Peer_Type) is
+      procedure Insert (Item : in Peer_Type) is
          use Peer_List_Type;
          Peer_Cursor : constant Peer_List_Type.Cursor :=
            Peer_List_Type.Find (List, Item.Peer);
@@ -103,8 +93,12 @@ package body Peers is
             Peer_List_Type.Replace_Element (Container => List,
                                             Position  => Peer_Cursor,
                                             New_Item  => Item);
+         else
+            Peer_List_Type.Insert (Container => List,
+                                   Key       => Item.Peer,
+                                   New_Item  => Item);
          end if;
-      end Replace_Peer;
+      end Insert;
    end Peers_List;
 
    --  TODO change it to use a database.
@@ -156,7 +150,7 @@ package body Peers is
       return 
         "Agent_ID => " & To_String(Item.Agent_ID) & ", " &
         "Defined => " & Item.Defined'Img & ", " &
-        "Status => " & Item.Status'Img  & ", " &
+        "Status => " & Item.State'Img  & ", " &
         "ChannelType => " & To_String (Item.ChannelType) & ", " &
         "Peer => " & To_String (Item.Peer) & ", " &
         
@@ -201,8 +195,4 @@ package body Peers is
       return Peers_List.List_As_String;
    end List_As_String;
 
-   procedure Replace_Peer (Item : in Peer_Type) is
-   begin
-      Peers_List.Replace_Peer (Item);
-   end Replace_Peer;
 end Peers;

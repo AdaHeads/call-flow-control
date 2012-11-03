@@ -41,6 +41,8 @@ package My_Configuration is
                  DB2_Password,
                  DB2_Port,
                  DB2_User,
+                 Handler_Agent,
+                 Handler_Agent_List,
                  Handler_Call_Hangup,
                  Handler_Call_Pickup,
                  Handler_Call_Hold,
@@ -83,6 +85,10 @@ package My_Configuration is
                        => U ("5432"),
                        DB2_User
                        => U ("alice"),
+                       Handler_Agent
+                       => U ("/agent"),
+                       Handler_Agent_List
+                       => U ("/agent/list"),
                        Handler_Call_Hangup
                        => U ("/call/hangup"),
                        Handler_Call_Hold

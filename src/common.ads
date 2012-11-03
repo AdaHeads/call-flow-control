@@ -21,9 +21,12 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Calendar;
 with Ada.Strings.Unbounded;
 
 package Common is
+
+   function Current_Time return Ada.Calendar.Time renames Ada.Calendar.Clock;
 
    function U
      (S : in String)

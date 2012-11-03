@@ -150,7 +150,7 @@ package body AMI.Action is
      --  But is the SIP phone registered?
      System_Messages.Notify (Debug, "Get_Call - Agent_ID: " & Agent_Id &
 			       " ask for Call_ID: " & Unique_Id);
-     if Peer.Status = Unregistered then
+     if Peer.State = Unregistered then
 	System_Messages.Notify (Debug, "Get_Call: " &
 				  "The following agent is unregistred: " & Agent_Id);
 	Status := Unregistered_Agent;

@@ -111,7 +111,8 @@ package AMI.Parser is
    subtype AMI_Header_Key_Type is AMI_Key_Type range Event .. Response;
    --  Only these are allowed as headers
    
-   BAD_LINE_FORMAT : exception;
+   BAD_LINE_FORMAT   : exception;
+   BAD_PACKET_FORMAT : exception;
    --  Raised when a malformatted line is encountered by the parser
    
    type Pair_Type is

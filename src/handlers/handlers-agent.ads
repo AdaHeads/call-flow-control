@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                             Call_Queue_JSON                               --
+--                              Handlers.Agent                               --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,48 +21,18 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Calendar;
-with Common;
+with AWS.Response;
+with AWS.Status;
 
-with Peers;
-with Call_List;
+package Handlers.Agent is
 
-package Event_JSON is
-   use Common;
+   function Agent
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --  Returns the agent requested.
 
-   --  ----------------------  --
-   --  Call related functions  --
-   --  ----------------------  --
-
-   function Hangup_JSON_String (Call : in Call_List.Call_Type)
-                               return JSON_String;
-   function New_Call_JSON_String (Call : in Call_List.Call_Type)
-                                return JSON_String;
-   
-   function Pickup_Call_JSON_String (Call  : in Call_List.Call_Type;
-                                     Agent : in Peers.Peer_Type)
-                                return JSON_String;
-   
-   function Hold_Call_JSON_String (Call  : in Call_List.Call_Type)
-                                  return JSON_String;
-   
-   function Transfer_Call_JSON_String (Call  : in Call_List.Call_Type)
-                                      return JSON_String;
-
-   --  ----------------------  --
-   --  Call related functions  --
-   --  ----------------------  --
-
-   function Agent_State_JSON_String (Agent : in Peers.Peer_Type)
-                                    return JSON_String;
-private
-   --  function To_JSON_Object (Call : in Call_List.Call_Type)
-   --                           return GNATCOLL.JSON.JSON_Value;
-   --  takes a call and converts it to a JSON object.
-   
-   function Unix_Timestamp
-     (Date : in Ada.Calendar.Time)
-     return String;
-   --  Convert and trim an Ada.Calendar.Time type to a Unix timestamp
-   --  String.
-end Event_JSON;
+   function Agent_List
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --  Return the current list of agents.
+end Handlers.Agent;

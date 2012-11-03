@@ -13,7 +13,7 @@ with Event_JSON;
 
 package body My_Callbacks is
    use System_Messages;
-   --  use Ada.Strings.Unbounded;
+   use Ada.Strings.Unbounded;
    use Call_List;
    use Ada.Exceptions;
    --   use AMI.IO;
@@ -38,8 +38,6 @@ package body My_Callbacks is
    procedure Peer_Status (Packet : in Packet_Type) is
       use Peers.Peer_List_Type;
       use Ada.Strings.Unbounded;
-      Peer    : Peer_Type;
-      Map_Key : Unbounded_String;
 
       --  Extracts the channel type, and the phonename,
       --    and saves them in the peer. Format: ChannelType/phonename
@@ -65,98 +63,62 @@ package body My_Callbacks is
          end if;
       end Set_PhoneInfo;
 
-      Temp_Value : Unbounded_String;
+      Peer      : Peer_Type;
+      Map_Key   : Unbounded_String;
+      Buffer    : Unbounded_String;
    begin
 
       System_Messages.Notify(Debug,"My_Callbacks.Peer_Status");
 
-      if Try_Get (Packet.Fields, AMI.Parser.Peer, Temp_Value) then
-	 Set_PhoneInfo (Peer, Temp_Value);
+      if Try_Get (Packet.Fields, AMI.Parser.Peer, Buffer) then
+	 Set_PhoneInfo (Peer, Buffer);
 	 Map_Key := Peer.Peer;
       end if;
 
-      declare
-         Temp_Peer : Peer_Type;
-      begin
-         Temp_Peer := Peers.Get_Peer_By_PhoneName (Map_Key);
-
-         if Temp_Peer /= Peers.Null_Peer then
-            --  Update the timestamp
-            Peer.Last_Seen := Current_Time;
-            Peer := Temp_Peer;
-            Peers.Replace_Peer (Item => Peer);
-            System_Messages.Notify (Debug, "Peer found: [" &
-                                      To_String (Map_Key) & "]");
-            return;
-
-         else
-            System_Messages.Notify (Debug, "Peer not found: [" &
-                                      To_String (Map_Key) & "]");
-            System_Messages.Notify (Debug, Peers.List_As_String);
-         end if;
-      exception
-         when E : others =>
-            System_Messages.Notify 
-	      (Debug, Exception_Name (E) & "|:|" &
-		 Exception_Message (E));
-      end;
-
-      if Try_Get (Packet.Fields, AMI.Parser.Address, Temp_Value) then
-	 Peer.Address := Packet.Fields.Element(Address);
+      -- Update fields
+      Peer.Last_Seen := Current_Time;
+      if Try_Get (Packet.Fields, AMI.Parser.Address, Buffer) then
+         Peer.Address := Packet.Fields.Element(Address);
       end if;
-
-      if Try_Get (Packet.Fields, AMI.Parser.Port, Temp_Value) then
-	 Peer.Port := Packet.Fields.Element(Port);
+      
+      if Try_Get (Packet.Fields, AMI.Parser.Port, Buffer) then
+         Peer.Port := Packet.Fields.Element(Port);
       end if;
 
       --  Setting the State - Registrated or not.
-      if Try_Get (Packet.Fields, AMI.Parser.PeerStatus, Temp_Value) then
-	 if To_String (Temp_Value) = "Unregistered"  then
-	    Peer.Status := Unregistered;
+      if Try_Get (Packet.Fields, AMI.Parser.PeerStatus, Buffer) then
+         --  Save the previous state.
+         Peer.Last_State := Peer.State;
+	 if To_String (Buffer) = "Unregistered"  then
+	    Peer.State := Unregistered;
 	    
 	    System_Messages.Notify 
 	      (Debug,
 	       "Got peer: " & To_String (Peer.Peer) &
 		 " with unregistrered status");
 	    
-	 elsif To_String (Temp_Value) = "Registered" then
-	    Peer.Status := Idle;
+	 elsif To_String (Buffer) = "Registered" then
+	    Peer.State := Idle;
+         else
+            Peer.State := Unknown;
+            System_Messages.Notify
+              (Error, "My_Callbacks.Peer_Status: Peer in unknown state " & 
+                 Image(Peer));
+         end if;
 
-            System_Messages.Notify 
-	      (Debug,
-	       "Got peer: " & To_String (Peer.Peer) &
-		 " with registrered status");
-	    
-	 else
-	    System_Messages.Notify 
-	      (Debug, "Peer Status, unknown state: " &
-		 To_String (Temp_Value));
-	 end if;
+         System_Messages.Notify
+           (Debug, "My_Callbacks.Peer_Status: Inserted " & Image(Peer));
+
+         Peers.Insert_Peer (New_Item => Peer);
       else
-	 System_Messages.Notify 
-	   (Information,
-	    "PeerStatus_CallbackHandler had no PeerStatus");
+         System_Messages.Notify
+           (Error, "My_Callbacks.Peer_Status: No state information supplied " &
+              Image(Packet));
+         raise Bad_Packet_Format;
       end if;
-      --  Gathering Extension.
-      declare
-	 Exten : Unbounded_String;
-      begin
-	 Exten := Peers.Get_Exten (Peer.Peer);
-	 if Exten = Null_Unbounded_String then
-	    System_Messages.Notify (Warning,
-				    "There is not registrated any extension" &
-                                      " to agent: "
-				      & To_String (Peer.Peer));
-	    raise Program_Error;
-	 else
-	    Peer.Exten := Exten;
-	 end if;
-      end;
-      --  Insert Timestamp
-      Peer.Last_Seen := Current_Time;
-      Peers.Insert_Peer (Peer);
-      System_Messages.Notify (Debug, "Peer list: " & 
-                                Peers.List_As_String);
+      
+      --  Let the clients know about the change
+      Notifications.Broadcast (Event_JSON.Agent_State_JSON_String (Peer) );
    end Peer_Status;
    
    --  Lists agents
@@ -220,20 +182,16 @@ package body My_Callbacks is
 	 if Call = Null_Call then
 	    System_Messages.Notify 
 	      (Information,
-	       "Got a hangup on a call, that was not in the Calls list." &
-                 " Uniqueid: " & To_String (Call_ID));
+	       Package_Name & ".Hangup: Not in the Calls list: " &
+                 " Call_ID: " & To_String (Call_ID));
 	 else
 	 System_Messages.Notify 
-	   (Debug, "This call have been hangup: " &
-	      "Channel: " & To_String (Call.Channel) &
-	      "UniqueID: " & To_String (Call.Uniqueid));
+	   (Debug, Package_Name & ".Hangup: Hung up " & Image (Call) );
 	    
          end if;
       else
-	 System_Messages.Notify
-	   (Information,
-	    "Got a hangup on a call, that was not in the Calls list." &
-	      " Uniqueid: " & To_String (Call_ID));
+         --  At the very least, we require an identifier for the call.
+         raise BAD_PACKET_FORMAT;
       end if;
       Notifications.Broadcast(Event_JSON.Hangup_JSON_String(Call));
    end Hangup;
@@ -373,9 +331,50 @@ package body My_Callbacks is
       raise NOT_IMPLEMENTED;
    end SIPPeers;
    
-   procedure New_State  (Packet : in Packet_Type) is
+   procedure New_State (Packet : in Packet_Type) is
    begin
       System_Messages.Notify (Debug, "My.Callbacks.New_State not implemented");
    end New_State;
    
+   --  Event: QueueCallerAbandon
+   --  Privilege: agent,all
+   --  Queue: org_id2
+   --  Uniqueid: 1351853779.111
+   --  Position: 1
+   --  OriginalPosition: 1
+   --  HoldTime: 14
+   procedure Queue_Abandon (Packet : in Packet_Type) is
+      Call              : Call_Type := Null_Call;
+      Buffer            : Unbounded_String := Null_Unbounded_String;
+      Queue             : Unbounded_String := Null_Unbounded_String;
+      Position          : Integer := -1;
+      Original_Position : Integer := -1;
+      Hold_Time         : Integer := -1;
+   begin
+      if Try_Get (Packet.Fields, AMI.Parser.UniqueID, Buffer) then
+         Call.Uniqueid := Buffer;
+      end if;
+
+      if Try_Get (Packet.Fields, AMI.Parser.Position, Buffer) then
+         Position := Integer'Value (To_String (Buffer) );
+      end if;
+      
+      if Try_Get (Packet.Fields, AMI.Parser.Queue, Buffer) then
+         Queue := Buffer;
+      end if;
+      
+      if Try_Get (Packet.Fields, AMI.Parser.OriginalPosition, Buffer) then
+         Original_Position := Integer'Value (To_String (Buffer) );
+      end if;
+      
+      if Try_Get (Packet.Fields, AMI.Parser.HoldTime, Buffer) then
+         Hold_Time := Integer'Value (To_String (Buffer) );
+      end if;
+      
+      System_Messages.Notify (Debug, "My.Callbacks.Queue_Abandon: Call_ID " &
+                                To_String (Call.UniqueID) & " left queue " &
+                                To_String (Queue) & " after" & Hold_Time'Img &
+                                " seconds. Position:" & Position'Img & "," &
+                                " original position" & Original_Position'Img);
+   end Queue_Abandon;
 end My_Callbacks;

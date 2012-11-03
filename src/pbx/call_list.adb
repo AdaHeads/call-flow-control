@@ -168,6 +168,7 @@ package body Call_List is
                                          Count     => 1);
                   return;
                end if;
+               Call_List_Type.Next(Cursor);
             end loop;
          end;
 

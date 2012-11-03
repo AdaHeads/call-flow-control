@@ -5,6 +5,8 @@ with AMI.Parser;
 package My_Callbacks is
    use AMI.Parser;
    
+   Package_Name : constant String := "My_Callbacks";
+   
    NOT_IMPLEMENTED              : exception;
 
    --  Callbacks
@@ -16,6 +18,7 @@ package My_Callbacks is
    procedure New_Channel (Packet : in Packet_Type);
    procedure New_State   (Packet : in Packet_Type);
    
+   procedure Queue_Abandon (Packet : in Packet_Type);
    --  procedure Unlink_Callback     (Event_List : in Event_List_Type.Map);
    
 --   procedure SIPPeers;

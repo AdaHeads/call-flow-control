@@ -32,7 +32,7 @@ package Peers is
    use Ada.Containers;
    use Ada.Strings.Unbounded;
 
-   type SIP_Peer_Status_Type is (Unregistered, Idle, Busy, Paused);
+   type SIP_Peer_Status_Type is (Unknown, Unregistered, Idle, Busy, Paused);
 
    package Call_List is new
      Ada.Containers.Vectors (Index_Type   => Positive,
@@ -43,7 +43,8 @@ package Peers is
       record
          Agent_ID     : Unbounded_String;
          Defined      : Boolean := False;
-         Status       : SIP_Peer_Status_Type := Unregistered;
+         State        : SIP_Peer_Status_Type := Unregistered;
+         Last_State   : SIP_Peer_Status_Type := Unknown;
          ChannelType  : Unbounded_String;
          Peer         : Unbounded_String;
          Port         : Unbounded_String;
@@ -59,7 +60,8 @@ package Peers is
    Null_Peer : Peer_Type :=
                  (Agent_ID     => Null_Unbounded_String,
                   Defined      => False,
-                  Status       => Unregistered,
+                  State        => Unregistered,
+                  Last_State   => Unknown,
                   ChannelType  => Null_Unbounded_String,
                   Peer         => Null_Unbounded_String,
                   Port         => Null_Unbounded_String,
@@ -87,7 +89,8 @@ package Peers is
    function Image (Item : in Peer_Type) Return String;
    --     procedure Print_Peer (Peer : in Peer_Type);
    procedure Insert_Peer (New_Item : in Peer_Type);
-   procedure Replace_Peer (Item : in Peer_Type);
+   --  Inserts a new peer in the peer list, and overwrites existing peers with
+   --  the same key.
 
    --  Debug
    function List_As_String return String;

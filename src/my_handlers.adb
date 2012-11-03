@@ -29,6 +29,8 @@ with Notifications;
 with Organization;
 with Organization_List;
 with Yolk.Not_Found;
+
+with Handlers.Agent;
 with Call_Queue;
 
 package body My_Handlers is
@@ -101,13 +103,25 @@ package body My_Handlers is
          URI        => Config.Get (Handler_Call_Queue),
          Action     => Create
            (Callback => Call_Queue.Get_Queue'Access));
-      
+
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => Config.Get (Handler_Call_List),
          Action     => Create
            (Callback => Call_Queue.Get_Call_List'Access));
-      
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => Config.Get (Handler_Agent_List),
+         Action     => Create
+           (Callback => Handlers.Agent.Agent_List'Access));
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => Config.Get (Handler_Agent),
+         Action     => Create
+           (Callback => Handlers.Agent.Agent'Access));
+
       --------------------------
       --  WebSocket handlers  --
       --------------------------

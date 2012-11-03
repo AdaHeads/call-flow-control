@@ -28,13 +28,14 @@ package body PBX is
    Reader    : Reader_Task;
 
    Callbacks : constant AMI.Event.Event_Callback_Table :=
-     (PeerStatus => My_Callbacks.Peer_Status'Access,
-      Hangup     => My_Callbacks.Hangup'Access,
-      Join       => My_Callbacks.Join'Access,
-      Newchannel => My_Callbacks.New_Channel'Access,
-      Newstate   => My_Callbacks.New_State'Access,
-      Dial       => My_Callbacks.Dial'Access,
-      others     => AMI.Event.Null_Callback'Access);
+     (PeerStatus         => My_Callbacks.Peer_Status'Access,
+      Hangup             => My_Callbacks.Hangup'Access,
+      Join               => My_Callbacks.Join'Access,
+      Newchannel         => My_Callbacks.New_Channel'Access,
+      Newstate           => My_Callbacks.New_State'Access,
+      Dial               => My_Callbacks.Dial'Access,
+      QueueCallerAbandon => My_Callbacks.Queue_Abandon'Access,
+      others             => AMI.Event.Null_Callback'Access);
 
    procedure Authenticate;
    procedure Dispatch (Client : access Client_Type;
@@ -67,25 +68,25 @@ package body PBX is
          AMI.Event.Dispatch (Callback_Table => Callbacks,
                              Packet         => Packet);
       else
-         System_Messages.Notify (Error, "Main.Dispatch: Bad header " &
+         System_Messages.Notify (Error, "PBX.Dispatch: Bad header " &
                                    Packet.Header.Key'Img);
       end if;
    exception
-      when Error : others =>
+      when E : others =>
          System_Messages.Notify
-           (Debug, "Main.Dispatch: Unexpected exception: ");
+           (Error, "PBX.Dispatch: Unexpected exception: ");
          System_Messages.Notify
-           (Debug, Ada.Exceptions.Exception_Information (Error));
+           (Error, Ada.Exceptions.Exception_Information (E));
          System_Messages.Notify
-           (Debug, "");
+           (Error, "");
          System_Messages.Notify
-           (Debug, "------------ Packet dump start ------");
+           (Error, "------------ Packet dump start ------");
          System_Messages.Notify
-           (Debug, Image (Packet));
+           (Error, Image (Packet));
          System_Messages.Notify
-           (Debug, "------------ Packet dump end ------");
+           (Error, "------------ Packet dump end ------");
          System_Messages.Notify
-           (Debug, "");
+           (Error, "");
    end Dispatch;
 
    procedure Parser_Loop is
@@ -98,9 +99,9 @@ package body PBX is
       when E : AWS.Net.Socket_Error =>
          if not Shutdown then
             System_Messages.Notify
-              (Debug, "Reader_Loop: Unexpected exception: ");
+              (Error, "PBX.Reader_Loop: Socket disconnected! ");
             System_Messages.Notify
-              (Debug, Ada.Exceptions.Exception_Information (E));
+              (Error, Ada.Exceptions.Exception_Information (E));
             Reconnect;
          end if;
    end Parser_Loop;
@@ -110,7 +111,7 @@ package body PBX is
       Client.Connected := False;
       if not Shutdown then
          System_Messages.Notify
-           (Information, "Reader_Loop: Signalling disconnect: ");
+           (Information, "PBX.Reader_Loop: Signalling disconnect: ");
 
          My_Connection_Manager.Signal_Disconnect;
          Authenticate;
@@ -127,20 +128,18 @@ package body PBX is
    exception
       when E : others =>
          System_Messages.Notify
-           (Error, "Reader: Unexpected exception: ");
+           (Critical, "PBX.Reader_Task: Unexpected exception: ");
          System_Messages.Notify
-           (Error, Ada.Exceptions.Exception_Information (E));
+           (Critical, Ada.Exceptions.Exception_Information (E));
    end Reader_Task;
 
    procedure Start is
    begin
-
       My_Connection_Manager.Start;
 
       --  Initial authentication
       Authenticate;
       Reader.Start;
-
    end Start;
 
    procedure Status is
