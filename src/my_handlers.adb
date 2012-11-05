@@ -21,19 +21,21 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+
 with AWS.Dispatchers.Callback;
 with AWS.Net.WebSocket.Registry;
-with Contact;
 with My_Configuration;
-with Notifications;
 with Organization;
 with Organization_List;
 with Yolk.Not_Found;
 
 with Handlers.Agent;
-with Call_Queue;
+with Handlers.Call;
+with Contact;
+with Handlers.Notifications;
 
 package body My_Handlers is
+   use Handlers;
 
    -----------
    --  Set  --
@@ -69,19 +71,19 @@ package body My_Handlers is
         (Dispatcher => RH,
          URI        => Config.Get (Handler_Call_Hangup),
          Action     => Create
-           (Callback => Call_Queue.Call_Hangup'Access));
+           (Callback => Call.Hangup'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => Config.Get (Handler_Call_Hold),
          Action     => Create
-           (Callback => Call_Queue.Call_Hold'Access));
+           (Callback => Call.Hold'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => Config.Get (Handler_Call_Pickup),
          Action     => Create
-           (Callback => Call_Queue.Call_Pickup'Access));
+           (Callback => Call.Pickup'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
@@ -102,25 +104,25 @@ package body My_Handlers is
         (Dispatcher => RH,
          URI        => Config.Get (Handler_Call_Queue),
          Action     => Create
-           (Callback => Call_Queue.Get_Queue'Access));
+           (Callback => Call.Queue'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => Config.Get (Handler_Call_List),
          Action     => Create
-           (Callback => Call_Queue.Get_Call_List'Access));
+           (Callback => Call.List'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => Config.Get (Handler_Agent_List),
          Action     => Create
-           (Callback => Handlers.Agent.Agent_List'Access));
+           (Callback => Agent.Agent_List'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
          URI        => Config.Get (Handler_Agent),
          Action     => Create
-           (Callback => Handlers.Agent.Agent'Access));
+           (Callback => Agent.Agent'Access));
 
       --------------------------
       --  WebSocket handlers  --
