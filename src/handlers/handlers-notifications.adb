@@ -24,7 +24,7 @@
 with AWS.Net.WebSocket.Registry;
 with System_Message.Info;
 
-package body Notifications is
+package body Handlers.Notifications is
 
    type Object is new AWS.Net.WebSocket.Object with null record;
 
@@ -107,4 +107,4 @@ package body Notifications is
       Info.Notifications_WebSocket_Opened.Notify;
    end On_Open;
 
-end Notifications;
+end Handlers.Notifications;

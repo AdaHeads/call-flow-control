@@ -6,7 +6,7 @@ with Ada.Exceptions;
 --with AMI.Protocol;
 with Call_List;
 with Peers;
-with Notifications;
+with Handlers.Notifications;
 with Common;
 
 with Event_JSON;
@@ -19,6 +19,7 @@ package body My_Callbacks is
    --   use AMI.IO;
    use Peers;
    --   use Yolk.Log;
+   package Notifications renames Handlers.Notifications;
 
    function Current_Time return Ada.Calendar.Time renames Ada.Calendar.Clock;
 

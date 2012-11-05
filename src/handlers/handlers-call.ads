@@ -24,32 +24,32 @@
 with AWS.Response;
 with AWS.Status;
 
-package Call_Queue is
+package Handlers.Call is
 
-   function Call_Hangup
+   function Hangup
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
    --  TODO: Write comment
 
-   function Call_Hold
+   function Hold
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
    --  Put current call on hold.
 
-   function Call_Pickup
+   function Pickup
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
    --  Pickup either the oldest call in the queue, or the call identified by
    --  the call_id GET parameter.
 
-   function Get_Call_List
+   function List
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
    --  Returns the full call list, regardless of state.
 
-   function Get_Queue
+   function Queue
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
    --  Return the current list of calls queued.
 
-end Call_Queue;
+end Handlers.Call;

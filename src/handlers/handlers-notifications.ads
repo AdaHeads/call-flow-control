@@ -25,7 +25,7 @@ with AWS.Net.WebSocket;
 with AWS.Status;
 with Common;
 
-package Notifications is
+package Handlers.Notifications is
 
    function Create
      (Socket  : in AWS.Net.Socket_Access;
@@ -39,4 +39,4 @@ package Notifications is
    --  Broadcasts JSON to every client connected to the /notifications
    --  WebSocket.
 
-end Notifications;
+end Handlers.Notifications;

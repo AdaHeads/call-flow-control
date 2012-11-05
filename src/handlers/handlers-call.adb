@@ -34,17 +34,17 @@ with PBX;
 
 with System_Messages;
 
-package body Call_Queue is
+package body Handlers.Call is
    use System_Messages;
    use AMI.Action;
 
    package Routines renames AMI.Action;
 
-   -------------------
-   --  Call_Hangup  --
-   -------------------
+   --------------
+   --  Hangup  --
+   --------------
 
-   function Call_Hangup
+   function Hangup
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
@@ -136,13 +136,13 @@ package body Call_Queue is
          Response_Object.Set_Content (JSON);
 
          return Response_Object.Build;
-   end Call_Hangup;
+   end Hangup;
 
-   -----------------
-   --  Call_Hold  --
-   -----------------
+   ------------
+   --  Hold  --
+   ------------
 
-   function Call_Hold
+   function Hold
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
@@ -193,13 +193,13 @@ package body Call_Queue is
       --  ???? No exception handler? Is the caller of Call_Hold expected to
       --  deal with unhandled issues happening in for example Routines.Park,
       --  Parameters, Call_Queue_JSON.Status_Message or Build_JSON_Response?
-   end Call_Hold;
+   end Hold;
 
-   -------------------
-   --  Call_Pickup  --
-   -------------------
+   --------------
+   --  Pickup  --
+   --------------
 
-   function Call_Pickup
+   function Pickup
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
@@ -251,13 +251,13 @@ package body Call_Queue is
       Response_Object.Set_Content (JSON);
 
       return Response_Object.Build;
-   end Call_Pickup;
+   end Pickup;
 
-   -----------------
-   --  Get_Queue  --
-   -----------------
+   -------------
+   --  Queue  --
+   -------------
 
-   function Get_Queue
+   function Queue
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
@@ -282,9 +282,9 @@ package body Call_Queue is
       Response_Object.Set_Content (JSON);
 
       return Response_Object.Build;
-   end Get_Queue;
+   end Queue;
 
-   function Get_Call_List
+   function List
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
@@ -309,6 +309,5 @@ package body Call_Queue is
       Response_Object.Set_Content (JSON);
 
       return Response_Object.Build;
-   end Get_Call_List;
-
-end Call_Queue;
+   end List;
+end Handlers.Call;
