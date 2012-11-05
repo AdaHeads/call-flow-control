@@ -23,4 +23,16 @@
 
 package body Model.Contact is
 
+   -----------
+   --  Get  --
+   -----------
+
+   function Get
+     (Ce_Id : in Natural)
+      return Contact_Entity
+   is
+   begin
+      null;
+   end Get;
+
 end Model.Contact;

@@ -23,4 +23,21 @@
 
 package Model.Contact is
 
+   type Contact_Entity is
+      record
+         Ce_Id                   : Natural;
+         Ce_Id_Column_Name       : Unbounded_String;
+         Ce_Name                 : Unbounded_String;
+         Ce_Name_Column_Name     : Unbounded_String;
+         Is_Human                : Boolean;
+         Is_Human_Column_Name    : Unbounded_String;
+         Attr_JSON               : JSON_Value;
+         Attr_Org_Id             : Natural;
+         Attr_Org_Id_Column_Name : Unbounded_String;
+      end record;
+
+   function Get
+     (Ce_Id : in Natural)
+      return Contact_Entity;
+
 end Model.Contact;
