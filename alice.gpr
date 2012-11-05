@@ -60,7 +60,6 @@ project Alice is
               use ("-gnatwa",
                    "-gnata",
                    "-gnatVa",
---                   "-gnaty3abcdefhiklmnoprstux",
                    "-Wall",
                    "-O1",
                    "-gnat2012",
