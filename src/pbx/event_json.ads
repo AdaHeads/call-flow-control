@@ -25,28 +25,29 @@ with Ada.Calendar;
 with Common;
 
 with Peers;
-with Call_List;
+with Model.Call;
 
 package Event_JSON is
    use Common;
+   use Model.Call;
 
    --  ----------------------  --
    --  Call related functions  --
    --  ----------------------  --
 
-   function Hangup_JSON_String (Call : in Call_List.Call_Type)
+   function Hangup_JSON_String (Call : in Call_Type)
                                return JSON_String;
-   function New_Call_JSON_String (Call : in Call_List.Call_Type)
+   function New_Call_JSON_String (Call : in Call_Type)
                                 return JSON_String;
    
-   function Pickup_Call_JSON_String (Call  : in Call_List.Call_Type;
+   function Pickup_Call_JSON_String (Call  : in Call_Type;
                                      Agent : in Peers.Peer_Type)
                                 return JSON_String;
    
-   function Hold_Call_JSON_String (Call  : in Call_List.Call_Type)
+   function Hold_Call_JSON_String (Call  : in Call_Type)
                                   return JSON_String;
    
-   function Transfer_Call_JSON_String (Call  : in Call_List.Call_Type)
+   function Transfer_Call_JSON_String (Call  : in Call_Type)
                                       return JSON_String;
 
    --  ----------------------  --

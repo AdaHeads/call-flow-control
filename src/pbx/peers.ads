@@ -26,7 +26,7 @@ with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Vectors;
 with Ada.Strings.Hash;
 with Ada.Strings.Unbounded;
-with Call_List;
+with Model.Call;
 
 package Peers is
    use Ada.Containers;
@@ -36,8 +36,8 @@ package Peers is
 
    package Call_List is new
      Ada.Containers.Vectors (Index_Type   => Positive,
-                             Element_Type => Call_List.Call_Type,
-                             "="          => Call_List."=");
+                             Element_Type => Model.Call.Call_Type,
+                             "="          => Model.Call."=");
 
    type Peer_Type is
       record

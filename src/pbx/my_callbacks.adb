@@ -21,27 +21,25 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with System_Messages;
-with Ada.Calendar;
 with Ada.Strings.Unbounded;
 
---  with AMI.Protocol;
-with Call_List;
+with Common; 
+with System_Messages;
+
+with Model.Call;
 with Peers;
 with Handlers.Notifications;
 
 with Event_JSON;
 
 package body My_Callbacks is
-
+   use Common;
    use System_Messages;
    use Ada.Strings.Unbounded;
-   use Call_List;
+   use Model.Call;
    --   use AMI.IO;
    use Peers;
    --   use Yolk.Log;
-
-   function Current_Time return Ada.Calendar.Time renames Ada.Calendar.Clock;
 
    package Notifications renames Handlers.Notifications;
 
@@ -106,7 +104,7 @@ package body My_Callbacks is
       --  Temp_Value : Unbounded_String;
    begin
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Call_ID) then
-         Call := Call_List.Remove (Call_ID);
+         Call := Remove (Call_ID);
 
          if Call = Null_Call then
             System_Messages.Notify
@@ -140,7 +138,7 @@ package body My_Callbacks is
    begin
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Temp_Value) then
          --  The call should exsists at this point.
-         Call := Call_List.Get_Call (Temp_Value);
+         Call := Get_Call (Temp_Value);
       end if;
 
       --  There are no call with that ID, something is wrong.
@@ -162,16 +160,16 @@ package body My_Callbacks is
          return;
       end if;
 
-      if Call.State = Call_List.Unknown then
+      if Call.State = Unknown then
          System_Messages.Notify
            (Debug, "My_Callbacks.Join: Call unknown state");
-         Call.State := Call_List.Queued;
+         Call.State := Queued;
 
          if Try_Get (Packet.Fields, AMI.Parser.Queue, Temp_Value) then
             Call.Queue := Temp_Value;
          end if;
 
-      elsif Call.State = Call_List.OnHold then
+      elsif Call.State = OnHold then
          null;
       else
          System_Messages.Notify
@@ -180,7 +178,7 @@ package body My_Callbacks is
       end if;
       System_Messages.Notify
         (Debug, "My_Callbacks.Join: Call Updated: " & Image (Call));
-      Call_List.Update (Call);
+      Update (Call);
       Notifications.Broadcast (Event_JSON.New_Call_JSON_String (Call));
    end Join;
 
@@ -217,7 +215,7 @@ package body My_Callbacks is
       --  Save the time when the call came in.
       Call.Arrived := Current_Time;
       Call.State := Unknown;
-      Call_List.Add (Call);
+      Add (Call);
    end New_Channel;
 
    procedure New_State

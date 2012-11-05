@@ -22,13 +22,14 @@
 -------------------------------------------------------------------------------
 
 with AWS.Messages;
-with Call_List;
 with Call_Queue_JSON;
 with Common;
 with HTTP_Codes;
 with Response;
 
 with AMI.Action;
+
+with Model.Call;
 
 with PBX;
 
@@ -208,7 +209,6 @@ package body Handlers.Call is
 
       JSON            : JSON_String;
       Response_Object : Response.Object := Response.Factory (Request);
-      Queue           : Call_List.Call_List_Type.Vector;
       --  ???? Odd naming. See ???? comment for Call_List.Call_List_Type.
    begin
       --  ???? If we're ultimately just interested in getting a queue JSON
@@ -216,9 +216,8 @@ package body Handlers.Call is
       --  hassle of getting a Call_List_Type.Vector? Do we need this here?
       --  Why not just have a function in the Call_List package that return
       --  the final JSON and use that directly in the Build_JSON_Response call?
-      Queue := Call_List.Get;
 
-      JSON := Call_Queue_JSON.To_JSON_String (Queue);
+      JSON := Call_Queue_JSON.To_JSON_String (Model.Call.Get);
 
       Response_Object.Set_HTTP_Status_Code (OK);
       Response_Object.Set_Content (JSON);
@@ -235,7 +234,7 @@ package body Handlers.Call is
       return AWS.Response.Data
    is
       use AWS.Status;
-      use Call_List;
+      use Model.Call;
       use Common;
       use HTTP_Codes;
 
@@ -297,17 +296,13 @@ package body Handlers.Call is
 
       JSON            : JSON_String;
       Response_Object : Response.Object := Response.Factory (Request);
-      Queue           : Call_List.Call_List_Type.Vector;
-      --  ???? Odd naming. See ???? comment for Call_List.Call_List_Type.
    begin
       --  ???? If we're ultimately just interested in getting a queue JSON
       --  document, be it empty or filled with calls, why go through all the
       --  hassle of getting a Call_List_Type.Vector? Do we need this here?
       --  Why not just have a function in the Call_List package that return
       --  the final JSON and use that directly in the Build_JSON_Response call?
-      Queue := Call_List.Get;
-
-      JSON := Call_Queue_JSON.To_JSON_String (Queue);
+      JSON := Call_Queue_JSON.To_JSON_String (Model.Call.Get);
 
       Response_Object.Set_HTTP_Status_Code (OK);
       Response_Object.Set_Content (JSON);
