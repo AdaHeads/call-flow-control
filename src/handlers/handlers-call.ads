@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                               Call_Queue                                  --
+--                              Handlers.Call                                --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --

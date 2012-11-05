@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                               Call_Queue                                  --
+--                              Handlers.Call                                --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -195,6 +195,37 @@ package body Handlers.Call is
       --  Parameters, Call_Queue_JSON.Status_Message or Build_JSON_Response?
    end Hold;
 
+   ------------
+   --  List  --
+   ------------
+
+   function List
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+      use Common;
+      use HTTP_Codes;
+
+      JSON            : JSON_String;
+      Response_Object : Response.Object := Response.Factory (Request);
+      Queue           : Call_List.Call_List_Type.Vector;
+      --  ???? Odd naming. See ???? comment for Call_List.Call_List_Type.
+   begin
+      --  ???? If we're ultimately just interested in getting a queue JSON
+      --  document, be it empty or filled with calls, why go through all the
+      --  hassle of getting a Call_List_Type.Vector? Do we need this here?
+      --  Why not just have a function in the Call_List package that return
+      --  the final JSON and use that directly in the Build_JSON_Response call?
+      Queue := Call_List.Get;
+
+      JSON := Call_Queue_JSON.To_JSON_String (Queue);
+
+      Response_Object.Set_HTTP_Status_Code (OK);
+      Response_Object.Set_Content (JSON);
+
+      return Response_Object.Build;
+   end List;
+
    --------------
    --  Pickup  --
    --------------
@@ -284,30 +315,4 @@ package body Handlers.Call is
       return Response_Object.Build;
    end Queue;
 
-   function List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data
-   is
-      use Common;
-      use HTTP_Codes;
-
-      JSON            : JSON_String;
-      Response_Object : Response.Object := Response.Factory (Request);
-      Queue           : Call_List.Call_List_Type.Vector;
-      --  ???? Odd naming. See ???? comment for Call_List.Call_List_Type.
-   begin
-      --  ???? If we're ultimately just interested in getting a queue JSON
-      --  document, be it empty or filled with calls, why go through all the
-      --  hassle of getting a Call_List_Type.Vector? Do we need this here?
-      --  Why not just have a function in the Call_List package that return
-      --  the final JSON and use that directly in the Build_JSON_Response call?
-      Queue := Call_List.Get;
-
-      JSON := Call_Queue_JSON.To_JSON_String (Queue);
-
-      Response_Object.Set_HTTP_Status_Code (OK);
-      Response_Object.Set_Content (JSON);
-
-      return Response_Object.Build;
-   end List;
 end Handlers.Call;

@@ -21,35 +21,18 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Messages;
 with Common;
 with HTTP_Codes;
-with Response;
-
 with Peers;
 with Peer_List_JSON;
-
-with System_Messages; use System_Messages;
+with Response;
+with System_Messages;
 
 package body Handlers.Agent is
-   function Agent_List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data
-   is
-      use Common;
-      use HTTP_Codes;
 
-      JSON            : JSON_String;
-      Response_Object : Response.Object := Response.Factory (Request);
-   begin
-      Notify (Debug, Peers.List_As_String);
-      JSON := Peer_List_JSON.To_JSON_String (Peers.Get_Peers_List);
-
-      Response_Object.Set_HTTP_Status_Code (OK);
-      Response_Object.Set_Content (JSON);
-
-      return Response_Object.Build;
-   end Agent_List;
+   -------------
+   --  Agent  --
+   -------------
 
    function Agent
      (Request : in AWS.Status.Data)
@@ -68,5 +51,29 @@ package body Handlers.Agent is
 
       return Response_Object.Build;
    end Agent;
-   
+
+   ------------------
+   --  Agent_List  --
+   ------------------
+
+   function Agent_List
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+      use Common;
+      use HTTP_Codes;
+      use System_Messages;
+
+      JSON            : JSON_String;
+      Response_Object : Response.Object := Response.Factory (Request);
+   begin
+      Notify (Debug, Peers.List_As_String);
+      JSON := Peer_List_JSON.To_JSON_String (Peers.Get_Peers_List);
+
+      Response_Object.Set_HTTP_Status_Code (OK);
+      Response_Object.Set_Content (JSON);
+
+      return Response_Object.Build;
+   end Agent_List;
+
 end Handlers.Agent;

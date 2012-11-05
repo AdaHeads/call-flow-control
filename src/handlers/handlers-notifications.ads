@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                              Notifications                                --
+--                           Handlers.Notifications                          --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
