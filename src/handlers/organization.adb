@@ -37,7 +37,7 @@ package body Organization is
    is
       use System_Message;
    begin
-      Notify (Error.Bad_Org_Id_Key, Message, Response_Object);
+      Error.Bad_Org_Id_Key.Notify (Message, Response_Object);
    end Bad_Org_Id_Key;
 
    ----------------

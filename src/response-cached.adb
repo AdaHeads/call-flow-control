@@ -77,10 +77,9 @@ package body Response.Cached is
       return Response_Object.Build;
    exception
       when Event : others =>
-         Notify (Error.Unknown_Error,
-                 Event,
-                 URL (URI (Response_Object.Get_Request)),
-                 Response_Object);
+         Error.Unknown_Error.Notify (Event,
+                                     URL (URI (Response_Object.Get_Request)),
+                                     Response_Object);
          return Response_Object.Build;
    end Generate_Response;
 

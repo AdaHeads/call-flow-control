@@ -107,7 +107,7 @@ package body Organization_List is
    is
       use System_Message;
    begin
-      Notify (Error.Generic_Constraint_Error, Message, Response_Object);
+      Error.Generic_Constraint_Error.Notify (Message, Response_Object);
    end Generic_Constraint_Error_Response;
 
    ---------------------

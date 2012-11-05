@@ -45,9 +45,7 @@ begin
    PBX.Start;
    Web_Server.Start;
 
-   Notify (Info.Alice_Startup,
-           "Server version "
-           & Alice_Version);
+   Info.Alice_Startup.Notify ("Server version " & Alice_Version);
 
    Wait;
    --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
@@ -55,12 +53,12 @@ begin
    Web_Server.Stop;
    PBX.Stop;
 
-   Notify (Info.Alice_Stop);
+   Info.Alice_Stop.Notify;
 exception
    when Event : Username_Does_Not_Exist =>
-      Notify (Critical.Unknown_User, Event);
+      Critical.Unknown_User.Notify (Event);
    when Event : others =>
-      Notify (Critical.Alice_Shutdown_With_Exception, Event);
+      Critical.Alice_Shutdown_With_Exception.Notify (Event);
       Web_Server.Stop;
       PBX.Stop;
 end Alice;

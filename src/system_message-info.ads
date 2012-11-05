@@ -23,19 +23,19 @@
 
 package System_Message.Info is
 
-   Alice_Startup : Info_Log_Object := Create
+   Alice_Startup : constant Info_Log_Object := Create
      (Status => "Alice startup");
 
-   Alice_Stop : Info_Log_Object := Create
+   Alice_Stop : constant Info_Log_Object := Create
      (Status => "Alice controlled shutdown. Goodbye");
 
-   Notifications_WebSocket_Created : Info_Log_Object := Create
+   Notifications_WebSocket_Created : constant Info_Log_Object := Create
      (Status => "Created a /notifications WebSocket");
 
-   Notifications_WebSocket_Opened : Info_Log_Object := Create
+   Notifications_WebSocket_Opened : constant Info_Log_Object := Create
      (Status => "Opened a /notifications WebSocket");
 
-   Notifications_WebSocket_Closed : Info_Log_Object := Create
+   Notifications_WebSocket_Closed : constant Info_Log_Object := Create
      (Status => "Closed a /notifications WebSocket");
 
 end System_Message.Info;
