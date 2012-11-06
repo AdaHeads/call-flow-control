@@ -21,8 +21,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with HTTP_Codes;
-
 package System_Message.Critical is
 
    Alice_Shutdown_With_Exception : constant Critical_Log_Object := Create
@@ -31,12 +29,8 @@ package System_Message.Critical is
    Lost_Primary_Database : constant Critical_Log_Object := Create
      (Status => "Lost connection to primary database");
 
-   Lost_Secondary_Database : constant Critical_Log_And_Response_Object
-     := Create
-       (Description =>
-            "Lost connection to both primary and secondary database",
-        Status      => "No database connection",
-        Status_Code => HTTP_Codes.Server_Error);
+   Lost_Secondary_Database : constant Critical_Log_Object := Create
+     (Status => "Lost connection to secondary database");
 
    Unknown_User : constant Critical_Log_Object := Create
      (Status => "Cannot change user for process");

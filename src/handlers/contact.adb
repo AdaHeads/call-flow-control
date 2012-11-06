@@ -21,8 +21,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Unbounded;
 with AWS.Status;
-with Database;
+with GNATCOLL.JSON;
+with HTTP_Codes;
+with Model.Contact;
 with System_Message.Error;
 
 package body Contact is
@@ -51,96 +54,78 @@ package body Contact is
       return AWS.Dispatchers.Callback.Create (JSON_Response'Access);
    end Callback;
 
-   -------------------
-   --  Create_JSON  --
-   -------------------
+   -------------------------
+   --  Generate_Document  --
+   -------------------------
 
-   function Create_JSON
-     (C : in out Cursor)
-      return Common.JSON_String
+   procedure Generate_Document
+     (Response_Object : in out Response.Object)
    is
+      use Ada.Strings.Unbounded;
       use Common;
+      use GNATCOLL.JSON;
+      use HTTP_Codes;
 
-      procedure Build_Attribute_JSON;
-      --  Build an attribute node for a contact entity.
+      Attr_Array         : JSON_Array;
+      Attr_JSON          : JSON_Value;
+      Elements_Processed : Natural := 0;
+      JSON               : JSON_Value;
 
-      A_Row      : Row;
-      Attr_Array : JSON_Array;
-      Attr_JSON  : JSON_Value;
-      JSON       : JSON_Value;
+      procedure Build_JSON
+        (Element : in Model.Contact.Contact_Entity);
+      --  TODO: Write comment;
 
-      ----------------------------
-      --  Build_Attribute_JSON  --
-      ----------------------------
+      ------------------
+      --  Build_JSON  --
+      ------------------
 
-      procedure Build_Attribute_JSON
+      procedure Build_JSON
+        (Element : in Model.Contact.Contact_Entity)
       is
       begin
-         if A_Row.Attr_JSON /= JSON_Null then
-            Attr_JSON := A_Row.Attr_JSON;
+         if Elements_Processed = 0 then
+            JSON.Set_Field (To_String (Element.Ce_Id_Column_Name),
+                            Element.Ce_Id);
+
+            JSON.Set_Field (To_String (Element.Ce_Name_Column_Name),
+                            Element.Ce_Name);
+
+            JSON.Set_Field (To_String (Element.Is_Human_Column_Name),
+                            Element.Is_Human);
+         end if;
+
+         if Element.Attr_JSON /= JSON_Null then
+            Attr_JSON := Element.Attr_JSON;
 
             Attr_JSON.Set_Field
-              (To_String (A_Row.Attr_Org_Id_Column_Name),
-               A_Row.Attr_Org_Id);
+              (To_String (Element.Attr_Org_Id_Column_Name),
+               Element.Attr_Org_Id);
 
             Append (Attr_Array, Attr_JSON);
          end if;
-      end Build_Attribute_JSON;
+
+         Elements_Processed := Elements_Processed + 1;
+      end Build_JSON;
    begin
       JSON := Create_Object;
 
-      if C.Has_Row then
-         A_Row := C.Element;
+      Model.Contact.For_Each
+        (Ce_Id   => Get_Ce_Id_Key (Response_Object),
+         Process => Build_JSON'Access);
 
-         JSON.Set_Field (To_String (A_Row.Ce_Id_Column_Name),
-                         A_Row.Ce_Id);
-
-         JSON.Set_Field (To_String (A_Row.Ce_Name_Column_Name),
-                         A_Row.Ce_Name);
-
-         JSON.Set_Field (To_String (A_Row.Is_Human_Column_Name),
-                         A_Row.Is_Human);
-
-         Build_Attribute_JSON;
-
-         C.Next;
-
-         while C.Has_Row loop
-            --  If we have more than one row, then we have more than one set of
-            --  attributes.
-            A_Row := C.Element;
-            Build_Attribute_JSON;
-            C.Next;
-         end loop;
-
-         if Length (Attr_Array) > 0 then
-            JSON.Set_Field ("attributes", Attr_Array);
-         end if;
+      if Length (Attr_Array) > 0 then
+         JSON.Set_Field ("attributes", Attr_Array);
       end if;
 
-      return To_JSON_String (JSON.Write);
-   end Create_JSON;
+      if Elements_Processed > 0 then
+         Response_Object.Set_Cacheable (True);
+         Response_Object.Set_HTTP_Status_Code (OK);
+      else
+         Response_Object.Set_HTTP_Status_Code (Not_Found);
+      end if;
 
-   ---------------
-   --  Element  --
-   ---------------
-
-   function Element
-     (C : in Cursor)
-      return Row
-   is
-      use Common;
-   begin
-      return Row'(Ce_Id                   => C.Integer_Value (0, Default => 0),
-                  Ce_Id_Column_Name       => U ("contactentity_id"),
-                  Ce_Name                 => U (C.Value (1)),
-                  Ce_Name_Column_Name     => U (C.Field_Name (1)),
-                  Is_Human                => C.Boolean_Value (2),
-                  Is_Human_Column_Name    => U (C.Field_Name (2)),
-                  Attr_JSON               => C.Json_Object_Value (3),
-                  Attr_Org_Id             => C.Integer_Value (4, Default => 0),
-                  Attr_Org_Id_Column_Name => U ("organization_id"));
-   end Element;
+      Response_Object.Set_Content (To_JSON_String (JSON.Write));
+   end Generate_Document;
 
    ---------------------
    --  Get_Ce_Id_Key  --
@@ -148,61 +133,12 @@ package body Contact is
 
    function Get_Ce_Id_Key
      (Response_Object : in Response.Object)
-      return Natural
+      return Model.Contactentity_Id
    is
       use AWS.Status;
    begin
-      return Natural'Value
+      return Model.Contactentity_Id'Value
         (Parameters (Response_Object.Get_Request).Get ("ce_id"));
    end Get_Ce_Id_Key;
-
-   ----------------------
-   --  Prepared_Query  --
-   ----------------------
-
-   function Prepared_Query
-     return GNATCOLL.SQL.Exec.Prepared_Statement
-   is
-      use Database;
-      use GNATCOLL.SQL;
-      use GNATCOLL.SQL.Exec;
-
-      Get_Contact_Full_Left_Join : constant SQL_Left_Join_Table
-        :=  Left_Join (Full    => Contactentity,
-                       Partial => Contactentity_Attributes,
-                       On      =>
-                         Contactentity_Attributes.FK (Contactentity));
-
-      Get_Contact_Full : constant SQL_Query
-        := SQL_Select (Fields =>
-                         Contactentity.Id &                         --  0
-                         Contactentity.Full_Name &                  --  1
-                         Contactentity.Is_Human &                   --  2
-                         Contactentity_Attributes.Json &            --  3
-                         Contactentity_Attributes.Organization_Id,  --  4
-                       From   => Get_Contact_Full_Left_Join,
-                       Where  => Contactentity.Id = Integer_Param (1));
-
-      Prepared_Get_Contact_Full : constant Prepared_Statement
-        := Prepare (Query         => Get_Contact_Full,
-                    Auto_Complete => True,
-                    On_Server     => True,
-                    Name          => "contact");
-   begin
-      return Prepared_Get_Contact_Full;
-   end Prepared_Query;
-
-   ------------------------
-   --  Query_Parameters  --
-   ------------------------
-
-   function Query_Parameters
-     (Response_Object : in Response.Object)
-      return GNATCOLL.SQL.Exec.SQL_Parameters
-   is
-      use GNATCOLL.SQL.Exec;
-   begin
-      return (1 => +Get_Ce_Id_Key (Response_Object));
-   end Query_Parameters;
 
 end Contact;

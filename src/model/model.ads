@@ -23,4 +23,7 @@
 
 package Model is
 
+   type Contactentity_Id is mod 2**31 - 1;
+   type Organization_Id is mod 2**31 - 1;
+
 end Model;

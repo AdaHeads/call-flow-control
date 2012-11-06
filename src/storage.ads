@@ -27,6 +27,22 @@ with Response;
 
 package Storage is
 
+   -----------
+   --  Foo --
+   -----------
+
+   generic
+
+      type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with private;
+      type Element is private;
+
+   procedure Foo
+     (Get_Element      : not null access
+        function (C : in Cursor) return Element;
+      Process_Element  : not null access procedure (E : in Element);
+      Query            : in GNATCOLL.SQL.Exec.Prepared_Statement;
+      Query_Parameters : in GNATCOLL.SQL.Exec.SQL_Parameters);
+
    ----------------
    --  Generate  --
    ----------------
