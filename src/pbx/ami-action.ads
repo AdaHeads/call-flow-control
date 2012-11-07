@@ -28,7 +28,6 @@ with AMI.Generic_Protocol_Strings;
 
 package AMI.Action is
    use Ada.Strings.Unbounded;
-   
    type Status_Type is
      (Success,
       No_Agent_Found,
@@ -36,21 +35,16 @@ package AMI.Action is
       Unregistered_Agent,
       Agent_Already_In_Call,
       Unknown_Error);
-   
-  procedure Login
+   procedure Login
      (Client   : access Client_Type;
       Username : in     String;
       Secret   : in     String;
-      Callback : in     AMI.Callback.Callback_Type 
-	:= AMI.Callback.Login_Callback'Access
+      Callback : in     AMI.Callback.Callback_Type
+        := AMI.Callback.Login_Callback'Access
      );
-   
-   
    procedure Ping (Client   : access Client_Type;
-		   Callback : in     AMI.Callback.Callback_Type 
-		     := AMI.Callback.Ping_Callback'Access);
-   
-   
+                   Callback : in     AMI.Callback.Callback_Type
+                     := AMI.Callback.Ping_Callback'Access);
 --     --------------------------------------------------------
 --     --  Should be out of the AMI directory.
 
@@ -59,16 +53,16 @@ package AMI.Action is
 --                            Status    :    out Status_Type);
 
    procedure Get_Call (Client    : access Client_Type;
-		       Unique_Id : in     String;
+                       Unique_Id : in     String;
                        Agent_Id  : in     String;
-		       --                         Call      :    out Call_List.Call_Type;
+                       --               Call      :    out Call_List.Call_Type;
                        Status    :    out Status_Type);
    --  Takes a call from the call_Queue, and redirects it to the Agent.
 
    --     procedure Get_Version; --  return String;
 
    procedure Park (Client  : access Client_Type;
-		   Call_Id : in     String;
+                   Call_Id : in     String;
                    Status  :    out Status_Type);
 
    --     procedure Unpark ( --  Agent_ID : in     String;
@@ -79,7 +73,7 @@ package AMI.Action is
 --                               Computer_Id : in Unbounded_String);
 
    procedure Hangup (Client  : access Client_Type;
-		     Call_Id : in     Unbounded_String;
+                     Call_Id : in     Unbounded_String;
                      Status  :    out Status_Type);
 
    --     --  Checks if the internal call queue is the same on Asterisk.
@@ -91,10 +85,8 @@ package AMI.Action is
 --     procedure Test_Status_Print;
 --     --  TODO: Write comment.
 --     ---------------------------------------------------------
-   
-private 
-   package Protocol_Strings is 
+private
+   package Protocol_Strings is
       new AMI.Generic_Protocol_Strings (Asynchronous => True);
    use Protocol_Strings;
-   
 end AMI.Action;
