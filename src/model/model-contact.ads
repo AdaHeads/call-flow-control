@@ -23,37 +23,27 @@
 
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Strings.Unbounded;
+with Common;
 with Model.Contact_Attributes;
 
 package Model.Contact is
 
    type Contact_Object is tagged private;
-   Null_Contact_Entity : constant Contact_Object;
+   Null_Contact_Object : constant Contact_Object;
 
-   package Contact_Attributes_List is new Ada.Containers.Doubly_Linked_Lists
+   function Equal
+     (Left, Right : in Model.Contact_Attributes.Contact_Attributes_Object)
+      return Boolean;
+
+   package Attributes_List is new Ada.Containers.Doubly_Linked_Lists
      (Model.Contact_Attributes.Contact_Attributes_Object,
-      Model.Contact_Attributes.Equal);
-
-   function Attributes
-     (Contact : in Contact_Object)
-      return Contact_Attributes_List.List;
-
-   procedure For_Each
-     (Org_Id  : in Organization_Id;
-      Process : not null access
-        procedure (Element : in Contact_Object));
-   --  TODO: write comment
-
-   function Full_Name
-     (Contact : in Contact_Object)
-      return String;
-   --  Return the full name of the Contact.
+      Equal);
 
    function Get
      (Id : in Contact_Id)
       return Contact_Object;
-   --  Return the Contact_Object that match Id. If there exists more than one
-   --  Id contact in the database, then the last of those are returned.
+   --  Return the contact that match Id, complete with all the attributes that
+   --  may be associated with the contact.
 
    procedure Get
      (Id      : in Contact_Id;
@@ -62,15 +52,32 @@ package Model.Contact is
    --  For every contact with Id in the database, a Contact_Object is handed to
    --  Process.
 
-   function Id
+   function Get_Attributes
+     (Contact : in Contact_Object)
+      return Attributes_List.List;
+   --  Return the a linked list of Contact_Attributes_Object's associated with
+   --  Contact.
+
+   function Get_Full_Name
+     (Contact : in Contact_Object)
+      return String;
+   --  Return the full name of the Contact.
+
+   function Get_Contact_Id
      (Contact : in Contact_Object)
       return Contact_Id;
    --  Return the id of the Contact.
 
-   function Is_Human
+   function Get_Is_Human
      (Contact : in Contact_Object)
       return Boolean;
    --  Return whether or not the Contact is human.
+
+   function To_JSON
+     (Contact : in Contact_Object)
+      return Common.JSON_String;
+   --  Convert the Contact to a JSON string. This call is convenient wrapper
+   --  for the View.Contact.To_JSON function.
 
 private
 
@@ -78,17 +85,17 @@ private
 
    type Contact_Object is tagged
       record
-         C_Id      : Contact_Id := 0;
-         Full_Name : Unbounded_String := Null_Unbounded_String;
-         Is_Human  : Boolean := True;
-         Attr_List : Contact_Attributes_List.List;
+         Attr_List   : Attributes_List.List;
+         C_Id        : Contact_Id := 0;
+         Full_Name   : Unbounded_String := Null_Unbounded_String;
+         Is_Human    : Boolean := True;
       end record;
 
-   Null_Contact_Entity : constant Contact_Object
-     := (C_Id      => 0,
-         Full_Name => Null_Unbounded_String,
-         Is_Human  => True,
-         Attr_List => Contact_Attributes_List.Empty_List);
+   Null_Contact_Object : constant Contact_Object
+     := (Attr_List   => Attributes_List.Empty_List,
+         C_Id        => 0,
+         Full_Name   => Null_Unbounded_String,
+         Is_Human    => True);
 
    function Contact_Element
      (C : in out Cursor)

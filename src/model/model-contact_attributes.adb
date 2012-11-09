@@ -23,6 +23,7 @@
 
 with Database;
 with Storage;
+with View.Contact_Attributes;
 
 package body Model.Contact_Attributes is
 
@@ -86,18 +87,6 @@ package body Model.Contact_Attributes is
                                         JSON => JSON);
    end Create;
 
-   -------------
-   --  Equal  --
-   -------------
-
-   function Equal
-     (Left, Right : in Contact_Attributes_Object)
-      return Boolean
-   is
-   begin
-      return Left = Right;
-   end Equal;
-
    -----------
    --  Get  --
    -----------
@@ -151,45 +140,16 @@ package body Model.Contact_Attributes is
       return Contact_Attributes.O_Id;
    end Get_Organization_Id;
 
-   ----------------
-   --  For_Each  --
-   ----------------
+   ---------------
+   --  To_JSON  --
+   ---------------
 
---     procedure For_Each
---       (Org_Id  : in Organization_Id;
---        Process : not null access
---          procedure (Element : in Contact_Object))
---     is
---     begin
---        null;
---     end For_Each;
-
-   -----------
-   --  Get  --
-   -----------
-
---     function Get
---       (Id : in Contact_Id)
---        return Contact_Object
---     is
---        procedure Get_Element
---          (Contact : in Contact_Object);
---
---        C : Contact_Object := Null_Contact_Entity;
---
---        -------------------
---        --  Get_Element  --
---        -------------------
---
---        procedure Get_Element
---          (Contact : in Contact_Object)
---        is
---        begin
---           C := Contact;
---        end Get_Element;
---     begin
---        Get (Id, Get_Element'Access);
---        return C;
---     end Get;
+   function To_JSON
+     (Contact_Attributes : in Contact_Attributes_Object)
+      return Common.JSON_String
+   is
+   begin
+      return View.Contact_Attributes.To_JSON (Contact_Attributes);
+   end To_JSON;
 
 end Model.Contact_Attributes;

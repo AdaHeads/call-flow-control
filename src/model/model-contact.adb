@@ -21,9 +21,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Common;
 with Database;
 with Storage;
+with View.Contact;
 
 package body Model.Contact is
 
@@ -40,20 +40,6 @@ package body Model.Contact is
    --------------------------------------------------------
    --  Prepared statement for fetching a contact entity  --
    --------------------------------------------------------
-
---     Contact_Query : constant SQL_Query
---       := SQL_Select (Fields =>
---                        DB.Contact.Id &         --  0
---                        DB.Contact.Full_Name &  --  1
---                        DB.Contact.Is_Human,    --  2
---                      From   => DB.Contact,
---                      Where  => DB.Contact.Id = Integer_Param (1));
---
---     Prepared_Contact_Query : constant Prepared_Statement
---       := Prepare (Query         => Contact_Query,
---                   Auto_Complete => True,
---                   On_Server     => True,
---                   Name          => "contact");
 
    Contact_Query_Left_Join : constant SQL_Left_Join_Table
      :=  Left_Join (Full    => DB.Contact,
@@ -78,18 +64,6 @@ package body Model.Contact is
                  On_Server     => True,
                  Name          => "contact");
 
-   ------------------
-   --  Attributes  --
-   ------------------
-
-   function Attributes
-     (Contact : in Contact_Object)
-      return Contact_Attributes_List.List
-   is
-   begin
-      return Contact.Attr_List;
-   end Attributes;
-
    -----------------------
    --  Contact_Element  --
    -----------------------
@@ -103,10 +77,10 @@ package body Model.Contact is
       CO : Contact_Object;
    begin
       CO := Contact_Object'
-        (C_Id      => Contact_Id (C.Integer_Value (0, Default => 0)),
-         Full_Name => U (C.Value (1)),
-         Is_Human  => C.Boolean_Value (2),
-         Attr_List => Contact_Attributes_List.Empty_List);
+        (Attr_List   => Attributes_List.Empty_List,
+         C_Id        => Contact_Id (C.Integer_Value (0, Default => 0)),
+         Full_Name   => U (C.Value (1)),
+         Is_Human    => C.Boolean_Value (2));
 
       while C.Has_Row loop
          if not C.Is_Null (3) then
@@ -115,42 +89,25 @@ package body Model.Contact is
                C_Id => Contact_Id (C.Integer_Value (4, Default => 0)),
                O_Id => Organization_Id (C.Integer_Value (5, Default => 0))));
          end if;
+
          C.Next;
       end loop;
 
       return CO;
-
---        return Contact_Object'
---          (C_Id      => Contact_Id (C.Integer_Value (0, Default => 0)),
---           Full_Name => U (C.Value (1)),
---           Is_Human  => C.Boolean_Value (2),
---           Attr_List => Contact_Attributes_List.Empty_List);
    end Contact_Element;
 
-   ----------------
-   --  For_Each  --
-   ----------------
+   -------------
+   --  Equal  --
+   -------------
 
-   procedure For_Each
-     (Org_Id  : in Organization_Id;
-      Process : not null access
-        procedure (Element : in Contact_Object))
+   function Equal
+     (Left, Right : in Model.Contact_Attributes.Contact_Attributes_Object)
+      return Boolean
    is
+      use Model.Contact_Attributes;
    begin
-      null;
-   end For_Each;
-
-   -----------------
-   --  Full_Name  --
-   -----------------
-
-   function Full_Name
-     (Contact : in Contact_Object)
-      return String
-   is
-   begin
-      return To_String (Contact.Full_Name);
-   end Full_Name;
+      return Left = Right;
+   end Equal;
 
    -----------
    --  Get  --
@@ -179,7 +136,7 @@ package body Model.Contact is
       procedure Get_Element
         (Contact : in Contact_Object'Class);
 
-      C : Contact_Object := Null_Contact_Entity;
+      C : Contact_Object := Null_Contact_Object;
 
       -------------------
       --  Get_Element  --
@@ -196,28 +153,64 @@ package body Model.Contact is
       return C;
    end Get;
 
-   ----------
-   --  Id  --
-   ----------
+   ----------------------
+   --  Get_Attributes  --
+   ----------------------
 
-   function Id
+   function Get_Attributes
+     (Contact : in Contact_Object)
+      return Attributes_List.List
+   is
+   begin
+      return Contact.Attr_List;
+   end Get_Attributes;
+
+   ----------------------
+   --  Get_Contact_Id  --
+   ----------------------
+
+   function Get_Contact_Id
      (Contact : in Contact_Object)
       return Contact_Id
    is
    begin
       return Contact.C_Id;
-   end Id;
+   end Get_Contact_Id;
 
-   ----------------
-   --  Is_Human  --
-   ----------------
+   ---------------------
+   --  Get_Full_Name  --
+   ---------------------
 
-   function Is_Human
+   function Get_Full_Name
+     (Contact : in Contact_Object)
+      return String
+   is
+   begin
+      return To_String (Contact.Full_Name);
+   end Get_Full_Name;
+
+   --------------------
+   --  Get_Is_Human  --
+   --------------------
+
+   function Get_Is_Human
      (Contact : in Contact_Object)
       return Boolean
    is
    begin
       return Contact.Is_Human;
-   end Is_Human;
+   end Get_Is_Human;
+
+   ---------------
+   --  To_JSON  --
+   ---------------
+
+   function To_JSON
+     (Contact : in Contact_Object)
+      return Common.JSON_String
+   is
+   begin
+      return View.Contact.To_JSON (Contact);
+   end To_JSON;
 
 end Model.Contact;

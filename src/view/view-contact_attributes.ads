@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                  Model                                    --
+--                         View.Contact_Attributes                           --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,15 +21,22 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.SQL.Exec;
+with Common;
+with GNATCOLL.JSON;
+with Model.Contact_Attributes;
 
-package Model is
+package View.Contact_Attributes is
 
-   type Contact_Id is mod 2**31 - 1;
-   type Organization_Id is mod 2 ** 31 - 1;
+   use Common;
+   use GNATCOLL.JSON;
+   use Model.Contact_Attributes;
 
-private
+   function To_JSON
+     (Contact_Attributes : in Contact_Attributes_Object)
+      return JSON_Value;
 
-   type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null record;
+   function To_JSON
+     (Contact_Attributes : in Contact_Attributes_Object)
+      return JSON_String;
 
-end Model;
+end View.Contact_Attributes;

@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                  Model                                    --
+--                         View.Contact_Attributes                           --
 --                                                                           --
---                                  SPEC                                     --
+--                                  BODY                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,15 +21,39 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.SQL.Exec;
+package body View.Contact_Attributes is
 
-package Model is
+   ---------------
+   --  To_JSON  --
+   ---------------
 
-   type Contact_Id is mod 2**31 - 1;
-   type Organization_Id is mod 2 ** 31 - 1;
+   function To_JSON
+     (Contact_Attributes : in Contact_Attributes_Object)
+      return JSON_Value
+   is
+      J : JSON_Value;
+   begin
+      J := Contact_Attributes.Get_JSON;
 
-private
+      J.Set_Field ("contact_id",
+                   Integer (Contact_Attributes.Get_Contact_Id));
 
-   type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null record;
+      J.Set_Field ("organization_id",
+                   Integer (Contact_Attributes.Get_Organization_Id));
 
-end Model;
+      return J;
+   end To_JSON;
+
+   ---------------
+   --  To_JSON  --
+   ---------------
+
+   function To_JSON
+     (Contact_Attributes : in Contact_Attributes_Object)
+      return JSON_String
+   is
+   begin
+      return To_JSON_String (To_JSON (Contact_Attributes).Write);
+   end To_JSON;
+
+end View.Contact_Attributes;

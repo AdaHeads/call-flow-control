@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                  Model                                    --
+--                               View.Contact                                --
 --                                                                           --
---                                  SPEC                                     --
+--                                  BODY                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,15 +21,55 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.SQL.Exec;
+with View.Contact_Attributes;
 
-package Model is
+package body View.Contact is
 
-   type Contact_Id is mod 2**31 - 1;
-   type Organization_Id is mod 2 ** 31 - 1;
+   ---------------
+   --  To_JSON  --
+   ---------------
 
-private
+   function To_JSON
+     (Contact : in Contact_Object)
+      return JSON_Value
+   is
+      Attr_Array : JSON_Array;
+      J          : JSON_Value;
+   begin
+      J := Create_Object;
 
-   type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null record;
+      if Contact /= Null_Contact_Object then
+         J.Set_Field ("contact_id",
+                      Integer (Contact.Get_Contact_Id));
 
-end Model;
+         J.Set_Field ("full_name",
+                      Contact.Get_Full_Name);
+
+         J.Set_Field ("is_human",
+                      Contact.Get_Is_Human);
+
+         for Elem of Contact.Get_Attributes loop
+            Append (Attr_Array, View.Contact_Attributes.To_JSON (Elem));
+         end loop;
+
+         if Length (Attr_Array) > 0 then
+            J.Set_Field ("attributes", Attr_Array);
+         end if;
+      end if;
+
+      return J;
+   end To_JSON;
+
+   ---------------
+   --  To_JSON  --
+   ---------------
+
+   function To_JSON
+     (Contact : in Contact_Object)
+      return JSON_String
+   is
+   begin
+      return To_JSON_String (To_JSON (Contact).Write);
+   end To_JSON;
+
+end View.Contact;

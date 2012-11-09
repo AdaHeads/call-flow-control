@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                  Model                                    --
+--                               View.Contact                                --
 --                                                                           --
---                                  BODY                                     --
+--                                  SPEC                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,12 +21,22 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package body Model is
+with Common;
+with GNATCOLL.JSON;
+with Model.Contact;
 
-   procedure Foo
-   is
-   begin
-      null;
-   end Foo;
+package View.Contact is
 
-end Model;
+   use Common;
+   use GNATCOLL.JSON;
+   use Model.Contact;
+
+   function To_JSON
+     (Contact : in Contact_Object)
+     return JSON_Value;
+
+   function To_JSON
+     (Contact : in Contact_Object)
+      return JSON_String;
+
+end View.Contact;

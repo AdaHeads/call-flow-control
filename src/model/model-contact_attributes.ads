@@ -21,6 +21,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Common;
 with GNATCOLL.JSON;
 
 package Model.Contact_Attributes is
@@ -33,16 +34,7 @@ package Model.Contact_Attributes is
       O_Id : in Organization_Id;
       JSON : in GNATCOLL.JSON.JSON_Value)
       return Contact_Attributes_Object;
-
-   function Equal
-     (Left, Right : in Contact_Attributes_Object)
-      return Boolean;
-
---     function Get
---       (Id : in Contact_Id)
---        return Contact_Attributes_Object;
-   --  Return the Contact_Object that match Id. If there exists more than one
-   --  Id contact in the database, then the last of those are returned.
+   --  Create a Contact_Attributes_Object.
 
    procedure Get
      (Id      : in Contact_Id;
@@ -50,12 +42,6 @@ package Model.Contact_Attributes is
         procedure (Element : in Contact_Attributes_Object'Class));
    --  For every contact_attributes row with Id in the database, a
    --  Contact_Attributes_Object is handed to Process.
-
---     procedure For_Each
---       (Org_Id  : in Organization_Id;
---        Process : not null access
---          procedure (Element : in Contact_Object));
-   --  TODO: write comment
 
    function Get_Contact_Id
      (Contact_Attributes : in Contact_Attributes_Object)
@@ -68,6 +54,10 @@ package Model.Contact_Attributes is
    function Get_Organization_Id
      (Contact_Attributes : in Contact_Attributes_Object)
       return Organization_Id;
+
+   function To_JSON
+     (Contact_Attributes : in Contact_Attributes_Object)
+     return Common.JSON_String;
 
 private
 

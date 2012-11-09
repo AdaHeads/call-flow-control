@@ -20,9 +20,8 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with Ada.Text_IO;
+
 with AWS.Status;
-with GNATCOLL.JSON;
 with HTTP_Codes;
 with Model.Contact;
 with System_Message.Error;
@@ -61,63 +60,21 @@ package body Contact is
      (Response_Object : in out Response.Object)
    is
       use Common;
-      use GNATCOLL.JSON;
       use HTTP_Codes;
-      use Model;
-      use type Model.Contact.Contact_Object;
+      use Model.Contact;
 
-      package MC renames Model.Contact;
-
-      Attr_Array : JSON_Array;
-      Attr_JSON  : JSON_Value;
-      C_Id       : Model.Contact_Id;
-      Contact    : MC.Contact_Object;
-      JSON       : JSON_Value;
+      C : Contact_Object;
    begin
-      C_Id := Get_Contact_Id (Response_Object);
+      C := Get (Get_Contact_Id (Response_Object));
 
-      Attr_JSON := Create_Object;
-      JSON := Create_Object;
-
-      Contact := MC.Get (C_Id);
-
-      if Contact /= MC.Null_Contact_Entity then
-         JSON.Set_Field ("contact_id",
-                         Integer (Contact.Id));
-
-         JSON.Set_Field ("full_name",
-                         Contact.Full_Name);
-
-         JSON.Set_Field ("is_human",
-                         Contact.Is_Human);
-
-         for Elem of Contact.Attributes loop
-            Ada.Text_IO.Put ("*");
-            Attr_JSON := Elem.Get_JSON;
-
-            if Attr_JSON /= JSON_Null then
-               Ada.Text_IO.Put ("#");
-               Attr_JSON.Set_Field
-                 ("organization_id", Integer (Elem.Get_Organization_Id));
-
-               Attr_JSON.Set_Field
-                 ("contact_id", Integer (Elem.Get_Contact_Id));
-
-               Append (Attr_Array, Attr_JSON);
-            end if;
-         end loop;
-
-         if Length (Attr_Array) > 0 then
-            JSON.Set_Field ("attributes", Attr_Array);
-         end if;
-
+      if C /= Null_Contact_Object then
          Response_Object.Set_Cacheable (True);
          Response_Object.Set_HTTP_Status_Code (OK);
       else
          Response_Object.Set_HTTP_Status_Code (Not_Found);
       end if;
 
-      Response_Object.Set_Content (To_JSON_String (JSON.Write));
+      Response_Object.Set_Content (C.To_JSON);
    end Generate_Document;
 
    ----------------------
