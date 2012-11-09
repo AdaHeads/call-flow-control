@@ -27,22 +27,6 @@ with Response;
 
 package Storage is
 
-   -----------
-   --  Foo --
-   -----------
-
-   generic
-
-      type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with private;
-      type Element is private;
-
-   procedure Foo
-     (Get_Element      : not null access
-        function (C : in Cursor) return Element;
-      Process_Element  : not null access procedure (E : in Element);
-      Query            : in GNATCOLL.SQL.Exec.Prepared_Statement;
-      Query_Parameters : in GNATCOLL.SQL.Exec.SQL_Parameters);
-
    ----------------
    --  Generate  --
    ----------------
@@ -70,5 +54,24 @@ package Storage is
      (Response_Object : in out Response.Object);
    --  Generates the Value JSON document and sets the corresponding Status
    --  code.
+
+   ---------------------
+   --  Process_Query  --
+   ---------------------
+
+   generic
+
+      type Database_Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with
+        private;
+      type Element (<>) is tagged private;
+
+      with function Cursor_To_Element
+        (C : in out Database_Cursor)
+        return Element'Class;
+
+   procedure Process_Query
+     (Process_Element    : not null access procedure (E : in Element'Class);
+      Prepared_Statement : in GNATCOLL.SQL.Exec.Prepared_Statement;
+      Query_Parameters   : in GNATCOLL.SQL.Exec.SQL_Parameters);
 
 end Storage;

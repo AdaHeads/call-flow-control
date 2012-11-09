@@ -20,8 +20,7 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-
-with Ada.Strings.Unbounded;
+with Ada.Text_IO;
 with AWS.Status;
 with GNATCOLL.JSON;
 with HTTP_Codes;
@@ -30,18 +29,18 @@ with System_Message.Error;
 
 package body Contact is
 
-   ---------------------
-   --  Bad_Ce_Id_Key  --
-   ---------------------
+   ----------------------
+   --  Bad_Contact_Id  --
+   ----------------------
 
-   procedure Bad_Ce_Id_Key
+   procedure Bad_Contact_Id
      (Response_Object :    out Response.Object;
       Message         : in     String)
    is
       use System_Message;
    begin
-      Error.Bad_Ce_Id_Key.Notify (Message, Response_Object);
-   end Bad_Ce_Id_Key;
+      Error.Bad_Contact_Id.Notify (Message, Response_Object);
+   end Bad_Contact_Id;
 
    ----------------
    --  Callback  --
@@ -61,63 +60,57 @@ package body Contact is
    procedure Generate_Document
      (Response_Object : in out Response.Object)
    is
-      use Ada.Strings.Unbounded;
       use Common;
       use GNATCOLL.JSON;
       use HTTP_Codes;
+      use Model;
+      use type Model.Contact.Contact_Object;
 
-      Attr_Array         : JSON_Array;
-      Attr_JSON          : JSON_Value;
-      Elements_Processed : Natural := 0;
-      JSON               : JSON_Value;
+      package MC renames Model.Contact;
 
-      procedure Build_JSON
-        (Element : in Model.Contact.Contact_Entity);
-      --  TODO: Write comment;
-
-      ------------------
-      --  Build_JSON  --
-      ------------------
-
-      procedure Build_JSON
-        (Element : in Model.Contact.Contact_Entity)
-      is
-      begin
-         if Elements_Processed = 0 then
-            JSON.Set_Field (To_String (Element.Ce_Id_Column_Name),
-                            Element.Ce_Id);
-
-            JSON.Set_Field (To_String (Element.Ce_Name_Column_Name),
-                            Element.Ce_Name);
-
-            JSON.Set_Field (To_String (Element.Is_Human_Column_Name),
-                            Element.Is_Human);
-         end if;
-
-         if Element.Attr_JSON /= JSON_Null then
-            Attr_JSON := Element.Attr_JSON;
-
-            Attr_JSON.Set_Field
-              (To_String (Element.Attr_Org_Id_Column_Name),
-               Element.Attr_Org_Id);
-
-            Append (Attr_Array, Attr_JSON);
-         end if;
-
-         Elements_Processed := Elements_Processed + 1;
-      end Build_JSON;
+      Attr_Array : JSON_Array;
+      Attr_JSON  : JSON_Value;
+      C_Id       : Model.Contact_Id;
+      Contact    : MC.Contact_Object;
+      JSON       : JSON_Value;
    begin
+      C_Id := Get_Contact_Id (Response_Object);
+
+      Attr_JSON := Create_Object;
       JSON := Create_Object;
 
-      Model.Contact.For_Each
-        (Ce_Id   => Get_Ce_Id_Key (Response_Object),
-         Process => Build_JSON'Access);
+      Contact := MC.Get (C_Id);
 
-      if Length (Attr_Array) > 0 then
-         JSON.Set_Field ("attributes", Attr_Array);
-      end if;
+      if Contact /= MC.Null_Contact_Entity then
+         JSON.Set_Field ("contact_id",
+                         Integer (Contact.Id));
 
-      if Elements_Processed > 0 then
+         JSON.Set_Field ("full_name",
+                         Contact.Full_Name);
+
+         JSON.Set_Field ("is_human",
+                         Contact.Is_Human);
+
+         for Elem of Contact.Attributes loop
+            Ada.Text_IO.Put ("*");
+            Attr_JSON := Elem.Get_JSON;
+
+            if Attr_JSON /= JSON_Null then
+               Ada.Text_IO.Put ("#");
+               Attr_JSON.Set_Field
+                 ("organization_id", Integer (Elem.Get_Organization_Id));
+
+               Attr_JSON.Set_Field
+                 ("contact_id", Integer (Elem.Get_Contact_Id));
+
+               Append (Attr_Array, Attr_JSON);
+            end if;
+         end loop;
+
+         if Length (Attr_Array) > 0 then
+            JSON.Set_Field ("attributes", Attr_Array);
+         end if;
+
          Response_Object.Set_Cacheable (True);
          Response_Object.Set_HTTP_Status_Code (OK);
       else
@@ -127,18 +120,19 @@ package body Contact is
       Response_Object.Set_Content (To_JSON_String (JSON.Write));
    end Generate_Document;
 
-   ---------------------
-   --  Get_Ce_Id_Key  --
-   ---------------------
+   ----------------------
+   --  Get_Contact_Id  --
+   ----------------------
 
-   function Get_Ce_Id_Key
+   function Get_Contact_Id
      (Response_Object : in Response.Object)
-      return Model.Contactentity_Id
+      return Model.Contact_Id
    is
       use AWS.Status;
+      use Model;
    begin
-      return Model.Contactentity_Id'Value
+      return Contact_Id'Value
         (Parameters (Response_Object.Get_Request).Get ("ce_id"));
-   end Get_Ce_Id_Key;
+   end Get_Contact_Id;
 
 end Contact;

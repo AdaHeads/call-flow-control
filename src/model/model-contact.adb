@@ -23,30 +23,109 @@
 
 with Common;
 with Database;
+with Storage;
 
 package body Model.Contact is
 
-   ---------------
-   --  Element  --
-   ---------------
+   use GNATCOLL.SQL;
+   use GNATCOLL.SQL.Exec;
 
-   function Element
-     (C : in Cursor)
-      return Contact_Entity
+   package DB renames Database;
+
+   procedure Fetch_Contact_Object is new Storage.Process_Query
+     (Database_Cursor   => Cursor,
+      Element           => Contact_Object,
+      Cursor_To_Element => Contact_Element);
+
+   --------------------------------------------------------
+   --  Prepared statement for fetching a contact entity  --
+   --------------------------------------------------------
+
+--     Contact_Query : constant SQL_Query
+--       := SQL_Select (Fields =>
+--                        DB.Contact.Id &         --  0
+--                        DB.Contact.Full_Name &  --  1
+--                        DB.Contact.Is_Human,    --  2
+--                      From   => DB.Contact,
+--                      Where  => DB.Contact.Id = Integer_Param (1));
+--
+--     Prepared_Contact_Query : constant Prepared_Statement
+--       := Prepare (Query         => Contact_Query,
+--                   Auto_Complete => True,
+--                   On_Server     => True,
+--                   Name          => "contact");
+
+   Contact_Query_Left_Join : constant SQL_Left_Join_Table
+     :=  Left_Join (Full    => DB.Contact,
+                    Partial => DB.Contact_Attributes,
+                    On      =>
+                      DB.Contact_Attributes.FK (DB.Contact));
+
+   Contact_Query : constant SQL_Query
+     := SQL_Select (Fields =>
+                      DB.Contact.Id &                         --  0
+                      DB.Contact.Full_Name &                  --  1
+                      DB.Contact.Is_Human &                   --  2
+                      DB.Contact_Attributes.Json &            --  3
+                      DB.Contact_Attributes.Contact_Id &      --  4
+                      DB.Contact_Attributes.Organization_Id,  --  5
+                    From   => Contact_Query_Left_Join,
+                    Where  => DB.Contact.Id = Integer_Param (1));
+
+   Prepared_Contact_Query : constant Prepared_Statement
+     := Prepare (Query         => Contact_Query,
+                 Auto_Complete => True,
+                 On_Server     => True,
+                 Name          => "contact");
+
+   ------------------
+   --  Attributes  --
+   ------------------
+
+   function Attributes
+     (Contact : in Contact_Object)
+      return Contact_Attributes_List.List
+   is
+   begin
+      return Contact.Attr_List;
+   end Attributes;
+
+   -----------------------
+   --  Contact_Element  --
+   -----------------------
+
+   function Contact_Element
+     (C : in out Cursor)
+      return Contact_Object'Class
    is
       use Common;
+
+      CO : Contact_Object;
    begin
-      return Contact_Entity'
-        (Ce_Id                   => C.Integer_Value (0, Default => 0),
-         Ce_Id_Column_Name       => U ("contactentity_id"),
-         Ce_Name                 => U (C.Value (1)),
-         Ce_Name_Column_Name     => U (C.Field_Name (1)),
-         Is_Human                => C.Boolean_Value (2),
-         Is_Human_Column_Name    => U (C.Field_Name (2)),
-         Attr_JSON               => C.Json_Object_Value (3),
-         Attr_Org_Id             => C.Integer_Value (4, Default => 0),
-         Attr_Org_Id_Column_Name => U ("organization_id"));
-   end Element;
+      CO := Contact_Object'
+        (C_Id      => Contact_Id (C.Integer_Value (0, Default => 0)),
+         Full_Name => U (C.Value (1)),
+         Is_Human  => C.Boolean_Value (2),
+         Attr_List => Contact_Attributes_List.Empty_List);
+
+      while C.Has_Row loop
+         if not C.Is_Null (3) then
+            CO.Attr_List.Append (Model.Contact_Attributes.Create
+              (JSON => C.Json_Object_Value (3),
+               C_Id => Contact_Id (C.Integer_Value (4, Default => 0)),
+               O_Id => Organization_Id (C.Integer_Value (5, Default => 0))));
+         end if;
+         C.Next;
+      end loop;
+
+      return CO;
+
+--        return Contact_Object'
+--          (C_Id      => Contact_Id (C.Integer_Value (0, Default => 0)),
+--           Full_Name => U (C.Value (1)),
+--           Is_Human  => C.Boolean_Value (2),
+--           Attr_List => Contact_Attributes_List.Empty_List);
+   end Contact_Element;
 
    ----------------
    --  For_Each  --
@@ -55,53 +134,90 @@ package body Model.Contact is
    procedure For_Each
      (Org_Id  : in Organization_Id;
       Process : not null access
-        procedure (Element : in Contact_Entity))
+        procedure (Element : in Contact_Object))
    is
    begin
       null;
    end For_Each;
 
-   ----------------
-   --  For_Each  --
-   ----------------
+   -----------------
+   --  Full_Name  --
+   -----------------
 
-   procedure For_Each
-     (Ce_Id   : in Contactentity_Id;
-      Process : not null access
-        procedure (Element : in Contact_Entity))
+   function Full_Name
+     (Contact : in Contact_Object)
+      return String
    is
-      use Database;
-      use GNATCOLL.SQL;
-      use GNATCOLL.SQL.Exec;
-
-      Get_Contact_Full_Left_Join : constant SQL_Left_Join_Table
-        :=  Left_Join (Full    => Contactentity,
-                       Partial => Contactentity_Attributes,
-                       On      =>
-                         Contactentity_Attributes.FK (Contactentity));
-
-      Get_Contact_Full : constant SQL_Query
-        := SQL_Select (Fields =>
-                         Contactentity.Id &                         --  0
-                         Contactentity.Full_Name &                  --  1
-                         Contactentity.Is_Human &                   --  2
-                         Contactentity_Attributes.Json &            --  3
-                         Contactentity_Attributes.Organization_Id,  --  4
-                       From   => Get_Contact_Full_Left_Join,
-                       Where  => Contactentity.Id = Integer_Param (1));
-
-      Prepared_Get_Contact_Full : constant Prepared_Statement
-        := Prepare (Query         => Get_Contact_Full,
-                    Auto_Complete => True,
-                    On_Server     => True,
-                    Name          => "contact");
-
-      Parameters : constant SQL_Parameters := (1 => +Integer (Ce_Id));
    begin
-      Bar (Get_Element      => Element'Access,
-           Process_Element  => Process,
-           Query            => Prepared_Get_Contact_Full,
-           Query_Parameters => Parameters);
-   end For_Each;
+      return To_String (Contact.Full_Name);
+   end Full_Name;
+
+   -----------
+   --  Get  --
+   -----------
+
+   procedure Get
+     (Id      : in Contact_Id;
+      Process : not null access
+        procedure (Element : in Contact_Object'Class))
+   is
+      Parameters : constant SQL_Parameters := (1 => +Integer (Id));
+   begin
+      Fetch_Contact_Object (Process_Element    => Process,
+                            Prepared_Statement => Prepared_Contact_Query,
+                            Query_Parameters   => Parameters);
+   end Get;
+
+   -----------
+   --  Get  --
+   -----------
+
+   function Get
+     (Id : in Contact_Id)
+      return Contact_Object
+   is
+      procedure Get_Element
+        (Contact : in Contact_Object'Class);
+
+      C : Contact_Object := Null_Contact_Entity;
+
+      -------------------
+      --  Get_Element  --
+      -------------------
+
+      procedure Get_Element
+        (Contact : in Contact_Object'Class)
+      is
+      begin
+         C := Contact_Object (Contact);
+      end Get_Element;
+   begin
+      Get (Id, Get_Element'Access);
+      return C;
+   end Get;
+
+   ----------
+   --  Id  --
+   ----------
+
+   function Id
+     (Contact : in Contact_Object)
+      return Contact_Id
+   is
+   begin
+      return Contact.C_Id;
+   end Id;
+
+   ----------------
+   --  Is_Human  --
+   ----------------
+
+   function Is_Human
+     (Contact : in Contact_Object)
+      return Boolean
+   is
+   begin
+      return Contact.Is_Human;
+   end Is_Human;
 
 end Model.Contact;

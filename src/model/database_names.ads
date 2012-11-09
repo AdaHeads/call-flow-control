@@ -1,23 +1,23 @@
 with GNATCOLL.SQL; use GNATCOLL.SQL;
 package Database_Names is
    pragma Style_Checks (Off);
-   TC_Contactentity : aliased constant String := "contactentity";
-   Ta_Contactentity : constant Cst_String_Access := TC_Contactentity'Access;
-   TC_Contactentity_Attributes : aliased constant String := "contactentity_attributes";
-   Ta_Contactentity_Attributes : constant Cst_String_Access := TC_Contactentity_Attributes'Access;
-   TC_Contactentity_Recipient : aliased constant String := "contactentity_recipient";
-   Ta_Contactentity_Recipient : constant Cst_String_Access := TC_Contactentity_Recipient'Access;
+   TC_Contact : aliased constant String := "contact";
+   Ta_Contact : constant Cst_String_Access := TC_Contact'Access;
+   TC_Contact_Attributes : aliased constant String := "contact_attributes";
+   Ta_Contact_Attributes : constant Cst_String_Access := TC_Contact_Attributes'Access;
+   TC_Contact_Recipients : aliased constant String := "contact_recipients";
+   Ta_Contact_Recipients : constant Cst_String_Access := TC_Contact_Recipients'Access;
    TC_Organization : aliased constant String := "organization";
    Ta_Organization : constant Cst_String_Access := TC_Organization'Access;
-   TC_Organization_Contactentities : aliased constant String := "organization_contactentities";
-   Ta_Organization_Contactentities : constant Cst_String_Access := TC_Organization_Contactentities'Access;
+   TC_Organization_Contacts : aliased constant String := "organization_contacts";
+   Ta_Organization_Contacts : constant Cst_String_Access := TC_Organization_Contacts'Access;
    TC_Recipient : aliased constant String := "recipient";
    Ta_Recipient : constant Cst_String_Access := TC_Recipient'Access;
    TC_Recipient_Kind : aliased constant String := "recipient_kind";
    Ta_Recipient_Kind : constant Cst_String_Access := TC_Recipient_Kind'Access;
 
-   NC_Contactentity_Id : aliased constant String := "contactentity_id";
-   N_Contactentity_Id : constant Cst_String_Access := NC_contactentity_id'Access;
+   NC_Contact_Id : aliased constant String := "contact_id";
+   N_Contact_Id : constant Cst_String_Access := NC_contact_id'Access;
    NC_Email_Address : aliased constant String := "email_address";
    N_Email_Address : constant Cst_String_Access := NC_email_address'Access;
    NC_Full_Name : aliased constant String := "full_name";
@@ -34,8 +34,6 @@ package Database_Names is
    N_Kind : constant Cst_String_Access := NC_kind'Access;
    NC_Kind_Id : aliased constant String := "kind_id";
    N_Kind_Id : constant Cst_String_Access := NC_kind_id'Access;
-   NC_Name : aliased constant String := """name""";
-   N_Name : constant Cst_String_Access := NC_name'Access;
    NC_Organization_Id : aliased constant String := "organization_id";
    N_Organization_Id : constant Cst_String_Access := NC_organization_id'Access;
    NC_Recipient_Id : aliased constant String := "recipient_id";

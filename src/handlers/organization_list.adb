@@ -138,7 +138,7 @@ package body Organization_List is
         := SQL_Select (Fields =>
                          Organization.Json &       --  0
                          Organization.Id &         --  1
-                         Organization.Name &       --  2
+                         Organization.Full_Name &  --  2
                          Organization.Identifier,  --  3
                        From => Organization);
 

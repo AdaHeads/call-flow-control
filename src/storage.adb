@@ -20,7 +20,7 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-
+with Ada.Text_IO;
 with Ada.Characters.Latin_1;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
@@ -159,50 +159,6 @@ package body Storage is
       end if;
    end Failed_Query;
 
-   -----------
-   --  Foo  --
-   -----------
-
-   procedure Foo
-     (Get_Element      : not null access
-        function (C : in Cursor) return Element;
-      Process_Element  : not null access procedure (E : in Element);
-      Query            : in GNATCOLL.SQL.Exec.Prepared_Statement;
-      Query_Parameters : in GNATCOLL.SQL.Exec.SQL_Parameters)
-   is
-      use Ada.Exceptions;
-      use GNATCOLL.SQL.Exec;
-      use HTTP_Codes;
-      use Storage;
-      use System_Message;
-
-      C              : Cursor;
-      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
-   begin
-      Fetch_Data :
-      for K in DB_Connections'Range loop
-         C.Fetch (DB_Connections (K).Host,
-                  Query,
-                  Query_Parameters);
-
-         if DB_Connections (K).Host.Success then
-            while C.Has_Row loop
-               Process_Element (Get_Element (C));
-               C.Next;
-            end loop;
-
-            exit Fetch_Data;
-         else
-            Storage.Failed_Query (Connection_Pool => DB_Connections,
-                                  Connection_Type => K);
-         end if;
-      end loop Fetch_Data;
-   exception
-      when Event : Database_Error =>
-         Critical.Lost_Secondary_Database.Notify (Event);
-         raise Database_Error with Exception_Message (Event);
-   end Foo;
-
    ----------------
    --  Generate  --
    ----------------
@@ -277,6 +233,49 @@ package body Storage is
 
       return Connection_Pool;
    end Get_DB_Connections;
+
+   ---------------------
+   --  Process_Query  --
+   ---------------------
+
+   procedure Process_Query
+     (Process_Element    : not null access procedure (E : in Element'Class);
+      Prepared_Statement : in GNATCOLL.SQL.Exec.Prepared_Statement;
+      Query_Parameters   : in GNATCOLL.SQL.Exec.SQL_Parameters)
+   is
+      use Ada.Exceptions;
+      use GNATCOLL.SQL.Exec;
+      use HTTP_Codes;
+      use Storage;
+      use System_Message;
+
+      C              : Database_Cursor;
+      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
+   begin
+      Fetch_Data :
+      for K in DB_Connections'Range loop
+         C.Fetch (DB_Connections (K).Host,
+                  Prepared_Statement,
+                  Query_Parameters);
+
+         if DB_Connections (K).Host.Success then
+            while C.Has_Row loop
+               Ada.Text_IO.Put ("-");
+               Process_Element (Cursor_To_Element (C));
+               C.Next;
+            end loop;
+
+            exit Fetch_Data;
+         else
+            Storage.Failed_Query (Connection_Pool => DB_Connections,
+                                  Connection_Type => K);
+         end if;
+      end loop Fetch_Data;
+   exception
+      when Event : Database_Error =>
+         Critical.Lost_Secondary_Database.Notify (Event);
+         raise Database_Error with Exception_Message (Event);
+   end Process_Query;
 
    ------------------------------------
    --  Register_Failed_DB_Connection --

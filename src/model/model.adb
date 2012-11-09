@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                           System_Message.Error                            --
+--                                  Model                                    --
 --                                                                           --
---                                  SPEC                                     --
+--                                  BODY                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,28 +21,12 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with HTTP_Codes;
+package body Model is
 
-package System_Message.Error is
+   procedure Foo
+   is
+   begin
+      null;
+   end Foo;
 
-   Bad_Contact_Id : constant Error_Log_And_Response_Object := Create
-     (Description => "ce_id must be a valid natural integer",
-      Status      => "bad request",
-      Status_Code => HTTP_Codes.Bad_Request);
-
-   Bad_Org_Id_Key : constant Error_Log_And_Response_Object := Create
-     (Description => "org_id must be a valid natural integer",
-      Status      => "bad request",
-      Status_Code => HTTP_Codes.Bad_Request);
-
-   Generic_Constraint_Error : constant Error_Log_And_Response_Object := Create
-     (Description => "a constraint was violated",
-      Status      => "bad request",
-      Status_Code => HTTP_Codes.Bad_Request);
-
-   Unknown_Error : constant Error_Log_And_Response_Object := Create
-     (Description => "Exception raised while trying to generate content",
-      Status      => "Server error",
-      Status_Code => HTTP_Codes.Server_Error);
-
-end System_Message.Error;
+end Model;

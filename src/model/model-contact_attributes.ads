@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                              Model.Contact                                --
+--                          Model.Contact_Attributes                         --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,79 +21,72 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Doubly_Linked_Lists;
-with Ada.Strings.Unbounded;
-with Model.Contact_Attributes;
+with GNATCOLL.JSON;
 
-package Model.Contact is
+package Model.Contact_Attributes is
 
-   type Contact_Object is tagged private;
-   Null_Contact_Entity : constant Contact_Object;
+   type Contact_Attributes_Object is tagged private;
+   Null_Contact_Attributes : constant Contact_Attributes_Object;
 
-   package Contact_Attributes_List is new Ada.Containers.Doubly_Linked_Lists
-     (Model.Contact_Attributes.Contact_Attributes_Object,
-      Model.Contact_Attributes.Equal);
+   function Create
+     (C_Id : in Contact_Id;
+      O_Id : in Organization_Id;
+      JSON : in GNATCOLL.JSON.JSON_Value)
+      return Contact_Attributes_Object;
 
-   function Attributes
-     (Contact : in Contact_Object)
-      return Contact_Attributes_List.List;
+   function Equal
+     (Left, Right : in Contact_Attributes_Object)
+      return Boolean;
 
-   procedure For_Each
-     (Org_Id  : in Organization_Id;
-      Process : not null access
-        procedure (Element : in Contact_Object));
-   --  TODO: write comment
-
-   function Full_Name
-     (Contact : in Contact_Object)
-      return String;
-   --  Return the full name of the Contact.
-
-   function Get
-     (Id : in Contact_Id)
-      return Contact_Object;
+--     function Get
+--       (Id : in Contact_Id)
+--        return Contact_Attributes_Object;
    --  Return the Contact_Object that match Id. If there exists more than one
    --  Id contact in the database, then the last of those are returned.
 
    procedure Get
      (Id      : in Contact_Id;
       Process : not null access
-        procedure (Element : in Contact_Object'Class));
-   --  For every contact with Id in the database, a Contact_Object is handed to
-   --  Process.
+        procedure (Element : in Contact_Attributes_Object'Class));
+   --  For every contact_attributes row with Id in the database, a
+   --  Contact_Attributes_Object is handed to Process.
 
-   function Id
-     (Contact : in Contact_Object)
+--     procedure For_Each
+--       (Org_Id  : in Organization_Id;
+--        Process : not null access
+--          procedure (Element : in Contact_Object));
+   --  TODO: write comment
+
+   function Get_Contact_Id
+     (Contact_Attributes : in Contact_Attributes_Object)
       return Contact_Id;
-   --  Return the id of the Contact.
 
-   function Is_Human
-     (Contact : in Contact_Object)
-      return Boolean;
-   --  Return whether or not the Contact is human.
+   function Get_JSON
+     (Contact_Attributes : in Contact_Attributes_Object)
+      return GNATCOLL.JSON.JSON_Value;
+
+   function Get_Organization_Id
+     (Contact_Attributes : in Contact_Attributes_Object)
+      return Organization_Id;
 
 private
 
-   use Ada.Strings.Unbounded;
-
-   type Contact_Object is tagged
+   type Contact_Attributes_Object is tagged
       record
-         C_Id      : Contact_Id := 0;
-         Full_Name : Unbounded_String := Null_Unbounded_String;
-         Is_Human  : Boolean := True;
-         Attr_List : Contact_Attributes_List.List;
+         C_Id : Contact_Id := 0;
+         O_Id : Organization_Id := 0;
+         JSON : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.JSON_Null;
       end record;
 
-   Null_Contact_Entity : constant Contact_Object
-     := (C_Id      => 0,
-         Full_Name => Null_Unbounded_String,
-         Is_Human  => True,
-         Attr_List => Contact_Attributes_List.Empty_List);
+   Null_Contact_Attributes : constant Contact_Attributes_Object :=
+                               (C_Id => 0,
+                                O_Id => 0,
+                                JSON => GNATCOLL.JSON.JSON_Null);
 
-   function Contact_Element
+   function Contact_Attributes_Element
      (C : in out Cursor)
-      return Contact_Object'Class;
+      return Contact_Attributes_Object'Class;
    --  Transforms the low level index based Cursor into the more readable
-   --  Contact_Object record.
+   --  Contact_Attributes_Object record.
 
-end Model.Contact;
+end Model.Contact_Attributes;

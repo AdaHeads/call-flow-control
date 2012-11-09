@@ -21,9 +21,17 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with GNATCOLL.SQL.Exec;
+
 package Model is
 
-   type Contactentity_Id is mod 2**31 - 1;
-   type Organization_Id is mod 2**31 - 1;
+   type Contact_Id is mod 2**31 - 1;
+   type Organization_Id is mod 2 ** 31 - 1;
+
+   procedure Foo;
+
+private
+
+   type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null record;
 
 end Model;

@@ -180,43 +180,43 @@ package body Organization is
       use GNATCOLL.SQL;
       use GNATCOLL.SQL.Exec;
 
-      Organization_Contactentities_Join : constant SQL_Left_Join_Table
+      Organization_Contacts_Join : constant SQL_Left_Join_Table
         := Join (Table1 => DB.Organization,
-                 Table2 => DB.Organization_Contactentities,
+                 Table2 => DB.Organization_Contacts,
                  On     =>
-                   DB.Organization_Contactentities.FK (DB.Organization));
+                   DB.Organization_Contacts.FK (DB.Organization));
 
       Contacts_Join : constant SQL_Left_Join_Table
-        := Join (Table1 => Organization_Contactentities_Join,
-                 Table2 => DB.Contactentity,
+        := Join (Table1 => Organization_Contacts_Join,
+                 Table2 => DB.Contact,
                  On     =>
-                   DB.Organization_Contactentities.FK (DB.Contactentity));
+                   DB.Organization_Contacts.FK (DB.Contact));
 
       Attributes_Left_Join : constant SQL_Left_Join_Table
         := Left_Join (Full    => Contacts_Join,
-                      Partial => DB.Contactentity_Attributes,
+                      Partial => DB.Contact_Attributes,
                       On      =>
-                        DB.Contactentity_Attributes.FK (DB.Contactentity));
+                        DB.Contact_Attributes.FK (DB.Contact));
 
       Org_Full : constant SQL_Query
         := SQL_Select (Fields =>
                          DB.Organization.Json &             --  0
                          DB.Organization.Id &               --  1
-                         DB.Organization.Name &             --  2
+                         DB.Organization.Full_Name &             --  2
                          DB.Organization.Identifier &       --  3
-                         DB.Contactentity.Id &              --  4
-                         DB.Contactentity.Full_Name &       --  5
-                         DB.Contactentity.Is_Human &        --  6
-                         DB.Contactentity_Attributes.Json,  --  7
+                         DB.Contact.Id &              --  4
+                         DB.Contact.Full_Name &       --  5
+                         DB.Contact.Is_Human &        --  6
+                         DB.Contact_Attributes.Json,  --  7
                        From   => Attributes_Left_Join,
                        Where  =>
                          DB.Organization.Id = Integer_Param (1)
                        and
-                         (DB.Contactentity_Attributes.Organization_Id =
+                         (DB.Contact_Attributes.Organization_Id =
                             Integer_Param (1)
                           or
                             Is_Null
-                              (DB.Contactentity_Attributes.Organization_Id)));
+                              (DB.Contact_Attributes.Organization_Id)));
 
       Prepared_Get_Organization : constant Prepared_Statement
         := Prepare (Query         => Org_Full,
