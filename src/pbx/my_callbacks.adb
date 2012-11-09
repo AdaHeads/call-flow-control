@@ -27,19 +27,17 @@ with Common;
 with System_Messages;
 
 with Model.Call;
-with Peers;
+with Model.Peers;
 with Handlers.Notifications;
 
-with Event_JSON;
+with JSON.Event;
 
 package body My_Callbacks is
    use Common;
    use System_Messages;
    use Ada.Strings.Unbounded;
    use Model.Call;
-   --   use AMI.IO;
-   use Peers;
-   --   use Yolk.Log;
+   use Model.Peers;
 
    package Notifications renames Handlers.Notifications;
 
@@ -120,7 +118,7 @@ package body My_Callbacks is
          --  At the very least, we require an identifier for the call.
          raise BAD_PACKET_FORMAT;
       end if;
-      Notifications.Broadcast (Event_JSON.Hangup_JSON_String (Call));
+      Notifications.Broadcast (JSON.Event.Hangup_JSON_String (Call));
    end Hangup;
 
    --  Event: Join
@@ -179,7 +177,7 @@ package body My_Callbacks is
       System_Messages.Notify
         (Debug, "My_Callbacks.Join: Call Updated: " & Image (Call));
       Update (Call);
-      Notifications.Broadcast (Event_JSON.New_Call_JSON_String (Call));
+      Notifications.Broadcast (JSON.Event.New_Call_JSON_String (Call));
    end Join;
 
    --  Event: Newchannel
@@ -253,7 +251,7 @@ package body My_Callbacks is
    --  Peer: SIP/softphone1
    --  PeerStatus: Unregistered
    procedure Peer_Status (Packet : in Packet_Type) is
-      use Peers.Peer_List_Type;
+      use Peer_List_Type;
 
       procedure Set_PhoneInfo
         (Peer : in out Peer_Type;
@@ -335,7 +333,7 @@ package body My_Callbacks is
          System_Messages.Notify
            (Debug, "My_Callbacks.Peer_Status: Inserted " & Image (Peer));
 
-         Peers.Insert_Peer (New_Item => Peer);
+         Insert_Peer (New_Item => Peer);
       else
          System_Messages.Notify
            (Error, "My_Callbacks.Peer_Status: No state information supplied " &
@@ -344,7 +342,7 @@ package body My_Callbacks is
       end if;
 
       --  Let the clients know about the change
-      Notifications.Broadcast (Event_JSON.Agent_State_JSON_String (Peer));
+      Notifications.Broadcast (JSON.Event.Agent_State_JSON_String (Peer));
    end Peer_Status;
 
    --  Event: QueueCallerAbandon

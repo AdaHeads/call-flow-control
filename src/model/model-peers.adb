@@ -23,7 +23,7 @@
 
 with System_Messages;
 
-package body Peers is
+package body Model.Peers is
    use System_Messages;
    ----------------------------------------------------------------------------
    --  TODO Navngivning, Der er brug for nogle bedre navne her.
@@ -195,4 +195,4 @@ package body Peers is
       return Peers_List.List_As_String;
    end List_As_String;
 
-end Peers;
+end Model.Peers;

@@ -1,7 +1,7 @@
 with Ada.Calendar;
 with Ada.Strings.Unbounded;
 with Ada.Exceptions;
-  
+with Common;  
 with System_Messages;
 
 package body AMI.Response is 
@@ -15,8 +15,8 @@ package body AMI.Response is
       
    function Wait_For (Action_ID : in Action_ID_Type;
 		      Timeout   : in Duration := 3.0) return Boolean is
-      use Ada.Calendar;
-      function Current_Time return Ada.Calendar.Time renames Clock;
+      use Common;
+      use type Ada.Calendar.Time;
 
       Deadline : constant Ada.Calendar.Time := Current_Time + 3.0;
    begin
@@ -31,7 +31,6 @@ package body AMI.Response is
       end loop;
       return False;
    end Wait_For;
-      
    
    procedure Notify (Client : access Client_Type;
 		     Packet : in     AMI.Parser.Packet_Type) is

@@ -17,5 +17,8 @@ exe/session/*
 \#*#
 *~
 
-Â# Do not track Nano temporary files
+# Do not track Nano temporary files
 .#*#
+
+# Local files @krc
+TODO

@@ -29,7 +29,7 @@ private with GNATCOLL.JSON;
 
 
 with Interfaces.C;
-package body Event_JSON is
+package body JSON.Event is
    use GNATCOLL.JSON;
 
    --  Length_String : constant String := "length";
@@ -41,7 +41,7 @@ package body Event_JSON is
                            return GNATCOLL.JSON.JSON_Value;
    
    function Pickup_Call_To_JSON_Object (Call  : in Call_Type;
-                                        Agent : in Peers.Peer_Type)
+                                        Agent : in Peer_Type)
                                     return GNATCOLL.JSON.JSON_Value;
    
    function Hold_Call_To_JSON_Object (Call : in Call_Type)
@@ -50,7 +50,7 @@ package body Event_JSON is
    function Transfer_Call_To_JSON_Object (Call : in Call_Type)
                                      return GNATCOLL.JSON.JSON_Value;
 
-   function Agent_State_To_JSON_Object (Agent : in Peers.Peer_Type)
+   function Agent_State_To_JSON_Object (Agent : in Peer_Type)
                            return GNATCOLL.JSON.JSON_Value;
    
    --  ---------------------  --
@@ -76,7 +76,7 @@ package body Event_JSON is
    end New_Call_JSON_String;
    
    function Pickup_Call_JSON_String (Call  : in Call_Type;
-                                     Agent : in Peers.Peer_Type)
+                                     Agent : in Peer_Type)
                                     return JSON_String is
       JSON : JSON_Value;
    begin
@@ -104,7 +104,7 @@ package body Event_JSON is
    end Transfer_Call_JSON_String;
 
 
-   function Agent_State_JSON_String (Agent : in Peers.Peer_Type)
+   function Agent_State_JSON_String (Agent : in Peer_Type)
                                     return JSON_String is
       JSON : JSON_Value;
    begin
@@ -147,7 +147,7 @@ package body Event_JSON is
    --       "call" : { "call_id" : "SomeCall_ID" }
    --  }   
    function Pickup_Call_To_JSON_Object (Call  : in Call_Type;
-                                        Agent : in Peers.Peer_Type)
+                                        Agent : in Peer_Type)
                                     return GNATCOLL.JSON.JSON_Value is
       JSON              : constant JSON_Value := Create_Object;
       Notification_JSON : constant JSON_Value := Create_Object;
@@ -229,7 +229,7 @@ package body Event_JSON is
       return JSON;
    end Transfer_Call_To_JSON_Object;
    
-   function Agent_State_To_JSON_Object (Agent : in Peers.Peer_Type)
+   function Agent_State_To_JSON_Object (Agent : in Peer_Type)
                            return GNATCOLL.JSON.JSON_Value is
       JSON              : constant JSON_Value := Create_Object;
       Notification_JSON : constant JSON_Value := Create_Object;
@@ -264,4 +264,4 @@ package body Event_JSON is
         (Source => long'Image (To_Unix_Time (Date)),
          Side   => Left);
    end Unix_Timestamp;
-end Event_JSON;
+end JSON.Event;

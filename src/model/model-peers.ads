@@ -28,7 +28,7 @@ with Ada.Strings.Hash;
 with Ada.Strings.Unbounded;
 with Model.Call;
 
-package Peers is
+package Model.Peers is
    use Ada.Containers;
    use Ada.Strings.Unbounded;
 
@@ -95,4 +95,4 @@ package Peers is
    --  Debug
    function List_As_String return String;
 --   function Image return String;
-end Peers;
+end Model.Peers;

@@ -27,11 +27,12 @@ with AMI.Response;
 with AMI.Client;
 
 with Model.Call;
-with Peers;
+with Model.Peers;
 with System_Messages;
 
 package body AMI.Action is
    use System_Messages;
+   use Model;
    
    procedure Login
      (Client   : access Client_Type;

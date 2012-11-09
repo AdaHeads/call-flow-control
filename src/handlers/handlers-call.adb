@@ -22,7 +22,6 @@
 -------------------------------------------------------------------------------
 
 with AWS.Messages;
-with Call_Queue_JSON;
 with Common;
 with HTTP_Codes;
 with Response;
@@ -30,6 +29,7 @@ with Response;
 with AMI.Action;
 
 with Model.Call;
+with JSON.Call;
 
 with PBX;
 
@@ -38,7 +38,8 @@ with System_Messages;
 package body Handlers.Call is
    use System_Messages;
    use AMI.Action;
-
+   use JSON.Call;
+   
    package Routines renames AMI.Action;
 
    --------------
@@ -80,12 +81,10 @@ package body Handlers.Call is
             System_Messages.Notify
               (Debug, "Exception in Call_Queue.Call_Hangup");
 
-            JSON := Call_Queue_JSON.Status_Message ("Exception",
-                                                    "Something went wrong");
-            --  ???? Why not use the Error.Exception_Handler function instead?
-
             Response_Object.Set_HTTP_Status_Code (Server_Error);
-            Response_Object.Set_Content (JSON);
+            Response_Object.Set_Content 
+              (Status_Message 
+                 ("Exception", "Something went wrong"));
 
             return Response_Object.Build;
       end;
@@ -95,21 +94,21 @@ package body Handlers.Call is
       --  its own local method?
       case Status is
          when Routines.Success =>
-            JSON := Call_Queue_JSON.Status_Message
+            JSON := Status_Message
               ("Success", "Hangup completed");
             Status_Code := OK;
          when Routines.No_Agent_Found =>
-            JSON := Call_Queue_JSON.Status_Message
+            JSON := Status_Message
               ("No Agent",
                "No agent was found by that name");
             Status_Code := Bad_Request;
          when Routines.No_Call_Found =>
-            JSON := Call_Queue_JSON.Status_Message
+            JSON := Status_Message
               ("No Call",
                "The agent had no call to hangup");
             Status_Code := No_Content;
          when others =>
-            JSON := Call_Queue_JSON.Status_Message
+            JSON := Status_Message
               ("Unknownen Error",
                "Something went wrong");
             Status_Code := Bad_Request;
@@ -130,11 +129,11 @@ package body Handlers.Call is
          --  ???? What exceptions are we expecting, and why do we not catch
          --  exceptions in any of the other methods in this package?
          System_Messages.Notify (Debug, "Exception in Hangup");
-         JSON := Call_Queue_JSON.Status_Message ("Exception",
-                                                 "Something went wrong");
 
          Response_Object.Set_HTTP_Status_Code (Server_Error);
-         Response_Object.Set_Content (JSON);
+         Response_Object.Set_Content 
+           (Status_Message 
+              ("Exception", "Something went wrong"));
 
          return Response_Object.Build;
    end Hangup;
@@ -165,24 +164,24 @@ package body Handlers.Call is
       case Status is
          when Routines.Success =>
             Status_Code := OK;
-            JSON := Call_Queue_JSON.Status_Message
+            JSON := Status_Message
               ("Success",
                "The command is being process");
 
          when Routines.No_Call_Found =>
             Status_Code := No_Content;
-            JSON := Call_Queue_JSON.Status_Message
+            JSON := Status_Message
               ("No Call",
                "There was no call to park");
 
          when Routines.No_Agent_Found =>
             Status_Code := Bad_Request;
-            JSON := Call_Queue_JSON.Status_Message
+            JSON := Status_Message
               ("No Agent",
                "There was no agent by that name");
          when others =>
             Status_Code := Server_Error;
-            JSON := Call_Queue_JSON.Status_Message
+            JSON := Status_Message
               ("Woops",
                "Something went wrong");
       end case;
@@ -217,7 +216,7 @@ package body Handlers.Call is
       --  Why not just have a function in the Call_List package that return
       --  the final JSON and use that directly in the Build_JSON_Response call?
 
-      JSON := Call_Queue_JSON.To_JSON_String (Model.Call.Get);
+      JSON := To_JSON_String (Model.Call.Get);
 
       Response_Object.Set_HTTP_Status_Code (OK);
       Response_Object.Set_Content (JSON);
@@ -254,25 +253,25 @@ package body Handlers.Call is
       case Status is
          when Routines.Success =>
             Status_Code := OK;
-            JSON := Call_Queue_JSON.Status_Message
+            JSON := Status_Message
               ("Success", "The request is being processed");
          when Routines.No_Call_Found =>
             Status_Code := No_Content;
-            JSON := Call_Queue_JSON.Status_Message
+            JSON := Status_Message
               ("No Cotent", "The Callqueue is empty");
          when Routines.No_Agent_Found =>
             Status_Code := Bad_Request;
-            JSON := Call_Queue_JSON.Status_Message
+            JSON := Status_Message
               ("No Parameter",
                "There exsist no agent by that name");
          when Routines.Unregistered_Agent =>
             Status_Code := Bad_Request;
-            JSON := Call_Queue_JSON.Status_Message
+            JSON := Status_Message
               ("No Cotent",
                "The agents phone is not registered");
          when others =>
             Status_Code := Server_Error;
-            JSON := Call_Queue_JSON.Status_Message
+            JSON := Status_Message
               ("Woops",
                "Something went wrong at the server");
       end case;
@@ -294,7 +293,6 @@ package body Handlers.Call is
       use Common;
       use HTTP_Codes;
 
-      JSON            : JSON_String;
       Response_Object : Response.Object := Response.Factory (Request);
    begin
       --  ???? If we're ultimately just interested in getting a queue JSON
@@ -302,10 +300,8 @@ package body Handlers.Call is
       --  hassle of getting a Call_List_Type.Vector? Do we need this here?
       --  Why not just have a function in the Call_List package that return
       --  the final JSON and use that directly in the Build_JSON_Response call?
-      JSON := Call_Queue_JSON.To_JSON_String (Model.Call.Get);
-
       Response_Object.Set_HTTP_Status_Code (OK);
-      Response_Object.Set_Content (JSON);
+      Response_Object.Set_Content (To_JSON_String (Model.Call.Get));
 
       return Response_Object.Build;
    end Queue;

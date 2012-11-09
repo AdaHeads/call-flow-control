@@ -35,8 +35,7 @@ package AMI.Response is
    function Wait_For (Action_ID : in Action_ID_Type;
 		      Timeout   : in Duration := 3.0) return Boolean;
    --  Provides an explicit synchonization mechanism
-      
-      
+
    procedure Notify (Client : access Client_Type;
 		     Packet : in     AMI.Parser.Packet_Type);
    --  Notify about a reposense

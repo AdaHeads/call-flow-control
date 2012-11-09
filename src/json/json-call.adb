@@ -29,7 +29,7 @@ with Ada.Strings.Unbounded;
 with Interfaces.C;
 with System_Messages;
 
-package body Call_Queue_JSON is
+package body JSON.Call is
    use GNATCOLL.JSON;
    use System_Messages;
 
@@ -149,4 +149,4 @@ package body Call_Queue_JSON is
       return To_JSON_String (JSON.Write);
    end Status_Message;
 
-end Call_Queue_JSON;
+end JSON.Call;
