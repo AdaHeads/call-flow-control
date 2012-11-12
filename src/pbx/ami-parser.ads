@@ -177,6 +177,4 @@ package AMI.Parser is
    
    function Image (Item : in Pair_Type) return String;
       
-private
-   
 end AMI.Parser;

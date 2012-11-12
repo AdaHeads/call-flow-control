@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                               AMI.Reponse                                 --
+--                             Call_Queue_JSON                               --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -20,51 +20,33 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with Ada.Containers.Hashed_Maps;
 
-with AMI.Callback;
-with AMI.Parser;
+with Ada.Containers;
+with Model.Call;
+with Common;
 
-package AMI.Response is 
-   use AMI.Callback;
-   
-   procedure Subscribe (Action_ID : in Action_ID_Type;
-		        Callback  : in Callback_Type);
-   --  Subscribe for a reply with the given action ID.
-   
-   function Wait_For (Action_ID : in Action_ID_Type;
-		      Timeout   : in Duration := 3.0) return Boolean;
-   --  Provides an explicit synchonization mechanism
+private with GNATCOLL.JSON;
 
-   procedure Notify (Client : access Client_Type;
-		     Packet : in     AMI.Parser.Packet_Type);
-   --  Notify about a reposense
-   
-   procedure Wait_For (Action_ID : in Action_ID_Type);
-   --  Block a thread untill an reponse with action ID occurs
-   
+--  This package can return callqueue information and it in JSON format.
+package JSON.Call is
+   use Common;
+
+   function To_JSON_String (Queue : in Model.Call.Call_List_Type.Vector)
+                           return JSON_String;
+   --  returns the entire Call Queue, in JSON format.
+
+   function To_JSON_String (Length : in Ada.Containers.Count_Type)
+                            return JSON_String;
+   --  returns the number of calls waiting in the calling queue.
+
+   function To_JSON_String (Call : in Model.Call.Call_Type)
+                            return JSON_String;
+   --  returns the first call in the list.
+
+   function Status_Message (Title   : in String;
+                            Message : in String) return JSON_String;
 private
-   function Hash_Function (Key : in Action_ID_Type)
-			  return Ada.Containers.Hash_Type;
-   function Hash_Equivalent_Keys 
-     (Left, Right : in Action_ID_Type)
-     return Boolean;
-   
-   package Response_List_Type is new Ada.Containers.Hashed_Maps
-     (Key_Type => Action_ID_Type,
-      Element_Type => Callback_Type,
-      Hash => Hash_Function,
-      Equivalent_Keys => Hash_Equivalent_Keys);
-   
-   Reponse_List : Response_List_Type.Map;
-   --  TODO: Rip this out of the library
-   
-   --  protected Waiter is
-   --     entry Wait_For (Key : in Action_ID_Type);
-   --     procedure Signal (Key : in Action_ID_Type);
-   --  private
-   --     Connected : Boolean := False;
-   --  end Connection;
-   
-   
-end AMI.Response;
+   function To_JSON_Object (Call : in Model.Call.Call_Type)
+                            return GNATCOLL.JSON.JSON_Value;
+   --  takes a call and converts it to a JSON object.
+end JSON.Call;

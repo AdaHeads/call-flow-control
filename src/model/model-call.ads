@@ -26,7 +26,7 @@ with Ada.Containers;
 with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
 
-package Call_List is
+package Model.Call is
    use Ada.Strings.Unbounded;
 
    type Call_State is
@@ -126,4 +126,4 @@ private
 
 --     function Get_Company_Priority (CompanyName : in Unbounded_String)
 --                                    return Priority_Level;
-end Call_List;
+end Model.Call;

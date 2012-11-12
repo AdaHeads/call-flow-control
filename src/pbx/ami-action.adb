@@ -26,12 +26,13 @@ with Ada.Exceptions;
 with AMI.Response;
 with AMI.Client;
 
-with Call_List;
-with Peers;
+with Model.Call;
+with Model.Peers;
 with System_Messages;
 
 package body AMI.Action is
    use System_Messages;
+   use Model;
    
    procedure Login
      (Client   : access Client_Type;
@@ -88,7 +89,7 @@ package body AMI.Action is
 		    Call_Id : in     Unbounded_String;
 		    Status  :    out Status_Type) is
      use Peers;
-     use Call_List;
+     use Model.Call;
 
      Call : Call_Type;
      Action_ID : constant Action_ID_Type := 
@@ -97,7 +98,7 @@ package body AMI.Action is
      System_Messages.Notify (Debug, "Hangup: routine started");
      Status := Unknown_Error;
 
-     Call := Call_List.Get_Call (UniqueID => Call_Id);
+     Call := Get_Call (UniqueID => Call_Id);
 
      if Call = Null_Call then
 	Status := No_Call_Found;
@@ -123,7 +124,7 @@ package body AMI.Action is
 		      Unique_Id : in     String;
 		      Agent_Id  : in     String;
 		      Status    :    out Status_Type) is
-     use Call_List;
+     use Model.Call;
      use Peers;
      use Peers.Peer_List_Type;
 
@@ -157,7 +158,7 @@ package body AMI.Action is
 	return;
      end if;
 
-     Temp_Call := Call_List.Get_Call (UniqueID =>
+     Temp_Call := Get_Call (UniqueID =>
 					To_Unbounded_String (Unique_Id));
 
      if Temp_Call = Null_Call then
@@ -280,7 +281,7 @@ package body AMI.Action is
 		  Status  :    out Status_Type) is
      use Peers;
      use Peers.Peer_List_Type;
-     use Call_List;
+     use Model.Call;
 
      Call : Call_Type;
      Action_ID : constant Action_ID_Type := 
@@ -306,9 +307,9 @@ package body AMI.Action is
      --           return;
      --        end if;
 
-     Call := Call_List.Get_Call (UniqueID => To_Unbounded_String (Call_Id));
+     Call := Get_Call (UniqueID => To_Unbounded_String (Call_Id));
 
-     if Call = Call_List.Null_Call then
+     if Call = Null_Call then
 	System_Messages.Notify (Debug,
 				"Park_Call: Call not found, ID: " & Call_Id);
 	Status := No_Call_Found;

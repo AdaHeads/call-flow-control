@@ -29,13 +29,13 @@ with Ada.Strings.Unbounded;
 with Interfaces.C;
 with System_Messages;
 
-package body Call_Queue_JSON is
+package body JSON.Call is
    use GNATCOLL.JSON;
    use System_Messages;
 
    Length_String : constant String := "length";
 
-   function To_JSON_String (Call : in Call_List.Call_Type)
+   function To_JSON_String (Call : in Model.Call.Call_Type)
                                 return JSON_String is
       JSON : JSON_Value;
    begin
@@ -44,11 +44,11 @@ package body Call_Queue_JSON is
       return To_JSON_String (JSON.Write);
    end To_JSON_String;
 
-   function To_JSON_Object (Call : in Call_List.Call_Type)
+   function To_JSON_Object (Call : in Model.Call.Call_Type)
                            return GNATCOLL.JSON.JSON_Value is
       use Ada.Calendar;
       use Ada.Calendar.Conversions;
-      use Call_List;
+      use Model.Call;
 
       function Unix_Timestamp
         (Date : in Time)
@@ -74,7 +74,7 @@ package body Call_Queue_JSON is
    begin
       System_Messages.Notify  (Debug, "CALL_QUEUE_JSON DEBUG - " &
                         Ada.Strings.Unbounded.To_String (Call.Queue));
-      if Call /= Call_List.Null_Call then
+      if Call /= Null_Call then
          System_Messages.Notify
            (Debug, "CALL_QUEUE_JSON DEBUG: " & Call.State'Img);
          CompanyID := Ada.Strings.Unbounded.Tail
@@ -119,9 +119,9 @@ package body Call_Queue_JSON is
       return To_JSON_String (JSON.Write);
    end To_JSON_String;
 
-   function To_JSON_String (Queue : in Call_List.Call_List_Type.Vector)
+   function To_JSON_String (Queue : in Model.Call.Call_List_Type.Vector)
                            return JSON_String is
-      use Call_List;
+      use Model.Call;
 
       JSON_List : JSON_Array;
       Value     : JSON_Value;
@@ -149,4 +149,4 @@ package body Call_Queue_JSON is
       return To_JSON_String (JSON.Write);
    end Status_Message;
 
-end Call_Queue_JSON;
+end JSON.Call;

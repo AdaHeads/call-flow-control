@@ -24,7 +24,7 @@
 with Ada.Characters.Latin_1;
 with System_Messages;
 
-package body Call_List is
+package body Model.Call is
    use System_Messages;
 
    protected Protected_Call_List is
@@ -330,4 +330,4 @@ package body Call_List is
    --        return Call;
    --     end Hangup;
 
-end Call_List;
+end Model.Call;

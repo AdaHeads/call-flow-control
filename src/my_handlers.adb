@@ -21,7 +21,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-
 with AWS.Dispatchers.Callback;
 with AWS.Net.WebSocket.Registry;
 with My_Configuration;
