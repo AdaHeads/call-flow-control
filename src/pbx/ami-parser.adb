@@ -21,8 +21,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---with Errors;
---with Yolk.Log;
+--  with Errors;
+--  with Yolk.Log;
 with Ada.Strings.Maps;
 with Ada.Strings.Fixed; use Ada.Strings.Fixed; -- For Index
 with Ada.Characters.Latin_1;
@@ -32,16 +32,16 @@ with AWS.Net.Buffered;
 with System_Messages;   use System_Messages;
 
 package body AMI.Parser is
-   --use Yolk.Log;
+--  use Yolk.Log;
 
    function Hash_Equivalent_Keys (Left, Right : in AMI_Key_Type)
-				 return Boolean is
+                                  return Boolean is
    begin
       return Left = Right;
    end Hash_Equivalent_Keys;
 
    function Hash_Function (Key : in AMI_Key_Type)
-			  return Ada.Containers.Hash_Type
+                           return Ada.Containers.Hash_Type
    is
    begin
       return AMI_Key_Type'Pos (Key);
@@ -61,112 +61,112 @@ package body AMI.Parser is
          return False;
       end if;
    end Try_Get;
-   
-   function Read_Packet (Client : access Client_Type) return Packet_Type is 
+
+   function Read_Packet (Client : access Client_Type) return Packet_Type is
       Current_Pair   : Pair_Type   := Null_Pair;
       Current_Packet : Packet_Type := New_Packet;
    begin
-      
+
       loop
-	 Current_Pair := AMI.Parser.Parse_Line 
-	   (Line => AWS.Net.Buffered.Get_Line 
-	      (Socket => Client.Socket));
-	 
-	 --  We return on an empty line, meaning the packet is complete
-	 if Current_Pair = Empty_Line then
-	    return Current_Packet;
-	    
-	 -- Fill the header   
-	 elsif Current_Packet.Header = Null_Pair then 
-	    Current_Packet.Header := Current_Pair;
-	    
-	 --  Or simply insert a key/value pair
-	 elsif Current_Pair.Key /= Null_Key then
-	    Current_Packet.Fields.Insert
-	      (Key      => Current_Pair.Key,
-	       New_Item => Current_Pair.Value);
-	 end if;
+         Current_Pair := AMI.Parser.Parse_Line
+           (Line => AWS.Net.Buffered.Get_Line
+              (Socket => Client.Socket));
+
+         --  We return on an empty line, meaning the packet is complete
+         if Current_Pair = Empty_Line then
+            return Current_Packet;
+
+            --  Fill the header
+         elsif Current_Packet.Header = Null_Pair then
+            Current_Packet.Header := Current_Pair;
+
+            --  Or simply insert a key/value pair
+         elsif Current_Pair.Key /= Null_Key then
+            Current_Packet.Fields.Insert
+              (Key      => Current_Pair.Key,
+               New_Item => Current_Pair.Value);
+         end if;
       end loop;
    end Read_Packet;
-   
+
    --  Tokenizes a line into a key-value Pair_Type
-   function Parse_Line (Line : in String) return Pair_Type is 
-      Underscore_Map : constant Ada.Strings.Maps.Character_Mapping 
-	:= Ada.Strings.Maps.To_Mapping ("-","_");
-      
-      Seperator_Index : Natural := Index 
-	(Source  => Line,
-	 Pattern => Key_Value_Seperator);
-      Key_Length : Natural;
-      Key        : AMI_Key_Type;    
+   function Parse_Line (Line : in String) return Pair_Type is
+      Underscore_Map : constant Ada.Strings.Maps.Character_Mapping
+        := Ada.Strings.Maps.To_Mapping ("-", "_");
+
+      Seperator_Index : Natural := Index
+        (Source  => Line,
+         Pattern => Key_Value_Seperator);
+      Key_Length     : Natural;
+      Key            : AMI_Key_Type;
    begin
-      -- Special cases
+      --  Special cases
       if Line'Length = 0 then
-	 return Empty_Line;
+         return Empty_Line;
       elsif Seperator_Index = 0 then
-	 --XXX FIXME
-	 if Line = "ReportBlock:" then
-	    return (Key   => ReportBlock,
-	      Value => To_Unbounded_String(""));
-	 else
-	    raise BAD_LINE_FORMAT;
-	 end if;
+         --  XXX FIXME
+         if Line = "ReportBlock:" then
+            return (Key   => ReportBlock,
+                    Value => To_Unbounded_String (""));
+         else
+            raise BAD_LINE_FORMAT;
+         end if;
       end if;
-      
+
       --  Sometimes we get string slice instead of a "real" string.
       if Line'First /= 1 then
-	 Seperator_Index := Seperator_Index-Line'First+1;
+         Seperator_Index := Seperator_Index - Line'First + 1;
       end if;
-      
-      -- This one really isn't needed, but improves readability
-      Key_Length := Seperator_Index-Key_Value_Seperator'Length;
+
+      --  This one really isn't needed, but improves readability
+      Key_Length := Seperator_Index - Key_Value_Seperator'Length;
       Key        := AMI_Key_Type'Value
-	(Translate(Source  => Line (Line'First .. Line'First+Key_Length),
-		   Mapping => Underscore_Map));
-      
-      -- Return the anonymous object
+        (Translate (Source  => Line (Line'First .. Line'First + Key_Length),
+                    Mapping => Underscore_Map));
+
+      --  Return the anonymous object
       return (Key   => Key,
-	      Value => To_Unbounded_String 
-		(Line(Line'First+Seperator_Index+1 .. Line'Last)));
+              Value => To_Unbounded_String
+                (Line (Line'First + Seperator_Index + 1 .. Line'Last)));
    exception
-      when CONSTRAINT_ERROR =>
-	 System_Messages.Notify 
-	   (System_Messages.Error,"AMI.Parser.Parse_Line: Unknown line """ &
-	      Line& """");
-	 return Bad_Line;
+      when Constraint_Error =>
+         System_Messages.Notify
+           (System_Messages.Error, "AMI.Parser.Parse_Line: Unknown line """ &
+              Line & """");
+         return Bad_Line;
       when BAD_LINE_FORMAT =>
-	 System_Messages.Notify 
-	   (System_Messages.Error,"AMI.Parser.Parse_Line: Malformatted line """ &
-	      Line & """");
-	 return Bad_Line;
+         System_Messages.Notify
+           (System_Messages.Error, "AMI.Parser.Parse_Line: Malformatted line """ &
+              Line & """");
+         return Bad_Line;
    end Parse_Line;
-   
+
    function Image (Packet : in Packet_Type) return String is
    begin
-      return "Header:" & Image(Packet.Header) & Image(Packet.Fields);
+      return "Header:" & Image (Packet.Header) & Image (Packet.Fields);
    end Image;
-   
+
    function Image (List : in Pair_List_Type.Map) return String is
       package Latin_1 renames Ada.Characters.Latin_1;
       Buffer : Unbounded_String;
    begin
-      
+
       for Cursor in List.Iterate loop
-	 Append (Buffer, 
-		 Latin_1.LF &
-		   "[" & Pair_List_Type.Key(Cursor)'Img & 
-		   "] => [" &
-		   Pair_List_Type.Element(Cursor) &
-		   "]");
+         Append (Buffer,
+                 Latin_1.LF &
+                   "[" & Pair_List_Type.Key (Cursor)'Img &
+                   "] => [" &
+                   Pair_List_Type.Element (Cursor) &
+                   "]");
       end loop;
-      
-      return To_String(Buffer);
+
+      return To_String (Buffer);
    end Image;
-   
+
    function Image (Item : in Pair_Type) return String is
    begin
-      return "[" & AMI_Key_Type'Image (Item.Key) & 
-	"] => [" & To_String(Item.Value) & "]"; 
+      return "[" & AMI_Key_Type'Image (Item.Key) &
+        "] => [" & To_String (Item.Value) & "]";
    end Image;
-   
+
 end AMI.Parser;

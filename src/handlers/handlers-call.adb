@@ -39,7 +39,6 @@ package body Handlers.Call is
    use System_Messages;
    use AMI.Action;
    use JSON.Call;
-   
    package Routines renames AMI.Action;
 
    --------------
@@ -82,8 +81,8 @@ package body Handlers.Call is
               (Debug, "Exception in Call_Queue.Call_Hangup");
 
             Response_Object.Set_HTTP_Status_Code (Server_Error);
-            Response_Object.Set_Content 
-              (Status_Message 
+            Response_Object.Set_Content
+              (Status_Message
                  ("Exception", "Something went wrong"));
 
             return Response_Object.Build;
@@ -131,8 +130,8 @@ package body Handlers.Call is
          System_Messages.Notify (Debug, "Exception in Hangup");
 
          Response_Object.Set_HTTP_Status_Code (Server_Error);
-         Response_Object.Set_Content 
-           (Status_Message 
+         Response_Object.Set_Content
+           (Status_Message
               ("Exception", "Something went wrong"));
 
          return Response_Object.Build;

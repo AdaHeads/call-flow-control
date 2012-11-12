@@ -25,29 +25,29 @@ with Ada.Strings.Unbounded;
 with System_Messages; use System_Messages;
 
 package body AMI.Event is
-   
+
    procedure Dispatch (Callback_Table : in Event_Callback_Table;
-		       Packet         : in Packet_Type) is
-      use Ada.Strings.Unbounded;      
+                       Packet         : in Packet_Type) is
+      use Ada.Strings.Unbounded;
       Event    : Event_Type;
    begin
-      Event := Event_Type'Value 
-	(To_String (Packet.Header.Value));
-      
+      Event := Event_Type'Value
+        (To_String (Packet.Header.Value));
+
       -- Launch the callback.
-      Callback_Table (Event) (Packet => Packet); 
-      
+      Callback_Table (Event) (Packet => Packet);
+
    exception
       when others =>
-	 System_Messages.Notify (Error, "Unknown Event: " & 
-				   (To_String (Packet.Header.Value)));
-	 
+         System_Messages.Notify (Error, "Unknown Event: " &
+                                 (To_String (Packet.Header.Value)));
+
    end Dispatch;
-   
+
    procedure Null_Callback (Packet : in AMI.Parser.Packet_Type) is
    begin
       null;
    end Null_Callback;
-   
+
 
 end AMI.Event;
