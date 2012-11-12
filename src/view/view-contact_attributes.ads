@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                         View.Contact_Attributes                           --
+--                        View.Contacts_Attributes                           --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -23,13 +23,13 @@
 
 with Common;
 with GNATCOLL.JSON;
-with Model.Contact_Attributes;
+with Model.Contacts_Attributes;
 
 package View.Contact_Attributes is
 
    use Common;
    use GNATCOLL.JSON;
-   use Model.Contact_Attributes;
+   use Model.Contacts_Attributes;
 
    function To_JSON
      (Contact_Attributes : in Contact_Attributes_Object)

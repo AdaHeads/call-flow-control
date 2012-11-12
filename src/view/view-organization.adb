@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                         View.Contact_Attributes                           --
+--                            View.Organizations                             --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -21,25 +21,32 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package body View.Contact_Attributes is
+package body View.Organization is
 
    ---------------
    --  To_JSON  --
    ---------------
 
    function To_JSON
-     (Contact_Attributes : in Contact_Attributes_Object)
+     (Organization : in Organization_Object)
       return JSON_Value
    is
       J : JSON_Value;
    begin
-      J := Contact_Attributes.JSON;
+      J := Create_Object;
 
-      J.Set_Field ("contact_id",
-                   Integer (Contact_Attributes.Contact_Id));
+      if Organization /= Null_Organization_Object then
+         J := Organization.JSON;
 
-      J.Set_Field ("organization_id",
-                   Integer (Contact_Attributes.Organization_Id));
+         J.Set_Field ("organization_id",
+                      Integer (Organization.Organization_Id));
+
+         J.Set_Field ("full_name",
+                      Organization.Full_Name);
+
+         J.Set_Field ("identifier",
+                      Organization.Identifier);
+      end if;
 
       return J;
    end To_JSON;
@@ -49,11 +56,11 @@ package body View.Contact_Attributes is
    ---------------
 
    function To_JSON
-     (Contact_Attributes : in Contact_Attributes_Object)
+     (Organization : in Organization_Object)
       return JSON_String
    is
    begin
-      return To_JSON_String (To_JSON (Contact_Attributes).Write);
+      return To_JSON_String (To_JSON (Organization).Write);
    end To_JSON;
 
-end View.Contact_Attributes;
+end View.Organization;

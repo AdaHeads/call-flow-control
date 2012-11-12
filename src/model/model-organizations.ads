@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                          Model.Contact_Attributes                         --
+--                           Model.Organizations                             --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,62 +21,71 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Common;
 with GNATCOLL.JSON;
+with GNATCOLL.SQL.Exec;
+with Common;
 
-package Model.Contact_Attributes is
+package Model.Organizations is
 
-   type Contact_Attributes_Object is tagged private;
-   Null_Contact_Attributes : constant Contact_Attributes_Object;
+   type Organization_Object is tagged private;
+   Null_Organization_Object : constant Organization_Object;
 
-   function Create
-     (C_Id : in Contact_Id;
-      O_Id : in Organization_Id;
-      JSON : in GNATCOLL.JSON.JSON_Value)
-      return Contact_Attributes_Object;
-   --  Create a Contact_Attributes_Object.
+   function Full_Name
+     (Organization : in Organization_Object)
+      return String;
+
+   function Get
+     (O_Id : in Organization_Identifier)
+      return Organization_Object;
+   --  Return the organization that match O_Id, complete with all the contacts.
 
    procedure Get
-     (Id      : in Contact_Id;
+     (O_Id    : in Organization_Identifier;
       Process : not null access
-        procedure (Element : in Contact_Attributes_Object'Class));
-   --  For every contact_attributes row with Id in the database, a
-   --  Contact_Attributes_Object is handed to Process.
+        procedure (Element : in Organization_Object'Class));
+   --  For every organization with O_Id in the database, an Organization_Object
+   --  is handed to Process.
 
-   function Get_Contact_Id
-     (Contact_Attributes : in Contact_Attributes_Object)
-      return Contact_Id;
+   function Identifier
+     (Organization : in Organization_Object)
+     return String;
 
-   function Get_JSON
-     (Contact_Attributes : in Contact_Attributes_Object)
+   function JSON
+     (Organization : in Organization_Object)
       return GNATCOLL.JSON.JSON_Value;
 
-   function Get_Organization_Id
-     (Contact_Attributes : in Contact_Attributes_Object)
-      return Organization_Id;
+   function Organization_Id
+     (Organization : in Organization_Object)
+      return Organization_Identifier;
 
    function To_JSON
-     (Contact_Attributes : in Contact_Attributes_Object)
-     return Common.JSON_String;
+     (Organization : in Organization_Object)
+      return Common.JSON_String;
+   --  Convert the Contact to a JSON string. This call is convenient wrapper
+   --  for the View.Contact.To_JSON function.
 
 private
 
-   type Contact_Attributes_Object is tagged
+   type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null record;
+
+   type Organization_Object is tagged
       record
-         C_Id : Contact_Id := 0;
-         O_Id : Organization_Id := 0;
-         JSON : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.JSON_Null;
+         Full_Name  : Unbounded_String := Null_Unbounded_String;
+         Identifier : Unbounded_String := Null_Unbounded_String;
+         JSON       : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.JSON_Null;
+         O_Id       : Organization_Identifier := 0;
       end record;
 
-   Null_Contact_Attributes : constant Contact_Attributes_Object :=
-                               (C_Id => 0,
-                                O_Id => 0,
-                                JSON => GNATCOLL.JSON.JSON_Null);
+   Null_Organization_Object : constant Organization_Object
+     := (Full_Name  => Null_Unbounded_String,
+         Identifier => Null_Unbounded_String,
+         JSON       => GNATCOLL.JSON.JSON_Null,
+         O_Id       => 0);
 
-   function Contact_Attributes_Element
+   function Organization_Element
      (C : in out Cursor)
-      return Contact_Attributes_Object'Class;
+      return Organization_Object'Class;
    --  Transforms the low level index based Cursor into the more readable
-   --  Contact_Attributes_Object record.
+   --  Organization_Object record.
 
-end Model.Contact_Attributes;
+end Model.Organizations;

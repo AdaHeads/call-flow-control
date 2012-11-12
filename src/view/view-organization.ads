@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                         View.Contact_Attributes                           --
+--                            View.Organizations                             --
 --                                                                           --
---                                  BODY                                     --
+--                                  SPEC                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,39 +21,22 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package body View.Contact_Attributes is
+with Common;
+with GNATCOLL.JSON;
+with Model.Organizations;
 
-   ---------------
-   --  To_JSON  --
-   ---------------
+package View.Organization is
 
-   function To_JSON
-     (Contact_Attributes : in Contact_Attributes_Object)
-      return JSON_Value
-   is
-      J : JSON_Value;
-   begin
-      J := Contact_Attributes.JSON;
-
-      J.Set_Field ("contact_id",
-                   Integer (Contact_Attributes.Contact_Id));
-
-      J.Set_Field ("organization_id",
-                   Integer (Contact_Attributes.Organization_Id));
-
-      return J;
-   end To_JSON;
-
-   ---------------
-   --  To_JSON  --
-   ---------------
+   use Common;
+   use GNATCOLL.JSON;
+   use Model.Organizations;
 
    function To_JSON
-     (Contact_Attributes : in Contact_Attributes_Object)
-      return JSON_String
-   is
-   begin
-      return To_JSON_String (To_JSON (Contact_Attributes).Write);
-   end To_JSON;
+     (Organization : in Organization_Object)
+     return JSON_Value;
 
-end View.Contact_Attributes;
+   function To_JSON
+     (Organization : in Organization_Object)
+      return JSON_String;
+
+end View.Organization;

@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                         Model.Contact_Attributes                          --
+--                        Model.Contacts_Attributes                          --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -25,7 +25,7 @@ with Database;
 with Storage;
 with View.Contact_Attributes;
 
-package body Model.Contact_Attributes is
+package body Model.Contacts_Attributes is
 
    use GNATCOLL.SQL;
    use GNATCOLL.SQL.Exec;
@@ -66,18 +66,30 @@ package body Model.Contact_Attributes is
    is
    begin
       return Contact_Attributes_Object'
-        (C_Id => Contact_Id (C.Integer_Value (0, Default => 0)),
-         O_Id => Organization_Id (C.Integer_Value (1, Default => 0)),
+        (C_Id => Contact_Identifier (C.Integer_Value (0, Default => 0)),
+         O_Id => Organization_Identifier (C.Integer_Value (1, Default => 0)),
          JSON => C.Json_Object_Value (2));
    end Contact_Attributes_Element;
+
+   ------------------
+   --  Contact_Id  --
+   ------------------
+
+   function Contact_Id
+     (Contact_Attributes : in Contact_Attributes_Object)
+      return Contact_Identifier
+   is
+   begin
+      return Contact_Attributes.C_Id;
+   end Contact_Id;
 
    --------------
    --  Create  --
    --------------
 
    function Create
-     (C_Id : in Contact_Id;
-      O_Id : in Organization_Id;
+     (C_Id : in Contact_Identifier;
+      O_Id : in Organization_Identifier;
       JSON : in GNATCOLL.JSON.JSON_Value)
       return Contact_Attributes_Object
    is
@@ -92,11 +104,11 @@ package body Model.Contact_Attributes is
    -----------
 
    procedure Get
-     (Id      : in Contact_Id;
+     (C_Id    : in Contact_Identifier;
       Process : not null access
         procedure (Element : in Contact_Attributes_Object'Class))
    is
-      Parameters : constant SQL_Parameters := (1 => +Integer (Id));
+      Parameters : constant SQL_Parameters := (1 => +Integer (C_Id));
    begin
       Fetch_Contact_Attributes_Object
         (Process_Element    => Process,
@@ -104,41 +116,29 @@ package body Model.Contact_Attributes is
          Query_Parameters   => Parameters);
    end Get;
 
-   ----------------------
-   --  Get_Contact_Id  --
-   ----------------------
+   ------------
+   --  JSON  --
+   ------------
 
-   function Get_Contact_Id
-     (Contact_Attributes : in Contact_Attributes_Object)
-      return Contact_Id
-   is
-   begin
-      return Contact_Attributes.C_Id;
-   end Get_Contact_Id;
-
-   ----------------
-   --  Get_JSON  --
-   ----------------
-
-   function Get_JSON
+   function JSON
      (Contact_Attributes : Contact_Attributes_Object)
       return GNATCOLL.JSON.JSON_Value
    is
    begin
       return Contact_Attributes.JSON;
-   end Get_JSON;
+   end JSON;
 
-   ---------------------------
-   --  Get_Organization_Id  --
-   ---------------------------
+   -----------------------
+   --  Organization_Id  --
+   -----------------------
 
-   function Get_Organization_Id
+   function Organization_Id
      (Contact_Attributes : Contact_Attributes_Object)
-      return Organization_Id
+      return Organization_Identifier
    is
    begin
       return Contact_Attributes.O_Id;
-   end Get_Organization_Id;
+   end Organization_Id;
 
    ---------------
    --  To_JSON  --
@@ -152,4 +152,4 @@ package body Model.Contact_Attributes is
       return View.Contact_Attributes.To_JSON (Contact_Attributes);
    end To_JSON;
 
-end Model.Contact_Attributes;
+end Model.Contacts_Attributes;

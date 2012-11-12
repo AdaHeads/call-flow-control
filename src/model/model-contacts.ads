@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                              Model.Contact                                --
+--                             Model.Contacts                                --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,54 +21,73 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Doubly_Linked_Lists;
-with Ada.Strings.Unbounded;
+with Ada.Containers.Hashed_Maps;
 with Common;
-with Model.Contact_Attributes;
+with GNATCOLL.SQL.Exec;
+with Model.Contacts_Attributes;
 
-package Model.Contact is
+package Model.Contacts is
 
    type Contact_Object is tagged private;
    Null_Contact_Object : constant Contact_Object;
 
    function Equal
-     (Left, Right : in Model.Contact_Attributes.Contact_Attributes_Object)
+     (Left, Right : in Model.Contacts_Attributes.Contact_Attributes_Object)
       return Boolean;
+   --  Element equality function used by the Attributes_Map.
 
-   package Attributes_List is new Ada.Containers.Doubly_Linked_Lists
-     (Model.Contact_Attributes.Contact_Attributes_Object,
-      Equal);
+   package Attributes_Map is new Ada.Containers.Hashed_Maps
+     (Key_Type        => Unbounded_String,
+      Element_Type    => Model.Contacts_Attributes.Contact_Attributes_Object,
+      Hash            => Key_Hash,
+      Equivalent_Keys => Equivalent_Keys,
+      "="             => Equal);
 
-   function Get
-     (Id : in Contact_Id)
-      return Contact_Object;
-   --  Return the contact that match Id, complete with all the attributes that
-   --  may be associated with the contact.
-
-   procedure Get
-     (Id      : in Contact_Id;
-      Process : not null access
-        procedure (Element : in Contact_Object'Class));
-   --  For every contact with Id in the database, a Contact_Object is handed to
-   --  Process.
-
-   function Get_Attributes
+   function Attributes
      (Contact : in Contact_Object)
-      return Attributes_List.List;
+      return Attributes_Map.Map;
    --  Return the a linked list of Contact_Attributes_Object's associated with
    --  Contact.
 
-   function Get_Full_Name
+   function Contact_Id
+     (Contact : in Contact_Object)
+      return Contact_Identifier;
+   --  Return the id of the Contact.
+
+   function Full_Name
      (Contact : in Contact_Object)
       return String;
    --  Return the full name of the Contact.
 
-   function Get_Contact_Id
-     (Contact : in Contact_Object)
-      return Contact_Id;
-   --  Return the id of the Contact.
+   function Get
+     (C_Id : in Contact_Identifier)
+      return Contact_Object;
+   --  Return the contact that match C_Id, complete with all the attributes
+   --  that may be associated with the contact.
 
-   function Get_Is_Human
+   function Get
+     (C_Id : in Contact_Identifier;
+      O_Id : in Organization_Identifier)
+      return Contact_Object;
+   --  Return the contact that match C_Id, complete with all the attributes
+   --  that may be associated with the contact.
+
+   procedure Get
+     (C_Id    : in Contact_Identifier;
+      Process : not null access
+        procedure (Element : in Contact_Object'Class));
+   --  For every contact with C_Id in the database, a Contact_Object is handed
+   --  to Process.
+
+   procedure Get
+     (C_Id    : in Contact_Identifier;
+      O_Id    : in Organization_Identifier;
+      Process : not null access
+        procedure (Element : in Contact_Object'Class));
+   --  Hands a Contact_Object to Process for every contact in the database that
+   --  match C_Id and belongs to O_Id.
+
+   function Is_Human
      (Contact : in Contact_Object)
       return Boolean;
    --  Return whether or not the Contact is human.
@@ -81,21 +100,21 @@ package Model.Contact is
 
 private
 
-   use Ada.Strings.Unbounded;
+   type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null record;
 
    type Contact_Object is tagged
       record
-         Attr_List   : Attributes_List.List;
-         C_Id        : Contact_Id := 0;
-         Full_Name   : Unbounded_String := Null_Unbounded_String;
-         Is_Human    : Boolean := True;
+         Attr_Map  : Attributes_Map.Map;
+         C_Id      : Contact_Identifier := 0;
+         Full_Name : Unbounded_String := Null_Unbounded_String;
+         Is_Human  : Boolean := True;
       end record;
 
    Null_Contact_Object : constant Contact_Object
-     := (Attr_List   => Attributes_List.Empty_List,
-         C_Id        => 0,
-         Full_Name   => Null_Unbounded_String,
-         Is_Human    => True);
+     := (Attr_Map  => Attributes_Map.Empty_Map,
+         C_Id      => 0,
+         Full_Name => Null_Unbounded_String,
+         Is_Human  => True);
 
    function Contact_Element
      (C : in out Cursor)
@@ -103,4 +122,4 @@ private
    --  Transforms the low level index based Cursor into the more readable
    --  Contact_Object record.
 
-end Model.Contact;
+end Model.Contacts;

@@ -21,15 +21,28 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.SQL.Exec;
+with Ada.Containers;
+with Ada.Strings.Unbounded;
 
 package Model is
 
-   type Contact_Id is mod 2**31 - 1;
-   type Organization_Id is mod 2 ** 31 - 1;
+   use Ada.Strings.Unbounded;
 
-private
+   type Contact_Identifier is mod 2**31 - 1;
+   type Organization_Identifier is mod 2 ** 31 - 1;
 
-   type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null record;
+   function Equivalent_Keys
+     (Left, Right : in Unbounded_String)
+      return Boolean;
+   --  Key equality function used by the Attributes_Map.
+
+   function Key_Hash
+     (Key : in Unbounded_String)
+      return Ada.Containers.Hash_Type;
+
+   function Map_Key
+     (C_Id : in Contact_Identifier;
+      O_Id : in Organization_Identifier)
+      return Unbounded_String;
 
 end Model;

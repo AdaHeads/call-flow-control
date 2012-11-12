@@ -40,15 +40,15 @@ package body View.Contact is
 
       if Contact /= Null_Contact_Object then
          J.Set_Field ("contact_id",
-                      Integer (Contact.Get_Contact_Id));
+                      Integer (Contact.Contact_Id));
 
          J.Set_Field ("full_name",
-                      Contact.Get_Full_Name);
+                      Contact.Full_Name);
 
          J.Set_Field ("is_human",
-                      Contact.Get_Is_Human);
+                      Contact.Is_Human);
 
-         for Elem of Contact.Get_Attributes loop
+         for Elem of Contact.Attributes loop
             Append (Attr_Array, View.Contact_Attributes.To_JSON (Elem));
          end loop;
 

@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                         View.Contact_Attributes                           --
+--                                  Model                                    --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -21,39 +21,48 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package body View.Contact_Attributes is
+with Ada.Strings.Hash;
+with Common;
 
-   ---------------
-   --  To_JSON  --
-   ---------------
+package body Model is
 
-   function To_JSON
-     (Contact_Attributes : in Contact_Attributes_Object)
-      return JSON_Value
-   is
-      J : JSON_Value;
-   begin
-      J := Contact_Attributes.JSON;
+   -----------------------
+   --  Equivalent_Keys  --
+   -----------------------
 
-      J.Set_Field ("contact_id",
-                   Integer (Contact_Attributes.Contact_Id));
-
-      J.Set_Field ("organization_id",
-                   Integer (Contact_Attributes.Organization_Id));
-
-      return J;
-   end To_JSON;
-
-   ---------------
-   --  To_JSON  --
-   ---------------
-
-   function To_JSON
-     (Contact_Attributes : in Contact_Attributes_Object)
-      return JSON_String
+   function Equivalent_Keys
+     (Left, Right : in Unbounded_String)
+      return Boolean
    is
    begin
-      return To_JSON_String (To_JSON (Contact_Attributes).Write);
-   end To_JSON;
+      return Left = Right;
+   end Equivalent_Keys;
 
-end View.Contact_Attributes;
+   ----------------
+   --  Key_Hash  --
+   ----------------
+
+   function Key_Hash
+     (Key : in Unbounded_String)
+      return Ada.Containers.Hash_Type
+   is
+   begin
+      return Ada.Strings.Hash (To_String (Key));
+   end Key_Hash;
+
+   ---------------
+   --  Map_Key  --
+   ---------------
+
+   function Map_Key
+     (C_Id : in Contact_Identifier;
+      O_Id : in Organization_Identifier)
+      return Unbounded_String
+   is
+      use Common;
+   begin
+      return U (Contact_Identifier'Image (C_Id) &
+                  Organization_Identifier'Image (O_Id));
+   end Map_Key;
+
+end Model;

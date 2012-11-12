@@ -23,13 +23,13 @@
 
 with Common;
 with GNATCOLL.JSON;
-with Model.Contact;
+with Model.Contacts;
 
 package View.Contact is
 
    use Common;
    use GNATCOLL.JSON;
-   use Model.Contact;
+   use Model.Contacts;
 
    function To_JSON
      (Contact : in Contact_Object)

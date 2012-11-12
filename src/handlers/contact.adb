@@ -23,7 +23,7 @@
 
 with AWS.Status;
 with HTTP_Codes;
-with Model.Contact;
+with Model.Contacts;
 with System_Message.Error;
 
 package body Contact is
@@ -61,7 +61,7 @@ package body Contact is
    is
       use Common;
       use HTTP_Codes;
-      use Model.Contact;
+      use Model.Contacts;
 
       C : Contact_Object;
    begin
@@ -83,12 +83,12 @@ package body Contact is
 
    function Get_Contact_Id
      (Response_Object : in Response.Object)
-      return Model.Contact_Id
+      return Model.Contact_Identifier
    is
       use AWS.Status;
       use Model;
    begin
-      return Contact_Id'Value
+      return Contact_Identifier'Value
         (Parameters (Response_Object.Get_Request).Get ("ce_id"));
    end Get_Contact_Id;
 

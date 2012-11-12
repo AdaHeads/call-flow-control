@@ -20,7 +20,7 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with Ada.Text_IO;
+
 with Ada.Characters.Latin_1;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
@@ -168,7 +168,7 @@ package body Storage is
    is
       use GNATCOLL.SQL.Exec;
       use HTTP_Codes;
-      use Storage;
+      --  use Storage;
       use System_Message;
 
       C              : Cursor;
@@ -260,7 +260,6 @@ package body Storage is
 
          if DB_Connections (K).Host.Success then
             while C.Has_Row loop
-               Ada.Text_IO.Put ("-");
                Process_Element (Cursor_To_Element (C));
                C.Next;
             end loop;
