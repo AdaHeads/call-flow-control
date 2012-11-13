@@ -38,6 +38,18 @@ package body Model is
       return Left = Right;
    end Equivalent_Keys;
 
+   -----------------------
+   --  Equivalent_Keys  --
+   -----------------------
+
+   function Equivalent_Keys
+     (Left, Right : in Contact_Identifier)
+      return Boolean
+   is
+   begin
+      return Left = Right;
+   end Equivalent_Keys;
+
    ----------------
    --  Key_Hash  --
    ----------------
@@ -48,6 +60,18 @@ package body Model is
    is
    begin
       return Ada.Strings.Hash (To_String (Key));
+   end Key_Hash;
+
+   ----------------
+   --  Key_Hash  --
+   ----------------
+
+   function Key_Hash
+     (Key : in Contact_Identifier)
+      return Ada.Containers.Hash_Type
+   is
+   begin
+      return Ada.Containers.Hash_Type (Key);
    end Key_Hash;
 
    ---------------

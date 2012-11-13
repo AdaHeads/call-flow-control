@@ -34,10 +34,17 @@ package Model is
    function Equivalent_Keys
      (Left, Right : in Unbounded_String)
       return Boolean;
-   --  Key equality function used by the Attributes_Map.
+
+   function Equivalent_Keys
+     (Left, Right : in Contact_Identifier)
+      return Boolean;
 
    function Key_Hash
      (Key : in Unbounded_String)
+      return Ada.Containers.Hash_Type;
+
+   function Key_Hash
+     (Key : in Contact_Identifier)
       return Ada.Containers.Hash_Type;
 
    function Map_Key

@@ -43,6 +43,11 @@ package Model.Contacts is
       Equivalent_Keys => Equivalent_Keys,
       "="             => Equal);
 
+   procedure Add_Attribute
+     (Contact   : in out Contact_Object;
+      Attribute : in     Model.Contacts_Attributes.Contact_Attributes_Object);
+   --  Add an attribute object to Contact.
+
    function Attributes
      (Contact : in Contact_Object)
       return Attributes_Map.Map;
@@ -53,6 +58,13 @@ package Model.Contacts is
      (Contact : in Contact_Object)
       return Contact_Identifier;
    --  Return the id of the Contact.
+
+   function Create
+     (C_Id      : in Contact_Identifier;
+      Full_Name : in String;
+      Is_Human  : in Boolean)
+      return Contact_Object;
+   --  Create a Contact_Object.
 
    function Full_Name
      (Contact : in Contact_Object)
@@ -87,6 +99,13 @@ package Model.Contacts is
    --  Hands a Contact_Object to Process for every contact in the database that
    --  match C_Id and belongs to O_Id.
 
+   procedure Get
+     (O_Id    : in Organization_Identifier;
+      Process : not null access
+        procedure (Element : in Contact_Object'Class));
+   --  Hands a Contact_Object to Process for every contact in the database that
+   --  belongs to O_Id.
+
    function Is_Human
      (Contact : in Contact_Object)
       return Boolean;
@@ -119,7 +138,13 @@ private
    function Contact_Element
      (C : in out Cursor)
       return Contact_Object'Class;
-   --  Transforms the low level index based Cursor into the more readable
-   --  Contact_Object record.
+   --  Transforms the low level index based Cursor into ONE Contact_Object
+   --  record.
+
+   function Contact_Elements
+     (C : in out Cursor)
+      return Contact_Object'Class;
+   --  Transforms the low level index based Cursor into potentially several
+   --  Contact_Object records.
 
 end Model.Contacts;

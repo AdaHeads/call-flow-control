@@ -65,7 +65,7 @@ package body Organization is
 
       O : Organization_Object;
    begin
-      O := Get (Get_Org_Id (Response_Object));
+      O := Get_Full (Get_Org_Id (Response_Object));
 
       if O /= Null_Organization_Object then
          Response_Object.Set_Cacheable (True);
@@ -76,84 +76,6 @@ package body Organization is
 
       Response_Object.Set_Content (O.To_JSON);
    end Generate_Document;
-
---     -------------------
---     --  Create_JSON  --
---     -------------------
---
---     function Create_JSON
---       (C : in out Cursor)
---        return Common.JSON_String
---     is
---        use Common;
---        use Storage;
---
---        procedure Build_Contact_JSON;
---        --  Build an attribute node for a contact entity.
---
---        A_Row          : Row;
---        Contacts_Array : JSON_Array;
---        Contact_JSON   : JSON_Value;
---        JSON           : JSON_Value;
---
---        --------------------------
---        --  Build_Contact_JSON  --
---        --------------------------
---
---        procedure Build_Contact_JSON
---        is
---        begin
---           Contact_JSON := Create_Object;
---
---           Contact_JSON.Set_Field (To_String (A_Row.Ce_Id_Column_Name),
---                                   A_Row.Ce_Id);
---
---           Contact_JSON.Set_Field (To_String (A_Row.Ce_Name_Column_Name),
---                                   To_String (A_Row.Ce_Name));
---
---           Contact_JSON.Set_Field (To_String (A_Row.Is_Human_Column_Name),
---                                   A_Row.Is_Human);
---
---           if A_Row.Attr_JSON /= JSON_Null then
---              Contact_JSON.Set_Field ("attributes", A_Row.Attr_JSON);
---           end if;
---
---           Append (Contacts_Array, Contact_JSON);
---        end Build_Contact_JSON;
---     begin
---        JSON := Create_Object;
---
---        if C.Has_Row then
---           A_Row := C.Element;
---
---           JSON := A_Row.Org_JSON;
---
---           JSON.Set_Field (To_String (A_Row.Org_Id_Column_Name),
---                           A_Row.Org_Id);
---
---           JSON.Set_Field (To_String (A_Row.Org_Name_Column_Name),
---                           A_Row.Org_Name);
---
---           JSON.Set_Field (To_String (A_Row.Identifier_Column_Name),
---                           A_Row.Identifier);
---
---           Build_Contact_JSON;
---
---           C.Next;
---
---           while C.Has_Row loop
---              --  If we have more than one row, then we have more than one
---              --  contact entity in the organization.
---              A_Row := C.Element;
---              Build_Contact_JSON;
---              C.Next;
---           end loop;
---
---           JSON.Set_Field ("contact", Contacts_Array);
---        end if;
---
---        return To_JSON_String (JSON.Write);
---     end Create_JSON;
 
    ------------------
    --  Get_Org_Id  --

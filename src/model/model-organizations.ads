@@ -21,30 +21,70 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Containers.Hashed_Maps;
+with Common;
 with GNATCOLL.JSON;
 with GNATCOLL.SQL.Exec;
-with Common;
+with Model.Contacts;
 
 package Model.Organizations is
 
    type Organization_Object is tagged private;
    Null_Organization_Object : constant Organization_Object;
 
+   function Equal
+     (Left, Right : in Model.Contacts.Contact_Object)
+      return Boolean;
+   --  Element equality function used by the Attributes_Map.
+
+   package Contacts_Map is new Ada.Containers.Hashed_Maps
+     (Key_Type        => Contact_Identifier,
+      Element_Type    => Model.Contacts.Contact_Object,
+      Hash            => Key_Hash,
+      Equivalent_Keys => Equivalent_Keys,
+      "="             => Equal);
+
+   procedure Add_Contact
+     (Organization : in out Organization_Object;
+      Contact      : in     Model.Contacts.Contact_Object);
+   --  Add a contact to Organization.
+
+   function Contacts
+     (Organization : in Organization_Object)
+      return Contacts_Map.Map;
+   --  Return all the contacts associated with Organization. Note that this
+   --  map is only populated if one of the Get_Full methods has been used to
+   --  fetch the organization.
+
    function Full_Name
      (Organization : in Organization_Object)
       return String;
 
-   function Get
+   function Get_Basic
      (O_Id : in Organization_Identifier)
       return Organization_Object;
-   --  Return the organization that match O_Id, complete with all the contacts.
+   --  Return the organization that match O_Id WITHOUT all the contacts.
 
-   procedure Get
+   procedure Get_Basic
      (O_Id    : in Organization_Identifier;
       Process : not null access
         procedure (Element : in Organization_Object'Class));
    --  For every organization with O_Id in the database, an Organization_Object
-   --  is handed to Process.
+   --  is handed to Process. These organization objects do NOT contain any
+   --  contacts.
+
+   function Get_Full
+     (O_Id : in Organization_Identifier)
+      return Organization_Object;
+   --  Return the organization that match O_Id. This object contains all the
+   --  contacts that are associated with the organization.
+
+   procedure Get_Full
+     (O_Id    : in Organization_Identifier;
+      Process : not null access
+        procedure (Element : in Organization_Object'Class));
+   --  For every organization with O_Id in the database, an Organization_Object
+   --  is handed to Process. Included in the Organization_Object is a
 
    function Identifier
      (Organization : in Organization_Object)
@@ -70,6 +110,7 @@ private
 
    type Organization_Object is tagged
       record
+         C_Map      : Contacts_Map.Map;
          Full_Name  : Unbounded_String := Null_Unbounded_String;
          Identifier : Unbounded_String := Null_Unbounded_String;
          JSON       : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.JSON_Null;
@@ -77,15 +118,23 @@ private
       end record;
 
    Null_Organization_Object : constant Organization_Object
-     := (Full_Name  => Null_Unbounded_String,
+     := (C_Map      => Contacts_Map.Empty_Map,
+         Full_Name  => Null_Unbounded_String,
          Identifier => Null_Unbounded_String,
          JSON       => GNATCOLL.JSON.JSON_Null,
          O_Id       => 0);
 
-   function Organization_Element
+   function Organization_Element_Basic
      (C : in out Cursor)
       return Organization_Object'Class;
    --  Transforms the low level index based Cursor into the more readable
-   --  Organization_Object record.
+   --  Organization_Object record. This one does NOT contain any contacts.
+
+      function Organization_Element_Full
+     (C : in out Cursor)
+      return Organization_Object'Class;
+   --  Transforms the low level index based Cursor into the more readable
+   --  Organization_Object record. This one DOES contain all contacts
+   --  associated with the organization.
 
 end Model.Organizations;

@@ -35,10 +35,9 @@ package body View.Contact_Attributes is
    begin
       J := Contact_Attributes.JSON;
 
-      J.Set_Field ("contact_id",
-                   Integer (Contact_Attributes.Contact_Id));
+      J.Set_Field (Contact_Id, Integer (Contact_Attributes.Contact_Id));
 
-      J.Set_Field ("organization_id",
+      J.Set_Field (Organization_Id,
                    Integer (Contact_Attributes.Organization_Id));
 
       return J;

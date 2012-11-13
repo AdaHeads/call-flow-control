@@ -21,42 +21,61 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Database;
+with Model.Contacts_Attributes;
+with SQL_Statements;
 with Storage;
 with View.Organization;
 
 package body Model.Organizations is
 
-   use GNATCOLL.SQL;
-   use GNATCOLL.SQL.Exec;
+   package SQL renames SQL_Statements;
 
-   package DB renames Database;
-
-   procedure Fetch_Organization_Object is new Storage.Process_Query
+   procedure Fetch_Basic_Organization_Object is new Storage.Process_Query
      (Database_Cursor   => Cursor,
       Element           => Organization_Object,
-      Cursor_To_Element => Organization_Element);
+      Cursor_To_Element => Organization_Element_Basic);
 
-   ---------------------------------------------------------------------------
-   --  Prepared statement for fetching an organization entity with all its  --
-   --  associated attributes.                                               --
-   ---------------------------------------------------------------------------
+   procedure Fetch_Full_Organization_Object is new Storage.Process_Query
+     (Database_Cursor   => Cursor,
+      Element           => Organization_Object,
+      Cursor_To_Element => Organization_Element_Full);
 
-   Organization_Query : constant SQL_Query
-     := SQL_Select (Fields =>
-                      DB.Organization.Full_Name &   --  0
-                      DB.Organization.Identifier &  --  1
-                      DB.Organization.Json &        --  2
-                      DB.Organization.Id,           --  3
-                    From   => DB.Organization,
-                    Where  =>
-                      DB.Organization.Id = Integer_Param (1));
+   -------------------
+   --  Add_Contact  --
+   -------------------
 
-   Prepared_Organization_Query : constant Prepared_Statement
-     := Prepare (Query         => Organization_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "organization");
+   procedure Add_Contact
+     (Organization : in out Organization_Object;
+      Contact      : in     Model.Contacts.Contact_Object)
+   is
+   begin
+      Organization.C_Map.Include (Contact.Contact_Id, Contact);
+   end Add_Contact;
+
+   ----------------
+   --  Contacts  --
+   ----------------
+
+   function Contacts
+     (Organization : in Organization_Object)
+      return Contacts_Map.Map
+   is
+   begin
+      return Organization.C_Map;
+   end Contacts;
+
+   -------------
+   --  Equal  --
+   -------------
+
+   function Equal
+     (Left, Right : in Model.Contacts.Contact_Object)
+      return Boolean
+   is
+      use type Model.Contacts.Contact_Object;
+   begin
+      return Left = Right;
+   end Equal;
 
    -----------------
    --  Full_Name  --
@@ -70,29 +89,31 @@ package body Model.Organizations is
       return To_String (Organization.Full_Name);
    end Full_Name;
 
-   -----------
-   --  Get  --
-   -----------
+   -----------------
+   --  Get_Basic  --
+   -----------------
 
-   procedure Get
+   procedure Get_Basic
      (O_Id    : in Organization_Identifier;
       Process : not null access
         procedure (Element : in Organization_Object'Class))
    is
+      use GNATCOLL.SQL.Exec;
+
       Parameters : constant SQL_Parameters := (1 => +Integer (O_Id));
    begin
-      Fetch_Organization_Object
+      Fetch_Basic_Organization_Object
         (Process_Element    => Process,
-         Prepared_Statement => Prepared_Organization_Query,
+         Prepared_Statement => SQL.Prepared_Organization_Query,
          Query_Parameters   => Parameters);
       null;
-   end Get;
+   end Get_Basic;
 
-   -----------
-   --  Get  --
-   -----------
+   -----------------
+   --  Get_Basic  --
+   -----------------
 
-   function Get
+   function Get_Basic
      (O_Id : in Organization_Identifier)
       return Organization_Object
    is
@@ -112,9 +133,57 @@ package body Model.Organizations is
          O := Organization_Object (Organization);
       end Get_Element;
    begin
-      Get (O_Id, Get_Element'Access);
+      Get_Basic (O_Id, Get_Element'Access);
       return O;
-   end Get;
+   end Get_Basic;
+
+   ----------------
+   --  Get_Full  --
+   ----------------
+
+   procedure Get_Full
+     (O_Id    : in Organization_Identifier;
+      Process : not null access
+        procedure (Element : in Organization_Object'Class))
+   is
+      use GNATCOLL.SQL.Exec;
+
+      Parameters : constant SQL_Parameters := (1 => +Integer (O_Id));
+   begin
+      Fetch_Full_Organization_Object
+        (Process_Element    => Process,
+         Prepared_Statement => SQL.Prepared_Organization_Contacts_Query,
+         Query_Parameters   => Parameters);
+      null;
+   end Get_Full;
+
+   ----------------
+   --  Get_Full  --
+   ----------------
+
+   function Get_Full
+     (O_Id : in Organization_Identifier)
+      return Organization_Object
+   is
+      procedure Get_Element
+        (Organization : in Organization_Object'Class);
+
+      O : Organization_Object := Null_Organization_Object;
+
+      -------------------
+      --  Get_Element  --
+      -------------------
+
+      procedure Get_Element
+        (Organization : in Organization_Object'Class)
+      is
+      begin
+         O := Organization_Object (Organization);
+      end Get_Element;
+   begin
+      Get_Full (O_Id, Get_Element'Access);
+      return O;
+   end Get_Full;
 
    ------------------
    --  Identifier  --
@@ -140,11 +209,11 @@ package body Model.Organizations is
       return Organization.JSON;
    end JSON;
 
-   ----------------------------
-   --  Organization_Element  --
-   ----------------------------
+   ----------------------------------
+   --  Organization_Element_Basic  --
+   ----------------------------------
 
-   function Organization_Element
+   function Organization_Element_Basic
      (C : in out Cursor)
       return Organization_Object'Class
    is
@@ -153,13 +222,60 @@ package body Model.Organizations is
       O : Organization_Object;
    begin
       O := Organization_Object'
-        (Full_Name  => U (C.Value (0)),
+        (C_Map      => Contacts_Map.Empty_Map,
+         Full_Name  => U (C.Value (0)),
          Identifier => U (C.Value (1)),
          JSON       => C.Json_Object_Value (2),
          O_Id       => Organization_Identifier (C.Integer_Value (3)));
 
       return O;
-   end Organization_Element;
+   end Organization_Element_Basic;
+
+   ---------------------------------
+   --  Organization_Element_Full  --
+   ---------------------------------
+
+   function Organization_Element_Full
+     (C : in out Cursor)
+      return Organization_Object'Class
+   is
+      use Common;
+
+      CO : Model.Contacts.Contact_Object;
+      O  : Organization_Object;
+   begin
+      O := Organization_Object'
+        (C_Map      => Contacts_Map.Empty_Map,
+         Full_Name  => U (C.Value (0)),
+         Identifier => U (C.Value (1)),
+         JSON       => C.Json_Object_Value (2),
+         O_Id       => Organization_Identifier (C.Integer_Value (3)));
+
+      while C.Has_Row loop
+         if not C.Is_Null (4) then
+            --  We have a contact
+            CO := Model.Contacts.Create
+              (C_Id      => Contact_Identifier (C.Integer_Value (4)),
+               Full_Name => C.Value (5),
+               Is_Human  => C.Boolean_Value (6));
+
+            if not C.Is_Null (7) then
+               --  We have contact attributes
+               CO.Add_Attribute
+                 (Model.Contacts_Attributes.Create
+                    (C_Id => Contact_Identifier (C.Integer_Value (4)),
+                     O_Id => Organization_Identifier (C.Integer_Value (3)),
+                     JSON => C.Json_Object_Value (7)));
+            end if;
+         end if;
+
+         O.Add_Contact (CO);
+
+         C.Next;
+      end loop;
+
+      return O;
+   end Organization_Element_Full;
 
    -----------------------
    --  Organization_Id  --

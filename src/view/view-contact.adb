@@ -39,21 +39,18 @@ package body View.Contact is
       J := Create_Object;
 
       if Contact /= Null_Contact_Object then
-         J.Set_Field ("contact_id",
-                      Integer (Contact.Contact_Id));
+         J.Set_Field (Contact_Id, Integer (Contact.Contact_Id));
 
-         J.Set_Field ("full_name",
-                      Contact.Full_Name);
+         J.Set_Field (Full_Name, Contact.Full_Name);
 
-         J.Set_Field ("is_human",
-                      Contact.Is_Human);
+         J.Set_Field (Is_Human, Contact.Is_Human);
 
          for Elem of Contact.Attributes loop
             Append (Attr_Array, View.Contact_Attributes.To_JSON (Elem));
          end loop;
 
          if Length (Attr_Array) > 0 then
-            J.Set_Field ("attributes", Attr_Array);
+            J.Set_Field (Attributes, Attr_Array);
          end if;
       end if;
 

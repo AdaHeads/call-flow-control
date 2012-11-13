@@ -21,6 +21,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with View.Contact;
+
 package body View.Organization is
 
    ---------------
@@ -31,21 +33,27 @@ package body View.Organization is
      (Organization : in Organization_Object)
       return JSON_Value
    is
-      J : JSON_Value;
+      C_Array : JSON_Array;
+      J       : JSON_Value;
    begin
       J := Create_Object;
 
       if Organization /= Null_Organization_Object then
          J := Organization.JSON;
 
-         J.Set_Field ("organization_id",
-                      Integer (Organization.Organization_Id));
+         J.Set_Field (Organization_Id, Integer (Organization.Organization_Id));
 
-         J.Set_Field ("full_name",
-                      Organization.Full_Name);
+         J.Set_Field (Full_Name, Organization.Full_Name);
 
-         J.Set_Field ("identifier",
-                      Organization.Identifier);
+         J.Set_Field (Identifier, Organization.Identifier);
+
+         for Elem of Organization.Contacts loop
+            Append (C_Array, View.Contact.To_JSON (Elem));
+         end loop;
+
+         if Length (C_Array) > 0 then
+            J.Set_Field (Contacts, C_Array);
+         end if;
       end if;
 
       return J;

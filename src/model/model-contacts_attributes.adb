@@ -21,7 +21,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Database;
+with SQL_Statements;
 with Storage;
 with View.Contact_Attributes;
 
@@ -30,31 +30,12 @@ package body Model.Contacts_Attributes is
    use GNATCOLL.SQL;
    use GNATCOLL.SQL.Exec;
 
-   package DB renames Database;
+   package SQL renames SQL_Statements;
 
    procedure Fetch_Contact_Attributes_Object is new Storage.Process_Query
      (Database_Cursor   => Cursor,
       Element           => Contact_Attributes_Object,
       Cursor_To_Element => Contact_Attributes_Element);
-
-   --------------------------------------------------------
-   --  Prepared statement for fetching a contact entity  --
-   --------------------------------------------------------
-
-   Contact_Attributes_Query : constant SQL_Query
-     := SQL_Select (Fields =>
-                      DB.Contact_Attributes.Contact_Id &       --  0
-                      DB.Contact_Attributes.Organization_Id &  --  1
-                      DB.Contact_Attributes.Json,              --  2
-                    From   => DB.Contact_Attributes,
-                    Where  =>
-                      DB.Contact_Attributes.Contact_Id = Integer_Param (1));
-
-   Prepared_Contact_Attributes_Query : constant Prepared_Statement
-     := Prepare (Query         => Contact_Attributes_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "contact_attributes");
 
    ----------------------------------
    --  Contact_Attributes_Element  --
@@ -112,7 +93,7 @@ package body Model.Contacts_Attributes is
    begin
       Fetch_Contact_Attributes_Object
         (Process_Element    => Process,
-         Prepared_Statement => Prepared_Contact_Attributes_Query,
+         Prepared_Statement => SQL.Prepared_Contact_Attributes_Query,
          Query_Parameters   => Parameters);
    end Get;
 

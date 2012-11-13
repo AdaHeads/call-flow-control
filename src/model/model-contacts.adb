@@ -21,7 +21,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Database;
+with SQL_Statements;
 with Storage;
 with View.Contact;
 
@@ -30,66 +30,31 @@ package body Model.Contacts is
    use GNATCOLL.SQL;
    use GNATCOLL.SQL.Exec;
 
-   package DB renames Database;
+   package SQL renames SQL_Statements;
 
    procedure Fetch_Contact_Object is new Storage.Process_Query
      (Database_Cursor   => Cursor,
       Element           => Contact_Object,
       Cursor_To_Element => Contact_Element);
 
-   ---------------------------------------------------------------------
-   --  Prepared statement for fetching a contact entity with all its  --
-   --  associated attributes.                                         --
-   ---------------------------------------------------------------------
+   procedure Fetch_Contact_Objects is new Storage.Process_Query
+     (Database_Cursor   => Cursor,
+      Element           => Contact_Object,
+      Cursor_To_Element => Contact_Elements);
 
-   Contact_Query_Left_Join : constant SQL_Left_Join_Table
-     :=  Left_Join (Full    => DB.Contact,
-                    Partial => DB.Contact_Attributes,
-                    On      =>
-                      DB.Contact_Attributes.FK (DB.Contact));
+   ---------------------
+   --  Add_Attribute  --
+   ---------------------
 
-   Contact_Query_Full : constant SQL_Query
-     := SQL_Select (Fields =>
-                      DB.Contact.Id &                         --  0
-                      DB.Contact.Full_Name &                  --  1
-                      DB.Contact.Is_Human &                   --  2
-                      DB.Contact_Attributes.Json &            --  3
-                      DB.Contact_Attributes.Contact_Id &      --  4
-                      DB.Contact_Attributes.Organization_Id,  --  5
-                    From   => Contact_Query_Left_Join,
-                    Where  => DB.Contact.Id = Integer_Param (1));
-
-   Prepared_Contact_Query_Full : constant Prepared_Statement
-     := Prepare (Query         => Contact_Query_Full,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "contact_full");
-
-   -----------------------------------------------------------------------
-   --  Prepared statement for fetching a contact entity with attribues  --
-   --  for a specified organization.                                    --
-   -----------------------------------------------------------------------
-
-   Contact_Query : constant SQL_Query
-     := SQL_Select (Fields =>
-                      DB.Contact.Id &                         --  0
-                      DB.Contact.Full_Name &                  --  1
-                      DB.Contact.Is_Human &                   --  2
-                      DB.Contact_Attributes.Json &            --  3
-                      DB.Contact_Attributes.Contact_Id &      --  4
-                      DB.Contact_Attributes.Organization_Id,  --  5
-                    From   => Contact_Query_Left_Join,
-                    Where  =>
-                      DB.Contact.Id = Integer_Param (1)
-                    and
-                      DB.Contact_Attributes.Organization_Id =
-                        Integer_Param (2));
-
-   Prepared_Contact_Query : constant Prepared_Statement
-     := Prepare (Query         => Contact_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "contact_org_specified");
+   procedure Add_Attribute
+     (Contact   : in out Contact_Object;
+      Attribute : in     Model.Contacts_Attributes.Contact_Attributes_Object)
+   is
+   begin
+      Contact.Attr_Map.Include
+        (Map_Key (Attribute.Contact_Id, Attribute.Organization_Id),
+         Attribute);
+   end Add_Attribute;
 
    ------------------
    --  Attributes  --
@@ -140,6 +105,39 @@ package body Model.Contacts is
       return CO;
    end Contact_Element;
 
+   ------------------------
+   --  Contact_Elements  --
+   ------------------------
+
+   function Contact_Elements
+     (C : in out Cursor)
+      return Contact_Object'Class
+   is
+      use Common;
+
+      CO : Contact_Object;
+   begin
+      CO := Contact_Object'
+        (Attr_Map  => Attributes_Map.Empty_Map,
+         C_Id      => Contact_Identifier (C.Integer_Value (0, Default => 0)),
+         Full_Name => U (C.Value (1)),
+         Is_Human  => C.Boolean_Value (2));
+
+      if not C.Is_Null (3) then
+         CO.Attr_Map.Include
+           (Key      => Map_Key
+              (Contact_Identifier (C.Integer_Value (4, Default => 0)),
+               Organization_Identifier (C.Integer_Value (5, Default => 0))),
+            New_Item => Model.Contacts_Attributes.Create
+              (JSON => C.Json_Object_Value (3),
+               C_Id => Contact_Identifier (C.Integer_Value (4, Default => 0)),
+               O_Id => Organization_Identifier
+                 (C.Integer_Value (5, Default => 0))));
+      end if;
+
+      return CO;
+   end Contact_Elements;
+
    ------------------
    --  Contact_Id  --
    ------------------
@@ -151,6 +149,24 @@ package body Model.Contacts is
    begin
       return Contact.C_Id;
    end Contact_Id;
+
+   --------------
+   --  Create  --
+   --------------
+
+   function Create
+     (C_Id      : in Contact_Identifier;
+      Full_Name : in String;
+      Is_Human  : in Boolean)
+      return Contact_Object
+   is
+      use Common;
+   begin
+      return Contact_Object'(Attr_Map  => Attributes_Map.Empty_Map,
+                             C_Id      => C_Id,
+                             Full_Name => U (Full_Name),
+                             Is_Human  => Is_Human);
+   end Create;
 
    -------------
    --  Equal  --
@@ -188,9 +204,10 @@ package body Model.Contacts is
    is
       Parameters : constant SQL_Parameters := (1 => +Integer (C_Id));
    begin
-      Fetch_Contact_Object (Process_Element    => Process,
-                            Prepared_Statement => Prepared_Contact_Query_Full,
-                            Query_Parameters   => Parameters);
+      Fetch_Contact_Object
+        (Process_Element    => Process,
+         Prepared_Statement => SQL.Prepared_Contact_Query_Full,
+         Query_Parameters   => Parameters);
    end Get;
 
    -----------
@@ -206,9 +223,27 @@ package body Model.Contacts is
       Parameters : constant SQL_Parameters := (1 => +Integer (C_Id),
                                                2 => +Integer (O_Id));
    begin
-      Fetch_Contact_Object (Process_Element    => Process,
-                            Prepared_Statement => Prepared_Contact_Query,
-                            Query_Parameters   => Parameters);
+      Fetch_Contact_Object
+        (Process_Element    => Process,
+         Prepared_Statement => SQL.Prepared_Contact_Org_Specified_Query,
+         Query_Parameters   => Parameters);
+   end Get;
+
+   -----------
+   --  Get  --
+   -----------
+
+   procedure Get
+     (O_Id    : in Organization_Identifier;
+      Process : not null access
+        procedure (Element : in Contact_Object'Class))
+   is
+      Parameters : constant SQL_Parameters := (1 => +Integer (O_Id));
+   begin
+      Fetch_Contact_Objects
+        (Process_Element    => Process,
+         Prepared_Statement => SQL.Prepared_Organization_Contacts_Query,
+         Query_Parameters   => Parameters);
    end Get;
 
    -----------
