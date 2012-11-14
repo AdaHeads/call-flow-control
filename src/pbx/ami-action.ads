@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
+--                                   AMI                                     --
 --                                                                           --
---                                 Routines                                  --
+--                                 Action                                    --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -25,10 +25,10 @@ with Ada.Strings.Unbounded;
 
 with AMI.Callback;
 with AMI.Generic_Protocol_Strings;
-
+with AMI.Client;
 package AMI.Action is
    use Ada.Strings.Unbounded;
-   
+   use AMI.Client;
    type Status_Type is
      (Success,
       No_Agent_Found,
@@ -58,12 +58,12 @@ package AMI.Action is
 --                            Call_Id_2 : in     Unbounded_String;
 --                            Status    :    out Status_Type);
 
-   procedure Get_Call (Client    : access Client_Type;
-		       Unique_Id : in     String;
-                       Agent_Id  : in     String;
-		       --                         Call      :    out Call_List.Call_Type;
-                       Status    :    out Status_Type);
-   --  Takes a call from the call_Queue, and redirects it to the Agent.
+  procedure Redirect (Client    : access Client_Type;
+		      Channel   : in     String;
+		      Extension : in     String;
+                      Callback  : in     AMI.Callback.Callback_Type 
+                        := AMI.Callback.Null_Callback'Access);
+   --  Takes a call from the call_Queue, and redirects it to the channel.
 
    --     procedure Get_Version; --  return String;
 

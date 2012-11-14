@@ -68,6 +68,7 @@ package body JSON.Call is
             Side   => Left);
       end Unix_Timestamp;
 
+      Root : constant JSON_Value := Create_Object;
       Value : constant JSON_Value := Create_Object;
       CompanyID : Ada.Strings.Unbounded.Unbounded_String;
       Compnay_prefix : constant String := "org_id";
@@ -84,7 +85,7 @@ package body JSON.Call is
          Value.Set_Field ("channel", Call.Channel);
          Value.Set_Field ("caller_id", Call.CallerIDNum);
          Value.Set_Field ("org_id", CompanyID);
-         Value.Set_Field ("uniqueid", Call.Uniqueid);
+         Value.Set_Field ("call_id", Call.Uniqueid);
          Value.Set_Field ("arrival_time", Unix_Timestamp (Call.Arrived));
 
          if Call.Is_Picked_Up then
@@ -94,8 +95,11 @@ package body JSON.Call is
          if Call.Is_Ended then
             Value.Set_Field ("ended", Unix_Timestamp (Call.Ended));
          end if;
+
+         Root.Set_Field ("call",Value);
+
       end if;
-      return Value;
+      return Root;
    exception
       when others =>
          System_Messages.Notify

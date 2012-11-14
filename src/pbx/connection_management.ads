@@ -1,7 +1,7 @@
-with AMI;
+with AMI.Client;
 
 generic 
-   Client     : access AMI.Client_Type;
+   Client     : access AMI.Client.Client_Type;
    Hostname   : String;
    Port       : Natural;
    --  TODO: Rip these out, and make a more generic connection manager

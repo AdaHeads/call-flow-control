@@ -53,10 +53,8 @@ package My_Configuration is
                  Handler_Organization_List,
                  Handler_Queue_Length,
                  Handler_Notifications,
-                 PBX_Action_Secret,
-                 PBX_Action_User,
-                 PBX_Event_Secret,
-                 PBX_Event_User,
+                 PBX_Secret,
+                 PBX_User,
                  PBX_Host,
                  PBX_Port);
 
@@ -109,14 +107,10 @@ package My_Configuration is
                        => U ("/queue_length"),
                        Handler_Notifications
                        => U ("/notifications"),
-                      PBX_Action_Secret
-                       => U ("Action_Secret"),
-                      PBX_Action_User
-                       => U ("Action_Username"),
-                      PBX_Event_Secret
-                       => U ("Event_Secret"),
-                      PBX_Event_User
-                       => U ("Event_Username"),
+                      PBX_Secret
+                       => U ("password"),
+                      PBX_User
+                       => U ("username"),
                       PBX_Host
                        => U ("Asterisk_Host"),
                       PBX_Port

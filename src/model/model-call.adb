@@ -45,7 +45,7 @@ package body Model.Call is
       function Get return Call_List_Type.Vector;
       --  Returns the entire queue.
 
-      function Get_Call (UniqueID : in Unbounded_String) return Call_Type;
+      function Get_Call (UniqueID : in String) return Call_Type;
       --  Returns the call with that UniqueID.
 
       function Length return Ada.Containers.Count_Type;
@@ -59,6 +59,8 @@ package body Model.Call is
       --                              Call     : out Call_Type);
 
       procedure Update (Call : in Call_Type);
+
+      function Next return Call_Type;
    private
       List : Call_List_Type.Vector;
    end Protected_Call_List;
@@ -120,10 +122,11 @@ package body Model.Call is
          return List;
       end Get;
 
-      function Get_Call (UniqueID : in Unbounded_String) return Call_Type is
+      function Get_Call (UniqueID : in String) return Call_Type is
       begin
          for Call in List.Iterate loop
-            if Call_List_Type.Element (Call).Uniqueid = UniqueID then
+            if Call_List_Type.Element (Call).Uniqueid = 
+              To_Unbounded_String (UniqueID) then
                return Call_List_Type.Element (Call);
             end if;
          end loop;
@@ -135,10 +138,9 @@ package body Model.Call is
          Text : Unbounded_String;
          package Char renames Ada.Characters.Latin_1;
       begin
+         Append (Text, "Queue content: ");
          for Call in List.Iterate loop
-            Append (Text, Call_List_Type.Element (Call).Channel);
-            Append (Text, ", Uniqueid: ");
-            Append (Text, Call_List_Type.Element (Call).Uniqueid);
+            Append (Text, Image(Call_List_Type.Element (Call)));
             Append (Text, Char.LF);
          end loop;
          return To_String (Text);
@@ -229,7 +231,21 @@ package body Model.Call is
                return;
             end if;
          end loop;
+         --         Add (Call);
       end Update;
+
+      function Next return Call_Type is
+         Call : Call_Type := Null_Call;
+      begin
+         for Index in Integer range List.First_Index .. List.Last_Index loop
+            if List.Element (Index) /= Null_Call then
+               Call := List.Element (Index => Index);
+            end if;
+         end loop;
+
+         System_Messages.Notify (Debug,"Model.Call.Next: Call: " & Image (Call));
+         return Call;
+      end Next;
    end Protected_Call_List;
 
    --  Places a call on the call queue.
@@ -244,7 +260,7 @@ package body Model.Call is
       return Protected_Call_List.Get;
    end Get;
 
-   function Get_Call (UniqueID : in Unbounded_String) return Call_Type is
+   function Get_Call (UniqueID : in String) return Call_Type is
    begin
       return Protected_Call_List.Get_Call (UniqueID);
    end Get_Call;
@@ -329,5 +345,10 @@ package body Model.Call is
    --        Protected_Call_List.Hangup (CallID, Call);
    --        return Call;
    --     end Hangup;
+
+   function Next return Call_Type is
+   begin
+      return Protected_Call_List.Next;
+   end Next;
 
 end Model.Call;

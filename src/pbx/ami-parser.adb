@@ -62,7 +62,7 @@ package body AMI.Parser is
       end if;
    end Try_Get;
    
-   function Read_Packet (Client : access Client_Type) return Packet_Type is 
+   function Read_Packet (Client : access AMI.Client.Client_Type) return Packet_Type is 
       Current_Pair   : Pair_Type   := Null_Pair;
       Current_Packet : Packet_Type := New_Packet;
    begin
@@ -118,12 +118,13 @@ package body AMI.Parser is
 	 Seperator_Index := Seperator_Index-Line'First+1;
       end if;
       
-      -- This one really isn't needed, but improves readability
+      --  This one really isn't needed, but improves readability of
+      --  the source code - hopefully.
       Key_Length := Seperator_Index-Key_Value_Seperator'Length;
       Key        := AMI_Key_Type'Value
 	(Translate(Source  => Line (Line'First .. Line'First+Key_Length),
 		   Mapping => Underscore_Map));
-      
+
       -- Return the anonymous object
       return (Key   => Key,
 	      Value => To_Unbounded_String 

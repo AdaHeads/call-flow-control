@@ -21,11 +21,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Exceptions;
+--with Ada.Exceptions;
 
 with AMI.Response;
-with AMI.Client;
-
 with Model.Call;
 with Model.Peers;
 with System_Messages;
@@ -98,7 +96,7 @@ package body AMI.Action is
      System_Messages.Notify (Debug, "Hangup: routine started");
      Status := Unknown_Error;
 
-     Call := Get_Call (UniqueID => Call_Id);
+     Call := Get_Call (UniqueID => To_String (Call_Id));
 
      if Call = Null_Call then
 	Status := No_Call_Found;
@@ -120,73 +118,24 @@ package body AMI.Action is
   
   --  Get the specific call with UniqueId matching
   --  If unitqueID is null, then the first call in the queue is taken.
-  procedure Get_Call (Client    : access Client_Type;
-		      Unique_Id : in     String;
-		      Agent_Id  : in     String;
-		      Status    :    out Status_Type) is
-     use Model.Call;
-     use Peers;
-     use Peers.Peer_List_Type;
-
-     Temp_Call : Call_Type;
-     Peer      : Peer_Type;
-     
+  procedure Redirect (Client    : access Client_Type;
+		      Channel   : in     String;
+		      Extension : in     String;
+                      Callback  : in     AMI.Callback.Callback_Type 
+                        := AMI.Callback.Null_Callback'Access) is
      Action_ID : constant Action_ID_Type := 
        Protocol_Strings.Next_Action_ID;
   begin
-     Status := Unknown_Error;
-     --        Peer := Peers.Get_Peer (Agent_ID => To_Unbounded_String (Agent_Id));
-     Peer := Peers.Get_Peer_By_PhoneName (To_Unbounded_String (Agent_Id));
-
-     --  Check if there exsist an Agent by that name.
-     if Peer = Null_Peer then
-	System_Messages.Notify (Debug, "Get_Call: " &
-				  "We have no agent registred by that ID: [" &
-				  Agent_Id & "]");
-	Status := No_Agent_Found;
-	return;
-     end if;
-
-     --  Now that we know that there exists a Peer -
-     --  But is the SIP phone registered?
-     System_Messages.Notify (Debug, "Get_Call - Agent_ID: " & Agent_Id &
-			       " ask for Call_ID: " & Unique_Id);
-     if Peer.State = Unregistered then
-	System_Messages.Notify (Debug, "Get_Call: " &
-				  "The following agent is unregistred: " & Agent_Id);
-	Status := Unregistered_Agent;
-	return;
-     end if;
-
-     Temp_Call := Get_Call (UniqueID =>
-					To_Unbounded_String (Unique_Id));
-
-     if Temp_Call = Null_Call then
-	System_Messages.Notify (Debug,
-				"Get_Call: No Call to take with ID: " & Unique_Id);
-	Status := No_Call_Found;
-     end if;
-     System_Messages.Notify (Debug, "Pickup Call - Channel: " & To_String (Temp_Call.Channel));
-     
-     --  If there is a call to anwser.
-     Status := Success;
-
+      AMI.Response.Subscribe (Action_ID, Callback);
      --  Send the call out to the phone
      AMI.Client.Send 
        ( Client => Client,
 	 Item   =>      Protocol_Strings.Redirect
-	   (Channel   => To_String (Temp_Call.Channel),
-	    Exten     => To_String (Peer.Exten),
+	   (Channel   => Channel,
+	    Exten     => Extension,
 	    Context   => "LocalSets",
 	    Action_ID => Action_ID));
-
-  exception
-     when Error : others =>
-	System_Messages.Notify (Debug,
-				"Got and Exception in Get_Call");
-	System_Messages.Notify (Debug,
-				Ada.Exceptions.Exception_Information (Error));
-  end Get_Call;
+  end Redirect;
   
   
 --  --  Takes two channels, and bridge the them together.
@@ -280,7 +229,6 @@ package body AMI.Action is
 		  Call_Id : in     String;
 		  Status  :    out Status_Type) is
      use Peers;
-     use Peers.Peer_List_Type;
      use Model.Call;
 
      Call : Call_Type;
@@ -307,7 +255,7 @@ package body AMI.Action is
      --           return;
      --        end if;
 
-     Call := Get_Call (UniqueID => To_Unbounded_String (Call_Id));
+     Call := Get_Call (UniqueID => Call_Id);
 
      if Call = Null_Call then
 	System_Messages.Notify (Debug,

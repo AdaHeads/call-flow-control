@@ -24,10 +24,10 @@ with Ada.Containers.Hashed_Maps;
 
 with AMI.Callback;
 with AMI.Parser;
-
+with AMI.Client;
 package AMI.Response is 
    use AMI.Callback;
-   
+   use AMI.Client;
    procedure Subscribe (Action_ID : in Action_ID_Type;
 		        Callback  : in Callback_Type);
    --  Subscribe for a reply with the given action ID.

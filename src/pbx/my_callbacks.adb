@@ -48,7 +48,6 @@ package body My_Callbacks is
    procedure Agents is
    begin
       System_Messages.Notify (Debug, "Agents not implemented");
-      raise NOT_IMPLEMENTED with "Agents not implemented";
    end Agents;
 
    --  Lists agents
@@ -65,7 +64,6 @@ package body My_Callbacks is
    procedure Bridge is
    begin
       System_Messages.Notify (Debug, "Bridge not implemented");
-      raise NOT_IMPLEMENTED with "Bridge not implemented";
    end Bridge;
 
    --  Event: Dial
@@ -84,7 +82,6 @@ package body My_Callbacks is
    pragma Unreferenced (Packet);
    begin
       System_Messages.Notify (Debug, "Dial not implemented");
-      raise NOT_IMPLEMENTED with "Dial not implemented";
    end Dial;
 
    --  Event: Hangup
@@ -136,7 +133,7 @@ package body My_Callbacks is
    begin
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Temp_Value) then
          --  The call should exsists at this point.
-         Call := Get_Call (Temp_Value);
+         Call := Get_Call (To_String (Temp_Value));
       end if;
 
       --  There are no call with that ID, something is wrong.
@@ -178,6 +175,10 @@ package body My_Callbacks is
         (Debug, "My_Callbacks.Join: Call Updated: " & Image (Call));
       Update (Call);
       Notifications.Broadcast (JSON.Event.New_Call_JSON_String (Call));
+      
+      System_Messages.Notify
+        (Debug, "My_Callbacks.Join: Call Updated: " & Model.Call.Image);
+      
    end Join;
 
    --  Event: Newchannel
@@ -409,7 +410,6 @@ package body My_Callbacks is
    procedure SIPPeers is
    begin
       System_Messages.Notify (Debug, "SipPeers_Callback not implemented");
-      raise NOT_IMPLEMENTED;
    end SIPPeers;
 
 end My_Callbacks;

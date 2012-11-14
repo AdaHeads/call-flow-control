@@ -23,6 +23,7 @@
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded;
 
+with AMI.Client;
 package AMI.Parser is
    use Ada.Strings.Unbounded;   
    
@@ -62,6 +63,7 @@ package AMI.Parser is
       DestUniqueID,
       Extension,
       Priority,
+      Bridgestate,
       Application,
       AppData,
       Oldname,
@@ -83,6 +85,8 @@ package AMI.Parser is
       RRCount,
       SRCount,
       RTT,
+      OldAccountCode,
+      CID_CallingPres,
       ChannelType,
       ChannelState,
       ChannelStateDesc,
@@ -105,7 +109,10 @@ package AMI.Parser is
       TheirLastSR,
       DLSR,
       RTCPSent,
-      ReportBlock      
+      ReportBlock,
+      SubEvent,
+      Dialstring
+      
      );
       
    subtype AMI_Header_Key_Type is AMI_Key_Type range Event .. Response;
@@ -162,7 +169,7 @@ package AMI.Parser is
    --  Takes a line of text, with key-value pairs structured:
    --  Key: Value<CRLF>
    
-   function Read_Packet (Client : access Client_Type) return Packet_Type;
+   function Read_Packet (Client : access AMI.Client.Client_Type) return Packet_Type;
    --  Continously calls Read_Line and Parse_Line untill a complete packet has
    --  been assembled.
    

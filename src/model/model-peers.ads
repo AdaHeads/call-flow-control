@@ -32,6 +32,8 @@ package Model.Peers is
    use Ada.Containers;
    use Ada.Strings.Unbounded;
 
+   PEER_NOT_FOUND : exception;
+
    type SIP_Peer_Status_Type is (Unknown, Unregistered, Idle, Busy, Paused);
 
    package Call_List is new
@@ -84,7 +86,7 @@ package Model.Peers is
    function Get_Peers_List return Peer_List_Type.Map;
    function Get_Exten (Peer : in Unbounded_String) return Unbounded_String;
    function Get_Peer_By_ID (Agent_ID : in Unbounded_String) return Peer_Type;
-   function Get_Peer_By_PhoneName (PhoneName : in Unbounded_String)
+   function Get_Peer_By_PhoneName (PhoneName : in String)
                                    return Peer_Type;
    function Image (Item : in Peer_Type) Return String;
    --     procedure Print_Peer (Peer : in Peer_Type);

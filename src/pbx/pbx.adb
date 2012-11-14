@@ -9,7 +9,7 @@ with AMI.Parser;
 with AMI.Event;
 
 with Connection_Management;
-with Configuration;
+with My_Configuration;
 with System_Messages;
 with My_Callbacks;
 
@@ -19,6 +19,7 @@ package body PBX is
    use AMI.Parser;
    use AMI.Event;
    use System_Messages;
+   use My_Configuration;
 
    task type Reader_Task is
       entry Start;
@@ -37,26 +38,26 @@ package body PBX is
       others             => AMI.Event.Null_Callback'Access);
 
    procedure Authenticate;
-   procedure Dispatch (Client : access Client_Type;
+   procedure Dispatch (Client : access AMI.Client.Client_Type;
                        Packet : in     AMI.Parser.Packet_Type);
    procedure Parser_Loop;
    procedure Reconnect;
 
    package My_Connection_Manager is new Connection_Management
      (Client   => Client_Access,
-      Hostname => Configuration.Hostname,
-      Port     => Configuration.Port);
+      Hostname => Config.Get(PBX_Host),
+      Port     => Config.Get(PBX_Port));
 
    procedure Authenticate is
    begin
       My_Connection_Manager.Wait_For_Connection;
 
       Login (Client   => Client_Access,
-             Username => Configuration.Username,
-             Secret   => Configuration.Secret);
+             Username => Config.Get(PBX_User),
+             Secret   => Config.Get(PBX_Secret));
    end Authenticate;
 
-   procedure Dispatch (Client : access Client_Type;
+   procedure Dispatch (Client : access AMI.Client.Client_Type;
                        Packet : in     AMI.Parser.Packet_Type) is
    begin
       if Packet.Header.Key = AMI.Parser.Response then

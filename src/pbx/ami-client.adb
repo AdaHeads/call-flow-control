@@ -26,7 +26,6 @@ with Ada.Text_IO;
 with Ada.Exceptions;
 
 with AWS.Net;
-with AWS.Net.Std;
 with AWS.Net.Buffered;
 
 with System_Messages;
@@ -49,12 +48,11 @@ package body AMI.Client is
 	 return True;
       else
 	 return False;
-      end if ;
+      end if;
    end Is_Connected;
    --  Determines if a server is connected via a socket.
-  
-   
-  procedure Connect (Client   : access Client_Type;
+
+   procedure Connect (Client   : access Client_Type;
 		      Hostname : in   String;
 		      Port     : in     Natural) is
       use Ada.Calendar;
@@ -82,25 +80,43 @@ package body AMI.Client is
 	 delay 0.05;
       end loop Wait_For_Connection;
       
-      System_Messages.Notify (Debug, "Connected to " & 
-				Hostname & ":" &
-				Positive'Image(Port));
-      
-      --  The first line in the transmission is the greeting
-      Client.Server_Greeting := 
-	To_Unbounded_String (AWS.Net.Buffered.Get_Line 
-			       (Socket => Client.Socket));
-      System_Messages.Notify (Debug, "Connect: Server greeted me with:" & 
-				To_String (Client.Server_Greeting));
-      
+      if Client.Connected then
+         System_Messages.Notify (Information, "Connected to " & 
+                                   Hostname & ":" &
+                                   Positive'Image(Port));
+
+         --  The first line in the transmission is the greeting
+         Client.Server_Greeting := 
+           To_Unbounded_String (AWS.Net.Buffered.Get_Line 
+                                  (Socket => Client.Socket));
+         System_Messages.Notify (Debug, "Connect: Server greeted me with:" & 
+                                   To_String (Client.Server_Greeting));
+         
+      else
+         System_Messages.Notify (Information, "Connection timed out connecting to " & 
+                                   Hostname & ":" &
+                                   Positive'Image(Port));
+         raise CONNECT_TIMEOUT;
+      end if;
    exception
       when Error: others =>
 	 Client.Connected := False;
 	 Client.Authenticated := Unknown;
 	 raise CONNECT_FAILED with Ada.Exceptions.Exception_Message(Error);
    end Connect;
-   
-   
+
+   --  Does not have the desired effect :-(
+   procedure Wait_For_Disconnect (Client : access Client_Type) is
+      Socket_Event : AWS.Net.Event_Set;       
+   begin
+      Socket_Event := AWS.Net.Poll
+	(Socket  => Client.Socket,
+	 Events  => (AWS.Net.Error  => True,
+                     AWS.Net.Input  => True,
+                     AWS.Net.Output => True),
+         Timeout => AWS.Net.Forever);
+   end Wait_For_Disconnect;
+
    procedure Send (Client : access Client_Type; 
 		   Item   : in     String) is
    begin

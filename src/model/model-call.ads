@@ -104,7 +104,7 @@ package Model.Call is
    function Get return Call_List_Type.Vector;
    --  Returns the entire call queue.
 
-   function Get_Call (UniqueID : in Unbounded_String) return Call_Type;
+   function Get_Call (UniqueID : in String) return Call_Type;
    --  Returns the call with the specified UniqueID.
 
    procedure Update (Call : in Call_Type);
@@ -113,15 +113,7 @@ package Model.Call is
    function Length return Ada.Containers.Count_Type;
    --  Gives the length of the call queue.
 
---     function PickupCall
---       (Agent_ID : in Unbounded_String;
---        Uniqueid : in Unbounded_String := Null_Unbounded_String)
---           return Call_Type;
---     --  Sets the queued call in speaking state.
---
---     function Hangup
---       (CallID : in Unbounded_String) return Call_Type;
-   --
+   function Next return Call_Type;
 private
 
 --     function Get_Company_Priority (CompanyName : in Unbounded_String)

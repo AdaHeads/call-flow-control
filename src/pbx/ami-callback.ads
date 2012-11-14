@@ -21,9 +21,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 with AMI.Parser;
-
+with AMI.Client;
 package AMI.Callback is
    use AMI.Parser;
+   use AMI.Client;
 
    type Callback_Type is access procedure (Client : access Client_Type;
                                            Packet : in     Packet_Type);
