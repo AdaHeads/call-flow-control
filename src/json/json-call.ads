@@ -21,7 +21,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers;
 with Model.Call;
 with Common;
 
@@ -31,11 +30,11 @@ private with GNATCOLL.JSON;
 package JSON.Call is
    use Common;
 
-   function To_JSON_String (Queue : in Model.Call.Call_List_Type.Vector)
+   function To_JSON_String (Queue : in Model.Call.Call_List_Type.Map)
                            return JSON_String;
    --  returns the entire Call Queue, in JSON format.
 
-   function To_JSON_String (Length : in Ada.Containers.Count_Type)
+   function To_JSON_String (Length : in Natural)
                             return JSON_String;
    --  returns the number of calls waiting in the calling queue.
 

@@ -35,17 +35,17 @@ package body AMI.Client is
    use Ada.Strings.Unbounded;
 
    function Is_Connected (Client  : access Client_Type) return Boolean;
-   
+
    function Is_Connected (Client  : access Client_Type) return Boolean is
-      Socket_Event : AWS.Net.Event_Set;       
+      Socket_Event : AWS.Net.Event_Set;
    begin
       Socket_Event := AWS.Net.Check
-	(Socket  => Client.Socket,
-	 Events  => (AWS.Net.Input => True, AWS.Net.Output => True));
-      
-      if Socket_Event (AWS.Net.Input) and then 
-	Socket_Event (AWS.Net.Output) then
-	 return True;
+        (Socket  => Client.Socket,
+         Events  => (AWS.Net.Input => True, AWS.Net.Output => True));
+
+      if Socket_Event (AWS.Net.Input) and then
+        Socket_Event (AWS.Net.Output) then
+         return True;
       else
 	 return False;
       end if;
@@ -57,29 +57,29 @@ package body AMI.Client is
 		      Port     : in     Natural) is
       use Ada.Calendar;
       function Current_Time return Ada.Calendar.Time renames Clock;
-      
+
       Timeout   : constant Ada.Calendar.Time := Current_Time + 3.0;
    begin
       AWS.Net.Buffered.Shutdown (Client.Socket);
-      
+
       Client.Connected := False;
       Client.Authenticated := Unknown;
-      
-      System_Messages.Notify (Debug, "Connecting to " & 
-				Hostname & ":" &
-				Positive'Image(Port));
+
+      System_Messages.Notify (Debug, "Connecting to " &
+                                Hostname & ":" &
+                                Positive'Image (Port));
       AWS.Net.Std.Connect (Socket => Client.Socket,
-			   Host   => Hostname,
-			   Port   => Port,
-			   Wait   => False);
+                           Host   => Hostname,
+                           Port   => Port,
+                           Wait   => False);
       Wait_For_Connection :
       loop
-	 Client.Connected := Is_Connected(Client);
-	 exit Wait_For_Connection when Client.Connected 
-	   or Current_Time > Timeout;
-	 delay 0.05;
+         Client.Connected := Is_Connected (Client);
+         exit Wait_For_Connection when Client.Connected
+           or Current_Time > Timeout;
+         delay 0.05;
       end loop Wait_For_Connection;
-      
+
       if Client.Connected then
          System_Messages.Notify (Information, "Connected to " & 
                                    Hostname & ":" &
@@ -99,23 +99,11 @@ package body AMI.Client is
          raise CONNECT_TIMEOUT;
       end if;
    exception
-      when Error: others =>
-	 Client.Connected := False;
-	 Client.Authenticated := Unknown;
-	 raise CONNECT_FAILED with Ada.Exceptions.Exception_Message(Error);
+      when Error : others =>
+         Client.Connected := False;
+         Client.Authenticated := Unknown;
+         raise CONNECT_FAILED with Ada.Exceptions.Exception_Message (Error);
    end Connect;
-
-   --  Does not have the desired effect :-(
-   procedure Wait_For_Disconnect (Client : access Client_Type) is
-      Socket_Event : AWS.Net.Event_Set;       
-   begin
-      Socket_Event := AWS.Net.Poll
-	(Socket  => Client.Socket,
-	 Events  => (AWS.Net.Error  => True,
-                     AWS.Net.Input  => True,
-                     AWS.Net.Output => True),
-         Timeout => AWS.Net.Forever);
-   end Wait_For_Disconnect;
 
    procedure Send (Client : access Client_Type; 
 		   Item   : in     String) is
@@ -124,14 +112,14 @@ package body AMI.Client is
       AWS.Net.Buffered.Flush (Client.Socket);
       System_Messages.Notify (Debug, "Send: Sent " & Item);
    exception
-      when Error: others =>
-	 Ada.Text_IO.Put ("Send: Unexpected exception: ");
-	 Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information(Error));
-	 raise AMI_SOCKET_NOT_CONNECTED;
+      when Error : others =>
+         Ada.Text_IO.Put ("Send: Unexpected exception: ");
+         Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
+         raise AMI_SOCKET_NOT_CONNECTED;
    end Send;
-   
+
    procedure Disconnect (Client : access Client_Type) is
    begin
       AWS.Net.Buffered.Shutdown (Client.Socket);
    end Disconnect;
-end AMI.Client;   
+end AMI.Client;

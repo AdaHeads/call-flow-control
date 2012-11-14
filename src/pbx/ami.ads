@@ -1,6 +1,6 @@
 with Ada.Characters.Latin_1;
 package AMI is
-   
+
    package Latin_1 renames Ada.Characters.Latin_1;
 
    Line_Termination_String : constant String := (1 => ASCII.CR, 2 => ASCII.LF);

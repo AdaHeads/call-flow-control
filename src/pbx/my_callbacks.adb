@@ -99,7 +99,8 @@ package body My_Callbacks is
       --  Temp_Value : Unbounded_String;
    begin
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Call_ID) then
-         Call := Remove (Call_ID);
+         Call := Model.Call.Dequeue
+           (Call_ID =>To_Call_ID (To_String(Call_ID)));
 
          if Call = Null_Call then
             System_Messages.Notify
@@ -108,7 +109,7 @@ package body My_Callbacks is
                  " Call_ID: " & To_String (Call_ID));
          else
             System_Messages.Notify
-              (Debug, Package_Name & ".Hangup: Hung up " & Image (Call));
+              (Debug, Package_Name & ".Hangup: Hung up " & To_String (Call));
 
          end if;
       else
@@ -133,7 +134,7 @@ package body My_Callbacks is
    begin
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Temp_Value) then
          --  The call should exsists at this point.
-         Call := Get_Call (To_String (Temp_Value));
+         Call := Get (To_Call_ID (To_String (Temp_Value)));
       end if;
 
       --  There are no call with that ID, something is wrong.
@@ -172,7 +173,7 @@ package body My_Callbacks is
               Call.State'Img);
       end if;
       System_Messages.Notify
-        (Debug, "My_Callbacks.Join: Call Updated: " & Image (Call));
+        (Debug, "My_Callbacks.Join: Call Updated: " & To_String (Call));
       Update (Call);
       Notifications.Broadcast (JSON.Event.New_Call_JSON_String (Call));
       
@@ -204,7 +205,7 @@ package body My_Callbacks is
       end if;
 
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Temp_Value) then
-         Call.Uniqueid := Temp_Value;
+         Call.ID := To_Call_ID (To_String(Temp_Value));
       end if;
 
       if Try_Get (Packet.Fields, AMI.Parser.Exten, Temp_Value) then
@@ -214,7 +215,7 @@ package body My_Callbacks is
       --  Save the time when the call came in.
       Call.Arrived := Current_Time;
       Call.State := Unknown;
-      Add (Call);
+      Insert (Call);
    end New_Channel;
 
    procedure New_State
@@ -362,7 +363,7 @@ package body My_Callbacks is
       Hold_Time         : Integer := -1;
    begin
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Buffer) then
-         Call.Uniqueid := Buffer;
+         Call.ID := To_Call_ID (To_String (Buffer));
       end if;
 
       if Try_Get (Packet.Fields, AMI.Parser.Position, Buffer) then
@@ -382,7 +383,7 @@ package body My_Callbacks is
       end if;
 
       System_Messages.Notify (Debug, "My.Callbacks.Queue_Abandon: Call_ID " &
-                                To_String (Call.Uniqueid) & " left queue " &
+                                To_String (Call.ID) & " left queue " &
                                 To_String (Queue) & " after" & Hold_Time'Img &
                                 " seconds. Position:" & Position'Img & "," &
                                 " original position" & Original_Position'Img);

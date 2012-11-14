@@ -45,9 +45,6 @@ package AMI.Client is
 
    procedure Disconnect (Client : access Client_Type); 
 
-   procedure Wait_For_Disconnect (Client : access Client_Type);
-   --  Blocking call that does no return until socket is in Error state
-
    procedure Send (Client : access Client_Type; 
 		   Item   : in     String);
    -- Send an abitrary string

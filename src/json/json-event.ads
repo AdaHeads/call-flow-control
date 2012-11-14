@@ -21,7 +21,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Calendar;
 with Common;
 
 with Model.Peers;
@@ -57,11 +56,4 @@ package JSON.Event is
 
    function Agent_State_JSON_String (Agent : in Peer_Type)
                                     return JSON_String;
-private
-
-   function Unix_Timestamp
-     (Date : in Ada.Calendar.Time)
-     return String;
-   --  Convert and trim an Ada.Calendar.Time type to a Unix timestamp
-   --  String.
 end JSON.Event;

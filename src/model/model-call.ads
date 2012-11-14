@@ -21,21 +21,29 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Calendar;
-with Ada.Containers;
-with Ada.Containers.Vectors;
+with Ada.Containers.Ordered_Maps;
 with Ada.Strings.Unbounded;
+
+with Common;
 
 package Model.Call is
    use Ada.Strings.Unbounded;
+   use Common;
 
    type Call_State is
      (Unknown, Queued, Speaking, Ringing, OnHold, Delegated, Hung);
    type Priority_Level is (Low, Normal, High);
 
+   type Call_ID_Type is record
+      Timestamp : Integer;
+      Sequence  : Integer;
+   end record;
+--      new Long_Integer range -1 .. (2**63)-1;
+   Null_Call_ID : constant Call_ID_Type := (-1,-1);
+   
    type Call_Type is
       record
-         Agent_ID       : Unbounded_String;
+         ID             : Call_ID_Type;
          State          : Call_State;
          Inbound        : Boolean;
          Extension      : Unbounded_String;
@@ -44,23 +52,23 @@ package Model.Call is
          CallerIDNum    : Unbounded_String;
          CallerIDName   : Unbounded_String;
          Queue          : Unbounded_String;
-         Position       : Integer;
-         Count          : Integer;
-         Uniqueid       : Unbounded_String;
-         Arrived        : Ada.Calendar.Time := Ada.Calendar.Clock;
-         Is_Picked_Up   : Boolean := False;
-         Picked_Up      : Ada.Calendar.Time;
-         Is_Ended       : Boolean := False;
-         Ended          : Ada.Calendar.Time;
+         Position       : Natural;
+         Count          : Natural;
+         Arrived        : Time := Current_Time;
       end record;
 
-   function Image (Call : in Call_Type) return String;
    function Image return String;
    --  Returns a debug friendly String representation of the call queue.
-
+   
+   function "=" (Left  : in Call_Type;
+                 Right : in Call_Type) return Boolean;
+   function "<" (Left  : in Call_ID_Type;
+                 Right : in Call_ID_Type) return Boolean;
+      
+   
    package Call_List_Type is new
-     Ada.Containers.Vectors (Index_Type   => Positive,
-                             Element_Type => Call_Type);
+     Ada.Containers.Ordered_Maps (Key_Type   => Call_ID_Type,
+                                  Element_Type => Call_Type);
    --  ???? Naming is a bit "odd". This is not really a type as such, but a
    --  package containing the Vector type. Perhaps a better solution would be
    --  to rename the parent package from Call_List to Calls and this package
@@ -70,7 +78,7 @@ package Model.Call is
    --      Call_List.Call_List_Type.Vector
 
    Null_Call : constant Call_Type :=
-     (Agent_ID       => Null_Unbounded_String,
+     (ID             => Null_Call_ID,
       State          => Hung,
       Queue_Priority => Low,
       Inbound        => False,
@@ -81,41 +89,48 @@ package Model.Call is
       Queue          => Null_Unbounded_String,
       Position       => 0,
       Count          => 0,
-      Uniqueid       => Null_Unbounded_String,
-      Arrived        => Ada.Calendar.Clock,
-      Picked_Up      => Ada.Calendar.Clock,
-      Is_Picked_Up   => False,
-      Ended          => Ada.Calendar.Clock,
-      Is_Ended       => False);
+      Arrived        => Current_Time);
 
-   procedure Add (Call : in Call_Type);
+   procedure Insert (Call : in Call_Type);
    --  Places a call in the call_List.
 
---     procedure Dequeue (Call : out Call_Type);
---     --  Takes the first call with the highest priority
---
---     procedure Dequeue (Uniqueid : in     Unbounded_String;
---                        Call     :    out Call_Type);
---     --  Takes a specific call out from the call queue.
-
-   function Remove (Uniqueid : in Unbounded_String) return Call_Type;
+   procedure Remove (Call_ID : in Call_ID_Type);
    --  Removes a specific call from the call queue.
 
-   function Get return Call_List_Type.Vector;
-   --  Returns the entire call queue.
-
-   function Get_Call (UniqueID : in String) return Call_Type;
-   --  Returns the call with the specified UniqueID.
+   function Get (Call_ID : in Call_ID_Type) return Call_Type;
+   --  Returns the call with the specified Call_ID.
+   
+   function Get_List return Call_List_Type.Map;
+   --  Returns the entire list;
+   
+   function Dequeue (Call_ID : in Call_ID_Type) return Call_Type;
+   --  Removes the call with the specified Call_ID and returns it.
 
    procedure Update (Call : in Call_Type);
    --  Updates a Call in the list, with the information from the Call Argument
 
-   function Length return Ada.Containers.Count_Type;
+   function Length return Long_Integer;
    --  Gives the length of the call queue.
 
+   function To_Call_ID (Item : String) return Call_ID_Type;
+   --  Convenience method.
+
    function Next return Call_Type;
+
+   function To_String (Call : in Call_Type) return String;
+   function To_String (Call_ID : in Call_ID_Type) return String;
 private
 
---     function Get_Company_Priority (CompanyName : in Unbounded_String)
---                                    return Priority_Level;
+   protected Protected_Call_List is
+      procedure Insert (Call : in Call_Type);
+      procedure Remove (Call_ID : in Call_ID_Type);
+      function Get_List return Call_List_Type.Map;
+      function Get (Call_ID : Call_ID_Type) return Call_Type;
+      function Length return Long_Integer;
+--      function For_Each return String;
+      procedure Update (Call : in Call_Type);
+      function Next return Call_Type;
+   private
+      List : Call_List_Type.Map;
+   end Protected_Call_List;
 end Model.Call;

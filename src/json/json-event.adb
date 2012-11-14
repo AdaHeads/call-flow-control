@@ -23,17 +23,12 @@
 
 with Ada.Calendar.Conversions;
 with Ada.Strings.Fixed;
---with Ada.Strings.Unbounded;
 
 private with GNATCOLL.JSON;
 
-
-with Interfaces.C;
 package body JSON.Event is
    use GNATCOLL.JSON;
 
-   --  Length_String : constant String := "length";
-   
    function Hangup_Call_To_JSON_Object (Call : in Call_Type)
                                        return GNATCOLL.JSON.JSON_Value;
    
@@ -123,8 +118,8 @@ package body JSON.Event is
       Notification_JSON : constant JSON_Value := Create_Object;
       Call_JSON         : constant JSON_Value := Create_Object;
    begin
-      Call_JSON.Set_Field ("call_id", Call.Uniqueid);
-      Call_JSON.Set_Field ("caller_id", Call.Agent_ID);
+      Call_JSON.Set_Field ("call_id", To_String (Call.ID));
+      Call_JSON.Set_Field ("caller_id", Call.CallerIDName);
       Call_JSON.Set_Field ("arrival_time", Unix_Timestamp (Call.Arrived));
       Call_JSON.Set_Field ("channel", Call.Channel);
       Call_JSON.Set_Field ("org_id", Call.Queue);
@@ -154,7 +149,7 @@ package body JSON.Event is
       Call_JSON         : constant JSON_Value := Create_Object;
       Agent_JSON        : constant JSON_Value := Create_Object;
    begin
-      Call_JSON.Set_Field ("call_id", Call.Uniqueid);
+      Call_JSON.Set_Field ("call_id", To_String (Call.ID));
       Notification_JSON.Set_Field ("call", Call_JSON);
       Notification_JSON.Set_Field ("persistent", False);
       Notification_JSON.Set_Field ("event", "pickup_call");
@@ -173,7 +168,7 @@ package body JSON.Event is
       Notification_JSON : constant JSON_Value := Create_Object;
       Call_JSON         : constant JSON_Value := Create_Object;
    begin
-      Call_JSON.Set_Field ("call_id", Call.Uniqueid);
+      Call_JSON.Set_Field ("call_id", To_String (Call.ID));
       Notification_JSON.Set_Field ("call", Call_JSON);
       Notification_JSON.Set_Field ("persistent", False);
       Notification_JSON.Set_Field ("event", "hangup_call");
@@ -200,7 +195,7 @@ package body JSON.Event is
       Notification_JSON : constant JSON_Value := Create_Object;
       Call_JSON         : constant JSON_Value := Create_Object;
    begin
-      Call_JSON.Set_Field ("call_id", Call.Uniqueid);
+      Call_JSON.Set_Field ("call_id", To_String (Call.ID));
       Notification_JSON.Set_Field ("call", Call_JSON);
       Notification_JSON.Set_Field ("persistent", False);
       Notification_JSON.Set_Field ("event", "hold_call");
@@ -217,7 +212,7 @@ package body JSON.Event is
       Notification_JSON : constant JSON_Value := Create_Object;
       Call_JSON         : constant JSON_Value := Create_Object;
    begin
-      Call_JSON.Set_Field ("call_id", Call.Uniqueid);
+      Call_JSON.Set_Field ("call_id", To_String (Call.ID));
       Call_JSON.Set_Field ("transfered_to", "NOT IMPLEMENTED");
       Notification_JSON.Set_Field ("call", Call_JSON);
       Notification_JSON.Set_Field ("persistent", False);
@@ -246,22 +241,4 @@ package body JSON.Event is
 
       return JSON;
    end Agent_State_To_JSON_Object;
-   
-   --  -----------------  --
-   --  Utility functions  --
-   --  -----------------  --
-   
-   function Unix_Timestamp
-     (Date : in Ada.Calendar.Time)
-     return String
-   is
-      use Ada.Calendar;
-      use Ada.Calendar.Conversions;
-      use Ada.Strings;
-      use Interfaces.C;
-   begin
-      return Fixed.Trim
-        (Source => long'Image (To_Unix_Time (Date)),
-         Side   => Left);
-   end Unix_Timestamp;
 end JSON.Event;

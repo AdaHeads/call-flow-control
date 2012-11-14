@@ -21,12 +21,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Calendar;
-with Ada.Calendar.Conversions;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 
-with Interfaces.C;
 with System_Messages;
 
 package body JSON.Call is
@@ -46,27 +43,7 @@ package body JSON.Call is
 
    function To_JSON_Object (Call : in Model.Call.Call_Type)
                            return GNATCOLL.JSON.JSON_Value is
-      use Ada.Calendar;
-      use Ada.Calendar.Conversions;
       use Model.Call;
-
-      function Unix_Timestamp
-        (Date : in Time)
-         return String;
-      --  Convert and trim an Ada.Calendar.Time type to a Unix timestamp
-      --  String.
-
-      function Unix_Timestamp
-        (Date : in Time)
-         return String
-      is
-         use Ada.Strings;
-         use Interfaces.C;
-      begin
-         return Fixed.Trim
-           (Source => long'Image (To_Unix_Time (Date)),
-            Side   => Left);
-      end Unix_Timestamp;
 
       Root : constant JSON_Value := Create_Object;
       Value : constant JSON_Value := Create_Object;
@@ -85,17 +62,9 @@ package body JSON.Call is
          Value.Set_Field ("channel", Call.Channel);
          Value.Set_Field ("caller_id", Call.CallerIDNum);
          Value.Set_Field ("org_id", CompanyID);
-         Value.Set_Field ("call_id", Call.Uniqueid);
+         Value.Set_Field ("call_id", To_String (Call.ID));
          Value.Set_Field ("arrival_time", Unix_Timestamp (Call.Arrived));
-
-         if Call.Is_Picked_Up then
-            Value.Set_Field ("pickup_time", Unix_Timestamp (Call.Picked_Up));
-         end if;
-
-         if Call.Is_Ended then
-            Value.Set_Field ("ended", Unix_Timestamp (Call.Ended));
-         end if;
-
+         
          Root.Set_Field ("call",Value);
 
       end if;
@@ -109,7 +78,7 @@ package body JSON.Call is
       raise;
    end To_JSON_Object;
 
-   function To_JSON_String (Length : in Ada.Containers.Count_Type)
+   function To_JSON_String (Length : in Natural)
                             return JSON_String is
 
       Text : constant String :=
@@ -123,7 +92,7 @@ package body JSON.Call is
       return To_JSON_String (JSON.Write);
    end To_JSON_String;
 
-   function To_JSON_String (Queue : in Model.Call.Call_List_Type.Vector)
+   function To_JSON_String (Queue : in Model.Call.Call_List_Type.Map)
                            return JSON_String is
       use Model.Call;
 
