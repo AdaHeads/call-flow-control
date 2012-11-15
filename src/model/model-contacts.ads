@@ -22,6 +22,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Containers.Hashed_Maps;
+with Ada.Strings.Unbounded;
 with Common;
 with GNATCOLL.SQL.Exec;
 with Model.Contacts_Attributes;
@@ -31,19 +32,19 @@ package Model.Contacts is
    type Contact_Object is tagged private;
    Null_Contact_Object : constant Contact_Object;
 
-   function Equal
+   function Equal_Elements
      (Left, Right : in Model.Contacts_Attributes.Contact_Attributes_Object)
       return Boolean;
    --  Element equality function used by the Attributes_Map.
 
    package Attributes_Map is new Ada.Containers.Hashed_Maps
-     (Key_Type        => Unbounded_String,
+     (Key_Type        => Contact_Key,
       Element_Type    => Model.Contacts_Attributes.Contact_Attributes_Object,
       Hash            => Key_Hash,
       Equivalent_Keys => Equivalent_Keys,
-      "="             => Equal);
+      "="             => Equal_Elements);
 
-   procedure Add_Attribute
+   procedure Add_Attributes
      (Contact   : in out Contact_Object;
       Attribute : in     Model.Contacts_Attributes.Contact_Attributes_Object);
    --  Add an attribute object to Contact.
@@ -84,27 +85,27 @@ package Model.Contacts is
    --  Return the contact that match C_Id, complete with all the attributes
    --  that may be associated with the contact.
 
-   procedure Get
+   procedure For_Each
      (C_Id    : in Contact_Identifier;
       Process : not null access
         procedure (Element : in Contact_Object'Class));
    --  For every contact with C_Id in the database, a Contact_Object is handed
    --  to Process.
 
-   procedure Get
+   procedure For_Each
+     (O_Id    : in Organization_Identifier;
+      Process : not null access
+        procedure (Element : in Contact_Object'Class));
+   --  Hands a Contact_Object to Process for every contact in the database that
+   --  belongs to O_Id.
+
+   procedure For_Each
      (C_Id    : in Contact_Identifier;
       O_Id    : in Organization_Identifier;
       Process : not null access
         procedure (Element : in Contact_Object'Class));
    --  Hands a Contact_Object to Process for every contact in the database that
    --  match C_Id and belongs to O_Id.
-
-   procedure Get
-     (O_Id    : in Organization_Identifier;
-      Process : not null access
-        procedure (Element : in Contact_Object'Class));
-   --  Hands a Contact_Object to Process for every contact in the database that
-   --  belongs to O_Id.
 
    function Is_Human
      (Contact : in Contact_Object)
@@ -118,6 +119,8 @@ package Model.Contacts is
    --  for the View.Contact.To_JSON function.
 
 private
+
+   use Ada.Strings.Unbounded;
 
    type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null record;
 

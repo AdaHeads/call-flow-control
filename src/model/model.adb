@@ -22,7 +22,6 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Hash;
-with Common;
 
 package body Model is
 
@@ -31,19 +30,7 @@ package body Model is
    -----------------------
 
    function Equivalent_Keys
-     (Left, Right : in Unbounded_String)
-      return Boolean
-   is
-   begin
-      return Left = Right;
-   end Equivalent_Keys;
-
-   -----------------------
-   --  Equivalent_Keys  --
-   -----------------------
-
-   function Equivalent_Keys
-     (Left, Right : in Contact_Identifier)
+     (Left, Right : in Contact_Key)
       return Boolean
    is
    begin
@@ -55,38 +42,13 @@ package body Model is
    ----------------
 
    function Key_Hash
-     (Key : in Unbounded_String)
+     (Key : in Contact_Key)
       return Ada.Containers.Hash_Type
    is
    begin
-      return Ada.Strings.Hash (To_String (Key));
+      return Ada.Strings.Hash
+        (Contact_Identifier'Image (Key.C_Id) &
+           Organization_Identifier'Image (Key.O_Id));
    end Key_Hash;
-
-   ----------------
-   --  Key_Hash  --
-   ----------------
-
-   function Key_Hash
-     (Key : in Contact_Identifier)
-      return Ada.Containers.Hash_Type
-   is
-   begin
-      return Ada.Containers.Hash_Type (Key);
-   end Key_Hash;
-
-   ---------------
-   --  Map_Key  --
-   ---------------
-
-   function Map_Key
-     (C_Id : in Contact_Identifier;
-      O_Id : in Organization_Identifier)
-      return Unbounded_String
-   is
-      use Common;
-   begin
-      return U (Contact_Identifier'Image (C_Id) &
-                  Organization_Identifier'Image (O_Id));
-   end Map_Key;
 
 end Model;

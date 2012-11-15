@@ -37,12 +37,26 @@ package Model.Contacts_Attributes is
       return Contact_Attributes_Object;
    --  Create a Contact_Attributes_Object.
 
-   procedure Get
+   procedure For_Each
      (C_Id    : in Contact_Identifier;
       Process : not null access
         procedure (Element : in Contact_Attributes_Object'Class));
-   --  For every contact_attributes row with Id in the database, a
+   --  For every contact_attributes row with C_Id in the database, a
    --  Contact_Attributes_Object is handed to Process.
+
+   procedure For_Each
+     (C_Id    : in Contact_Identifier;
+      O_Id    : in Organization_Identifier;
+      Process : not null access
+        procedure (Element : in Contact_Attributes_Object'Class));
+   --  For every contact_attributes row with C_Id and O_Id in the database, a
+   --  Contact_Attributes_Object is handed to Process.
+
+   function Get
+     (C_Id : in Contact_Identifier;
+      O_Id : in Organization_Identifier)
+      return Contact_Attributes_Object;
+   --  Return the contact attribute set that belongs to C_Id and O_Id.
 
    function Contact_Id
      (Contact_Attributes : in Contact_Attributes_Object)

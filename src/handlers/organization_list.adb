@@ -21,10 +21,26 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Database;
+with AWS.Status;
+with GNATCOLL.JSON;
+with HTTP_Codes;
+with Model.Organizations;
 with System_Message.Error;
 
 package body Organization_List is
+
+   -------------------------------
+   --  Bad_List_Kind_Parameter  --
+   -------------------------------
+
+   procedure Bad_List_Kind_Parameter
+     (Response_Object :    out Response.Object;
+      Message         : in     String)
+   is
+      use System_Message;
+   begin
+      Error.Bad_List_Kind.Notify (Message, Response_Object);
+   end Bad_List_Kind_Parameter;
 
    ----------------
    --  Callback  --
@@ -37,133 +53,51 @@ package body Organization_List is
       return AWS.Dispatchers.Callback.Create (JSON_Response'Access);
    end Callback;
 
-   -------------------
-   --  Create_JSON  --
-   -------------------
+   -------------------------
+   --  Generate_Document  --
+   -------------------------
 
-   function Create_JSON
-     (C : in out Cursor)
-      return Common.JSON_String
+   procedure Generate_Document
+     (Response_Object : in out Response.Object)
    is
       use Common;
+      use GNATCOLL.JSON;
+      use HTTP_Codes;
+      use Model.Organizations;
 
-      A_Row     : Row;
-      JSON      : JSON_Value;
-      Org_Array : JSON_Array;
-      Org_JSON  : JSON_Value;
+      OL : Organization_List_Object;
    begin
-      JSON := Create_Object;
+      OL.Get;
 
-      while C.Has_Row loop
-         A_Row := C.Element;
+      if OL.Length > 0 then
+         Response_Object.Set_Content (OL.To_JSON_String);
 
-         Org_JSON := A_Row.Org_JSON;
+         --  TODO: We need to handle the difference between Basic and Full
+         --  views.
 
-         Org_JSON.Set_Field (To_String (A_Row.Org_Id_Column_Name),
-                             A_Row.Org_Id);
-
-         Org_JSON.Set_Field (To_String (A_Row.Org_Name_Column_Name),
-                             A_Row.Org_Name);
-
-         Org_JSON.Set_Field (To_String (A_Row.Identifier_Column_Name),
-                             A_Row.Identifier);
-
-         Append (Org_Array, Org_JSON);
-
-         C.Next;
-      end loop;
-
-      JSON.Set_Field ("organization_list", Org_Array);
-
-      return To_JSON_String (JSON.Write);
-   end Create_JSON;
-
-   ---------------
-   --  Element  --
-   ---------------
-
-   function Element
-     (C : in Cursor)
-      return Row
-   is
-      use Common;
-   begin
-      return Row'(Org_JSON               => C.Json_Object_Value (0),
-                  Org_Id                 => C.Integer_Value (1, Default => 0),
-                  Org_Id_Column_Name     => U ("organization_id"),
-                  Org_Name               => U (C.Value (2)),
-                  Org_Name_Column_Name   => U (C.Field_Name (2)),
-                  Identifier             => U (C.Value (3)),
-                  Identifier_Column_Name => U (C.Field_Name (3)));
-   end Element;
-
-   -----------------------------------------
-   --  Generic_Constraint_Error_Response  --
-   -----------------------------------------
-
-   procedure Generic_Constraint_Error_Response
-     (Response_Object :    out Response.Object;
-      Message         : in     String)
-   is
-      use System_Message;
-   begin
-      Error.Generic_Constraint_Error.Notify (Message, Response_Object);
-   end Generic_Constraint_Error_Response;
+         Response_Object.Set_Cacheable (True);
+         Response_Object.Set_HTTP_Status_Code (OK);
+      else
+         Response_Object.Set_HTTP_Status_Code (Not_Found);
+      end if;
+   end Generate_Document;
 
    ---------------------
-   --  Get_List_Type  --
+   --  Get_List_Kind  --
    ---------------------
 
-   function Get_List_Type
+   function Get_List_Kind
      (Response_Object : in Response.Object)
       return List_Type
    is
-      pragma Unreferenced (Response_Object);
+      use AWS.Status;
    begin
-      return Full;
-   end Get_List_Type;
+      if Parameters (Response_Object.Get_Request).Count = 0 then
+         return Basic;
+      end if;
 
-   ----------------------
-   --  Prepared_Query  --
-   ----------------------
-
-   function Prepared_Query
-     return GNATCOLL.SQL.Exec.Prepared_Statement
-   is
-      use Database;
-      use GNATCOLL.SQL;
-      use GNATCOLL.SQL.Exec;
-
-      Org_List : constant SQL_Query
-        := SQL_Select (Fields =>
-                         Organization.Json &       --  0
-                         Organization.Id &         --  1
-                         Organization.Full_Name &  --  2
-                         Organization.Identifier,  --  3
-                       From => Organization);
-
-      Prepared_Get_Organization_List : constant Prepared_Statement
-        := Prepare (Query         => Org_List,
-                    Auto_Complete => True,
-                    On_Server     => True,
-                    Name          => "organization_list");
-   begin
-      return Prepared_Get_Organization_List;
-   end Prepared_Query;
-
-   ------------------------
-   --  Query_Parameters  --
-   ------------------------
-
-   function Query_Parameters
-     (Response_Object : in Response.Object)
-      return GNATCOLL.SQL.Exec.SQL_Parameters
-   is
-      pragma Unreferenced (Response_Object);
-
-      use GNATCOLL.SQL.Exec;
-   begin
-      return No_Parameters;
-   end Query_Parameters;
+      return List_Type'Value
+        (Parameters (Response_Object.Get_Request).Get ("kind"));
+   end Get_List_Kind;
 
 end Organization_List;

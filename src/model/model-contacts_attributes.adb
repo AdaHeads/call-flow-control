@@ -80,11 +80,11 @@ package body Model.Contacts_Attributes is
                                         JSON => JSON);
    end Create;
 
-   -----------
-   --  Get  --
-   -----------
+   ----------------
+   --  For_Each  --
+   ----------------
 
-   procedure Get
+   procedure For_Each
      (C_Id    : in Contact_Identifier;
       Process : not null access
         procedure (Element : in Contact_Attributes_Object'Class))
@@ -93,8 +93,56 @@ package body Model.Contacts_Attributes is
    begin
       Fetch_Contact_Attributes_Object
         (Process_Element    => Process,
-         Prepared_Statement => SQL.Prepared_Contact_Attributes_Query,
+         Prepared_Statement => SQL.Contact_Attributes_Prepared,
          Query_Parameters   => Parameters);
+   end For_Each;
+
+   ----------------
+   --  For_Each  --
+   ----------------
+
+   procedure For_Each
+     (C_Id    : in Contact_Identifier;
+      O_Id    : in Organization_Identifier;
+      Process : not null access
+        procedure (Element : in Contact_Attributes_Object'Class))
+   is
+      Parameters : constant SQL_Parameters := (1 => +Integer (C_Id),
+                                               2 => +Integer (O_Id));
+   begin
+      Fetch_Contact_Attributes_Object
+        (Process_Element    => Process,
+         Prepared_Statement => SQL.Contact_Organization_Attributes_Prepared,
+         Query_Parameters   => Parameters);
+   end For_Each;
+
+   -----------
+   --  Get  --
+   -----------
+
+   function Get
+     (C_Id : in Contact_Identifier;
+      O_Id : in Organization_Identifier)
+      return Contact_Attributes_Object
+   is
+      procedure Get_Element
+        (Contact_Attributes : in Contact_Attributes_Object'Class);
+
+      CA : Contact_Attributes_Object := Null_Contact_Attributes;
+
+      -------------------
+      --  Get_Element  --
+      -------------------
+
+      procedure Get_Element
+        (Contact_Attributes : in Contact_Attributes_Object'Class)
+      is
+      begin
+         CA := Contact_Attributes_Object (Contact_Attributes);
+      end Get_Element;
+   begin
+      For_Each (C_Id, O_Id, Get_Element'Access);
+      return CA;
    end Get;
 
    ------------

@@ -32,11 +32,23 @@ package View.Organization is
    use Model.Organizations;
 
    function To_JSON
-     (Organization : in Organization_Object)
+     (O         : in Organization_Object;
+      View_Mode : in Mode := Full)
      return JSON_Value;
 
    function To_JSON
-     (Organization : in Organization_Object)
+     (O         : in Organization_Object;
+      View_Mode : in Mode := Full)
+      return JSON_String;
+
+   function To_JSON
+     (OL        : in Organization_List_Object;
+      View_Mode : in Mode := Full)
+     return JSON_Value;
+
+   function To_JSON
+     (OL        : in Organization_List_Object;
+      View_Mode : in Mode := Full)
       return JSON_String;
 
 end View.Organization;

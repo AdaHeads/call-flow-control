@@ -31,9 +31,13 @@ package body View.Contact_Attributes is
      (Contact_Attributes : in Contact_Attributes_Object)
       return JSON_Value
    is
-      J : JSON_Value;
+      J : JSON_Value := JSON_Null;
    begin
-      J := Contact_Attributes.JSON;
+      if Contact_Attributes.JSON /= JSON_Null then
+         J := Contact_Attributes.JSON;
+      else
+         J := Create_Object;
+      end if;
 
       J.Set_Field (Contact_Id, Integer (Contact_Attributes.Contact_Id));
 

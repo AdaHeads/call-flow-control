@@ -27,9 +27,9 @@ with Common;
 
 package Response.Cached is
 
-   ----------------
-   --  Generate  --
-   ----------------
+   -------------------------
+   --  Generate_Response  --
+   -------------------------
 
    generic
 

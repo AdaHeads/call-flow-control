@@ -21,51 +21,56 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Hashed_Maps;
+with Ada.Strings.Unbounded;
 with Common;
 with GNATCOLL.JSON;
 with GNATCOLL.SQL.Exec;
 with Model.Contacts;
+with View;
 
 package Model.Organizations is
 
    type Organization_Object is tagged private;
    Null_Organization_Object : constant Organization_Object;
 
-   function Equal
+   type Organization_List_Object is tagged private;
+   Null_Organization_List_Object : constant Organization_List_Object;
+
+   function Equal_Elements
      (Left, Right : in Model.Contacts.Contact_Object)
       return Boolean;
    --  Element equality function used by the Attributes_Map.
 
    package Contacts_Map is new Ada.Containers.Hashed_Maps
-     (Key_Type        => Contact_Identifier,
+     (Key_Type        => Contact_Key,
       Element_Type    => Model.Contacts.Contact_Object,
       Hash            => Key_Hash,
       Equivalent_Keys => Equivalent_Keys,
-      "="             => Equal);
+      "="             => Equal_Elements);
+   --  TODO: This needs to be hidden. Perhaps something similar to the way we
+   --  handle the Organization_List_Object?
 
    procedure Add_Contact
-     (Organization : in out Organization_Object;
-      Contact      : in     Model.Contacts.Contact_Object);
+     (Self    : in out Organization_Object;
+      Contact : in     Model.Contacts.Contact_Object);
    --  Add a contact to Organization.
 
    function Contacts
-     (Organization : in Organization_Object)
+     (Self : in Organization_Object)
       return Contacts_Map.Map;
    --  Return all the contacts associated with Organization. Note that this
    --  map is only populated if one of the Get_Full methods has been used to
    --  fetch the organization.
 
-   function Full_Name
-     (Organization : in Organization_Object)
-      return String;
+   procedure For_Each
+     (Self    : in Organization_List_Object;
+      Process : not null access
+        procedure (Element : in Organization_Object));
+   --  TODO: Write comment
 
-   function Get_Basic
-     (O_Id : in Organization_Identifier)
-      return Organization_Object;
-   --  Return the organization that match O_Id WITHOUT all the contacts.
-
-   procedure Get_Basic
+   procedure For_Each_Basic
      (O_Id    : in Organization_Identifier;
       Process : not null access
         procedure (Element : in Organization_Object'Class));
@@ -73,38 +78,70 @@ package Model.Organizations is
    --  is handed to Process. These organization objects do NOT contain any
    --  contacts.
 
-   function Get_Full
-     (O_Id : in Organization_Identifier)
-      return Organization_Object;
-   --  Return the organization that match O_Id. This object contains all the
-   --  contacts that are associated with the organization.
-
-   procedure Get_Full
+   procedure For_Each_Full
      (O_Id    : in Organization_Identifier;
       Process : not null access
         procedure (Element : in Organization_Object'Class));
    --  For every organization with O_Id in the database, an Organization_Object
-   --  is handed to Process. Included in the Organization_Object is a
+   --  is handed to Process. Included in the Organization_Object is a list of
+   --  contacts.
+
+   function Full_Name
+     (Self : in Organization_Object)
+      return String;
+   --  TODO: Write comment
+
+   procedure Get
+     (Self : in out Organization_List_Object);
+   --  TODO: Write comment
+
+   procedure Get_Basic
+     (Self : in out Organization_Object;
+      O_Id : in Organization_Identifier);
+   --  Get the organization that match O_Id without all the contacts.
+
+   procedure Get_Full
+     (Self : in out Organization_Object;
+      O_Id : in     Organization_Identifier);
+   --  Get the organization that match O_Id. This object contains all the
+   --  contacts that are associated with the organization.
 
    function Identifier
-     (Organization : in Organization_Object)
-     return String;
+     (Self : in Organization_Object)
+      return String;
+   --  TODO: Write comment
 
    function JSON
-     (Organization : in Organization_Object)
+     (Self : in Organization_Object)
       return GNATCOLL.JSON.JSON_Value;
+   --  TODO: Write comment
+
+   function Length
+     (Self : in Organization_List_Object)
+      return Natural;
+   --  TODO: Write comment
 
    function Organization_Id
-     (Organization : in Organization_Object)
+     (Self : in Organization_Object)
       return Organization_Identifier;
+   --  TODO: Write comment
 
-   function To_JSON
-     (Organization : in Organization_Object)
+   function To_JSON_String
+     (Self      : in Organization_List_Object;
+      View_Mode : in View.Mode := View.Full)
       return Common.JSON_String;
-   --  Convert the Contact to a JSON string. This call is convenient wrapper
-   --  for the View.Contact.To_JSON function.
+   --  TODO: Write comment
+
+   function To_JSON_String
+     (Self      : in Organization_Object;
+      View_Mode : in View.Mode := View.Full)
+      return Common.JSON_String;
+   --  Convert Organization to a JSON string. This call is convenient wrapper
+   --  for the View.Organization.To_JSON function.
 
 private
+
+   use Ada.Strings.Unbounded;
 
    type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null record;
 
@@ -123,6 +160,17 @@ private
          Identifier => Null_Unbounded_String,
          JSON       => GNATCOLL.JSON.JSON_Null,
          O_Id       => 0);
+
+   package Organization_List is new Ada.Containers.Doubly_Linked_Lists
+     (Element_Type => Organization_Object);
+
+   type Organization_List_Object is tagged
+      record
+         Org_List : Organization_List.List := Organization_List.Empty_List;
+      end record;
+
+   Null_Organization_List_Object : constant Organization_List_Object
+     := (Org_List => Organization_List.Empty_List);
 
    function Organization_Element_Basic
      (C : in out Cursor)

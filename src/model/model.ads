@@ -22,34 +22,28 @@
 -------------------------------------------------------------------------------
 
 with Ada.Containers;
-with Ada.Strings.Unbounded;
 
 package Model is
 
-   use Ada.Strings.Unbounded;
-
-   type Contact_Identifier is mod 2**31 - 1;
+   type Contact_Identifier is mod 2 ** 31 - 1;
    type Organization_Identifier is mod 2 ** 31 - 1;
 
-   function Equivalent_Keys
-     (Left, Right : in Unbounded_String)
-      return Boolean;
+   type Contact_Key is
+      record
+         C_Id : Contact_Identifier;
+         O_Id : Organization_Identifier := 0;
+      end record;
+   --  This type is used as the key for the hashed maps used throughout the
+   --  Model packages.
 
    function Equivalent_Keys
-     (Left, Right : in Contact_Identifier)
+     (Left, Right : in Contact_Key)
       return Boolean;
+   --  Key equivalence function used by hashed maps.
 
    function Key_Hash
-     (Key : in Unbounded_String)
+     (Key : in Contact_Key)
       return Ada.Containers.Hash_Type;
-
-   function Key_Hash
-     (Key : in Contact_Identifier)
-      return Ada.Containers.Hash_Type;
-
-   function Map_Key
-     (C_Id : in Contact_Identifier;
-      O_Id : in Organization_Identifier)
-      return Unbounded_String;
+   --  Hashing function used by the hashed maps.
 
 end Model;

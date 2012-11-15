@@ -23,12 +23,15 @@
 
 package View is
 
-   Attributes      : constant String := "attributes";
-   Contact_Id      : constant String := "contact_id";
-   Contacts        : constant String := "contacts";
-   Full_Name       : constant String := "full_name";
-   Identifier      : constant String := "identifier";
-   Is_Human        : constant String := "is_human";
-   Organization_Id : constant String := "organization_id";
+   type Mode is (Basic, Full);
+
+   Attributes        : constant String := "attributes";
+   Contact_Id        : constant String := "contact_id";
+   Contacts          : constant String := "contacts";
+   Full_Name         : constant String := "full_name";
+   Identifier        : constant String := "identifier";
+   Is_Human          : constant String := "is_human";
+   Organization_Id   : constant String := "organization_id";
+   Organization_List : constant String := "organization_list";
 
 end View;

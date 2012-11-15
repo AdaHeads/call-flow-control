@@ -30,6 +30,11 @@ package System_Message.Error is
       Status      => "bad request",
       Status_Code => HTTP_Codes.Bad_Request);
 
+   Bad_List_Kind : constant Error_Log_And_Response_Object := Create
+     (Description => "kind must be either basic or full",
+      Status      => "bad request",
+      Status_Code => HTTP_Codes.Bad_Request);
+
    Bad_Org_Id_Key : constant Error_Log_And_Response_Object := Create
      (Description => "org_id must be a valid natural integer",
       Status      => "bad request",

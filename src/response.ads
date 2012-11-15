@@ -52,7 +52,9 @@ package Response is
    procedure Set_Cacheable
      (O     :    out Object;
       Value : in     Boolean);
-   --  Set whether the contents of O is cacheable.
+   --  Set whether the contents of O is cacheable. This does not define whether
+   --  or not the content of O is actually cached - it merely states that is
+   --  is cacheable.
 
    procedure Set_Content
      (O     :    out Object;

@@ -34,11 +34,11 @@ package body View.Contact is
       return JSON_Value
    is
       Attr_Array : JSON_Array;
-      J          : JSON_Value;
+      J          : JSON_Value := JSON_Null;
    begin
-      J := Create_Object;
-
       if Contact /= Null_Contact_Object then
+         J := Create_Object;
+
          J.Set_Field (Contact_Id, Integer (Contact.Contact_Id));
 
          J.Set_Field (Full_Name, Contact.Full_Name);

@@ -40,16 +40,24 @@ package body Model.Organizations is
       Element           => Organization_Object,
       Cursor_To_Element => Organization_Element_Full);
 
+   procedure For_Each
+     (Process : not null access
+        procedure (Element : in Organization_Object'Class));
+   --  For every organization in the database, an Organization_Object is handed
+   --  to Process. These organization objects do NOT contain any contacts.
+
    -------------------
    --  Add_Contact  --
    -------------------
 
    procedure Add_Contact
-     (Organization : in out Organization_Object;
-      Contact      : in     Model.Contacts.Contact_Object)
+     (Self    : in out Organization_Object;
+      Contact : in     Model.Contacts.Contact_Object)
    is
    begin
-      Organization.C_Map.Include (Contact.Contact_Id, Contact);
+      Self.C_Map.Include
+        (Contact_Key'(Contact.Contact_Id, Self.O_Id),
+         Contact);
    end Add_Contact;
 
    ----------------
@@ -57,43 +65,62 @@ package body Model.Organizations is
    ----------------
 
    function Contacts
-     (Organization : in Organization_Object)
+     (Self : in Organization_Object)
       return Contacts_Map.Map
    is
    begin
-      return Organization.C_Map;
+      return Self.C_Map;
    end Contacts;
 
-   -------------
-   --  Equal  --
-   -------------
+   ----------------------
+   --  Equal_Elements  --
+   ----------------------
 
-   function Equal
+   function Equal_Elements
      (Left, Right : in Model.Contacts.Contact_Object)
       return Boolean
    is
       use type Model.Contacts.Contact_Object;
    begin
       return Left = Right;
-   end Equal;
+   end Equal_Elements;
 
-   -----------------
-   --  Full_Name  --
-   -----------------
+   ----------------
+   --  For_Each  --
+   ----------------
 
-   function Full_Name
-     (Organization : in Organization_Object)
-      return String
+   procedure For_Each
+     (Process : not null access
+        procedure (Element : in Organization_Object'Class))
+   is
+      use GNATCOLL.SQL.Exec;
+   begin
+      Fetch_Basic_Organization_Object
+        (Process_Element    => Process,
+         Prepared_Statement => SQL.Organizations_Prepared,
+         Query_Parameters   => No_Parameters);
+   end For_Each;
+
+   ----------------
+   --  For_Each  --
+   ----------------
+
+   procedure For_Each
+     (Self    : in Organization_List_Object;
+      Process : not null access
+        procedure (Element : in Organization_Object))
    is
    begin
-      return To_String (Organization.Full_Name);
-   end Full_Name;
+      for Elem of Self.Org_List loop
+         Process (Elem);
+      end loop;
+   end For_Each;
 
-   -----------------
-   --  Get_Basic  --
-   -----------------
+   ----------------------
+   --  For_Each_Basic  --
+   ----------------------
 
-   procedure Get_Basic
+   procedure For_Each_Basic
      (O_Id    : in Organization_Identifier;
       Process : not null access
         procedure (Element : in Organization_Object'Class))
@@ -104,44 +131,15 @@ package body Model.Organizations is
    begin
       Fetch_Basic_Organization_Object
         (Process_Element    => Process,
-         Prepared_Statement => SQL.Prepared_Organization_Query,
+         Prepared_Statement => SQL.Organization_Prepared,
          Query_Parameters   => Parameters);
-      null;
-   end Get_Basic;
+   end For_Each_Basic;
 
-   -----------------
-   --  Get_Basic  --
-   -----------------
+   ---------------------
+   --  For_Each_Full  --
+   ---------------------
 
-   function Get_Basic
-     (O_Id : in Organization_Identifier)
-      return Organization_Object
-   is
-      procedure Get_Element
-        (Organization : in Organization_Object'Class);
-
-      O : Organization_Object := Null_Organization_Object;
-
-      -------------------
-      --  Get_Element  --
-      -------------------
-
-      procedure Get_Element
-        (Organization : in Organization_Object'Class)
-      is
-      begin
-         O := Organization_Object (Organization);
-      end Get_Element;
-   begin
-      Get_Basic (O_Id, Get_Element'Access);
-      return O;
-   end Get_Basic;
-
-   ----------------
-   --  Get_Full  --
-   ----------------
-
-   procedure Get_Full
+   procedure For_Each_Full
      (O_Id    : in Organization_Identifier;
       Process : not null access
         procedure (Element : in Organization_Object'Class))
@@ -152,23 +150,56 @@ package body Model.Organizations is
    begin
       Fetch_Full_Organization_Object
         (Process_Element    => Process,
-         Prepared_Statement => SQL.Prepared_Organization_Contacts_Query,
+         Prepared_Statement => SQL.Organization_Contacts_Prepared,
          Query_Parameters   => Parameters);
-      null;
-   end Get_Full;
+   end For_Each_Full;
 
-   ----------------
-   --  Get_Full  --
-   ----------------
+   -----------------
+   --  Full_Name  --
+   -----------------
 
-   function Get_Full
-     (O_Id : in Organization_Identifier)
-      return Organization_Object
+   function Full_Name
+     (Self : in Organization_Object)
+      return String
+   is
+   begin
+      return To_String (Self.Full_Name);
+   end Full_Name;
+
+   -----------
+   --  Get  --
+   -----------
+
+   procedure Get
+     (Self : in out Organization_List_Object)
+   is
+      procedure Add_To_List
+        (O : in Organization_Object'Class);
+
+      -------------------
+      --  Add_To_List  --
+      -------------------
+
+      procedure Add_To_List
+        (O : in Organization_Object'Class)
+      is
+      begin
+         Self.Org_List.Append (Organization_Object (O));
+      end Add_To_List;
+   begin
+      For_Each (Add_To_List'Access);
+   end Get;
+
+   -----------------
+   --  Get_Basic  --
+   -----------------
+
+   procedure Get_Basic
+     (Self : in out Organization_Object;
+      O_Id : in     Organization_Identifier)
    is
       procedure Get_Element
         (Organization : in Organization_Object'Class);
-
-      O : Organization_Object := Null_Organization_Object;
 
       -------------------
       --  Get_Element  --
@@ -178,11 +209,35 @@ package body Model.Organizations is
         (Organization : in Organization_Object'Class)
       is
       begin
-         O := Organization_Object (Organization);
+         Self := Organization_Object (Organization);
       end Get_Element;
    begin
-      Get_Full (O_Id, Get_Element'Access);
-      return O;
+      For_Each_Basic (O_Id, Get_Element'Access);
+   end Get_Basic;
+
+   ----------------
+   --  Get_Full  --
+   ----------------
+
+   procedure Get_Full
+     (Self : in out Organization_Object;
+      O_Id : in     Organization_Identifier)
+   is
+      procedure Get_Element
+        (Organization : in Organization_Object'Class);
+
+      -------------------
+      --  Get_Element  --
+      -------------------
+
+      procedure Get_Element
+        (Organization : in Organization_Object'Class)
+      is
+      begin
+         Self := Organization_Object (Organization);
+      end Get_Element;
+   begin
+      For_Each_Full (O_Id, Get_Element'Access);
    end Get_Full;
 
    ------------------
@@ -190,11 +245,11 @@ package body Model.Organizations is
    ------------------
 
    function Identifier
-     (Organization : in Organization_Object)
+     (Self : in Organization_Object)
       return String
    is
    begin
-      return To_String (Organization.Identifier);
+      return To_String (Self.Identifier);
    end Identifier;
 
    ------------
@@ -202,12 +257,24 @@ package body Model.Organizations is
    ------------
 
    function JSON
-     (Organization : in Organization_Object)
+     (Self : in Organization_Object)
       return GNATCOLL.JSON.JSON_Value
    is
    begin
-      return Organization.JSON;
+      return Self.JSON;
    end JSON;
+
+   --------------
+   --  Length  --
+   --------------
+
+   function Length
+     (Self : in Organization_List_Object)
+      return Natural
+   is
+   begin
+      return Natural (Self.Org_List.Length);
+   end Length;
 
    ----------------------------------
    --  Organization_Element_Basic  --
@@ -254,6 +321,7 @@ package body Model.Organizations is
       while C.Has_Row loop
          if not C.Is_Null (4) then
             --  We have a contact
+
             CO := Model.Contacts.Create
               (C_Id      => Contact_Identifier (C.Integer_Value (4)),
                Full_Name => C.Value (5),
@@ -261,15 +329,15 @@ package body Model.Organizations is
 
             if not C.Is_Null (7) then
                --  We have contact attributes
-               CO.Add_Attribute
+               CO.Add_Attributes
                  (Model.Contacts_Attributes.Create
                     (C_Id => Contact_Identifier (C.Integer_Value (4)),
                      O_Id => Organization_Identifier (C.Integer_Value (3)),
                      JSON => C.Json_Object_Value (7)));
             end if;
-         end if;
 
-         O.Add_Contact (CO);
+            O.Add_Contact (CO);
+         end if;
 
          C.Next;
       end loop;
@@ -282,23 +350,37 @@ package body Model.Organizations is
    -----------------------
 
    function Organization_Id
-     (Organization : in Organization_Object)
+     (Self : in Organization_Object)
       return Organization_Identifier
    is
    begin
-      return Organization.O_Id;
+      return Self.O_Id;
    end Organization_Id;
 
-   ---------------
-   --  To_JSON  --
-   ---------------
+   ----------------------
+   --  To_JSON_String  --
+   ----------------------
 
-   function To_JSON
-     (Organization : in Organization_Object)
+   function To_JSON_String
+     (Self      : in Organization_List_Object;
+      View_Mode : in View.Mode := View.Full)
       return Common.JSON_String
    is
    begin
-      return View.Organization.To_JSON (Organization);
-   end To_JSON;
+      return View.Organization.To_JSON (Self, View_Mode);
+   end To_JSON_String;
+
+   ----------------------
+   --  To_JSON_String  --
+   ----------------------
+
+   function To_JSON_String
+     (Self      : in Organization_Object;
+      View_Mode : in View.Mode := View.Full)
+      return Common.JSON_String
+   is
+   begin
+      return View.Organization.To_JSON (Self, View_Mode);
+   end To_JSON_String;
 
 end Model.Organizations;

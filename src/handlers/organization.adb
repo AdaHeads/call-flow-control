@@ -65,7 +65,7 @@ package body Organization is
 
       O : Organization_Object;
    begin
-      O := Get_Full (Get_Org_Id (Response_Object));
+      O.Get_Full (O_Id => Get_Org_Id (Response_Object));
 
       if O /= Null_Organization_Object then
          Response_Object.Set_Cacheable (True);
@@ -74,7 +74,7 @@ package body Organization is
          Response_Object.Set_HTTP_Status_Code (Not_Found);
       end if;
 
-      Response_Object.Set_Content (O.To_JSON);
+      Response_Object.Set_Content (O.To_JSON_String);
    end Generate_Document;
 
    ------------------

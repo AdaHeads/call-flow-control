@@ -46,15 +46,16 @@ package body Model.Contacts is
    --  Add_Attribute  --
    ---------------------
 
-   procedure Add_Attribute
+   procedure Add_Attributes
      (Contact   : in out Contact_Object;
       Attribute : in     Model.Contacts_Attributes.Contact_Attributes_Object)
    is
    begin
       Contact.Attr_Map.Include
-        (Map_Key (Attribute.Contact_Id, Attribute.Organization_Id),
+        (Contact_Key'
+           (Attribute.Contact_Id, Attribute.Organization_Id),
          Attribute);
-   end Add_Attribute;
+   end Add_Attributes;
 
    ------------------
    --  Attributes  --
@@ -89,7 +90,7 @@ package body Model.Contacts is
       while C.Has_Row loop
          if not C.Is_Null (3) then
             CO.Attr_Map.Include
-              (Key     => Map_Key
+              (Key     => Contact_Key'
                  (Contact_Identifier (C.Integer_Value (4, Default => 0)),
                   Organization_Identifier (C.Integer_Value (5, Default => 0))),
               New_Item => Model.Contacts_Attributes.Create
@@ -125,7 +126,7 @@ package body Model.Contacts is
 
       if not C.Is_Null (3) then
          CO.Attr_Map.Include
-           (Key      => Map_Key
+           (Key      => Contact_Key'
               (Contact_Identifier (C.Integer_Value (4, Default => 0)),
                Organization_Identifier (C.Integer_Value (5, Default => 0))),
             New_Item => Model.Contacts_Attributes.Create
@@ -168,18 +169,71 @@ package body Model.Contacts is
                              Is_Human  => Is_Human);
    end Create;
 
-   -------------
-   --  Equal  --
-   -------------
+   ----------------------
+   --  Equal_Elements  --
+   ----------------------
 
-   function Equal
+   function Equal_Elements
      (Left, Right : in Model.Contacts_Attributes.Contact_Attributes_Object)
       return Boolean
    is
       use type Model.Contacts_Attributes.Contact_Attributes_Object;
    begin
       return Left = Right;
-   end Equal;
+   end Equal_Elements;
+
+   ----------------
+   --  For_Each  --
+   ----------------
+
+   procedure For_Each
+     (C_Id    : in Contact_Identifier;
+      Process : not null access
+        procedure (Element : in Contact_Object'Class))
+   is
+      Parameters : constant SQL_Parameters := (1 => +Integer (C_Id));
+   begin
+      Fetch_Contact_Object
+        (Process_Element    => Process,
+         Prepared_Statement => SQL.Contact_Full_Prepared,
+         Query_Parameters   => Parameters);
+   end For_Each;
+
+   ----------------
+   --  For_Each  --
+   ----------------
+
+   procedure For_Each
+     (O_Id    : in Organization_Identifier;
+      Process : not null access
+        procedure (Element : in Contact_Object'Class))
+   is
+      Parameters : constant SQL_Parameters := (1 => +Integer (O_Id));
+   begin
+      Fetch_Contact_Objects
+        (Process_Element    => Process,
+         Prepared_Statement => SQL.Organization_Contacts_Prepared,
+         Query_Parameters   => Parameters);
+   end For_Each;
+
+   ----------------
+   --  For_Each  --
+   ----------------
+
+   procedure For_Each
+     (C_Id    : in Contact_Identifier;
+      O_Id    : in Organization_Identifier;
+      Process : not null access
+        procedure (Element : in Contact_Object'Class))
+   is
+      Parameters : constant SQL_Parameters := (1 => +Integer (C_Id),
+                                               2 => +Integer (O_Id));
+   begin
+      Fetch_Contact_Object
+        (Process_Element    => Process,
+         Prepared_Statement => SQL.Contact_Org_Specified_Prepared,
+         Query_Parameters   => Parameters);
+   end For_Each;
 
    -----------------
    --  Full_Name  --
@@ -192,59 +246,6 @@ package body Model.Contacts is
    begin
       return To_String (Contact.Full_Name);
    end Full_Name;
-
-   -----------
-   --  Get  --
-   -----------
-
-   procedure Get
-     (C_Id    : in Contact_Identifier;
-      Process : not null access
-        procedure (Element : in Contact_Object'Class))
-   is
-      Parameters : constant SQL_Parameters := (1 => +Integer (C_Id));
-   begin
-      Fetch_Contact_Object
-        (Process_Element    => Process,
-         Prepared_Statement => SQL.Prepared_Contact_Query_Full,
-         Query_Parameters   => Parameters);
-   end Get;
-
-   -----------
-   --  Get  --
-   -----------
-
-   procedure Get
-     (C_Id    : in Contact_Identifier;
-      O_Id    : in Organization_Identifier;
-      Process : not null access
-        procedure (Element : in Contact_Object'Class))
-   is
-      Parameters : constant SQL_Parameters := (1 => +Integer (C_Id),
-                                               2 => +Integer (O_Id));
-   begin
-      Fetch_Contact_Object
-        (Process_Element    => Process,
-         Prepared_Statement => SQL.Prepared_Contact_Org_Specified_Query,
-         Query_Parameters   => Parameters);
-   end Get;
-
-   -----------
-   --  Get  --
-   -----------
-
-   procedure Get
-     (O_Id    : in Organization_Identifier;
-      Process : not null access
-        procedure (Element : in Contact_Object'Class))
-   is
-      Parameters : constant SQL_Parameters := (1 => +Integer (O_Id));
-   begin
-      Fetch_Contact_Objects
-        (Process_Element    => Process,
-         Prepared_Statement => SQL.Prepared_Organization_Contacts_Query,
-         Query_Parameters   => Parameters);
-   end Get;
 
    -----------
    --  Get  --
@@ -270,7 +271,7 @@ package body Model.Contacts is
          C := Contact_Object (Contact);
       end Get_Element;
    begin
-      Get (C_Id, Get_Element'Access);
+      For_Each (C_Id, Get_Element'Access);
       return C;
    end Get;
 
@@ -299,7 +300,7 @@ package body Model.Contacts is
          C := Contact_Object (Contact);
       end Get_Element;
    begin
-      Get (C_Id, O_Id, Get_Element'Access);
+      For_Each (C_Id, O_Id, Get_Element'Access);
       return C;
    end Get;
 
