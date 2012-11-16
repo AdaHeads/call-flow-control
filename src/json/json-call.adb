@@ -25,10 +25,11 @@ with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 
 with System_Messages;
-
+with Call_ID;
 package body JSON.Call is
    use GNATCOLL.JSON;
    use System_Messages;
+   use Call_ID;
 
    Length_String : constant String := "length";
 
@@ -47,22 +48,18 @@ package body JSON.Call is
 
       Root : constant JSON_Value := Create_Object;
       Value : constant JSON_Value := Create_Object;
-      CompanyID : Ada.Strings.Unbounded.Unbounded_String;
-      Compnay_prefix : constant String := "org_id";
+      Org_ID : Ada.Strings.Unbounded.Unbounded_String;
+      Org_Prefix : constant String := "org_id";
    begin
-      System_Messages.Notify  (Debug, "CALL_QUEUE_JSON DEBUG - " &
-                        Ada.Strings.Unbounded.To_String (Call.Queue));
       if Call /= Null_Call then
-         System_Messages.Notify
-           (Debug, "CALL_QUEUE_JSON DEBUG: " & Call.State'Img);
-         CompanyID := Ada.Strings.Unbounded.Tail
+         Org_ID := Ada.Strings.Unbounded.Tail
            (Call.Queue,
-            Ada.Strings.Unbounded.Length (Call.Queue) - Compnay_prefix'Length);
+            Ada.Strings.Unbounded.Length (Call.Queue) - Org_Prefix'Length);
 
          Value.Set_Field ("channel", Call.Channel);
          Value.Set_Field ("caller_id", Call.CallerIDNum);
-         Value.Set_Field ("org_id", CompanyID);
-         Value.Set_Field ("call_id", To_String (Call.ID));
+         Value.Set_Field ("org_id", Org_ID);
+         Value.Set_Field ("call_id",  To_String (Call.ID));
          Value.Set_Field ("arrival_time", Unix_Timestamp (Call.Arrived));
          
          Root.Set_Field ("call",Value);

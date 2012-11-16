@@ -21,8 +21,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---with Ada.Exceptions;
-
 with AMI.Response;
 with Model.Call;
 with System_Messages;
@@ -48,9 +46,10 @@ package body AMI.Action is
             Action_ID => Action_ID));
    end Bridge;
 
-   procedure Hangup (Client  : access Client_Type;
-                     Call_Id : in     Unbounded_String;
-                     Status  :    out Status_Type) is
+   procedure Hangup (Client   : access Client_Type;
+                     Call_ID  : in     Call_ID_Type;
+                     Callback : in     AMI.Callback.Callback_Type
+                       := AMI.Callback.Null_Callback'Access) is
       use Model.Call;
 
       Call      : Call_Type;
@@ -58,24 +57,17 @@ package body AMI.Action is
                     Protocol_Strings.Next_Action_ID;
    begin
       System_Messages.Notify (Debug, "Hangup: routine started");
-      Status := Unknown_Error;
 
-      Call := Model.Call.Get 
-        (Call_ID => To_Call_ID (To_String(Call_Id)));
-
-      if Call = Null_Call then
-         Status := No_Call_Found;
-      end if;
+      Call := Model.Call.Get (Call_ID);
 
       System_Messages.Notify (Debug,
-                              "Hangup Call: " & To_String (Call_Id));
+                              "Hangup Call: " & To_String (Call));
 
+      AMI.Response.Subscribe (Action_ID, Callback);
       AMI.Client.Send
         (Client => Client,
          Item   => Protocol_Strings.Hangup
            (Ada.Strings.Unbounded.To_String (Call.Channel), Action_ID));
-
-      Status := Success;
 
       System_Messages.Notify (Debug, "The Hangup routine is done.");
    end Hangup;
@@ -84,8 +76,8 @@ package body AMI.Action is
      (Client   : access Client_Type;
       Username : in     String;
       Secret   : in     String;
-      Callback : in     AMI.Callback.Callback_Type
-      := AMI.Callback.Login_Callback'Access) is
+      Callback : in AMI.Callback.Callback_Type :=
+      AMI.Callback.Login_Callback'Access) is
       Action_ID : constant Action_ID_Type :=
                     Protocol_Strings.Next_Action_ID;
    begin
@@ -99,21 +91,13 @@ package body AMI.Action is
                           Action_ID => Action_ID));
    end Login;
 
-   --  TODO Refactor, in case something goes wrong,
-   --    the steps are taken in the wrong order.
-   --  Sends the agent's current call on hold / park.
-   procedure Park (Client  : access Client_Type;
-                   Call_Id : in     String;
-                   Status  :    out Status_Type) is
-      use Model.Call;
-
-      Call      : Call_Type;
+   procedure Park (Client   : access Client_Type;
+                   Call     : in     Call_Type;
+                   Callback : in AMI.Callback.Callback_Type :=
+                     AMI.Callback.Login_Callback'Access) is
       Action_ID : constant Action_ID_Type :=
                     Protocol_Strings.Next_Action_ID;
    begin
-      --  Default fallback status.
-      Status := Unknown_Error;
-
       --  Finds the Agent, to get the call to park.
       --   Peer := Peers.Get_Peer (Agent_ID => To_Unbounded_String (Agent_ID));
       --        if Peer = Peers.null_Peer then
@@ -131,18 +115,6 @@ package body AMI.Action is
       --           return;
       --        end if;
 
-      Call := Model.Call.Get
-        (Call_ID => To_Call_ID (Call_Id));
-
-      if Call = Null_Call then
-         System_Messages.Notify (Debug,
-                                 "Park_Call: Call not found, ID: " & Call_Id);
-         Status := No_Call_Found;
-         return;
-      end if;
-
-      System_Messages.Notify (Debug,
-                              "Park: Action send, Call_ID => " & Call_Id);
 
       --  Move the call back to the Queue, which will act like a parking lot.
 
@@ -157,21 +129,10 @@ package body AMI.Action is
 
       if Call.Extension = Null_Unbounded_String or else
         To_String (Call.Extension) = "(null)" then
-         System_Messages.Notify
-           (Debug,
-            "Routines.Park: " &
-             "The Call does not have an Extension Variable" &
-             "Call ID: " & To_String (Call.ID));
-         Status := Unknown_Error;
-         return;
+         raise BAD_EXTENSION;
+   
       elsif To_String (Call.Extension) = "" then
-         System_Messages.Notify
-           (Debug,
-            "Routines.Park: " &
-             "The Call have an empty extension variable" &
-             "Call ID: " & To_String (Call.ID));
-         Status := Unknown_Error;
-         return;
+         raise EMPTY_EXTENSION;
       end if;
 
       --  Sets the variable that tells this call is a call on hold.
@@ -189,11 +150,6 @@ package body AMI.Action is
             Exten     => To_String (Call.Extension),
             Context   => "LocalSets",
             Action_ID => Action_ID));
-      --  Update peer information
-      --        Peer.State := free;
-      --        Peers.Replace_Peer (Peer);
-
-      Status := Success;
    end Park;
 
    procedure Ping (Client   : access Client_Type;
@@ -204,41 +160,40 @@ package body AMI.Action is
    begin
       AMI.Response.Subscribe (Action_ID, Callback);
       System_Messages.Notify (Debug, "AMI.Client.Ping: Subscribed for " &
-				"a reply with ActionID" & Action_ID'Img);
-      AMI.Client.Send (Client => Client, 
-		       Item   => Protocol_Strings.Ping 
-			 (Action_ID => Action_ID));
-  end Ping;
-  
-  --  Get the specific call with UniqueId matching
-  --  If unitqueID is null, then the first call in the queue is taken.
-  procedure Redirect (Client    : access Client_Type;
-		      Channel   : in     String;
-		      Extension : in     String;
-                      Callback  : in     AMI.Callback.Callback_Type 
-                        := AMI.Callback.Null_Callback'Access) is
-     Action_ID : constant Action_ID_Type := 
-       Protocol_Strings.Next_Action_ID;
-  begin
+                                "a reply with ActionID" & Action_ID'Img);
+      AMI.Client.Send (Client => Client,
+                       Item   => Protocol_Strings.Ping
+                         (Action_ID => Action_ID));
+   end Ping;
+
+   --  Get the specific call with UniqueId matching
+   --  If unitqueID is null, then the first call in the queue is taken.
+   procedure Redirect (Client    : access Client_Type;
+                       Channel   : in     String;
+                       Extension : in     String;
+                       Callback  : in     AMI.Callback.Callback_Type
+                         := AMI.Callback.Null_Callback'Access) is
+      Action_ID : constant Action_ID_Type :=
+        Protocol_Strings.Next_Action_ID;
+   begin
       AMI.Response.Subscribe (Action_ID, Callback);
-     --  Send the call out to the phone
-     AMI.Client.Send 
-       ( Client => Client,
-	 Item   =>      Protocol_Strings.Redirect
-	   (Channel   => Channel,
-	    Exten     => Extension,
-	    Context   => "LocalSets",
-	    Action_ID => Action_ID));
-  end Redirect;
-  
-  
+      --  Send the call out to the phone
+      AMI.Client.Send
+        (Client => Client,
+          Item   => Protocol_Strings.Redirect
+            (Channel   => Channel,
+             Exten     => Extension,
+             Context   => "LocalSets",
+             Action_ID => Action_ID));
+   end Redirect;
+
 --  --  Takes two channels, and bridge the them together.
 --     procedure Bridge_Call (Call_Id_1 : in     Unbounded_String;
 --                            Call_Id_2 : in     Unbounded_String;
 --                            Status    :    out Status_Type) is
 --        use Call_List;
---        Action_ID : constant Action_ID_Type := 
---  	Protocol_Strings.Next_Action_ID;
+--        Action_ID : constant Action_ID_Type :=
+--     Protocol_Strings.Next_Action_ID;
 --        Call1, Call2 : Call_Type;
 --     begin
 --        Status := Unknown_Error;
@@ -251,10 +206,10 @@ package body AMI.Action is
 
 --        --  Sends the command out to Asterisk.
 --        AMI.Client.Send (Item =>
---  			 Protocol_Strings.Bridge
---  			 (To_String (Call1.Channel), To_String (Call2.Channel), Action_ID);
---  		       Status := Success;
---  		       end Bridge_Call;
+--                     Protocol_Strings.Bridge
+--         (To_String (Call1.Channel), To_String (Call2.Channel), Action_ID);
+--                    Status := Success;
+--        end Bridge_Call;
 
 --     --     procedure Consistency_Check is
 --     --        use Call_List;
@@ -270,7 +225,7 @@ package body AMI.Action is
 --     --              for Queue_Index in
 --     --                1 .. Integer (Queue (Queue_Priority).Length) loop
 --     --                 if Call.Uniqueid =
---     --                   Queue (Queue_Priority).Element (Queue_Index).Uniqueid
+--     --           Queue (Queue_Priority).Element (Queue_Index).Uniqueid
 --     --                 then
 --     --                    return True;
 --     --                 end if;
@@ -295,34 +250,31 @@ package body AMI.Action is
 --     --           if not Check_Call (Call_List.Element (Cons_Index)) then
 --     --              System_Messages.Log (Yolk.Log.Info,
 --     --                              "Consistency check - Not Equal failed" &
---     --                         Call_To_String (Call_List.Element (Cons_Index)) &
+--     --                 Call_To_String (Call_List.Element (Cons_Index)) &
 --     --                              "Does not exsist in our call queue");
 --     --           end if;
 --     --        end loop;
---     --        System_Messages.Log (Yolk.Log.Debug, "The system is consistent");
+--     --    System_Messages.Log (Yolk.Log.Debug, "The system is consistent");
 --     --     end Consistency_Check;
 
-
-  --     --        --  Scaffolding
-  --     --     procedure Get_Version is --  return String is
+--  --        --  Scaffolding
+--  --     procedure Get_Version is --  return String is
 --     --        use Event_Parser;
 --     --        Data : Event_List_Type.Map;
 --     --     begin
 --     --        AMI.Action.CoreSettings (Data);
---     --        if Data.Contains (To_Unbounded_String ("AsteriskVersion")) then
---     --      Version := Data.Element (To_Unbounded_String ("AsteriskVersion"));
+--     --    if Data.Contains (To_Unbounded_String ("AsteriskVersion")) then
+--     --  Version := Data.Element (To_Unbounded_String ("AsteriskVersion"));
 --     --        end if;
 --     --        return To_String (Version);
 --     --     end Get_Version;
 
-
-
-  --     procedure Register_Agent (Phone_Name  : in Unbounded_String;
-  --                               Computer_Id : in Unbounded_String) is
-  --        use Peers;
-  --        Peer       : Peer_Type;
-  --        Peer_Index : Peer_List_Type.Cursor;
-  --        Peer_List  : constant Peer_List_Type.Map := Peers.Get_Peers_List;
+--     procedure Register_Agent (Phone_Name  : in Unbounded_String;
+--                               Computer_Id : in Unbounded_String) is
+--        use Peers;
+--        Peer       : Peer_Type
+--        Peer_Index : Peer_List_Type.Cursor;
+--  Peer_List  : constant Peer_List_Type.Map := Peers.Get_Peers_List;
 --     begin
 --        Peer_Index := Peer_List_Type.Find (Container => Peer_List,
 --                                           Key       => Phone_Name);
@@ -383,7 +335,7 @@ package body AMI.Action is
 --        --           --  Something is wrong here.
 --        --           System_Messages.Notify
 --        --             (Info,
---        --              "There were a request for unPark a call with Agent: " &
+--    --              "There were a request for unPark a call with Agent: " &
 --        --                Agent & " Call_ID: " & Call_ID &
 --        --                " Call allready there: " &
 --        --                To_String (Peer.Call.Channel));
@@ -410,14 +362,14 @@ package body AMI.Action is
 --        --              Delete (Container => Peer.Parked_Calls,
 --        --                      Position  => Peer_Cursor);
 --        --
---        --              --  Make the actual Asterisk call to transfer the call.
+--   --              --  Make the actual Asterisk call to transfer the call.
 --        --              AMI.Action.Action_Manager.Redirect
 --        --                (Channel  => To_String (Peer.Call.Channel),
 --        --                 Context  => "LocalSets",
 --        --                 Exten    => To_String (Peer.Exten));
 --        --
 --        --              --  Set the Variable CallState to empty,
---        --              --    so we can see that the call is not on hold any more
+--    --              --    so we can see that the call is not on hold any more
 --        --              AMI.Action.Action_Manager.Set_Var
 --        --                (Channel      => To_String (Peer.Call.Channel),
 --        --                 VariableName => "CallState",
@@ -427,7 +379,7 @@ package body AMI.Action is
 --        --              return;
 --        --           else
 --        --              System_Messages.Notify (Debug,
---        --                              "Routines.Unpark: Call_ID /= Found id " &
+--  --                              "Routines.Unpark: Call_ID /= Found id " &
 --        --                                Call_ID & " /= " & To_String
 --        --                                (Element (Peer_Cursor).Uniqueid));
 --        --           end if;

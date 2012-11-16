@@ -23,10 +23,8 @@
 
 with Ada.Calendar;
 with Ada.Containers.Hashed_Maps;
-with Ada.Containers.Vectors;
 with Ada.Strings.Hash;
 with Ada.Strings.Unbounded;
-with Model.Call;
 
 package Model.Peers is
    use Ada.Containers;
@@ -36,10 +34,10 @@ package Model.Peers is
 
    type SIP_Peer_Status_Type is (Unknown, Unregistered, Idle, Busy, Paused);
 
-   package Call_List is new
-     Ada.Containers.Vectors (Index_Type   => Positive,
-                             Element_Type => Model.Call.Call_Type,
-                             "="          => Model.Call."=");
+   --  package Call_List is new
+   --    Ada.Containers.Vectors (Index_Type   => Positive,
+   --                            Element_Type => Model.Call.Call_Type,
+   --                            "="          => Model.Call."=");
 
    type Peer_Type is
       record

@@ -29,7 +29,7 @@ with System_Messages;
 with Model.Call;
 with Model.Peers;
 with Handlers.Notifications;
-
+with Call_ID;
 with JSON.Event;
 
 package body My_Callbacks is
@@ -38,6 +38,7 @@ package body My_Callbacks is
    use Ada.Strings.Unbounded;
    use Model.Call;
    use Model.Peers;
+   use Call_ID;
 
    package Notifications renames Handlers.Notifications;
 
@@ -99,8 +100,8 @@ package body My_Callbacks is
       --  Temp_Value : Unbounded_String;
    begin
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Call_ID) then
-         Call := Model.Call.Dequeue
-           (Call_ID =>To_Call_ID (To_String(Call_ID)));
+         Call := Dequeue
+           (Call_ID => Create (To_String(Call_ID)));
 
          if Call = Null_Call then
             System_Messages.Notify
@@ -134,7 +135,7 @@ package body My_Callbacks is
    begin
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Temp_Value) then
          --  The call should exsists at this point.
-         Call := Get (To_Call_ID (To_String (Temp_Value)));
+         Call := Get (Create (To_String (Temp_Value)));
       end if;
 
       --  There are no call with that ID, something is wrong.
@@ -159,7 +160,7 @@ package body My_Callbacks is
       if Call.State = Unknown then
          System_Messages.Notify
            (Debug, "My_Callbacks.Join: Call unknown state");
-         Call.State := Queued;
+         Call.State := Newly_Arrived;
 
          if Try_Get (Packet.Fields, AMI.Parser.Queue, Temp_Value) then
             Call.Queue := Temp_Value;
@@ -176,9 +177,6 @@ package body My_Callbacks is
         (Debug, "My_Callbacks.Join: Call Updated: " & To_String (Call));
       Update (Call);
       Notifications.Broadcast (JSON.Event.New_Call_JSON_String (Call));
-      
-      System_Messages.Notify
-        (Debug, "My_Callbacks.Join: Call Updated: " & Model.Call.Image);
       
    end Join;
 
@@ -205,7 +203,7 @@ package body My_Callbacks is
       end if;
 
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Temp_Value) then
-         Call.ID := To_Call_ID (To_String(Temp_Value));
+         Call.ID := Create (To_String(Temp_Value));
       end if;
 
       if Try_Get (Packet.Fields, AMI.Parser.Exten, Temp_Value) then
@@ -363,7 +361,7 @@ package body My_Callbacks is
       Hold_Time         : Integer := -1;
    begin
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Buffer) then
-         Call.ID := To_Call_ID (To_String (Buffer));
+         Call.ID := Create (To_String (Buffer));
       end if;
 
       if Try_Get (Packet.Fields, AMI.Parser.Position, Buffer) then

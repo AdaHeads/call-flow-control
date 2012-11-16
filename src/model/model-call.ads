@@ -23,27 +23,30 @@
 
 with Ada.Containers.Ordered_Maps;
 with Ada.Strings.Unbounded;
-
+with Model.Agent;
 with Common;
+with Call_ID;
+with GNATCOLL.JSON;
 
 package Model.Call is
    use Ada.Strings.Unbounded;
+   use GNATCOLL.JSON;
    use Common;
+   use Model.Agent;
+   use Call_ID;
 
+   CALL_NOT_FOUND  : exception;
+   DUPLICATE_ID    : exception;
+   BAD_EXTENSION   : exception;
+   EMPTY_EXTENSION : exception;
+     
    type Call_State is
-     (Unknown, Queued, Speaking, Ringing, OnHold, Delegated, Hung);
-   type Priority_Level is (Low, Normal, High);
+     (Unknown, Newly_Arrived, Speaking, Ringing, OnHold, Delegated, Hung_Up);
+   type Priority_Level is (Invalid, Low, Normal, High);
 
-   type Call_ID_Type is record
-      Timestamp : Integer;
-      Sequence  : Integer;
-   end record;
---      new Long_Integer range -1 .. (2**63)-1;
-   Null_Call_ID : constant Call_ID_Type := (-1,-1);
-   
-   type Call_Type is
+   type Call_Type is tagged
       record
-         ID             : Call_ID_Type;
+         ID             : Call_ID.Call_ID_Type;
          State          : Call_State;
          Inbound        : Boolean;
          Extension      : Unbounded_String;
@@ -55,32 +58,41 @@ package Model.Call is
          Position       : Natural;
          Count          : Natural;
          Arrived        : Time := Current_Time;
+         Assigned_To    : Agent_ID_Type := 0;
       end record;
+   
+   procedure Insert (Call : in Call_Type);
+   --  Places a call in the call_List.
 
-   function Image return String;
-   --  Returns a debug friendly String representation of the call queue.
+   procedure Remove (Call_ID : in Call_ID_Type);
+   --  Removes a specific call from the call queue.
+
+   procedure Update (Call : in Call_Type);
+   --  Updates a Call in the list, with the information from the Call Argument
+
+   function Length return Long_Integer;
+   --  Gives the length of the call queue.
+
+   function To_String (Call : in Call_Type) return String;
+   function To_JSON (Call : in Call_Type) return JSON_Value;
+
    
    function "=" (Left  : in Call_Type;
                  Right : in Call_Type) return Boolean;
-   function "<" (Left  : in Call_ID_Type;
-                 Right : in Call_ID_Type) return Boolean;
+
+   function Get (Call_ID : in Call_ID_Type) return Call_Type;
+   --  Returns the call with the specified Call_ID.
       
-   
-   package Call_List_Type is new
-     Ada.Containers.Ordered_Maps (Key_Type   => Call_ID_Type,
-                                  Element_Type => Call_Type);
-   --  ???? Naming is a bit "odd". This is not really a type as such, but a
-   --  package containing the Vector type. Perhaps a better solution would be
-   --  to rename the parent package from Call_List to Calls and this package
-   --  to Queue, then you'd have a naming scheme like this:
-   --      Calls.Queue.Vector
-   --  instead of
-   --      Call_List.Call_List_Type.Vector
+   function Dequeue (Call_ID : in Call_ID_Type) return Call_Type;
+   --  Removes the call with the specified Call_ID and returns it.
+
+
+   type Call_Process_Type is not null access procedure (Call : in Call_Type);
 
    Null_Call : constant Call_Type :=
-     (ID             => Null_Call_ID,
-      State          => Hung,
-      Queue_Priority => Low,
+     (ID             => Call_ID.Null_Call_ID,
+      State          => Unknown,
+      Queue_Priority => Invalid,
       Inbound        => False,
       Extension      => Null_Unbounded_String,
       Channel        => Null_Unbounded_String,
@@ -89,48 +101,27 @@ package Model.Call is
       Queue          => Null_Unbounded_String,
       Position       => 0,
       Count          => 0,
-      Arrived        => Current_Time);
+      Arrived        => Current_Time,
+      Assigned_To    => 0);
 
-   procedure Insert (Call : in Call_Type);
-   --  Places a call in the call_List.
+   package Call_List_Type is new
+     Ada.Containers.Ordered_Maps (Key_Type   => Call_ID_Type,
+                                  Element_Type => Call_Type);
 
-   procedure Remove (Call_ID : in Call_ID_Type);
-   --  Removes a specific call from the call queue.
-
-   function Get (Call_ID : in Call_ID_Type) return Call_Type;
-   --  Returns the call with the specified Call_ID.
-   
-   function Get_List return Call_List_Type.Map;
-   --  Returns the entire list;
-   
-   function Dequeue (Call_ID : in Call_ID_Type) return Call_Type;
-   --  Removes the call with the specified Call_ID and returns it.
-
-   procedure Update (Call : in Call_Type);
-   --  Updates a Call in the list, with the information from the Call Argument
-
-   function Length return Long_Integer;
-   --  Gives the length of the call queue.
-
-   function To_Call_ID (Item : String) return Call_ID_Type;
-   --  Convenience method.
-
-   function Next return Call_Type;
-
-   function To_String (Call : in Call_Type) return String;
-   function To_String (Call_ID : in Call_ID_Type) return String;
-private
-
-   protected Protected_Call_List is
+   protected type Protected_Call_List_Type is 
       procedure Insert (Call : in Call_Type);
       procedure Remove (Call_ID : in Call_ID_Type);
-      function Get_List return Call_List_Type.Map;
       function Get (Call_ID : Call_ID_Type) return Call_Type;
       function Length return Long_Integer;
---      function For_Each return String;
+      function To_JSON return JSON_Value;
+      function To_String return String;
+      procedure For_Each (Process : in Call_Process_Type);
       procedure Update (Call : in Call_Type);
       function Next return Call_Type;
    private
       List : Call_List_Type.Map;
-   end Protected_Call_List;
+   end Protected_Call_List_Type;
+
+   Call_List : Protected_Call_List_Type;
+   -- Package-visible singleton.
 end Model.Call;

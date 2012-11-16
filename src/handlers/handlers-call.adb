@@ -34,13 +34,14 @@ with Model.Peers;
 with JSON.Call;
 
 with PBX;
-
+with Call_ID;
 with System_Messages;
 
 package body Handlers.Call is
    use System_Messages;
    use AMI.Action;
    use JSON.Call;
+
    package Routines renames AMI.Action;
 
    --------------
@@ -54,9 +55,10 @@ package body Handlers.Call is
       use Common;
       use HTTP_Codes;
       use AWS.Status;
+      use Call_ID;
 
-      JSON            : JSON_String;
-      Call_ID         : constant String := 
+      JSON    : JSON_String;
+      Call_ID : constant String :=
         Parameters (Request).Get ("call_id");
       Response_Object : Response.Object := Response.Factory (Request);
       Status          : Routines.Status_Type;
@@ -74,7 +76,7 @@ package body Handlers.Call is
          --  procedure which takes a Call_Id. Bug or by design?
       begin
          System_Messages.Notify (Debug, "Hangup handle: call_id=" & Call_ID);
-         AMI.Action.Hangup (PBX.Client_Access, U (Call_ID), Status);
+         AMI.Action.Hangup (PBX.Client_Access, Create (Call_ID));
          --  ???? Why the conversion to Unbounded_String here? In most of the
          --  other Routines methods you take a plain String and convert in the
          --  method instead.
@@ -151,17 +153,28 @@ package body Handlers.Call is
       use Common;
       use HTTP_Codes;
       use AWS.Status;
-
+      use Model.Call;
+      use Call_ID;      
+      Context         : constant String := "Handlers.Call.Hold";
       JSON            : JSON_String;
       Response_Object : Response.Object := Response.Factory (Request);
       Status          : Routines.Status_Type;
       Status_Code     : AWS.Messages.Status_Code;
-
-      Call_Id : constant String := Parameters (Request).Get ("Call_ID");
+      Call_ID         : Call_ID_Type := 
+        Create (Item => Parameters (Request).Get ("Call_ID"));
+      Call            : Call_Type := Get (Call_ID);
    begin
       System_Messages.Notify (Debug, "Call_Queue_Handler.Park started");
+      
+      if Call = Null_Call then
+         System_Messages.Notify
+           (Debug, Context & ": Call not found, ID: " & Call_ID.To_String);
+      end if;
 
-      Routines.Park (PBX.Client_Access, Call_Id, Status);
+      System_Messages.Notify (Debug,
+                              "Park: Action send, Call_ID => " & Call_ID.To_String);
+
+      Routines.Park (PBX.Client_Access, Call);
 
       case Status is
          when Routines.Success =>
@@ -212,7 +225,7 @@ package body Handlers.Call is
       --  ???? Odd naming. See ???? comment for Call_List.Call_List_Type.
    begin
       Response_Object.Set_HTTP_Status_Code (OK);
-      Response_Object.Set_Content (To_JSON_String (Model.Call.Get_List));
+      Response_Object.Set_Content (To_JSON_String (Model.Call.Call_List.To_JSON.Write));
 
       return Response_Object.Build;
    end List;
@@ -231,6 +244,7 @@ package body Handlers.Call is
       use Common;
       use HTTP_Codes;
       use Ada.Strings.Unbounded;
+      use Call_ID;
 
       Agent   : constant String := Parameters (Request).Get ("agent_id");
       Call_ID : constant String := Parameters (Request).Get ("call_id");
@@ -240,79 +254,67 @@ package body Handlers.Call is
       Status_Code     : AWS.Messages.Status_Code;
       Call            : Call_Type := Null_Call;
       Peer            : Peer_Type;
-   begin 
+   begin
 
       --  Retrieve the peer from the agent_id.
       Peer := Get_Peer_By_PhoneName (Agent);
 
       --  Determine which call to pickup
       if Call_ID'Length = 0 then
-          System_Messages.Notify (Debug, "Get_Call - Agent_ID: " & Agent &
-                                    " asks for unspecifed call");
-        Call := Model.Call.Next;
-        System_Messages.Notify (Debug, " Sending: " & To_String (Call));
+         System_Messages.Notify (Debug, "Get_Call - Agent_ID: " & Agent &
+                                   " asks for unspecifed call");
+         Call := Call_List.Next;
+         System_Messages.Notify (Debug, " Sending: " & To_String (Call));
       else
          System_Messages.Notify (Debug, "Get_Call - Agent_ID: " & Agent &
-                                " ask for Call_ID: " & Call_Id);
+                                   " ask for Call_ID: " & Call_ID);
          --  Lookup the call
-         Call := Dequeue (To_Call_ID(Call_ID));
+         Call := Dequeue (Create (Call_ID));
       end if;
 
-     if Call = Null_Call then
-	System_Messages.Notify 
-          (Debug, "Get_Call: No Call to take with ID: " & Call_Id);
-        Status_Code := No_Content;
-        Content := Status_Message
-          ("Bad request", "No call found");
-     elsif Peer.State = Unregistered then
-	System_Messages.Notify 
-          (Critical, "Get_Call: " &
-             "The following agent is unregistred: " & Agent); 
-        Status_Code := Bad_Request;
-        Content := Status_Message
-          ("Bad request", "The agents phone is not registered");
-     else
-        --  Send the command to AMI
-        AMI.Action.Redirect (Client    => PBX.Client_Access,
-                             Channel   => To_String (Call.Channel),
-                             Extension => "101"); --To_String (Peer.Exten)
-        Status_Code := Ok;
-        Content := To_JSON_String (Call);
---          (Status_Message ("Success", "The request is being processed"));
-     end if;
-      
-      --  case Status is
-      --     when Routines.Success =>
-      --        Status_Code := OK;
-      --        JSON := ;
-      --     when Routines.No_Call_Found =>
-      --        Status_Code := No_Content;
-      --        JSON := Status_Message
-      --          ("No Cotent", "The Callqueue is empty");
-      --     when Routines.Unregistered_Agent =>
-      --     when others =>
-      --        Status_Code := Server_Error;
-      --        JSON := Status_Message
-      --          ("Woops",
-      --           "Something went wrong at the server");
-      --  end case;
+      if Call = Null_Call then
+         System_Messages.Notify
+           (Debug, "Get_Call: No Call to take with ID: " & Call_ID);
+         Status_Code := No_Content;
+         Content := Status_Message
+           ("Bad request", "No call found");
+      elsif Peer.State = Unregistered then
+         System_Messages.Notify
+           (Critical, "Get_Call: " &
+              "The following agent is unregistred: " & Agent);
+         Status_Code := Bad_Request;
+         Content := Status_Message
+           ("Bad request", "The agents phone is not registered");
+      else
+         --  Send the command to AMI
+         AMI.Action.Redirect (Client    => PBX.Client_Access,
+                              Channel   => To_String (Call.Channel),
+                              Extension => "101"); --  To_String (Peer.Exten)
+         Status_Code := OK;
+         Content := To_JSON_String (Call);
+         --  (Status_Message ("Success", "The request is being processed"));
+      end if;
 
-     Response_Object.Set_HTTP_Status_Code (Status_Code);
-     Response_Object.Set_Content (Content);
-     
-     return Response_Object.Build;
+      Response_Object.Set_HTTP_Status_Code (Status_Code);
+      Response_Object.Set_Content (Content);
 
-   exception 
+      return Response_Object.Build;
+
+   exception
       when PEER_NOT_FOUND =>
          Response_Object.Set_HTTP_Status_Code (Bad_Request);
-         Response_Object.Set_Content 
+         Response_Object.Set_Content
            (Status_Message
               ("No Parameter", "There exsist no agent by that name"));
          return Response_Object.Build;
 
+      when CALL_NOT_FOUND =>
+         Response_Object.Set_HTTP_Status_Code (No_Content);
+         return Response_Object.Build;
+
       when others =>
          Response_Object.Set_HTTP_Status_Code (Server_Error);
-         Response_Object.Set_Content 
+         Response_Object.Set_Content
            (Status_Message
               ("Woops", "Something went wrong at the server"));
          return Response_Object.Build;
@@ -338,7 +340,7 @@ package body Handlers.Call is
       --  Why not just have a function in the Call_List package that return
       --  the final JSON and use that directly in the Build_JSON_Response call?
       Response_Object.Set_HTTP_Status_Code (OK);
-      Response_Object.Set_Content (To_JSON_String (Model.Call.Get_List));
+      Response_Object.Set_Content (Common.To_JSON_String (Model.Call.Call_List.To_JSON.Write));
 
       return Response_Object.Build;
    end Queue;

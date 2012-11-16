@@ -45,16 +45,16 @@ package body PBX is
 
    package My_Connection_Manager is new Connection_Management
      (Client   => Client_Access,
-      Hostname => Config.Get(PBX_Host),
-      Port     => Config.Get(PBX_Port));
+      Hostname => Config.Get (PBX_Host),
+      Port     => Config.Get (PBX_Port));
 
    procedure Authenticate is
    begin
       My_Connection_Manager.Wait_For_Connection;
 
       Login (Client   => Client_Access,
-             Username => Config.Get(PBX_User),
-             Secret   => Config.Get(PBX_Secret));
+             Username => Config.Get (PBX_User),
+             Secret   => Config.Get (PBX_Secret));
    end Authenticate;
 
    procedure Dispatch (Client : access AMI.Client.Client_Type;
