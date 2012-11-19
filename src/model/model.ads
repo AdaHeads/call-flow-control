@@ -28,21 +28,36 @@ package Model is
    type Contact_Identifier is mod 2 ** 31 - 1;
    type Organization_Identifier is mod 2 ** 31 - 1;
 
-   type Contact_Key is
+   type Organization_Contact_Identifier is
       record
          C_Id : Contact_Identifier;
-         O_Id : Organization_Identifier := 0;
+         O_Id : Organization_Identifier;
       end record;
-   --  This type is used as the key for the hashed maps used throughout the
-   --  Model packages.
+   --  Identifies the C_Id contact in the context of the O_Id organization.
+
+   type Attributes_Identifier is new Organization_Contact_Identifier;
+   --  Identifies a set of contact attributes for the C_Id contact in the
+   --  context of the O_Id organization.
+   --  The same as Organization_Contact_Identifier, but with rename for clarity
+   --  in the code.
 
    function Equivalent_Keys
-     (Left, Right : in Contact_Key)
+     (Left, Right : in Attributes_Identifier)
+      return Boolean;
+   --  Key equivalence function used by hashed maps.
+
+   function Equivalent_Keys
+     (Left, Right : in Organization_Contact_Identifier)
       return Boolean;
    --  Key equivalence function used by hashed maps.
 
    function Key_Hash
-     (Key : in Contact_Key)
+     (Key : in Attributes_Identifier)
+      return Ada.Containers.Hash_Type;
+   --  Hashing function used by the hashed maps.
+
+   function Key_Hash
+     (Key : in Organization_Contact_Identifier)
       return Ada.Containers.Hash_Type;
    --  Hashing function used by the hashed maps.
 

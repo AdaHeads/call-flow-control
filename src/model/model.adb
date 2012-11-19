@@ -30,7 +30,19 @@ package body Model is
    -----------------------
 
    function Equivalent_Keys
-     (Left, Right : in Contact_Key)
+     (Left, Right : in Attributes_Identifier)
+      return Boolean
+   is
+   begin
+      return Left = Right;
+   end Equivalent_Keys;
+
+   -----------------------
+   --  Equivalent_Keys  --
+   -----------------------
+
+   function Equivalent_Keys
+     (Left, Right : in Organization_Contact_Identifier)
       return Boolean
    is
    begin
@@ -42,7 +54,21 @@ package body Model is
    ----------------
 
    function Key_Hash
-     (Key : in Contact_Key)
+     (Key : in Attributes_Identifier)
+      return Ada.Containers.Hash_Type
+   is
+   begin
+      return Ada.Strings.Hash
+        (Contact_Identifier'Image (Key.C_Id) &
+           Organization_Identifier'Image (Key.O_Id));
+   end Key_Hash;
+
+   ----------------
+   --  Key_Hash  --
+   ----------------
+
+   function Key_Hash
+     (Key : in Organization_Contact_Identifier)
       return Ada.Containers.Hash_Type
    is
    begin

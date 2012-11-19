@@ -52,7 +52,7 @@ package body Model.Contacts is
    is
    begin
       Contact.Attr_Map.Include
-        (Contact_Key'
+        (Attributes_Identifier'
            (Attribute.Contact_Id, Attribute.Organization_Id),
          Attribute);
    end Add_Attributes;
@@ -90,14 +90,16 @@ package body Model.Contacts is
       while C.Has_Row loop
          if not C.Is_Null (3) then
             CO.Attr_Map.Include
-              (Key     => Contact_Key'
+              (Key      => Attributes_Identifier'
                  (Contact_Identifier (C.Integer_Value (4, Default => 0)),
                   Organization_Identifier (C.Integer_Value (5, Default => 0))),
-              New_Item => Model.Contacts_Attributes.Create
-              (JSON => C.Json_Object_Value (3),
-               C_Id => Contact_Identifier (C.Integer_Value (4, Default => 0)),
-               O_Id => Organization_Identifier
-                 (C.Integer_Value (5, Default => 0))));
+               New_Item => Model.Contacts_Attributes.Create
+                 (Id   => Attributes_Identifier'
+                    (C_Id => Contact_Identifier
+                       (C.Integer_Value (4, Default => 0)),
+                     O_Id => Organization_Identifier
+                       (C.Integer_Value (5, Default => 0))),
+                  JSON => C.Json_Object_Value (3)));
          end if;
 
          C.Next;
@@ -116,7 +118,8 @@ package body Model.Contacts is
    is
       use Common;
 
-      CO : Contact_Object;
+      A_Id : Attributes_Identifier;
+      CO   : Contact_Object;
    begin
       CO := Contact_Object'
         (Attr_Map  => Attributes_Map.Empty_Map,
@@ -125,15 +128,14 @@ package body Model.Contacts is
          Is_Human  => C.Boolean_Value (2));
 
       if not C.Is_Null (3) then
+         A_Id := (Contact_Identifier (C.Integer_Value (4, Default => 0)),
+                  Organization_Identifier (C.Integer_Value (5, Default => 0)));
+
          CO.Attr_Map.Include
-           (Key      => Contact_Key'
-              (Contact_Identifier (C.Integer_Value (4, Default => 0)),
-               Organization_Identifier (C.Integer_Value (5, Default => 0))),
+           (Key      => A_Id,
             New_Item => Model.Contacts_Attributes.Create
-              (JSON => C.Json_Object_Value (3),
-               C_Id => Contact_Identifier (C.Integer_Value (4, Default => 0)),
-               O_Id => Organization_Identifier
-                 (C.Integer_Value (5, Default => 0))));
+              (Id   => A_Id,
+               JSON => C.Json_Object_Value (3)));
       end if;
 
       return CO;
@@ -168,6 +170,19 @@ package body Model.Contacts is
                              Full_Name => U (Full_Name),
                              Is_Human  => Is_Human);
    end Create;
+
+   ----------------------
+   --  Equal_Elements  --
+   ----------------------
+
+   function Equal_Elements
+     (Left, Right : in Model.Contacts.Contact_Object)
+      return Boolean
+   is
+      use type Model.Contacts.Contact_Object;
+   begin
+      return Left = Right;
+   end Equal_Elements;
 
    ----------------------
    --  Equal_Elements  --
@@ -235,6 +250,21 @@ package body Model.Contacts is
          Query_Parameters   => Parameters);
    end For_Each;
 
+   ----------------
+   --  For_Each  --
+   ----------------
+
+   procedure For_Each
+     (Self    : in Contact_List_Object;
+      Process : not null access
+        procedure (Element : in Contact_Object))
+   is
+   begin
+      for Elem of Self.Contacts loop
+         Process (Elem);
+      end loop;
+   end For_Each;
+
    -----------------
    --  Full_Name  --
    -----------------
@@ -279,6 +309,34 @@ package body Model.Contacts is
    --  Get  --
    -----------
 
+   procedure Get
+     (Self : in out Contact_List_Object;
+      O_Id : in     Organization_Identifier)
+   is
+      procedure Get_Element
+        (Contact : in Contact_Object'Class);
+
+      -------------------
+      --  Get_Element  --
+      -------------------
+
+      procedure Get_Element
+        (Contact : in Contact_Object'Class)
+      is
+      begin
+         Self.Contacts.Include
+           (Key      => Organization_Contact_Identifier'
+              (C_Id => Contact.C_Id, O_Id => O_Id),
+            New_Item => Contact_Object (Contact));
+      end Get_Element;
+   begin
+      For_Each (O_Id, Get_Element'Access);
+   end Get;
+
+   -----------
+   --  Get  --
+   -----------
+
    function Get
      (C_Id : in Contact_Identifier;
       O_Id : in Organization_Identifier)
@@ -315,6 +373,18 @@ package body Model.Contacts is
    begin
       return Contact.Is_Human;
    end Is_Human;
+
+   --------------
+   --  Length  --
+   --------------
+
+   function Length
+     (Self : in Contact_List_Object)
+      return Natural
+   is
+   begin
+      return Natural (Self.Contacts.Length);
+   end Length;
 
    ---------------
    --  To_JSON  --

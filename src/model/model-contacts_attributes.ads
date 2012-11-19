@@ -31,8 +31,7 @@ package Model.Contacts_Attributes is
    Null_Contact_Attributes : constant Contact_Attributes_Object;
 
    function Create
-     (C_Id : in Contact_Identifier;
-      O_Id : in Organization_Identifier;
+     (Id   : in Attributes_Identifier;
       JSON : in GNATCOLL.JSON.JSON_Value)
       return Contact_Attributes_Object;
    --  Create a Contact_Attributes_Object.
@@ -45,18 +44,16 @@ package Model.Contacts_Attributes is
    --  Contact_Attributes_Object is handed to Process.
 
    procedure For_Each
-     (C_Id    : in Contact_Identifier;
-      O_Id    : in Organization_Identifier;
+     (Id      : in Attributes_Identifier;
       Process : not null access
         procedure (Element : in Contact_Attributes_Object'Class));
-   --  For every contact_attributes row with C_Id and O_Id in the database, a
+   --  For every contact_attributes row with Id in the database, a
    --  Contact_Attributes_Object is handed to Process.
 
    function Get
-     (C_Id : in Contact_Identifier;
-      O_Id : in Organization_Identifier)
+     (Id : in Attributes_Identifier)
       return Contact_Attributes_Object;
-   --  Return the contact attribute set that belongs to C_Id and O_Id.
+   --  Return the contact attribute set that belongs to Id.
 
    function Contact_Id
      (Contact_Attributes : in Contact_Attributes_Object)
@@ -80,14 +77,12 @@ private
 
    type Contact_Attributes_Object is tagged
       record
-         C_Id : Contact_Identifier := 0;
-         O_Id : Organization_Identifier := 0;
+         Id   : Attributes_Identifier;
          JSON : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.JSON_Null;
       end record;
 
    Null_Contact_Attributes : constant Contact_Attributes_Object :=
-                               (C_Id => 0,
-                                O_Id => 0,
+                               (Id   => (C_Id => 0, O_Id => 0),
                                 JSON => GNATCOLL.JSON.JSON_Null);
 
    function Contact_Attributes_Element

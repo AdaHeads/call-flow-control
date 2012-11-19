@@ -64,8 +64,7 @@ package body View.Organization is
      (O : in Organization_Object)
       return JSON_Value
    is
-      C_Array : JSON_Array;
-      J       : JSON_Value := JSON_Null;
+      J : JSON_Value := JSON_Null;
    begin
       if O /= Null_Organization_Object then
          if O.JSON /= JSON_Null then
@@ -80,12 +79,8 @@ package body View.Organization is
 
          J.Set_Field (Identifier, O.Identifier);
 
-         for Elem of O.Contacts loop
-            Append (C_Array, View.Contact.To_JSON (Elem));
-         end loop;
-
-         if Length (C_Array) > 0 then
-            J.Set_Field (Contacts, C_Array);
+         if O.Contact_List.Length > 0 then
+            J.Set_Field (Contacts, View.Contact.To_JSON (O.Contact_List));
          end if;
       end if;
 

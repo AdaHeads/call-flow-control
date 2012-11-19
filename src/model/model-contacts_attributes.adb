@@ -47,8 +47,10 @@ package body Model.Contacts_Attributes is
    is
    begin
       return Contact_Attributes_Object'
-        (C_Id => Contact_Identifier (C.Integer_Value (0, Default => 0)),
-         O_Id => Organization_Identifier (C.Integer_Value (1, Default => 0)),
+        (Id   => Attributes_Identifier'
+           (C_Id => Contact_Identifier (C.Integer_Value (0, Default => 0)),
+            O_Id => Organization_Identifier
+              (C.Integer_Value (1, Default => 0))),
          JSON => C.Json_Object_Value (2));
    end Contact_Attributes_Element;
 
@@ -61,7 +63,7 @@ package body Model.Contacts_Attributes is
       return Contact_Identifier
    is
    begin
-      return Contact_Attributes.C_Id;
+      return Contact_Attributes.Id.C_Id;
    end Contact_Id;
 
    --------------
@@ -69,15 +71,14 @@ package body Model.Contacts_Attributes is
    --------------
 
    function Create
-     (C_Id : in Contact_Identifier;
-      O_Id : in Organization_Identifier;
+     (Id   : in Attributes_Identifier;
       JSON : in GNATCOLL.JSON.JSON_Value)
       return Contact_Attributes_Object
    is
    begin
-      return Contact_Attributes_Object'(C_Id => C_Id,
-                                        O_Id => O_Id,
-                                        JSON => JSON);
+      return Contact_Attributes_Object'
+        (Attributes_Identifier'(C_Id => Id.C_Id, O_Id => Id.O_Id),
+         JSON => JSON);
    end Create;
 
    ----------------
@@ -102,13 +103,12 @@ package body Model.Contacts_Attributes is
    ----------------
 
    procedure For_Each
-     (C_Id    : in Contact_Identifier;
-      O_Id    : in Organization_Identifier;
+     (Id      : in Attributes_Identifier;
       Process : not null access
         procedure (Element : in Contact_Attributes_Object'Class))
    is
-      Parameters : constant SQL_Parameters := (1 => +Integer (C_Id),
-                                               2 => +Integer (O_Id));
+      Parameters : constant SQL_Parameters := (1 => +Integer (Id.C_Id),
+                                               2 => +Integer (Id.O_Id));
    begin
       Fetch_Contact_Attributes_Object
         (Process_Element    => Process,
@@ -121,8 +121,7 @@ package body Model.Contacts_Attributes is
    -----------
 
    function Get
-     (C_Id : in Contact_Identifier;
-      O_Id : in Organization_Identifier)
+     (Id : in Attributes_Identifier)
       return Contact_Attributes_Object
    is
       procedure Get_Element
@@ -141,7 +140,7 @@ package body Model.Contacts_Attributes is
          CA := Contact_Attributes_Object (Contact_Attributes);
       end Get_Element;
    begin
-      For_Each (C_Id, O_Id, Get_Element'Access);
+      For_Each (Id, Get_Element'Access);
       return CA;
    end Get;
 
@@ -166,7 +165,7 @@ package body Model.Contacts_Attributes is
       return Organization_Identifier
    is
    begin
-      return Contact_Attributes.O_Id;
+      return Contact_Attributes.Id.O_Id;
    end Organization_Id;
 
    ---------------

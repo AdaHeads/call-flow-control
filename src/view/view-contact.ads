@@ -32,6 +32,10 @@ package View.Contact is
    use Model.Contacts;
 
    function To_JSON
+     (Contact_List : in Contact_List_Object)
+      return JSON_Array;
+
+   function To_JSON
      (Contact : in Contact_Object)
      return JSON_Value;
 

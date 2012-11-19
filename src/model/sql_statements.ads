@@ -63,33 +63,31 @@ package SQL_Statements is
    --  Statement for fetching an organization and all associated contacts  --
    --------------------------------------------------------------------------
 
-   Organization_Contacts_Left_Join_1 : constant SQL_Left_Join_Table
-     := Left_Join (Full    => DB.Organization,
-                   Partial => DB.Organization_Contacts,
-                   On      =>
-                        DB.Organization_Contacts.FK (DB.Organization));
+   Organization_Contacts_Join_1 : constant SQL_Left_Join_Table
+     := Join (Table1 => DB.Organization,
+              Table2 => DB.Organization_Contacts,
+              On     =>
+                DB.Organization_Contacts.FK (DB.Organization));
 
-   Organization_Contacts_Left_Join_2 : constant SQL_Left_Join_Table
-     := Left_Join (Full    => Organization_Contacts_Left_Join_1,
-                   Partial => DB.Contact,
-                   On      => DB.Organization_Contacts.FK (DB.Contact));
+   Organization_Contacts_Join_2 : constant SQL_Left_Join_Table
+     := Join (Table1 => Organization_Contacts_Join_1,
+              Table2 => DB.Contact,
+              On     => DB.Organization_Contacts.FK (DB.Contact));
 
    Organization_Contacts_Attributes_Left_Join : constant SQL_Left_Join_Table
-     := Left_Join (Full    => Organization_Contacts_Left_Join_2,
+     := Left_Join (Full    => Organization_Contacts_Join_2,
                    Partial => DB.Contact_Attributes,
                    On      =>
                      DB.Contact_Attributes.FK (DB.Contact));
 
    Organization_Contacts_Query : constant SQL_Query
      := SQL_Select (Fields =>
-                      DB.Organization.Full_Name &             --  0
-                      DB.Organization.Identifier &            --  1
-                      DB.Organization.Json &                  --  2
-                      DB.Organization.Id &                    --  3
-                      DB.Contact.Id &                         --  4
-                      DB.Contact.Full_Name &                  --  5
-                      DB.Contact.Is_Human &                   --  6
-                      DB.Contact_Attributes.Json,             --  7
+                      DB.Contact.Id &                         --  0
+                      DB.Contact.Full_Name &                  --  1
+                      DB.Contact.Is_Human &                   --  2
+                      DB.Contact_Attributes.Json &            --  3
+                      DB.Contact_Attributes.Contact_Id &      --  4
+                      DB.Contact_Attributes.Organization_Id,  --  5
                     From   => Organization_Contacts_Attributes_Left_Join,
                     Where  =>
                       DB.Organization.Id = Integer_Param (1)
@@ -103,7 +101,7 @@ package SQL_Statements is
      := Prepare (Query         => Organization_Contacts_Query,
                  Auto_Complete => True,
                  On_Server     => True,
-                 Name          => "organization_full");
+                 Name          => "organization_contacts");
 
    ---------------------------------------------------------------------------
    --  Prepared statement for fetching a contact with ALL its associated    --

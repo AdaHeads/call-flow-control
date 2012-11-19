@@ -32,13 +32,16 @@ package Model.Contacts is
    type Contact_Object is tagged private;
    Null_Contact_Object : constant Contact_Object;
 
+   type Contact_List_Object is tagged private;
+   Null_Contact_List_Object : constant Contact_List_Object;
+
    function Equal_Elements
      (Left, Right : in Model.Contacts_Attributes.Contact_Attributes_Object)
       return Boolean;
    --  Element equality function used by the Attributes_Map.
 
    package Attributes_Map is new Ada.Containers.Hashed_Maps
-     (Key_Type        => Contact_Key,
+     (Key_Type        => Attributes_Identifier,
       Element_Type    => Model.Contacts_Attributes.Contact_Attributes_Object,
       Hash            => Key_Hash,
       Equivalent_Keys => Equivalent_Keys,
@@ -67,6 +70,10 @@ package Model.Contacts is
       return Contact_Object;
    --  Create a Contact_Object.
 
+   function Equal_Elements
+     (Left, Right : in Contact_Object)
+      return Boolean;
+
    function Full_Name
      (Contact : in Contact_Object)
       return String;
@@ -77,6 +84,11 @@ package Model.Contacts is
       return Contact_Object;
    --  Return the contact that match C_Id, complete with all the attributes
    --  that may be associated with the contact.
+
+   procedure Get
+     (Self : in out Contact_List_Object;
+      O_Id : in     Organization_Identifier);
+   --  Get a list of contacts that belong to the O_Id organization.
 
    function Get
      (C_Id : in Contact_Identifier;
@@ -107,10 +119,21 @@ package Model.Contacts is
    --  Hands a Contact_Object to Process for every contact in the database that
    --  match C_Id and belongs to O_Id.
 
+   procedure For_Each
+     (Self    : in Contact_List_Object;
+      Process : not null access
+        procedure (Element : in Contact_Object));
+   --  TODO: Write comment
+
    function Is_Human
      (Contact : in Contact_Object)
       return Boolean;
    --  Return whether or not the Contact is human.
+
+   function Length
+     (Self : in Contact_List_Object)
+      return Natural;
+   --  TODO: Write comment.
 
    function To_JSON
      (Contact : in Contact_Object)
@@ -137,6 +160,21 @@ private
          C_Id      => 0,
          Full_Name => Null_Unbounded_String,
          Is_Human  => True);
+
+   package Contact_Map is new Ada.Containers.Hashed_Maps
+     (Key_Type        => Organization_Contact_Identifier,
+      Element_Type    => Contact_Object,
+      Hash            => Key_Hash,
+      Equivalent_Keys => Equivalent_Keys,
+      "="             => Equal_Elements);
+
+   type Contact_List_Object is tagged
+      record
+         Contacts : Contact_Map.Map := Contact_Map.Empty_Map;
+      end record;
+
+   Null_Contact_List_Object : constant Contact_List_Object
+     := (Contacts => Contact_Map.Empty_Map);
 
    function Contact_Element
      (C : in out Cursor)

@@ -22,7 +22,6 @@
 -------------------------------------------------------------------------------
 
 with Ada.Containers.Doubly_Linked_Lists;
-with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded;
 with Common;
 with GNATCOLL.JSON;
@@ -43,26 +42,10 @@ package Model.Organizations is
       return Boolean;
    --  Element equality function used by the Attributes_Map.
 
-   package Contacts_Map is new Ada.Containers.Hashed_Maps
-     (Key_Type        => Contact_Key,
-      Element_Type    => Model.Contacts.Contact_Object,
-      Hash            => Key_Hash,
-      Equivalent_Keys => Equivalent_Keys,
-      "="             => Equal_Elements);
-   --  TODO: This needs to be hidden. Perhaps something similar to the way we
-   --  handle the Organization_List_Object?
-
-   procedure Add_Contact
-     (Self    : in out Organization_Object;
-      Contact : in     Model.Contacts.Contact_Object);
-   --  Add a contact to Organization.
-
-   function Contacts
+   function Contact_List
      (Self : in Organization_Object)
-      return Contacts_Map.Map;
-   --  Return all the contacts associated with Organization. Note that this
-   --  map is only populated if one of the Get_Full methods has been used to
-   --  fetch the organization.
+      return Model.Contacts.Contact_List_Object;
+   --  Return all the contacts associated with Organization.
 
    procedure For_Each
      (Self    : in Organization_List_Object;
@@ -70,20 +53,12 @@ package Model.Organizations is
         procedure (Element : in Organization_Object));
    --  TODO: Write comment
 
-   procedure For_Each_Basic
+   procedure For_Each
      (O_Id    : in Organization_Identifier;
       Process : not null access
         procedure (Element : in Organization_Object'Class));
    --  For every organization with O_Id in the database, an Organization_Object
    --  is handed to Process. These organization objects do NOT contain any
-   --  contacts.
-
-   procedure For_Each_Full
-     (O_Id    : in Organization_Identifier;
-      Process : not null access
-        procedure (Element : in Organization_Object'Class));
-   --  For every organization with O_Id in the database, an Organization_Object
-   --  is handed to Process. Included in the Organization_Object is a list of
    --  contacts.
 
    function Full_Name
@@ -95,7 +70,7 @@ package Model.Organizations is
      (Self : in out Organization_List_Object);
    --  TODO: Write comment
 
-   procedure Get_Basic
+   procedure Get
      (Self : in out Organization_Object;
       O_Id : in Organization_Identifier);
    --  Get the organization that match O_Id without all the contacts.
@@ -147,7 +122,7 @@ private
 
    type Organization_Object is tagged
       record
-         C_Map      : Contacts_Map.Map;
+         Cntacts   : Contacts.Contact_List_Object;
          Full_Name  : Unbounded_String := Null_Unbounded_String;
          Identifier : Unbounded_String := Null_Unbounded_String;
          JSON       : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.JSON_Null;
@@ -155,7 +130,7 @@ private
       end record;
 
    Null_Organization_Object : constant Organization_Object
-     := (C_Map      => Contacts_Map.Empty_Map,
+     := (Cntacts   => Contacts.Null_Contact_List_Object,
          Full_Name  => Null_Unbounded_String,
          Identifier => Null_Unbounded_String,
          JSON       => GNATCOLL.JSON.JSON_Null,
@@ -172,17 +147,10 @@ private
    Null_Organization_List_Object : constant Organization_List_Object
      := (Org_List => Organization_List.Empty_List);
 
-   function Organization_Element_Basic
+   function Organization_Element
      (C : in out Cursor)
       return Organization_Object'Class;
    --  Transforms the low level index based Cursor into the more readable
    --  Organization_Object record. This one does NOT contain any contacts.
-
-      function Organization_Element_Full
-     (C : in out Cursor)
-      return Organization_Object'Class;
-   --  Transforms the low level index based Cursor into the more readable
-   --  Organization_Object record. This one DOES contain all contacts
-   --  associated with the organization.
 
 end Model.Organizations;

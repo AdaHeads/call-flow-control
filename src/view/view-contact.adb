@@ -30,6 +30,37 @@ package body View.Contact is
    ---------------
 
    function To_JSON
+     (Contact_List : in Contact_List_Object)
+      return JSON_Array
+   is
+      procedure Add_Contact_To_Array
+        (Elem : in Model.Contacts.Contact_Object);
+
+      C_Array : JSON_Array := Empty_Array;
+
+      ----------------------------
+      --  Add_Contact_To_Array  --
+      ----------------------------
+
+      procedure Add_Contact_To_Array
+        (Elem : in Model.Contacts.Contact_Object)
+      is
+      begin
+         Append (C_Array, To_JSON (Elem));
+      end Add_Contact_To_Array;
+   begin
+      if Contact_List /= Null_Contact_List_Object then
+         Contact_List.For_Each (Add_Contact_To_Array'Access);
+      end if;
+
+      return C_Array;
+   end To_JSON;
+
+   ---------------
+   --  To_JSON  --
+   ---------------
+
+   function To_JSON
      (Contact : in Contact_Object)
       return JSON_Value
    is
