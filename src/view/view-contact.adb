@@ -30,7 +30,7 @@ package body View.Contact is
    ---------------
 
    function To_JSON
-     (Contact_List : in Contact_List_Object)
+     (O : in Contact_List_Object)
       return JSON_Array
    is
       procedure Add_Contact_To_Array
@@ -49,8 +49,8 @@ package body View.Contact is
          Append (C_Array, To_JSON (Elem));
       end Add_Contact_To_Array;
    begin
-      if Contact_List /= Null_Contact_List_Object then
-         Contact_List.For_Each (Add_Contact_To_Array'Access);
+      if O /= Null_Contact_List then
+         O.For_Each (Add_Contact_To_Array'Access);
       end if;
 
       return C_Array;
@@ -61,24 +61,22 @@ package body View.Contact is
    ---------------
 
    function To_JSON
-     (Contact : in Contact_Object)
+     (O : in Contact_Object)
       return JSON_Value
    is
       Attr_Array : JSON_Array;
       J          : JSON_Value := JSON_Null;
    begin
-      if Contact /= Null_Contact_Object then
+      if O /= Null_Contact then
          J := Create_Object;
 
-         J.Set_Field (Contact_Id, Integer (Contact.Contact_Id));
+         J.Set_Field (Contact_Id, Integer (O.Contact_Id));
 
-         J.Set_Field (Full_Name, Contact.Full_Name);
+         J.Set_Field (Full_Name, O.Full_Name);
 
-         J.Set_Field (Is_Human, Contact.Is_Human);
+         J.Set_Field (Is_Human, O.Is_Human);
 
-         for Elem of Contact.Attributes loop
-            Append (Attr_Array, View.Contact_Attributes.To_JSON (Elem));
-         end loop;
+         Attr_Array := View.Contact_Attributes.To_JSON (O.Attributes);
 
          if Length (Attr_Array) > 0 then
             J.Set_Field (Attributes, Attr_Array);
@@ -93,11 +91,11 @@ package body View.Contact is
    ---------------
 
    function To_JSON
-     (Contact : in Contact_Object)
+     (O : in Contact_Object)
       return JSON_String
    is
    begin
-      return To_JSON_String (To_JSON (Contact).Write);
+      return To_JSON_String (To_JSON (O).Write);
    end To_JSON;
 
 end View.Contact;

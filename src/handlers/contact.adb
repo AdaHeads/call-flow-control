@@ -65,9 +65,9 @@ package body Contact is
 
       C : Contact_Object;
    begin
-      C := Get (Get_Contact_Id (Response_Object));
+      C.Get (Get_Contact_Id (Response_Object));
 
-      if C /= Null_Contact_Object then
+      if C /= Null_Contact then
          Response_Object.Set_Cacheable (True);
          Response_Object.Set_HTTP_Status_Code (OK);
       else

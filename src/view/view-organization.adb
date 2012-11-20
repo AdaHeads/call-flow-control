@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                            View.Organizations                             --
+--                            View.Organization                              --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -28,10 +28,14 @@ package body View.Organization is
    function To_Basic_JSON
      (O : in Organization_Object)
       return JSON_Value;
+   --  Create and return a basic organization JSON document. This only contains
+   --  id, full name and string identifier. No contacts.
 
    function To_Full_JSON
      (O : in Organization_Object)
       return JSON_Value;
+   --  Create and return a full organization JSON document. This contains all
+   --  organization related data and contacts, if there are any.
 
    ---------------------
    --  To_Basic_JSON  --
@@ -43,7 +47,7 @@ package body View.Organization is
    is
       J : JSON_Value := JSON_Null;
    begin
-      if O /= Null_Organization_Object then
+      if O /= Null_Organization then
          J := Create_Object;
 
          J.Set_Field (Organization_Id, Integer (O.Organization_Id));
@@ -64,9 +68,10 @@ package body View.Organization is
      (O : in Organization_Object)
       return JSON_Value
    is
-      J : JSON_Value := JSON_Null;
+      C_Array : JSON_Array;
+      J       : JSON_Value := JSON_Null;
    begin
-      if O /= Null_Organization_Object then
+      if O /= Null_Organization then
          if O.JSON /= JSON_Null then
             J := O.JSON;
          else
@@ -79,8 +84,10 @@ package body View.Organization is
 
          J.Set_Field (Identifier, O.Identifier);
 
-         if O.Contact_List.Length > 0 then
-            J.Set_Field (Contacts, View.Contact.To_JSON (O.Contact_List));
+         C_Array := View.Contact.To_JSON (O.Contact_List);
+
+         if Length (C_Array) > 0 then
+            J.Set_Field (Contacts, C_Array);
          end if;
       end if;
 
@@ -92,12 +99,12 @@ package body View.Organization is
    ---------------
 
    function To_JSON
-     (O         : in Organization_Object;
-      View_Mode : in Mode := Full)
+     (O    : in Organization_Object;
+      View : in Mode)
       return JSON_Value
    is
    begin
-      case View_Mode is
+      case View is
          when Basic =>
             return To_Basic_JSON (O);
          when Full =>
@@ -110,12 +117,12 @@ package body View.Organization is
    ---------------
 
    function To_JSON
-     (O         : in Organization_Object;
-      View_Mode : in Mode := Full)
+     (O    : in Organization_Object;
+      View : in Mode)
       return JSON_String
    is
    begin
-      case View_Mode is
+      case View is
          when Basic =>
             return To_JSON_String (To_Basic_JSON (O).Write);
          when Full =>
@@ -128,12 +135,12 @@ package body View.Organization is
    ---------------
 
    function To_JSON
-     (OL        : in Organization_List_Object;
-      View_Mode : in Mode := Full)
+     (O    : in Organization_List_Object;
+      View : in Mode)
       return JSON_Value
    is
       procedure Process
-        (O : in Organization_Object);
+        (O : in Organization_Object'Class);
       --  Add each Organization_Object to O_Array.
 
       O_Array : JSON_Array;
@@ -144,19 +151,17 @@ package body View.Organization is
       ---------------
 
       procedure Process
-        (O : in Organization_Object)
+        (O : in Organization_Object'Class)
       is
       begin
-         Append (O_Array, To_JSON (O, View_Mode));
+         Append (O_Array, To_JSON (Organization_Object (O), View));
       end Process;
    begin
-      if OL /= Null_Organization_List_Object then
-         OL.For_Each (Process'Access);
+      O.For_Each (Process'Access);
 
-         if Length (O_Array) > 0 then
-            J := Create_Object;
-            J.Set_Field (Organization_List, O_Array);
-         end if;
+      if Length (O_Array) > 0 then
+         J := Create_Object;
+         J.Set_Field (Organization_List, O_Array);
       end if;
 
       return J;
@@ -167,17 +172,12 @@ package body View.Organization is
    ---------------
 
    function To_JSON
-     (OL        : in Organization_List_Object;
-      View_Mode : in Mode := Full)
+     (O    : in Organization_List_Object;
+      View : in Mode)
       return JSON_String
    is
    begin
-      case View_Mode is
-         when Basic =>
-            return To_JSON_String (To_JSON (OL, View_Mode).Write);
-         when Full =>
-            return To_JSON_String (To_JSON (OL, View_Mode).Write);
-      end case;
+      return To_JSON_String (To_JSON (O, View).Write);
    end To_JSON;
 
 end View.Organization;

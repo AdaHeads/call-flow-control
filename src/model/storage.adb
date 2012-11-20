@@ -26,7 +26,6 @@ with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Task_Attributes;
 with GNATCOLL.SQL.Postgres;
-with HTTP_Codes;
 with My_Configuration;
 with System_Message.Critical;
 
@@ -159,48 +158,6 @@ package body Storage is
       end if;
    end Failed_Query;
 
-   ----------------
-   --  Generate  --
-   ----------------
-
-   procedure Generate
-     (Response_Object : in out Response.Object)
-   is
-      use GNATCOLL.SQL.Exec;
-      use HTTP_Codes;
-      --  use Storage;
-      use System_Message;
-
-      C              : Cursor;
-      DB_Connections : DB_Conn_Pool := Get_DB_Connections;
-   begin
-      Fetch_Data :
-      for K in DB_Connections'Range loop
-         C.Fetch (DB_Connections (K).Host,
-                  Query,
-                  Params => Query_Parameters (Response_Object));
-
-         if DB_Connections (K).Host.Success then
-            Response_Object.Set_Content (To_JSON (C));
-
-            if C.Processed_Rows > 0 then
-               Response_Object.Set_Cacheable (True);
-               Response_Object.Set_HTTP_Status_Code (OK);
-            else
-               Response_Object.Set_HTTP_Status_Code (Not_Found);
-            end if;
-
-            exit Fetch_Data;
-         else
-            Storage.Failed_Query (Connection_Pool => DB_Connections,
-                                  Connection_Type => K);
-         end if;
-      end loop Fetch_Data;
-   exception
-      when Event : Database_Error =>
-         Critical.Lost_Secondary_Database.Notify (Event);
-   end Generate;
-
    --------------------------
    --  Get_DB_Connections  --
    --------------------------
@@ -245,7 +202,6 @@ package body Storage is
    is
       use Ada.Exceptions;
       use GNATCOLL.SQL.Exec;
-      use HTTP_Codes;
       use Storage;
       use System_Message;
 

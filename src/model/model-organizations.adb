@@ -21,7 +21,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  with Model.Contacts_Attributes;
+with Model.Contact_Attributes;
 with SQL_Statements;
 with Storage;
 with View.Organization;
@@ -41,6 +41,13 @@ package body Model.Organizations is
    --  For every organization in the database, an Organization_Object is handed
    --  to Process. These organization objects do NOT contain any contacts.
 
+   procedure For_Each_Full
+     (O_Id    : in Organization_Identifier;
+      Process : not null access
+        procedure (Element : in Organization_Object'Class));
+   --  For every organization with O_Id in the database, an Organization_Object
+   --  is handed to Process. These organization objects do contain contacts.
+
    --------------------
    --  Contact_List  --
    --------------------
@@ -50,21 +57,8 @@ package body Model.Organizations is
       return Model.Contacts.Contact_List_Object
    is
    begin
-      return Self.Cntacts;
+      return Self.C_List;
    end Contact_List;
-
-   ----------------------
-   --  Equal_Elements  --
-   ----------------------
-
-   function Equal_Elements
-     (Left, Right : in Model.Contacts.Contact_Object)
-      return Boolean
-   is
-      use type Model.Contacts.Contact_Object;
-   begin
-      return Left = Right;
-   end Equal_Elements;
 
    ----------------
    --  For_Each  --
@@ -87,21 +81,6 @@ package body Model.Organizations is
    ----------------
 
    procedure For_Each
-     (Self    : in Organization_List_Object;
-      Process : not null access
-        procedure (Element : in Organization_Object))
-   is
-   begin
-      for Elem of Self.Org_List loop
-         Process (Elem);
-      end loop;
-   end For_Each;
-
-   ----------------
-   --  For_Each  --
-   ----------------
-
-   procedure For_Each
      (O_Id    : in Organization_Identifier;
       Process : not null access
         procedure (Element : in Organization_Object'Class))
@@ -116,6 +95,39 @@ package body Model.Organizations is
          Query_Parameters   => Parameters);
    end For_Each;
 
+   ----------------
+   --  For_Each  --
+   ----------------
+
+   procedure For_Each
+     (Self    : in Organization_List_Object;
+      Process : not null access
+        procedure (Element : in Organization_Object'Class))
+   is
+      pragma Unreferenced (Self);
+   begin
+      For_Each (Process);
+   end For_Each;
+
+   ---------------------
+   --  For_Each_Full  --
+   ---------------------
+
+   procedure For_Each_Full
+     (O_Id    : in Organization_Identifier;
+      Process : not null access
+        procedure (Element : in Organization_Object'Class))
+   is
+      use GNATCOLL.SQL.Exec;
+
+      Parameters : constant SQL_Parameters := (1 => +Integer (O_Id));
+   begin
+      Fetch_Organization_Object
+        (Process_Element    => Process,
+         Prepared_Statement => SQL.Org_Contacts_Prepared,
+         Query_Parameters   => Parameters);
+   end For_Each_Full;
+
    -----------------
    --  Full_Name  --
    -----------------
@@ -127,30 +139,6 @@ package body Model.Organizations is
    begin
       return To_String (Self.Full_Name);
    end Full_Name;
-
-   -----------
-   --  Get  --
-   -----------
-
-   procedure Get
-     (Self : in out Organization_List_Object)
-   is
-      procedure Add_To_List
-        (O : in Organization_Object'Class);
-
-      -------------------
-      --  Add_To_List  --
-      -------------------
-
-      procedure Add_To_List
-        (O : in Organization_Object'Class)
-      is
-      begin
-         Self.Org_List.Append (Organization_Object (O));
-      end Add_To_List;
-   begin
-      For_Each (Add_To_List'Access);
-   end Get;
 
    -----------
    --  Get  --
@@ -188,8 +176,6 @@ package body Model.Organizations is
       procedure Get_Element
         (Organization : in Organization_Object'Class);
 
-      CL : Model.Contacts.Contact_List_Object;
-
       -------------------
       --  Get_Element  --
       -------------------
@@ -201,9 +187,7 @@ package body Model.Organizations is
          Self := Organization_Object (Organization);
       end Get_Element;
    begin
-      For_Each (O_Id, Get_Element'Access);
-      CL.Get (O_Id);
-      Self.Cntacts := CL;
+      For_Each_Full (O_Id, Get_Element'Access);
    end Get_Full;
 
    ------------------
@@ -230,18 +214,6 @@ package body Model.Organizations is
       return Self.JSON;
    end JSON;
 
-   --------------
-   --  Length  --
-   --------------
-
-   function Length
-     (Self : in Organization_List_Object)
-      return Natural
-   is
-   begin
-      return Natural (Self.Org_List.Length);
-   end Length;
-
    ----------------------------------
    --  Organization_Element_Basic  --
    ----------------------------------
@@ -251,15 +223,44 @@ package body Model.Organizations is
       return Organization_Object'Class
    is
       use Common;
+      use Model.Contacts;
+      use Model.Contact_Attributes;
+      use type GNATCOLL.SQL.Exec.Field_Index;
+
+      Contact : Model.Contacts.Contact_Object;
 
       O : Organization_Object;
    begin
       O := Organization_Object'
-        (Cntacts   => Contacts.Null_Contact_List_Object,
+        (C_List     => Contacts.Null_Contact_List,
          Full_Name  => U (C.Value (0)),
          Identifier => U (C.Value (1)),
          JSON       => C.Json_Object_Value (2),
          O_Id       => Organization_Identifier (C.Integer_Value (3)));
+
+      if C.Field_Count > 4 then
+         --  This is a full organization, complete with contacts.
+         while C.Has_Row loop
+            if not C.Is_Null (4) then
+               Contact := Create
+                 (C_Id      => Contact_Identifier
+                    (C.Integer_Value (4, Default => 0)),
+                  Full_Name => C.Value (5),
+                  Is_Human  => C.Boolean_Value (6));
+
+               Contact.Add_Attribute
+                 (Create (Id   => Attributes_Identifier'
+                            (C_Id => Contact.Contact_Id, O_Id => O.O_Id),
+                          JSON => C.Json_Object_Value (7)));
+
+               O.C_List.Add_Contact (Contact => Contact,
+                                     O_Id    => O.O_Id);
+
+            end if;
+
+            C.Next;
+         end loop;
+      end if;
 
       return O;
    end Organization_Element;
@@ -281,8 +282,8 @@ package body Model.Organizations is
    ----------------------
 
    function To_JSON_String
-     (Self      : in Organization_List_Object;
-      View_Mode : in View.Mode := View.Full)
+     (Self      : in out Organization_List_Object;
+      View_Mode : in     View.Mode)
       return Common.JSON_String
    is
    begin
@@ -295,7 +296,7 @@ package body Model.Organizations is
 
    function To_JSON_String
      (Self      : in Organization_Object;
-      View_Mode : in View.Mode := View.Full)
+      View_Mode : in View.Mode)
       return Common.JSON_String
    is
    begin

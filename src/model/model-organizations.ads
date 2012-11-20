@@ -21,7 +21,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Strings.Unbounded;
 with Common;
 with GNATCOLL.JSON;
@@ -32,26 +31,21 @@ with View;
 package Model.Organizations is
 
    type Organization_Object is tagged private;
-   Null_Organization_Object : constant Organization_Object;
+   Null_Organization : constant Organization_Object;
 
    type Organization_List_Object is tagged private;
-   Null_Organization_List_Object : constant Organization_List_Object;
-
-   function Equal_Elements
-     (Left, Right : in Model.Contacts.Contact_Object)
-      return Boolean;
-   --  Element equality function used by the Attributes_Map.
 
    function Contact_List
      (Self : in Organization_Object)
       return Model.Contacts.Contact_List_Object;
-   --  Return all the contacts associated with Organization.
+   --  Return all the contacts associated with the Self organization.
 
    procedure For_Each
      (Self    : in Organization_List_Object;
       Process : not null access
-        procedure (Element : in Organization_Object));
-   --  TODO: Write comment
+        procedure (Element : in Organization_Object'Class));
+   --  For every organization in the database, an Organization_Object is handed
+   --  to process. These objects do NOT contain any contacts.
 
    procedure For_Each
      (O_Id    : in Organization_Identifier;
@@ -64,55 +58,69 @@ package Model.Organizations is
    function Full_Name
      (Self : in Organization_Object)
       return String;
-   --  TODO: Write comment
-
-   procedure Get
-     (Self : in out Organization_List_Object);
-   --  TODO: Write comment
+   --  Return the full name of the Self organization.
 
    procedure Get
      (Self : in out Organization_Object;
       O_Id : in Organization_Identifier);
-   --  Get the organization that match O_Id without all the contacts.
+   --  Get the organization that match O_Id. This does NOT fetch the contacts
+   --  that belong to the O_Id organization.
 
    procedure Get_Full
      (Self : in out Organization_Object;
       O_Id : in     Organization_Identifier);
-   --  Get the organization that match O_Id. This object contains all the
-   --  contacts that are associated with the organization.
+   --  Get the organization that match O_Id. This object contains ALL the
+   --  contacts that are associated with the O_Id organization.
 
    function Identifier
      (Self : in Organization_Object)
       return String;
-   --  TODO: Write comment
+   --  Return the unique string identifier for the Self organization.
 
    function JSON
      (Self : in Organization_Object)
       return GNATCOLL.JSON.JSON_Value;
-   --  TODO: Write comment
-
-   function Length
-     (Self : in Organization_List_Object)
-      return Natural;
-   --  TODO: Write comment
+   --  Return the JSON document for the Self organization.
 
    function Organization_Id
      (Self : in Organization_Object)
       return Organization_Identifier;
-   --  TODO: Write comment
+   --  Return the Organization_Identifier for the Self organization.
 
    function To_JSON_String
-     (Self      : in Organization_List_Object;
-      View_Mode : in View.Mode := View.Full)
+     (Self      : in out Organization_List_Object;
+      View_Mode : in     View.Mode)
       return Common.JSON_String;
-   --  TODO: Write comment
+   --  Convert Self into a JSON string. This call is convenient wrapper
+   --  for the View.Organization.To_JSON function.
+   --
+   --  If View_Mode is View.Basic then the organization JSON documents are NOT
+   --  added to the final JSON_String. This is handy in cases where only the
+   --  id, identifier and full name of the organization is needed.
+   --
+   --  If View_Mode is View.Full, then the organization id, identifier and full
+   --  name are added to the organization JSON document.
+   --
+   --  No matter the View_Mode, the organization contacts are NEVER added to
+   --  the final JSON_String.
 
    function To_JSON_String
      (Self      : in Organization_Object;
-      View_Mode : in View.Mode := View.Full)
+      View_Mode : in View.Mode)
       return Common.JSON_String;
    --  Convert Organization to a JSON string. This call is convenient wrapper
    --  for the View.Organization.To_JSON function.
+   --
+   --  If View_Mode is View.Basic then the organization JSON document is NOT
+   --  added to the final JSON_String. This is handy in cases where only the
+   --  id, identifier and full name of the organization is needed.
+   --
+   --  If View_Mode is View.Full, then the organization id, identifier, full
+   --  name and all the organization contacts are added to the organization
+   --  JSON document.
+   --
+   --  Note that contacts only exist in Self if Get_Full has been called on the
+   --  object.
 
 private
 
@@ -122,30 +130,21 @@ private
 
    type Organization_Object is tagged
       record
-         Cntacts   : Contacts.Contact_List_Object;
+         C_List     : Contacts.Contact_List_Object;
          Full_Name  : Unbounded_String := Null_Unbounded_String;
          Identifier : Unbounded_String := Null_Unbounded_String;
          JSON       : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.JSON_Null;
          O_Id       : Organization_Identifier := 0;
       end record;
 
-   Null_Organization_Object : constant Organization_Object
-     := (Cntacts   => Contacts.Null_Contact_List_Object,
+   Null_Organization : constant Organization_Object
+     := (C_List     => Contacts.Null_Contact_List,
          Full_Name  => Null_Unbounded_String,
          Identifier => Null_Unbounded_String,
          JSON       => GNATCOLL.JSON.JSON_Null,
          O_Id       => 0);
 
-   package Organization_List is new Ada.Containers.Doubly_Linked_Lists
-     (Element_Type => Organization_Object);
-
-   type Organization_List_Object is tagged
-      record
-         Org_List : Organization_List.List := Organization_List.Empty_List;
-      end record;
-
-   Null_Organization_List_Object : constant Organization_List_Object
-     := (Org_List => Organization_List.Empty_List);
+   type Organization_List_Object is tagged null record;
 
    function Organization_Element
      (C : in out Cursor)

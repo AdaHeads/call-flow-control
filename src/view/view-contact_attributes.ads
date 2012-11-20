@@ -23,20 +23,27 @@
 
 with Common;
 with GNATCOLL.JSON;
-with Model.Contacts_Attributes;
+with Model.Contact_Attributes;
 
 package View.Contact_Attributes is
 
    use Common;
    use GNATCOLL.JSON;
-   use Model.Contacts_Attributes;
+   use Model.Contact_Attributes;
 
    function To_JSON
-     (Contact_Attributes : in Contact_Attributes_Object)
+     (O : in Contact_Attributes_List_Object)
+      return JSON_Array;
+   --  Convert O into a JSON array.
+
+   function To_JSON
+     (O : in Contact_Attributes_Object)
       return JSON_Value;
+   --  Convert O into a JSON object.
 
    function To_JSON
-     (Contact_Attributes : in Contact_Attributes_Object)
+     (O : in Contact_Attributes_Object)
       return JSON_String;
+   --  Convert O into a JSON string.
 
 end View.Contact_Attributes;

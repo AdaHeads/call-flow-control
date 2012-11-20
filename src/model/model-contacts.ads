@@ -25,41 +25,34 @@ with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded;
 with Common;
 with GNATCOLL.SQL.Exec;
-with Model.Contacts_Attributes;
+with Model.Contact_Attributes;
 
 package Model.Contacts is
 
    type Contact_Object is tagged private;
-   Null_Contact_Object : constant Contact_Object;
+   Null_Contact : constant Contact_Object;
 
    type Contact_List_Object is tagged private;
-   Null_Contact_List_Object : constant Contact_List_Object;
+   Null_Contact_List : constant Contact_List_Object;
 
-   function Equal_Elements
-     (Left, Right : in Model.Contacts_Attributes.Contact_Attributes_Object)
-      return Boolean;
-   --  Element equality function used by the Attributes_Map.
+   procedure Add_Contact
+     (Self    : in out Contact_List_Object;
+      Contact : in     Contact_Object'Class;
+      O_Id    : in     Organization_Identifier);
+   --  Add Contact to the Self Contact_List_Object.
 
-   package Attributes_Map is new Ada.Containers.Hashed_Maps
-     (Key_Type        => Attributes_Identifier,
-      Element_Type    => Model.Contacts_Attributes.Contact_Attributes_Object,
-      Hash            => Key_Hash,
-      Equivalent_Keys => Equivalent_Keys,
-      "="             => Equal_Elements);
-
-   procedure Add_Attributes
-     (Contact   : in out Contact_Object;
-      Attribute : in     Model.Contacts_Attributes.Contact_Attributes_Object);
-   --  Add an attribute object to Contact.
+   procedure Add_Attribute
+     (Self       : in out Contact_Object;
+      Attribute  : in     Model.Contact_Attributes.Contact_Attributes_Object);
+   --  Add Attribute to the Self Contact_Object.
 
    function Attributes
-     (Contact : in Contact_Object)
-      return Attributes_Map.Map;
-   --  Return the a linked list of Contact_Attributes_Object's associated with
-   --  Contact.
+     (Self : in Contact_Object)
+      return Model.Contact_Attributes.Contact_Attributes_List_Object;
+   --  Return the Contact_Attributes_Object's associated with Self.
 
    function Contact_Id
-     (Contact : in Contact_Object)
+     (Self : in Contact_Object)
       return Contact_Identifier;
    --  Return the id of the Contact.
 
@@ -70,20 +63,16 @@ package Model.Contacts is
       return Contact_Object;
    --  Create a Contact_Object.
 
-   function Equal_Elements
-     (Left, Right : in Contact_Object)
-      return Boolean;
-
    function Full_Name
-     (Contact : in Contact_Object)
+     (Self : in Contact_Object)
       return String;
    --  Return the full name of the Contact.
 
-   function Get
-     (C_Id : in Contact_Identifier)
-      return Contact_Object;
-   --  Return the contact that match C_Id, complete with all the attributes
-   --  that may be associated with the contact.
+   procedure Get
+     (Self : in out Contact_Object;
+      C_Id : in     Contact_Identifier);
+   --  Get the contact that match C_Id, complete with all the attributes that
+   --  may be associated with the contact.
 
    procedure Get
      (Self : in out Contact_List_Object;
@@ -123,40 +112,50 @@ package Model.Contacts is
      (Self    : in Contact_List_Object;
       Process : not null access
         procedure (Element : in Contact_Object));
-   --  TODO: Write comment
+   --  Hands a Contact_Object to process for every contact found in the
+   --  Contact_List_Object.
 
    function Is_Human
-     (Contact : in Contact_Object)
+     (Self : in Contact_Object)
       return Boolean;
-   --  Return whether or not the Contact is human.
-
-   function Length
-     (Self : in Contact_List_Object)
-      return Natural;
-   --  TODO: Write comment.
+   --  Return whether or not the Self contact is human.
 
    function To_JSON
-     (Contact : in Contact_Object)
+     (Self : in Contact_Object)
       return Common.JSON_String;
-   --  Convert the Contact to a JSON string. This call is convenient wrapper
-   --  for the View.Contact.To_JSON function.
+   --  Convert the Self contact to a JSON string. This call is convenient
+   --  wrapper for the View.Contact.To_JSON function.
 
 private
 
    use Ada.Strings.Unbounded;
 
+   function Equal_Elements
+     (Left, Right : in Contact_Object)
+      return Boolean;
+
+   function Equivalent_Keys
+     (Left, Right : in Organization_Contact_Identifier)
+      return Boolean;
+   --  Key equivalence function used by hashed maps.
+
+   function Key_Hash
+     (Key : in Organization_Contact_Identifier)
+      return Ada.Containers.Hash_Type;
+   --  Hashing function used by the hashed maps.
+
    type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null record;
 
    type Contact_Object is tagged
       record
-         Attr_Map  : Attributes_Map.Map;
+         Attr_List : Model.Contact_Attributes.Contact_Attributes_List_Object;
          C_Id      : Contact_Identifier := 0;
          Full_Name : Unbounded_String := Null_Unbounded_String;
          Is_Human  : Boolean := True;
       end record;
 
-   Null_Contact_Object : constant Contact_Object
-     := (Attr_Map  => Attributes_Map.Empty_Map,
+   Null_Contact : constant Contact_Object
+     := (Attr_List => Model.Contact_Attributes.Null_Contact_Attributes_List,
          C_Id      => 0,
          Full_Name => Null_Unbounded_String,
          Is_Human  => True);
@@ -173,7 +172,7 @@ private
          Contacts : Contact_Map.Map := Contact_Map.Empty_Map;
       end record;
 
-   Null_Contact_List_Object : constant Contact_List_Object
+   Null_Contact_List : constant Contact_List_Object
      := (Contacts => Contact_Map.Empty_Map);
 
    function Contact_Element

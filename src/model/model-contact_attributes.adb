@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                        Model.Contacts_Attributes                          --
+--                         Model.Contact_Attributes                          --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -21,11 +21,12 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Hash;
 with SQL_Statements;
 with Storage;
 with View.Contact_Attributes;
 
-package body Model.Contacts_Attributes is
+package body Model.Contact_Attributes is
 
    use GNATCOLL.SQL;
    use GNATCOLL.SQL.Exec;
@@ -36,6 +37,19 @@ package body Model.Contacts_Attributes is
      (Database_Cursor   => Cursor,
       Element           => Contact_Attributes_Object,
       Cursor_To_Element => Contact_Attributes_Element);
+
+   ---------------------
+   --  Add_Attribute  --
+   ---------------------
+
+   procedure Add_Attributes
+     (Self      : in out Contact_Attributes_List_Object;
+      Attribute : in     Contact_Attributes_Object'Class)
+   is
+   begin
+      Self.A_Map.Include (Key      => Attribute.Id,
+                          New_Item => Contact_Attributes_Object (Attribute));
+   end Add_Attributes;
 
    ----------------------------------
    --  Contact_Attributes_Element  --
@@ -59,11 +73,11 @@ package body Model.Contacts_Attributes is
    ------------------
 
    function Contact_Id
-     (Contact_Attributes : in Contact_Attributes_Object)
+     (Self : in Contact_Attributes_Object)
       return Contact_Identifier
    is
    begin
-      return Contact_Attributes.Id.C_Id;
+      return Self.Id.C_Id;
    end Contact_Id;
 
    --------------
@@ -80,6 +94,45 @@ package body Model.Contacts_Attributes is
         (Attributes_Identifier'(C_Id => Id.C_Id, O_Id => Id.O_Id),
          JSON => JSON);
    end Create;
+
+   ----------------------
+   --  Equal_Elements  --
+   ----------------------
+
+   function Equal_Elements
+     (Left, Right : in Contact_Attributes_Object)
+      return Boolean
+   is
+   begin
+      return Left = Right;
+   end Equal_Elements;
+
+   -----------------------
+   --  Equivalent_Keys  --
+   -----------------------
+
+   function Equivalent_Keys
+     (Left, Right : in Attributes_Identifier)
+      return Boolean
+   is
+   begin
+      return Left = Right;
+   end Equivalent_Keys;
+
+   ----------------
+   --  For_Each  --
+   ----------------
+
+   procedure For_Each
+     (Self : in Contact_Attributes_List_Object;
+      Process : not null access
+        procedure (Element : in Contact_Attributes_Object))
+   is
+   begin
+      for Elem of Self.A_Map loop
+         Process (Elem);
+      end loop;
+   end For_Each;
 
    ----------------
    --  For_Each  --
@@ -120,14 +173,12 @@ package body Model.Contacts_Attributes is
    --  Get  --
    -----------
 
-   function Get
-     (Id : in Attributes_Identifier)
-      return Contact_Attributes_Object
+   procedure Get
+     (Self : in out Contact_Attributes_Object;
+      Id   : in     Attributes_Identifier)
    is
       procedure Get_Element
         (Contact_Attributes : in Contact_Attributes_Object'Class);
-
-      CA : Contact_Attributes_Object := Null_Contact_Attributes;
 
       -------------------
       --  Get_Element  --
@@ -137,11 +188,10 @@ package body Model.Contacts_Attributes is
         (Contact_Attributes : in Contact_Attributes_Object'Class)
       is
       begin
-         CA := Contact_Attributes_Object (Contact_Attributes);
+         Self := Contact_Attributes_Object (Contact_Attributes);
       end Get_Element;
    begin
       For_Each (Id, Get_Element'Access);
-      return CA;
    end Get;
 
    ------------
@@ -149,23 +199,37 @@ package body Model.Contacts_Attributes is
    ------------
 
    function JSON
-     (Contact_Attributes : Contact_Attributes_Object)
+     (Self : Contact_Attributes_Object)
       return GNATCOLL.JSON.JSON_Value
    is
    begin
-      return Contact_Attributes.JSON;
+      return Self.JSON;
    end JSON;
+
+   ----------------
+   --  Key_Hash  --
+   ----------------
+
+   function Key_Hash
+     (Key : in Attributes_Identifier)
+      return Ada.Containers.Hash_Type
+   is
+   begin
+      return Ada.Strings.Hash
+        (Contact_Identifier'Image (Key.C_Id) &
+           Organization_Identifier'Image (Key.O_Id));
+   end Key_Hash;
 
    -----------------------
    --  Organization_Id  --
    -----------------------
 
    function Organization_Id
-     (Contact_Attributes : Contact_Attributes_Object)
+     (Self : Contact_Attributes_Object)
       return Organization_Identifier
    is
    begin
-      return Contact_Attributes.Id.O_Id;
+      return Self.Id.O_Id;
    end Organization_Id;
 
    ---------------
@@ -173,11 +237,11 @@ package body Model.Contacts_Attributes is
    ---------------
 
    function To_JSON
-     (Contact_Attributes : in Contact_Attributes_Object)
+     (Self : in Contact_Attributes_Object)
       return Common.JSON_String
    is
    begin
-      return View.Contact_Attributes.To_JSON (Contact_Attributes);
+      return View.Contact_Attributes.To_JSON (Self);
    end To_JSON;
 
-end Model.Contacts_Attributes;
+end Model.Contact_Attributes;

@@ -21,39 +21,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Common;
 with GNATCOLL.SQL.Exec;
-with Response;
 
 package Storage is
-
-   ----------------
-   --  Generate  --
-   ----------------
-
-   generic
-
-      type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with private;
-
-      with function Query
-        return GNATCOLL.SQL.Exec.Prepared_Statement;
-      --  The prepared statement that is used to fetch data from the SQL
-      --  database.
-
-      with function To_JSON
-        (C : in out Cursor)
-         return Common.JSON_String;
-      --  Turn the rows in Cursor into a JSON String.
-
-      with function Query_Parameters
-        (Response_Object : in Response.Object)
-         return GNATCOLL.SQL.Exec.SQL_Parameters;
-      --  The parameters needed by the prepared statement given in Query.
-
-   procedure Generate
-     (Response_Object : in out Response.Object);
-   --  Generates the Value JSON document and sets the corresponding Status
-   --  code.
 
    ---------------------
    --  Process_Query  --

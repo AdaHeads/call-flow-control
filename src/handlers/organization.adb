@@ -25,6 +25,7 @@ with AWS.Status;
 with HTTP_Codes;
 with Model.Organizations;
 with System_Message.Error;
+with View;
 
 package body Organization is
 
@@ -67,14 +68,14 @@ package body Organization is
    begin
       O.Get_Full (O_Id => Get_Org_Id (Response_Object));
 
-      if O /= Null_Organization_Object then
+      if O /= Null_Organization then
          Response_Object.Set_Cacheable (True);
          Response_Object.Set_HTTP_Status_Code (OK);
       else
          Response_Object.Set_HTTP_Status_Code (Not_Found);
       end if;
 
-      Response_Object.Set_Content (O.To_JSON_String);
+      Response_Object.Set_Content (O.To_JSON_String (View.Full));
    end Generate_Document;
 
    ------------------

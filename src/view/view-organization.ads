@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                            View.Organizations                             --
+--                            View.Organization                              --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -32,23 +32,63 @@ package View.Organization is
    use Model.Organizations;
 
    function To_JSON
-     (O         : in Organization_Object;
-      View_Mode : in Mode := Full)
-     return JSON_Value;
+     (O    : in Organization_Object;
+      View : in Mode)
+      return JSON_Value;
+   --  Convert O to a JSON object.
+   --
+   --  If View_Mode is View.Basic then the organization JSON document is NOT
+   --  added to the final JSON object. This is handy in cases where only the
+   --  id, identifier and full name of the organization is needed.
+   --
+   --  If View_Mode is View.Full, then the organization id, identifier, full
+   --  name and all the organization contacts are added to the organization
+   --  JSON document.
 
    function To_JSON
-     (O         : in Organization_Object;
-      View_Mode : in Mode := Full)
+     (O    : in Organization_Object;
+      View : in Mode)
       return JSON_String;
+   --  Convert O to a JSON string.
+   --
+   --  If View_Mode is View.Basic then the organization JSON document is NOT
+   --  added to the final JSON string. This is handy in cases where only the
+   --  id, identifier and full name of the organization is needed.
+   --
+   --  If View_Mode is View.Full, then the organization id, identifier, full
+   --  name and all the organization contacts are added to the organization
+   --  JSON document.
 
    function To_JSON
-     (OL        : in Organization_List_Object;
-      View_Mode : in Mode := Full)
-     return JSON_Value;
+     (O    : in Organization_List_Object;
+      View : in Mode)
+      return JSON_Value;
+   --  Convert O into a JSON object.
+   --
+   --  If View_Mode is View.Basic then the organization JSON documents are NOT
+   --  added to the final JSON object. This is handy in cases where only the
+   --  id, identifier and full name of the organization is needed.
+   --
+   --  If View_Mode is View.Full, then the organization id, identifier and full
+   --  name are added to the organization JSON document.
+   --
+   --  No matter the View_Mode, the organization contacts are NEVER added to
+   --  the final JSON object.
 
    function To_JSON
-     (OL        : in Organization_List_Object;
-      View_Mode : in Mode := Full)
+     (O    : in Organization_List_Object;
+      View : in Mode)
       return JSON_String;
+   --  Convert O into a JSON string.
+   --
+   --  If View_Mode is View.Basic then the organization JSON documents are NOT
+   --  added to the final JSON string. This is handy in cases where only the
+   --  id, identifier and full name of the organization is needed.
+   --
+   --  If View_Mode is View.Full, then the organization id, identifier and full
+   --  name are added to the organization JSON document.
+   --
+   --  No matter the View_Mode, the organization contacts are NEVER added to
+   --  the final JSON string.
 
 end View.Organization;

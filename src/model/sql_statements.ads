@@ -63,32 +63,34 @@ package SQL_Statements is
    --  Statement for fetching an organization and all associated contacts  --
    --------------------------------------------------------------------------
 
-   Organization_Contacts_Join_1 : constant SQL_Left_Join_Table
-     := Join (Table1 => DB.Organization,
-              Table2 => DB.Organization_Contacts,
-              On     =>
-                DB.Organization_Contacts.FK (DB.Organization));
+   Org_Contacts_Join_1 : constant SQL_Left_Join_Table
+     := Left_Join (Full    => DB.Organization,
+                   Partial => DB.Organization_Contacts,
+                   On      =>
+                     DB.Organization_Contacts.FK (DB.Organization));
 
-   Organization_Contacts_Join_2 : constant SQL_Left_Join_Table
-     := Join (Table1 => Organization_Contacts_Join_1,
-              Table2 => DB.Contact,
-              On     => DB.Organization_Contacts.FK (DB.Contact));
+   Org_Contacts_Join_2 : constant SQL_Left_Join_Table
+     := Left_Join (Full    => Org_Contacts_Join_1,
+                   Partial => DB.Contact,
+                   On      => DB.Organization_Contacts.FK (DB.Contact));
 
-   Organization_Contacts_Attributes_Left_Join : constant SQL_Left_Join_Table
-     := Left_Join (Full    => Organization_Contacts_Join_2,
+   Org_Contacts_Attributes_Left_Join : constant SQL_Left_Join_Table
+     := Left_Join (Full    => Org_Contacts_Join_2,
                    Partial => DB.Contact_Attributes,
                    On      =>
                      DB.Contact_Attributes.FK (DB.Contact));
 
-   Organization_Contacts_Query : constant SQL_Query
+   Org_Contacts_Query : constant SQL_Query
      := SQL_Select (Fields =>
-                      DB.Contact.Id &                         --  0
-                      DB.Contact.Full_Name &                  --  1
-                      DB.Contact.Is_Human &                   --  2
-                      DB.Contact_Attributes.Json &            --  3
-                      DB.Contact_Attributes.Contact_Id &      --  4
-                      DB.Contact_Attributes.Organization_Id,  --  5
-                    From   => Organization_Contacts_Attributes_Left_Join,
+                      DB.Organization.Full_Name &   --  0
+                      DB.Organization.Identifier &  --  1
+                      DB.Organization.Json &        --  2
+                      DB.Organization.Id &          --  3
+                      DB.Contact.Id &               --  4
+                      DB.Contact.Full_Name &        --  5
+                      DB.Contact.Is_Human &         --  6
+                      DB.Contact_Attributes.Json,   --  7
+                    From   => Org_Contacts_Attributes_Left_Join,
                     Where  =>
                       DB.Organization.Id = Integer_Param (1)
                     and
@@ -97,8 +99,53 @@ package SQL_Statements is
                        or Is_Null
                          (DB.Contact_Attributes.Organization_Id)));
 
-   Organization_Contacts_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Organization_Contacts_Query,
+   Org_Contacts_Prepared : constant Prepared_Statement
+     := Prepare (Query         => Org_Contacts_Query,
+                 Auto_Complete => True,
+                 On_Server     => True,
+                 Name          => "contacts");
+
+   ------------------------------------------------------------------------
+   --  Statement for all contacts associated with an organization. This  --
+   --  does not include the organization itself.                         --
+   ------------------------------------------------------------------------
+
+   Contacts_Join_1 : constant SQL_Left_Join_Table
+     := Join (Table1 => DB.Organization,
+              Table2 => DB.Organization_Contacts,
+              On     =>
+                DB.Organization_Contacts.FK (DB.Organization));
+
+   Contacts_Join_2 : constant SQL_Left_Join_Table
+     := Join (Table1 => Contacts_Join_1,
+              Table2 => DB.Contact,
+              On     => DB.Organization_Contacts.FK (DB.Contact));
+
+   Contacts_Attributes_Left_Join : constant SQL_Left_Join_Table
+     := Left_Join (Full    => Contacts_Join_2,
+                   Partial => DB.Contact_Attributes,
+                   On      =>
+                     DB.Contact_Attributes.FK (DB.Contact));
+
+   Contacts_Query : constant SQL_Query
+     := SQL_Select (Fields =>
+                      DB.Contact.Id &                         --  0
+                      DB.Contact.Full_Name &                  --  1
+                      DB.Contact.Is_Human &                   --  2
+                      DB.Contact_Attributes.Json &            --  3
+                      DB.Contact_Attributes.Contact_Id &      --  4
+                      DB.Contact_Attributes.Organization_Id,  --  5
+                    From   => Contacts_Attributes_Left_Join,
+                    Where  =>
+                      DB.Organization.Id = Integer_Param (1)
+                    and
+                      (DB.Contact_Attributes.Organization_Id =
+                                                       Integer_Param (1)
+                       or Is_Null
+                         (DB.Contact_Attributes.Organization_Id)));
+
+   Contacts_Prepared : constant Prepared_Statement
+     := Prepare (Query         => Contacts_Query,
                  Auto_Complete => True,
                  On_Server     => True,
                  Name          => "organization_contacts");
@@ -115,7 +162,7 @@ package SQL_Statements is
                     On      =>
                       DB.Contact_Attributes.FK (DB.Contact));
 
-   Contacts_Query_Full : constant SQL_Query
+   Contact_Query_Full : constant SQL_Query
      := SQL_Select (Fields =>
                       DB.Contact.Id &                         --  0
                       DB.Contact.Full_Name &                  --  1
@@ -125,12 +172,12 @@ package SQL_Statements is
                       DB.Contact_Attributes.Organization_Id,  --  5
                     From   => Contact_Query_Full_Left_Join);
 
-   Contact_Query_Full : constant SQL_Query
-     := Where_And (Query => Contacts_Query_Full,
+   Contact_With_Id_Query_Full : constant SQL_Query
+     := Where_And (Query => Contact_Query_Full,
                    Where => DB.Contact.Id = Integer_Param (1));
 
    Contact_Full_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Contact_Query_Full,
+     := Prepare (Query         => Contact_With_Id_Query_Full,
                  Auto_Complete => True,
                  On_Server     => True,
                  Name          => "contact_full");
@@ -142,7 +189,7 @@ package SQL_Statements is
    ----------------------------------------------------------------------------
 
    Contact_Org_Specified_Query : constant SQL_Query
-     := Where_And (Query => Contacts_Query_Full,
+     := Where_And (Query => Contact_Query_Full,
                    Where =>
                      DB.Contact.Id = Integer_Param (1)
                    and
@@ -159,20 +206,20 @@ package SQL_Statements is
    --  Prepared statement for fetching the attributes of a contact.  --
    --------------------------------------------------------------------
 
-   Contacts_Attributes_Query : constant SQL_Query
+   Contact_Attributes_Query : constant SQL_Query
      := SQL_Select (Fields =>
                       DB.Contact_Attributes.Contact_Id &       --  0
                       DB.Contact_Attributes.Organization_Id &  --  1
                       DB.Contact_Attributes.Json,              --  2
                     From   => DB.Contact_Attributes);
 
-   Contact_Attributes_Query : constant SQL_Query
-     := Where_And (Query => Contacts_Attributes_Query,
+   Contact_With_Id_Attributes_Query : constant SQL_Query
+     := Where_And (Query => Contact_Attributes_Query,
                    Where =>
                      DB.Contact_Attributes.Contact_Id = Integer_Param (1));
 
    Contact_Attributes_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Contact_Attributes_Query,
+     := Prepare (Query         => Contact_With_Id_Attributes_Query,
                  Auto_Complete => True,
                  On_Server     => True,
                  Name          => "contact_attributes");
@@ -183,7 +230,7 @@ package SQL_Statements is
    -------------------------------------------------------------------
 
    Contact_Organization_Attributes_Query : constant SQL_Query
-     := Where_And (Query => Contacts_Attributes_Query,
+     := Where_And (Query => Contact_Attributes_Query,
                    Where =>
                      DB.Contact_Attributes.Contact_Id = Integer_Param (1)
                    and

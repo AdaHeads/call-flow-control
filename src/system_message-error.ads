@@ -31,7 +31,7 @@ package System_Message.Error is
       Status_Code => HTTP_Codes.Bad_Request);
 
    Bad_List_Kind : constant Error_Log_And_Response_Object := Create
-     (Description => "kind must be either basic or full",
+     (Description => "view must be either basic or full",
       Status      => "bad request",
       Status_Code => HTTP_Codes.Bad_Request);
 

@@ -22,25 +22,25 @@
 -------------------------------------------------------------------------------
 
 with AWS.Status;
-with GNATCOLL.JSON;
 with HTTP_Codes;
 with Model.Organizations;
 with System_Message.Error;
+with View;
 
 package body Organization_List is
 
    -------------------------------
-   --  Bad_List_Kind_Parameter  --
+   --  Bad_List_View_Parameter  --
    -------------------------------
 
-   procedure Bad_List_Kind_Parameter
+   procedure Bad_List_View_Parameter
      (Response_Object :    out Response.Object;
       Message         : in     String)
    is
       use System_Message;
    begin
       Error.Bad_List_Kind.Notify (Message, Response_Object);
-   end Bad_List_Kind_Parameter;
+   end Bad_List_View_Parameter;
 
    ----------------
    --  Callback  --
@@ -61,20 +61,21 @@ package body Organization_List is
      (Response_Object : in out Response.Object)
    is
       use Common;
-      use GNATCOLL.JSON;
       use HTTP_Codes;
       use Model.Organizations;
 
+      JS : JSON_String := Null_JSON_String;
       OL : Organization_List_Object;
    begin
-      OL.Get;
+      case Get_List_View (Response_Object) is
+         when Basic =>
+            JS := OL.To_JSON_String (View.Basic);
+         when Full =>
+            JS := OL.To_JSON_String (View.Full);
+      end case;
 
-      if OL.Length > 0 then
-         Response_Object.Set_Content (OL.To_JSON_String);
-
-         --  TODO: We need to handle the difference between Basic and Full
-         --  views.
-
+      if JS /= Null_JSON_String then
+         Response_Object.Set_Content (JS);
          Response_Object.Set_Cacheable (True);
          Response_Object.Set_HTTP_Status_Code (OK);
       else
@@ -86,9 +87,9 @@ package body Organization_List is
    --  Get_List_Kind  --
    ---------------------
 
-   function Get_List_Kind
+   function Get_List_View
      (Response_Object : in Response.Object)
-      return List_Type
+      return View_Type
    is
       use AWS.Status;
    begin
@@ -96,8 +97,8 @@ package body Organization_List is
          return Basic;
       end if;
 
-      return List_Type'Value
-        (Parameters (Response_Object.Get_Request).Get ("kind"));
-   end Get_List_Kind;
+      return View_Type'Value
+        (Parameters (Response_Object.Get_Request).Get ("view"));
+   end Get_List_View;
 
 end Organization_List;

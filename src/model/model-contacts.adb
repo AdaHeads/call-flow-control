@@ -21,6 +21,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Hash;
 with SQL_Statements;
 with Storage;
 with View.Contact;
@@ -46,27 +47,40 @@ package body Model.Contacts is
    --  Add_Attribute  --
    ---------------------
 
-   procedure Add_Attributes
-     (Contact   : in out Contact_Object;
-      Attribute : in     Model.Contacts_Attributes.Contact_Attributes_Object)
+   procedure Add_Attribute
+     (Self      : in out Contact_Object;
+      Attribute : in     Model.Contact_Attributes.Contact_Attributes_Object)
    is
    begin
-      Contact.Attr_Map.Include
-        (Attributes_Identifier'
-           (Attribute.Contact_Id, Attribute.Organization_Id),
-         Attribute);
-   end Add_Attributes;
+      Self.Attr_List.Add_Attributes (Attribute);
+   end Add_Attribute;
+
+   -------------------
+   --  Add_Contact  --
+   -------------------
+
+   procedure Add_Contact
+     (Self    : in out Contact_List_Object;
+      Contact : in     Contact_Object'Class;
+      O_Id    : in     Organization_Identifier)
+   is
+   begin
+      Self.Contacts.Include
+        (Key      => Organization_Contact_Identifier'(C_Id => Contact.C_Id,
+                                                      O_Id => O_Id),
+         New_Item => Contact_Object (Contact));
+   end Add_Contact;
 
    ------------------
    --  Attributes  --
    ------------------
 
    function Attributes
-     (Contact : in Contact_Object)
-      return Attributes_Map.Map
+     (Self : in Contact_Object)
+      return Model.Contact_Attributes.Contact_Attributes_List_Object
    is
    begin
-      return Contact.Attr_Map;
+      return Self.Attr_List;
    end Attributes;
 
    -----------------------
@@ -82,18 +96,15 @@ package body Model.Contacts is
       CO : Contact_Object;
    begin
       CO := Contact_Object'
-        (Attr_Map  => Attributes_Map.Empty_Map,
+        (Attr_List => Model.Contact_Attributes.Null_Contact_Attributes_List,
          C_Id      => Contact_Identifier (C.Integer_Value (0, Default => 0)),
          Full_Name => U (C.Value (1)),
          Is_Human  => C.Boolean_Value (2));
 
       while C.Has_Row loop
          if not C.Is_Null (3) then
-            CO.Attr_Map.Include
-              (Key      => Attributes_Identifier'
-                 (Contact_Identifier (C.Integer_Value (4, Default => 0)),
-                  Organization_Identifier (C.Integer_Value (5, Default => 0))),
-               New_Item => Model.Contacts_Attributes.Create
+            CO.Attr_List.Add_Attributes
+              (Model.Contact_Attributes.Create
                  (Id   => Attributes_Identifier'
                     (C_Id => Contact_Identifier
                        (C.Integer_Value (4, Default => 0)),
@@ -122,7 +133,7 @@ package body Model.Contacts is
       CO   : Contact_Object;
    begin
       CO := Contact_Object'
-        (Attr_Map  => Attributes_Map.Empty_Map,
+        (Attr_List => Model.Contact_Attributes.Null_Contact_Attributes_List,
          C_Id      => Contact_Identifier (C.Integer_Value (0, Default => 0)),
          Full_Name => U (C.Value (1)),
          Is_Human  => C.Boolean_Value (2));
@@ -131,9 +142,8 @@ package body Model.Contacts is
          A_Id := (Contact_Identifier (C.Integer_Value (4, Default => 0)),
                   Organization_Identifier (C.Integer_Value (5, Default => 0)));
 
-         CO.Attr_Map.Include
-           (Key      => A_Id,
-            New_Item => Model.Contacts_Attributes.Create
+         CO.Attr_List.Add_Attributes
+           (Model.Contact_Attributes.Create
               (Id   => A_Id,
                JSON => C.Json_Object_Value (3)));
       end if;
@@ -146,11 +156,11 @@ package body Model.Contacts is
    ------------------
 
    function Contact_Id
-     (Contact : in Contact_Object)
+     (Self : in Contact_Object)
       return Contact_Identifier
    is
    begin
-      return Contact.C_Id;
+      return Self.C_Id;
    end Contact_Id;
 
    --------------
@@ -165,10 +175,11 @@ package body Model.Contacts is
    is
       use Common;
    begin
-      return Contact_Object'(Attr_Map  => Attributes_Map.Empty_Map,
-                             C_Id      => C_Id,
-                             Full_Name => U (Full_Name),
-                             Is_Human  => Is_Human);
+      return Contact_Object'
+        (Attr_List => Model.Contact_Attributes.Null_Contact_Attributes_List,
+         C_Id      => C_Id,
+         Full_Name => U (Full_Name),
+         Is_Human  => Is_Human);
    end Create;
 
    ----------------------
@@ -176,7 +187,7 @@ package body Model.Contacts is
    ----------------------
 
    function Equal_Elements
-     (Left, Right : in Model.Contacts.Contact_Object)
+     (Left, Right : in Contact_Object)
       return Boolean
    is
       use type Model.Contacts.Contact_Object;
@@ -184,18 +195,17 @@ package body Model.Contacts is
       return Left = Right;
    end Equal_Elements;
 
-   ----------------------
-   --  Equal_Elements  --
-   ----------------------
+   -----------------------
+   --  Equivalent_Keys  --
+   -----------------------
 
-   function Equal_Elements
-     (Left, Right : in Model.Contacts_Attributes.Contact_Attributes_Object)
+   function Equivalent_Keys
+     (Left, Right : in Organization_Contact_Identifier)
       return Boolean
    is
-      use type Model.Contacts_Attributes.Contact_Attributes_Object;
    begin
       return Left = Right;
-   end Equal_Elements;
+   end Equivalent_Keys;
 
    ----------------
    --  For_Each  --
@@ -227,7 +237,7 @@ package body Model.Contacts is
    begin
       Fetch_Contact_Objects
         (Process_Element    => Process,
-         Prepared_Statement => SQL.Organization_Contacts_Prepared,
+         Prepared_Statement => SQL.Contacts_Prepared,
          Query_Parameters   => Parameters);
    end For_Each;
 
@@ -270,25 +280,23 @@ package body Model.Contacts is
    -----------------
 
    function Full_Name
-     (Contact : in Contact_Object)
+     (Self : in Contact_Object)
       return String
    is
    begin
-      return To_String (Contact.Full_Name);
+      return To_String (Self.Full_Name);
    end Full_Name;
 
    -----------
    --  Get  --
    -----------
 
-   function Get
-     (C_Id : in Contact_Identifier)
-      return Contact_Object
+   procedure Get
+     (Self : in out Contact_Object;
+      C_Id : in     Contact_Identifier)
    is
       procedure Get_Element
         (Contact : in Contact_Object'Class);
-
-      C : Contact_Object := Null_Contact_Object;
 
       -------------------
       --  Get_Element  --
@@ -298,11 +306,10 @@ package body Model.Contacts is
         (Contact : in Contact_Object'Class)
       is
       begin
-         C := Contact_Object (Contact);
+         Self := Contact_Object (Contact);
       end Get_Element;
    begin
       For_Each (C_Id, Get_Element'Access);
-      return C;
    end Get;
 
    -----------
@@ -345,7 +352,7 @@ package body Model.Contacts is
       procedure Get_Element
         (Contact : in Contact_Object'Class);
 
-      C : Contact_Object := Null_Contact_Object;
+      C : Contact_Object := Null_Contact;
 
       -------------------
       --  Get_Element  --
@@ -367,35 +374,37 @@ package body Model.Contacts is
    ----------------
 
    function Is_Human
-     (Contact : in Contact_Object)
+     (Self : in Contact_Object)
       return Boolean
    is
    begin
-      return Contact.Is_Human;
+      return Self.Is_Human;
    end Is_Human;
 
-   --------------
-   --  Length  --
-   --------------
+   ----------------
+   --  Key_Hash  --
+   ----------------
 
-   function Length
-     (Self : in Contact_List_Object)
-      return Natural
+   function Key_Hash
+     (Key : in Organization_Contact_Identifier)
+      return Ada.Containers.Hash_Type
    is
    begin
-      return Natural (Self.Contacts.Length);
-   end Length;
+      return Ada.Strings.Hash
+        (Contact_Identifier'Image (Key.C_Id) &
+           Organization_Identifier'Image (Key.O_Id));
+   end Key_Hash;
 
    ---------------
    --  To_JSON  --
    ---------------
 
    function To_JSON
-     (Contact : in Contact_Object)
+     (Self : in Contact_Object)
       return Common.JSON_String
    is
    begin
-      return View.Contact.To_JSON (Contact);
+      return View.Contact.To_JSON (Self);
    end To_JSON;
 
 end Model.Contacts;

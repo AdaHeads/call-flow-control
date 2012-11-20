@@ -21,8 +21,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers;
-
 package Model is
 
    type Contact_Identifier is mod 2 ** 31 - 1;
@@ -40,25 +38,5 @@ package Model is
    --  context of the O_Id organization.
    --  The same as Organization_Contact_Identifier, but with rename for clarity
    --  in the code.
-
-   function Equivalent_Keys
-     (Left, Right : in Attributes_Identifier)
-      return Boolean;
-   --  Key equivalence function used by hashed maps.
-
-   function Equivalent_Keys
-     (Left, Right : in Organization_Contact_Identifier)
-      return Boolean;
-   --  Key equivalence function used by hashed maps.
-
-   function Key_Hash
-     (Key : in Attributes_Identifier)
-      return Ada.Containers.Hash_Type;
-   --  Hashing function used by the hashed maps.
-
-   function Key_Hash
-     (Key : in Organization_Contact_Identifier)
-      return Ada.Containers.Hash_Type;
-   --  Hashing function used by the hashed maps.
 
 end Model;
