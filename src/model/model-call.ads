@@ -25,7 +25,7 @@ with Ada.Containers.Ordered_Maps;
 with Ada.Strings.Unbounded;
 with Model.Agent;
 with Common;
-with Call_ID;
+with Model.Call_ID;
 with GNATCOLL.JSON;
 
 package Model.Call is
@@ -33,7 +33,7 @@ package Model.Call is
    use GNATCOLL.JSON;
    use Common;
    use Model.Agent;
-   use Call_ID;
+   use Model.Call_ID;
 
    CALL_NOT_FOUND  : exception;
    DUPLICATE_ID    : exception;

@@ -27,11 +27,11 @@ with AMI.Callback;
 with AMI.Generic_Protocol_Strings;
 with AMI.Client;
 with Model.Call;
-with Call_ID;
+with Model.Call_ID;
 package AMI.Action is
    use Ada.Strings.Unbounded;
    use AMI.Client;
-   use Call_ID;
+   use Model.Call_ID;
    use Model.Call;
    
    type Status_Type is

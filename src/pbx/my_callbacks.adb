@@ -1,3 +1,4 @@
+
 -------------------------------------------------------------------------------
 --                                                                           --
 --                                  Alice                                    --
@@ -29,7 +30,7 @@ with System_Messages;
 with Model.Call;
 with Model.Peers;
 with Handlers.Notifications;
-with Call_ID;
+with Model.Call_ID;
 with JSON.Event;
 
 package body My_Callbacks is
@@ -38,7 +39,7 @@ package body My_Callbacks is
    use Ada.Strings.Unbounded;
    use Model.Call;
    use Model.Peers;
-   use Call_ID;
+   use Model.Call_ID;
 
    package Notifications renames Handlers.Notifications;
 

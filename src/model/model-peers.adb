@@ -39,7 +39,13 @@ package body Model.Peers is
    private
       List : Peer_List_Type.Map;
    end Peers_List;
-
+   
+   function Assign (Peer    : in out Peer_Type;
+                    Call_ID : in Call_ID_Type) return Call_Type is
+   begin
+      return Call_List.Get (Call_ID);
+   end Assign;
+   
    protected body Peers_List is
       function Get_Peer_By_ID (Agent_ID : in Unbounded_String)
                                return Peer_Type is

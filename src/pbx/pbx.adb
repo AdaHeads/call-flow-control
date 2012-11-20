@@ -112,7 +112,6 @@ package body PBX is
       if not Shutdown then
          System_Messages.Notify
            (Information, "PBX.Reader_Loop: Signalling disconnect: ");
-
          My_Connection_Manager.Signal_Disconnect;
          Authenticate;
       end if;

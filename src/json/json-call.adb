@@ -25,11 +25,11 @@ with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 
 with System_Messages;
-with Call_ID;
+with Model.Call_ID;
 package body JSON.Call is
    use GNATCOLL.JSON;
    use System_Messages;
-   use Call_ID;
+   use Model.Call_ID;
 
    Length_String : constant String := "length";
 

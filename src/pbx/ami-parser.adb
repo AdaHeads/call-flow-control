@@ -22,18 +22,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  with Errors;
---  with Yolk.Log;
 with Ada.Strings.Maps;
 with Ada.Strings.Fixed; use Ada.Strings.Fixed; -- For Index
 with Ada.Characters.Latin_1;
 
-with AWS.Net.Buffered;
-
 with System_Messages;   use System_Messages;
 
 package body AMI.Parser is
---  use Yolk.Log;
 
    function Hash_Equivalent_Keys (Left, Right : in AMI_Key_Type)
                                   return Boolean is
@@ -67,11 +62,9 @@ package body AMI.Parser is
       Current_Pair   : Pair_Type   := Null_Pair;
       Current_Packet : Packet_Type := New_Packet;
    begin
-
       loop
          Current_Pair := AMI.Parser.Parse_Line
-           (Line => AWS.Net.Buffered.Get_Line
-              (Socket => Client.Socket));
+           (Line => Client.Get_Line);
 
          --  We return on an empty line, meaning the packet is complete
          if Current_Pair = Empty_Line then

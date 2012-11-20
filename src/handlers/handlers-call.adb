@@ -34,7 +34,7 @@ with Model.Peers;
 with JSON.Call;
 
 with PBX;
-with Call_ID;
+with Model.Call_ID;
 with System_Messages;
 
 package body Handlers.Call is
@@ -55,7 +55,7 @@ package body Handlers.Call is
       use Common;
       use HTTP_Codes;
       use AWS.Status;
-      use Call_ID;
+      use Model.Call_ID;
 
       JSON    : JSON_String;
       Call_ID : constant String :=
@@ -77,9 +77,6 @@ package body Handlers.Call is
       begin
          System_Messages.Notify (Debug, "Hangup handle: call_id=" & Call_ID);
          AMI.Action.Hangup (PBX.Client_Access, Create (Call_ID));
-         --  ???? Why the conversion to Unbounded_String here? In most of the
-         --  other Routines methods you take a plain String and convert in the
-         --  method instead.
       exception
          when others =>
             System_Messages.Notify
@@ -154,7 +151,7 @@ package body Handlers.Call is
       use HTTP_Codes;
       use AWS.Status;
       use Model.Call;
-      use Call_ID;      
+      use Model.Call_ID;      
       Context         : constant String := "Handlers.Call.Hold";
       JSON            : JSON_String;
       Response_Object : Response.Object := Response.Factory (Request);
@@ -244,7 +241,7 @@ package body Handlers.Call is
       use Common;
       use HTTP_Codes;
       use Ada.Strings.Unbounded;
-      use Call_ID;
+      use Model.Call_ID;
 
       Agent   : constant String := Parameters (Request).Get ("agent_id");
       Call_ID : constant String := Parameters (Request).Get ("call_id");

@@ -22,12 +22,10 @@
 -------------------------------------------------------------------------------
 
 with AMI.Response;
-with Model.Call;
 with System_Messages;
 
 package body AMI.Action is
    use System_Messages;
-   use Model;
 
    procedure Bridge (Client   : access Client_Type;
                      ChannelA : in     String;
@@ -38,9 +36,8 @@ package body AMI.Action is
                     Protocol_Strings.Next_Action_ID;
    begin
       AMI.Response.Subscribe (Action_ID, Callback);
-      AMI.Client.Send
-        (Client => Client,
-         Item   => Protocol_Strings.Bridge
+      Client.Send
+        (Item   => Protocol_Strings.Bridge
            (Channel1  => ChannelA,
             Channel2  => ChannelB,
             Action_ID => Action_ID));
@@ -50,8 +47,6 @@ package body AMI.Action is
                      Call_ID  : in     Call_ID_Type;
                      Callback : in     AMI.Callback.Callback_Type
                        := AMI.Callback.Null_Callback'Access) is
-      use Model.Call;
-
       Call      : Call_Type;
       Action_ID : constant Action_ID_Type :=
                     Protocol_Strings.Next_Action_ID;
@@ -64,9 +59,8 @@ package body AMI.Action is
                               "Hangup Call: " & To_String (Call));
 
       AMI.Response.Subscribe (Action_ID, Callback);
-      AMI.Client.Send
-        (Client => Client,
-         Item   => Protocol_Strings.Hangup
+      Client.Send
+        (Item   => Protocol_Strings.Hangup
            (Ada.Strings.Unbounded.To_String (Call.Channel), Action_ID));
 
       System_Messages.Notify (Debug, "The Hangup routine is done.");
@@ -84,11 +78,10 @@ package body AMI.Action is
       AMI.Response.Subscribe (Action_ID, Callback);
       System_Messages.Notify (Debug, "AMI.Client.Login: Subscribed for " &
                                 "a reply with ActionID" & Action_ID'Img);
-      AMI.Client.Send (Client => Client,
-                       Item   => Protocol_Strings.Login
-                         (Username  => Username,
-                          Secret    => Secret,
-                          Action_ID => Action_ID));
+      Client.Send (Item   => Protocol_Strings.Login
+                     (Username  => Username,
+                      Secret    => Secret,
+                      Action_ID => Action_ID));
    end Login;
 
    procedure Park (Client   : access Client_Type;
@@ -143,12 +136,11 @@ package body AMI.Action is
 
       --  Move the call back to the queue
 
-      AMI.Client.Send
-        (Client => Client,
-         Item   =>      Protocol_Strings.Redirect
+      Client.Send
+        (Item   =>      Protocol_Strings.Redirect
            (Channel   => To_String (Call.Channel),
             Exten     => To_String (Call.Extension),
-            Context   => "LocalSets",
+            Context   => "LocalSets", --  TODO change to Agent.Context;
             Action_ID => Action_ID));
    end Park;
 
@@ -161,9 +153,8 @@ package body AMI.Action is
       AMI.Response.Subscribe (Action_ID, Callback);
       System_Messages.Notify (Debug, "AMI.Client.Ping: Subscribed for " &
                                 "a reply with ActionID" & Action_ID'Img);
-      AMI.Client.Send (Client => Client,
-                       Item   => Protocol_Strings.Ping
-                         (Action_ID => Action_ID));
+      Client.Send (Item   => Protocol_Strings.Ping
+                     (Action_ID => Action_ID));
    end Ping;
 
    --  Get the specific call with UniqueId matching
@@ -178,13 +169,12 @@ package body AMI.Action is
    begin
       AMI.Response.Subscribe (Action_ID, Callback);
       --  Send the call out to the phone
-      AMI.Client.Send
-        (Client => Client,
-          Item   => Protocol_Strings.Redirect
-            (Channel   => Channel,
-             Exten     => Extension,
-             Context   => "LocalSets",
-             Action_ID => Action_ID));
+      Client.Send
+        (Item   => Protocol_Strings.Redirect
+           (Channel   => Channel,
+            Exten     => Extension,
+            Context   => "LocalSets",
+            Action_ID => Action_ID));
    end Redirect;
 
 --  --  Takes two channels, and bridge the them together.

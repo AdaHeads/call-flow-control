@@ -2,7 +2,7 @@ with Ada.Strings.Fixed;
 
 with Common;
 
-package body Call_ID is
+package body Model.Call_ID is
    function Create (Item : String) return Call_ID_Type is
       Offset : constant Natural := Common.Index ('.', Item);
    begin
@@ -44,4 +44,4 @@ package body Call_ID is
         (Integer'Image (Call_ID.Sequence),
          Ada.Strings.Left);
    end To_String;
-end Call_ID;
+end Model.Call_ID;

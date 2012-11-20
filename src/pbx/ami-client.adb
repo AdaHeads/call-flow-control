@@ -34,7 +34,22 @@ package body AMI.Client is
    use System_Messages;
    use Ada.Strings.Unbounded;
 
+   function Create (On_Connect    : in Connection_Event_Handler;
+                    On_Disconnect : in Connection_Event_Handler)
+                   return Client_Type is
+      Socket : AWS.Net.Std.Socket_Type;
+   begin
+      return (Connected             => False,
+              Server_Greeting       => Null_Unbounded_String,
+              Authenticated         => Unknown,
+              Socket                => Socket,
+              On_Connect_Handler    => On_Connect,
+              On_Disconnect_Handler => On_Disconnect);
+   end Create;
+
    function Is_Connected (Client  : access Client_Type) return Boolean;
+   
+   
 
    function Is_Connected (Client  : access Client_Type) return Boolean is
       Socket_Event : AWS.Net.Event_Set;
@@ -105,6 +120,12 @@ package body AMI.Client is
          raise CONNECT_FAILED with Ada.Exceptions.Exception_Message (Error);
    end Connect;
 
+   function Get_Line (Client : in out Client_Type) return String is
+   begin
+      return AWS.Net.Buffered.Get_Line
+        (Socket => Client.Socket);
+   end Get_Line;
+
    procedure Send (Client : access Client_Type; 
 		   Item   : in     String) is
    begin
@@ -117,9 +138,36 @@ package body AMI.Client is
          Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
          raise AMI_SOCKET_NOT_CONNECTED;
    end Send;
-
+   
+   procedure Send (Client : in out Client_Type; 
+		   Item   : in     String) is
+   begin
+      AWS.Net.Buffered.Put (Client.Socket, Item);
+      AWS.Net.Buffered.Flush (Client.Socket);
+      System_Messages.Notify (Debug, "Send: Sent " & Item);
+   exception
+      when Error : others =>
+         Ada.Text_IO.Put ("Send: Unexpected exception: ");
+         Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
+         raise AMI_SOCKET_NOT_CONNECTED;
+   end Send;
+   
    procedure Disconnect (Client : access Client_Type) is
    begin
       AWS.Net.Buffered.Shutdown (Client.Socket);
    end Disconnect;
+
+   
+   procedure Set_Connection_State (Client    : access Client_Type;
+                                   New_State : in boolean) is
+   begin
+      Client.Connected := New_State;
+   end Set_Connection_State;
+      
+   
+   function Connected (Client : access Client_Type) return Boolean is
+   begin
+      return Client.Connected;
+   end Connected;
+
 end AMI.Client;

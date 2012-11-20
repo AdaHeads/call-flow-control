@@ -1,4 +1,4 @@
-package Call_ID is
+package Model.Call_ID is
    
    --  TODO: Make limited
    type Call_ID_Type is tagged record
@@ -18,4 +18,4 @@ package Call_ID is
                  Right : in Call_ID_Type) return Boolean;
 
    Null_Call_ID : constant Call_ID_Type := (-1,-1);
-end Call_ID;
+end Model.Call_ID;

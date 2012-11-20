@@ -22,11 +22,11 @@
 -------------------------------------------------------------------------------
 
 private with GNATCOLL.JSON;
-with Call_ID;
+with Model.Call_ID;
 
 package body JSON.Event is
    use GNATCOLL.JSON;
-   use Call_ID;
+   use Model.Call_ID;
 
    function Hangup_Call_To_JSON_Object (Call : in Call_Type)
                                        return GNATCOLL.JSON.JSON_Value;
