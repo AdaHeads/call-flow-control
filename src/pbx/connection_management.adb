@@ -1,7 +1,6 @@
 with Ada.Exceptions;
 
 with System_Messages; use System_Messages;
-with AMI.Client;
 
 package body Connection_Management is
    
@@ -13,7 +12,7 @@ package body Connection_Management is
    procedure Shutdown is
    begin
       Connection.Change_State (Shutdown);
-      AMI.Client.Disconnect(Client);
+      Client.Disconnect;
    end Shutdown;
    
    procedure Wait_For_Connection is
@@ -30,7 +29,7 @@ package body Connection_Management is
       procedure Try_Connect is
       begin
 	 if not Client.Connected and Connection.State /= Shutdown then
-	    AMI.Client.Connect(Client, Hostname, Port);
+	    Client.Connect (Hostname, Port);
 	 end if;
 	 
       exception 
@@ -42,8 +41,6 @@ package body Connection_Management is
    begin
       accept Start;
       loop
-	 Connection.Wait_For_Disconnect;
-	 
 	 exit when Connection.State = Shutdown;
 	 
 	 Try_Connect;
@@ -51,9 +48,8 @@ package body Connection_Management is
 	 if Client.Connected then
 	    Connection.Change_State (Connected);
 	 end if;
-	 
 	 delay Reconnection_Delay;
-	   
+	 Connection.Wait_For_Disconnect;
       end loop;
       System_Messages.Notify (Information, "Connection_Manager: Normal shutdown complete");
 

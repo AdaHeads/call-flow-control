@@ -105,7 +105,7 @@ package body AMI.Generic_Protocol_Strings is
    function CoreSettings (Action_ID : in Action_ID_Type) return String is
    begin
       return Action_String & CoreSettings_String & Line_Termination_String &
-        Asynchronous_Line (Action_ID) & Line_Termination_String &
+        Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end CoreSettings;
 

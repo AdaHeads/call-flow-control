@@ -1,10 +1,10 @@
-with AMI;
+with AMI.Client;
 
 package PBX is
    use AMI;
 
-   Client        : aliased Client_Type;
-   Client_Access : constant access Client_Type := Client'Access;
+   Client        : aliased AMI.Client.Client_Type;
+   Client_Access : constant access AMI.Client.Client_Type := Client'Access;
 
    procedure Start;
 

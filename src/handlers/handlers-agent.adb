@@ -23,13 +23,14 @@
 
 with Common;
 with HTTP_Codes;
-with Peers;
-with Peer_List_JSON;
 with Response;
 with System_Messages;
+with Model.Peers;
+with JSON.Peer;
 
 package body Handlers.Agent is
-
+   use Model;
+   use JSON.Peer;
    -------------
    --  Agent  --
    -------------
@@ -44,7 +45,7 @@ package body Handlers.Agent is
       JSON            : JSON_String;
       Response_Object : Response.Object := Response.Factory (Request);
    begin
-      JSON := Peer_List_JSON.To_JSON_String (Peers.Get_Peers_List);
+      JSON := To_JSON_String (Peers.Get_Peers_List);
 
       Response_Object.Set_HTTP_Status_Code (OK);
       Response_Object.Set_Content (JSON);
@@ -68,7 +69,7 @@ package body Handlers.Agent is
       Response_Object : Response.Object := Response.Factory (Request);
    begin
       Notify (Debug, Peers.List_As_String);
-      JSON := Peer_List_JSON.To_JSON_String (Peers.Get_Peers_List);
+      JSON := To_JSON_String (Peers.Get_Peers_List);
 
       Response_Object.Set_HTTP_Status_Code (OK);
       Response_Object.Set_Content (JSON);

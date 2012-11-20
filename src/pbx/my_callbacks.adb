@@ -1,3 +1,4 @@
+
 -------------------------------------------------------------------------------
 --                                                                           --
 --                                  Alice                                    --
@@ -21,27 +22,24 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with System_Messages;
-with Ada.Calendar;
 with Ada.Strings.Unbounded;
 
---  with AMI.Protocol;
-with Call_List;
-with Peers;
-with Handlers.Notifications;
+with Common; 
+with System_Messages;
 
-with Event_JSON;
+with Model.Call;
+with Model.Peers;
+with Handlers.Notifications;
+with Model.Call_ID;
+with JSON.Event;
 
 package body My_Callbacks is
-
+   use Common;
    use System_Messages;
    use Ada.Strings.Unbounded;
-   use Call_List;
-   --   use AMI.IO;
-   use Peers;
-   --   use Yolk.Log;
-
-   function Current_Time return Ada.Calendar.Time renames Ada.Calendar.Clock;
+   use Model.Call;
+   use Model.Peers;
+   use Model.Call_ID;
 
    package Notifications renames Handlers.Notifications;
 
@@ -52,7 +50,6 @@ package body My_Callbacks is
    procedure Agents is
    begin
       System_Messages.Notify (Debug, "Agents not implemented");
-      raise NOT_IMPLEMENTED with "Agents not implemented";
    end Agents;
 
    --  Lists agents
@@ -69,7 +66,6 @@ package body My_Callbacks is
    procedure Bridge is
    begin
       System_Messages.Notify (Debug, "Bridge not implemented");
-      raise NOT_IMPLEMENTED with "Bridge not implemented";
    end Bridge;
 
    --  Event: Dial
@@ -88,7 +84,6 @@ package body My_Callbacks is
    pragma Unreferenced (Packet);
    begin
       System_Messages.Notify (Debug, "Dial not implemented");
-      raise NOT_IMPLEMENTED with "Dial not implemented";
    end Dial;
 
    --  Event: Hangup
@@ -106,7 +101,8 @@ package body My_Callbacks is
       --  Temp_Value : Unbounded_String;
    begin
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Call_ID) then
-         Call := Call_List.Remove (Call_ID);
+         Call := Dequeue
+           (Call_ID => Create (To_String(Call_ID)));
 
          if Call = Null_Call then
             System_Messages.Notify
@@ -115,14 +111,14 @@ package body My_Callbacks is
                  " Call_ID: " & To_String (Call_ID));
          else
             System_Messages.Notify
-              (Debug, Package_Name & ".Hangup: Hung up " & Image (Call));
+              (Debug, Package_Name & ".Hangup: Hung up " & To_String (Call));
 
          end if;
       else
          --  At the very least, we require an identifier for the call.
          raise BAD_PACKET_FORMAT;
       end if;
-      Notifications.Broadcast (Event_JSON.Hangup_JSON_String (Call));
+      Notifications.Broadcast (JSON.Event.Hangup_JSON_String (Call));
    end Hangup;
 
    --  Event: Join
@@ -140,7 +136,7 @@ package body My_Callbacks is
    begin
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Temp_Value) then
          --  The call should exsists at this point.
-         Call := Call_List.Get_Call (Temp_Value);
+         Call := Get (Create (To_String (Temp_Value)));
       end if;
 
       --  There are no call with that ID, something is wrong.
@@ -162,16 +158,16 @@ package body My_Callbacks is
          return;
       end if;
 
-      if Call.State = Call_List.Unknown then
+      if Call.State = Unknown then
          System_Messages.Notify
            (Debug, "My_Callbacks.Join: Call unknown state");
-         Call.State := Call_List.Queued;
+         Call.State := Newly_Arrived;
 
          if Try_Get (Packet.Fields, AMI.Parser.Queue, Temp_Value) then
             Call.Queue := Temp_Value;
          end if;
 
-      elsif Call.State = Call_List.OnHold then
+      elsif Call.State = OnHold then
          null;
       else
          System_Messages.Notify
@@ -179,9 +175,10 @@ package body My_Callbacks is
               Call.State'Img);
       end if;
       System_Messages.Notify
-        (Debug, "My_Callbacks.Join: Call Updated: " & Image (Call));
-      Call_List.Update (Call);
-      Notifications.Broadcast (Event_JSON.New_Call_JSON_String (Call));
+        (Debug, "My_Callbacks.Join: Call Updated: " & To_String (Call));
+      Update (Call);
+      Notifications.Broadcast (JSON.Event.New_Call_JSON_String (Call));
+      
    end Join;
 
    --  Event: Newchannel
@@ -207,7 +204,7 @@ package body My_Callbacks is
       end if;
 
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Temp_Value) then
-         Call.Uniqueid := Temp_Value;
+         Call.ID := Create (To_String(Temp_Value));
       end if;
 
       if Try_Get (Packet.Fields, AMI.Parser.Exten, Temp_Value) then
@@ -217,7 +214,7 @@ package body My_Callbacks is
       --  Save the time when the call came in.
       Call.Arrived := Current_Time;
       Call.State := Unknown;
-      Call_List.Add (Call);
+      Insert (Call);
    end New_Channel;
 
    procedure New_State
@@ -255,7 +252,7 @@ package body My_Callbacks is
    --  Peer: SIP/softphone1
    --  PeerStatus: Unregistered
    procedure Peer_Status (Packet : in Packet_Type) is
-      use Peers.Peer_List_Type;
+      use Peer_List_Type;
 
       procedure Set_PhoneInfo
         (Peer : in out Peer_Type;
@@ -337,7 +334,7 @@ package body My_Callbacks is
          System_Messages.Notify
            (Debug, "My_Callbacks.Peer_Status: Inserted " & Image (Peer));
 
-         Peers.Insert_Peer (New_Item => Peer);
+         Insert_Peer (New_Item => Peer);
       else
          System_Messages.Notify
            (Error, "My_Callbacks.Peer_Status: No state information supplied " &
@@ -346,7 +343,7 @@ package body My_Callbacks is
       end if;
 
       --  Let the clients know about the change
-      Notifications.Broadcast (Event_JSON.Agent_State_JSON_String (Peer));
+      Notifications.Broadcast (JSON.Event.Agent_State_JSON_String (Peer));
    end Peer_Status;
 
    --  Event: QueueCallerAbandon
@@ -365,7 +362,7 @@ package body My_Callbacks is
       Hold_Time         : Integer := -1;
    begin
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Buffer) then
-         Call.Uniqueid := Buffer;
+         Call.ID := Create (To_String (Buffer));
       end if;
 
       if Try_Get (Packet.Fields, AMI.Parser.Position, Buffer) then
@@ -385,7 +382,7 @@ package body My_Callbacks is
       end if;
 
       System_Messages.Notify (Debug, "My.Callbacks.Queue_Abandon: Call_ID " &
-                                To_String (Call.Uniqueid) & " left queue " &
+                                To_String (Call.ID) & " left queue " &
                                 To_String (Queue) & " after" & Hold_Time'Img &
                                 " seconds. Position:" & Position'Img & "," &
                                 " original position" & Original_Position'Img);
@@ -413,7 +410,6 @@ package body My_Callbacks is
    procedure SIPPeers is
    begin
       System_Messages.Notify (Debug, "SipPeers_Callback not implemented");
-      raise NOT_IMPLEMENTED;
    end SIPPeers;
 
 end My_Callbacks;

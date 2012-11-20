@@ -83,30 +83,17 @@ DB2_User alice
 #        PBX event socket access        #
 #########################################
 
-PBX_Action_Secret Action_Secret
+PBX_Secret password
 # String.
-# Default: Action_Secret
+# Default: password
 #
-# The PBX Action password
+# The PBX password
 
-PBX_Action_User Action_User
+PBX_User username
 # String.
-# Default: Action_User
+# Default: username
 #
-# The PBX Action user
-
-PBX_Event_Secret Event_Secret
-# String.
-# Default: Event_Secret
-#
-# The PBX Event password
-# TODO: Come up with a more sane default
-
-PBX_Event_User Event_User
-# String.
-# Default: Event_User
-#
-# The PBX Event user
+# The PBX usernamer
 
 PBX_Host Asterisk_Host
 # String

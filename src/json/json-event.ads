@@ -21,48 +21,39 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Calendar;
 with Common;
 
-with Peers;
-with Call_List;
+with Model.Peers;
+with Model.Call;
 
-package Event_JSON is
+package JSON.Event is
    use Common;
+   use Model.Call;
+   use Model.Peers;
 
-   --  ----------------------  --
-   --  Call related functions  --
-   --  ----------------------  --
+   --  -------------------  --
+   --  Call related events  --
+   --  -------------------  --
 
-   function Hangup_JSON_String (Call : in Call_List.Call_Type)
+   function Hangup_JSON_String (Call : in Call_Type)
                                return JSON_String;
-   function New_Call_JSON_String (Call : in Call_List.Call_Type)
+   function New_Call_JSON_String (Call : in Call_Type)
+                                 return JSON_String;
+
+   function Pickup_Call_JSON_String (Call  : in Call_Type;
+                                     Agent : in Peer_Type)
                                 return JSON_String;
-   
-   function Pickup_Call_JSON_String (Call  : in Call_List.Call_Type;
-                                     Agent : in Peers.Peer_Type)
-                                return JSON_String;
-   
-   function Hold_Call_JSON_String (Call  : in Call_List.Call_Type)
+
+   function Hold_Call_JSON_String (Call  : in Call_Type)
                                   return JSON_String;
-   
-   function Transfer_Call_JSON_String (Call  : in Call_List.Call_Type)
+
+   function Transfer_Call_JSON_String (Call  : in Call_Type)
                                       return JSON_String;
 
-   --  ----------------------  --
-   --  Call related functions  --
-   --  ----------------------  --
+   --  --------------------  --
+   --  Agent related events  --
+   --  --------------------  --
 
-   function Agent_State_JSON_String (Agent : in Peers.Peer_Type)
+   function Agent_State_JSON_String (Agent : in Peer_Type)
                                     return JSON_String;
-private
-   --  function To_JSON_Object (Call : in Call_List.Call_Type)
-   --                           return GNATCOLL.JSON.JSON_Value;
-   --  takes a call and converts it to a JSON object.
-   
-   function Unix_Timestamp
-     (Date : in Ada.Calendar.Time)
-     return String;
-   --  Convert and trim an Ada.Calendar.Time type to a Unix timestamp
-   --  String.
-end Event_JSON;
+end JSON.Event;

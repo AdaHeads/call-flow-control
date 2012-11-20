@@ -23,22 +23,29 @@
 
 with System_Messages;
 
-package body Peers is
+package body Model.Peers is
    use System_Messages;
+
    ----------------------------------------------------------------------------
    --  TODO Navngivning, Der er brug for nogle bedre navne her.
    protected Peers_List is
       function Get_Peers_List return Peer_List_Type.Map;
       function Get_Peer_By_ID (Agent_ID : in Unbounded_String)
                                return Peer_Type;
-      function Get_Peer_By_PhoneName (PhoneName : in Unbounded_String)
+      function Get_Peer_By_PhoneName (PhoneName : in String)
                                       return Peer_Type;
       procedure Insert (Item : in Peer_Type);
       function List_As_String return String;
    private
       List : Peer_List_Type.Map;
    end Peers_List;
-
+   
+   function Assign (Peer    : in out Peer_Type;
+                    Call_ID : in Call_ID_Type) return Call_Type is
+   begin
+      return Call_List.Get (Call_ID);
+   end Assign;
+   
    protected body Peers_List is
       function Get_Peer_By_ID (Agent_ID : in Unbounded_String)
                                return Peer_Type is
@@ -55,17 +62,18 @@ package body Peers is
          return Null_Peer;
       end Get_Peer_By_ID;
 
-      function Get_Peer_By_PhoneName (PhoneName : in Unbounded_String)
+      function Get_Peer_By_PhoneName (PhoneName : in String)
                                       return Peer_Type is
          use Peer_List_Type;
-         Peer_Cursor : constant Peer_List_Type.Cursor := List.Find (PhoneName);
+         Peer_Cursor : constant Peer_List_Type.Cursor := 
+           List.Find (To_Unbounded_String (PhoneName));
       begin
          if Peer_Cursor = Peer_List_Type.No_Element then
-            return Null_Peer;
+            raise PEER_NOT_FOUND;
          else
             --  ???? Hvorfor kan jeg ikke få lov (continued)
             --       til at bruge den cursor jeg har - Peer_Cursor
-            return List.Element (PhoneName);
+            return List.Element (To_Unbounded_String (PhoneName));
          end if;
       end Get_Peer_By_PhoneName;
 
@@ -129,7 +137,7 @@ package body Peers is
       return Peers_List.Get_Peer_By_ID (Agent_ID);
    end Get_Peer_By_ID;
 
-   function Get_Peer_By_PhoneName (PhoneName : in Unbounded_String)
+   function Get_Peer_By_PhoneName (PhoneName : in String)
                                       return Peer_Type is
    begin
       return Peers_List.Get_Peer_By_PhoneName (PhoneName);
@@ -195,4 +203,4 @@ package body Peers is
       return Peers_List.List_As_String;
    end List_As_String;
 
-end Peers;
+end Model.Peers;

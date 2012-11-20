@@ -23,23 +23,27 @@
 
 with Ada.Calendar;
 with Ada.Containers.Hashed_Maps;
-with Ada.Containers.Vectors;
 with Ada.Strings.Hash;
 with Ada.Strings.Unbounded;
-with Call_List;
+with Model.Call;
+with Model.Call_ID;
 
-package Peers is
+package Model.Peers is
    use Ada.Containers;
    use Ada.Strings.Unbounded;
-
+   use Model.Call;
+   use Model.Call_ID;
+   
+   PEER_NOT_FOUND : exception;
+   
    type SIP_Peer_Status_Type is (Unknown, Unregistered, Idle, Busy, Paused);
 
-   package Call_List is new
-     Ada.Containers.Vectors (Index_Type   => Positive,
-                             Element_Type => Call_List.Call_Type,
-                             "="          => Call_List."=");
+   --  package Call_List is new
+   --    Ada.Containers.Vectors (Index_Type   => Positive,
+   --                            Element_Type => Model.Call.Call_Type,
+   --                            "="          => Model.Call."=");
 
-   type Peer_Type is
+   type Peer_Type is tagged
       record
          Agent_ID     : Unbounded_String;
          Defined      : Boolean := False;
@@ -57,6 +61,33 @@ package Peers is
          --  Dete skal kun symbolere de informationen, der måtte komme senere
       end record;
 
+   function Assign (Peer    : in out Peer_Type;
+                    Call_ID : in Call_ID_Type) return Call_Type;
+   
+   type Peer_Type_Access is access Peer_Type;
+   function Image (Item : in Peer_Type) Return String;
+   --     procedure Print_Peer (Peer : in Peer_Type);
+   procedure Insert_Peer (New_Item : in Peer_Type);
+   --  Inserts a new peer in the peer list, and overwrites existing peers with
+   --  the same key.
+
+   --  Debug
+   function List_As_String return String;
+--   function Image return String;
+   function Get_Peer_By_ID (Agent_ID : in Unbounded_String) return Peer_Type;
+   function Get_Peer_By_PhoneName (PhoneName : in String)
+                                   return Peer_Type;
+
+   function Hash (Peer_Address : in Unbounded_String) return Hash_Type;
+
+   package Peer_List_Type is new Ada.Containers.Hashed_Maps
+     (Key_Type        => Unbounded_String,
+      Element_Type    => Peer_Type,
+      Hash            => Hash,
+      Equivalent_Keys => "=");
+
+   function Get_Peers_List return Peer_List_Type.Map;
+   function Get_Exten (Peer : in Unbounded_String) return Unbounded_String;
    Null_Peer : Peer_Type :=
                  (Agent_ID     => Null_Unbounded_String,
                   Defined      => False,
@@ -71,28 +102,4 @@ package Peers is
                   Exten        => Null_Unbounded_String,
                   Computer_ID  => Null_Unbounded_String);
 
-   type Peer_Type_Access is access Peer_Type;
-
-   function Hash (Peer_Address : in Unbounded_String) return Hash_Type;
-
-   package Peer_List_Type is new Ada.Containers.Hashed_Maps
-     (Key_Type        => Unbounded_String,
-      Element_Type    => Peer_Type,
-      Hash            => Hash,
-      Equivalent_Keys => "=");
-
-   function Get_Peers_List return Peer_List_Type.Map;
-   function Get_Exten (Peer : in Unbounded_String) return Unbounded_String;
-   function Get_Peer_By_ID (Agent_ID : in Unbounded_String) return Peer_Type;
-   function Get_Peer_By_PhoneName (PhoneName : in Unbounded_String)
-                                   return Peer_Type;
-   function Image (Item : in Peer_Type) Return String;
-   --     procedure Print_Peer (Peer : in Peer_Type);
-   procedure Insert_Peer (New_Item : in Peer_Type);
-   --  Inserts a new peer in the peer list, and overwrites existing peers with
-   --  the same key.
-
-   --  Debug
-   function List_As_String return String;
---   function Image return String;
-end Peers;
+end Model.Peers;

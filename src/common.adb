@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                AMI.Event                                  --
+--                                 Common                                    --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -20,34 +20,33 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
+with Ada.Calendar.Conversions;
+with Ada.Strings.Fixed;
+with Ada.Strings;
+with Interfaces.C;
 
-with Ada.Strings.Unbounded;
-with System_Messages; use System_Messages;
-
-package body AMI.Event is
-
-   procedure Dispatch (Callback_Table : in Event_Callback_Table;
-                       Packet         : in Packet_Type) is
-      use Ada.Strings.Unbounded;
-      Event    : Event_Type;
+package body Common is
+   function Unix_Timestamp
+     (Date : in Time)
+     return String
+   is
+      use Ada.Strings;
+      use Interfaces.C;
    begin
-      Event := Event_Type'Value
-        (To_String (Packet.Header.Value));
+      return Fixed.Trim
+        (Source => long'Image 
+           (Ada.Calendar.Conversions.To_Unix_Time (Date)),
+         Side   => Left);
+   end Unix_Timestamp;
 
-      -- Launch the callback.
-      Callback_Table (Event) (Packet => Packet);
-
-   exception
-      when others =>
-         System_Messages.Notify (Error, "Unknown Event: " &
-                                 (To_String (Packet.Header.Value)));
-
-   end Dispatch;
-
-   procedure Null_Callback (Packet : in AMI.Parser.Packet_Type) is
+   function Index (Char : Character;
+                   Item : String) return Natural is
    begin
-      null;
-   end Null_Callback;
-
-
-end AMI.Event;
+      for I in Item'range loop
+         if Item (I) = Char then
+            return I;
+         end if;
+      end loop;
+      return 0;
+   end Index;
+end Common;   

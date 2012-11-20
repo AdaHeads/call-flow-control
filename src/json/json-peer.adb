@@ -9,7 +9,7 @@ private with GNATCOLL.JSON;
 with Interfaces.C;
 with System_Messages; use System_Messages;
 
-package body Peer_List_JSON is
+package body JSON.Peer is
    use GNATCOLL.JSON;
    use Ada.Strings.Unbounded;
    use Ada.Characters.Handling;
@@ -100,4 +100,4 @@ package body Peer_List_JSON is
         (Source => long'Image (To_Unix_Time (Date)),
          Side   => Left);
    end Unix_Timestamp;
-end Peer_List_JSON;
+end JSON.Peer;
