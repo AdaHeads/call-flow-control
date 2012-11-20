@@ -91,6 +91,7 @@ package body AMI.Action is
       Action_ID : constant Action_ID_Type :=
                     Protocol_Strings.Next_Action_ID;
    begin
+      AMI.Response.Subscribe (Action_ID, Callback);
       --  Finds the Agent, to get the call to park.
       --   Peer := Peers.Get_Peer (Agent_ID => To_Unbounded_String (Agent_ID));
       --        if Peer = Peers.null_Peer then
@@ -108,7 +109,6 @@ package body AMI.Action is
       --           return;
       --        end if;
 
-
       --  Move the call back to the Queue, which will act like a parking lot.
 
       --  TODO Update, There have to be an easier way
@@ -123,7 +123,7 @@ package body AMI.Action is
       if Call.Extension = Null_Unbounded_String or else
         To_String (Call.Extension) = "(null)" then
          raise BAD_EXTENSION;
-   
+
       elsif To_String (Call.Extension) = "" then
          raise EMPTY_EXTENSION;
       end if;

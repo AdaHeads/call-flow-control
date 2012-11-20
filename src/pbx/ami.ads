@@ -5,7 +5,7 @@ package AMI is
 
    Line_Termination_String : constant String := (1 => ASCII.CR, 2 => ASCII.LF);
 
-   Packet_Termination_String : constant String := 
+   Packet_Termination_String : constant String :=
      Line_Termination_String & Line_Termination_String;
 
    Key_Value_Seperator : constant String := Latin_1.Colon & Latin_1.Space;

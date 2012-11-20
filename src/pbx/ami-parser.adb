@@ -43,45 +43,33 @@ package body AMI.Parser is
       return AMI_Key_Type'Pos (Key);
    end Hash_Function;
 
-   function Try_Get (List  : in     Pair_List_Type.Map;
-                     Key   : in     AMI_Key_Type;
-                     Value :    out Unbounded_String) return Boolean is
+   function Image (Packet : in Packet_Type) return String is
    begin
-      if
-        List.Contains (Key => Key)
-      then
-         Value :=  List.Element (Key);
-         return True;
-      else
-         Value := Null_Unbounded_String;
-         return False;
-      end if;
-   end Try_Get;
-   
-   function Read_Packet (Client : access AMI.Client.Client_Type) return Packet_Type is 
-      Current_Pair   : Pair_Type   := Null_Pair;
-      Current_Packet : Packet_Type := New_Packet;
+      return "Header:" & Image (Packet.Header) & Image (Packet.Fields);
+   end Image;
+
+   function Image (List : in Pair_List_Type.Map) return String is
+      package Latin_1 renames Ada.Characters.Latin_1;
+      Buffer : Unbounded_String;
    begin
-      loop
-         Current_Pair := AMI.Parser.Parse_Line
-           (Line => Client.Get_Line);
 
-         --  We return on an empty line, meaning the packet is complete
-         if Current_Pair = Empty_Line then
-            return Current_Packet;
-
-            --  Fill the header
-         elsif Current_Packet.Header = Null_Pair then
-            Current_Packet.Header := Current_Pair;
-
-            --  Or simply insert a key/value pair
-         elsif Current_Pair.Key /= Null_Key then
-            Current_Packet.Fields.Insert
-              (Key      => Current_Pair.Key,
-               New_Item => Current_Pair.Value);
-         end if;
+      for Cursor in List.Iterate loop
+         Append (Buffer,
+                 Latin_1.LF &
+                   "[" & Pair_List_Type.Key (Cursor)'Img &
+                   "] => [" &
+                   Pair_List_Type.Element (Cursor) &
+                   "]");
       end loop;
-   end Read_Packet;
+
+      return To_String (Buffer);
+   end Image;
+
+   function Image (Item : in Pair_Type) return String is
+   begin
+      return "[" & AMI_Key_Type'Image (Item.Key) &
+        "] => [" & To_String (Item.Value) & "]";
+   end Image;
 
    --  Tokenizes a line into a key-value Pair_Type
    function Parse_Line (Line : in String) return Pair_Type is
@@ -114,12 +102,12 @@ package body AMI.Parser is
 
       --  This one really isn't needed, but improves readability of
       --  the source code - hopefully.
-      Key_Length := Seperator_Index-Key_Value_Seperator'Length;
+      Key_Length := Seperator_Index - Key_Value_Seperator'Length;
       Key        := AMI_Key_Type'Value
-	(Translate(Source  => Line (Line'First .. Line'First+Key_Length),
-		   Mapping => Underscore_Map));
+        (Translate (Source  => Line (Line'First .. Line'First + Key_Length),
+                    Mapping => Underscore_Map));
 
-      -- Return the anonymous object
+      --  Return the anonymous object
       return (Key   => Key,
               Value => To_Unbounded_String
                 (Line (Line'First + Seperator_Index + 1 .. Line'Last)));
@@ -131,37 +119,50 @@ package body AMI.Parser is
          return Bad_Line;
       when BAD_LINE_FORMAT =>
          System_Messages.Notify
-           (System_Messages.Error, "AMI.Parser.Parse_Line: Malformatted line """ &
-              Line & """");
+           (System_Messages.Error,
+            "AMI.Parser.Parse_Line: Malformatted line """ &
+            Line & """");
          return Bad_Line;
    end Parse_Line;
 
-   function Image (Packet : in Packet_Type) return String is
+   function Read_Packet (Client : access AMI.Client.Client_Type)
+                         return Packet_Type is
+      Current_Pair   : Pair_Type   := Null_Pair;
+      Current_Packet : Packet_Type := New_Packet;
    begin
-      return "Header:" & Image (Packet.Header) & Image (Packet.Fields);
-   end Image;
+      loop
+         Current_Pair := AMI.Parser.Parse_Line
+           (Line => Client.Get_Line);
 
-   function Image (List : in Pair_List_Type.Map) return String is
-      package Latin_1 renames Ada.Characters.Latin_1;
-      Buffer : Unbounded_String;
-   begin
+         --  We return on an empty line, meaning the packet is complete
+         if Current_Pair = Empty_Line then
+            return Current_Packet;
 
-      for Cursor in List.Iterate loop
-         Append (Buffer,
-                 Latin_1.LF &
-                   "[" & Pair_List_Type.Key (Cursor)'Img &
-                   "] => [" &
-                   Pair_List_Type.Element (Cursor) &
-                   "]");
+            --  Fill the header
+         elsif Current_Packet.Header = Null_Pair then
+            Current_Packet.Header := Current_Pair;
+
+            --  Or simply insert a key/value pair
+         elsif Current_Pair.Key /= Null_Key then
+            Current_Packet.Fields.Insert
+              (Key      => Current_Pair.Key,
+               New_Item => Current_Pair.Value);
+         end if;
       end loop;
+   end Read_Packet;
 
-      return To_String (Buffer);
-   end Image;
-
-   function Image (Item : in Pair_Type) return String is
+   function Try_Get (List  : in     Pair_List_Type.Map;
+                     Key   : in     AMI_Key_Type;
+                     Value :    out Unbounded_String) return Boolean is
    begin
-      return "[" & AMI_Key_Type'Image (Item.Key) &
-        "] => [" & To_String (Item.Value) & "]";
-   end Image;
-
+      if
+        List.Contains (Key => Key)
+      then
+         Value :=  List.Element (Key);
+         return True;
+      else
+         Value := Null_Unbounded_String;
+         return False;
+      end if;
+   end Try_Get;
 end AMI.Parser;

@@ -26,8 +26,8 @@ with Ada.Strings.Unbounded;
 
 with AMI.Client;
 package AMI.Parser is
-   use Ada.Strings.Unbounded;   
-   
+   use Ada.Strings.Unbounded;
+
    type AMI_Key_Type is
      (Null_Key,
       To,
@@ -113,7 +113,6 @@ package AMI.Parser is
       ReportBlock,
       SubEvent,
       Dialstring
-      
      );
 
    subtype AMI_Header_Key_Type is AMI_Key_Type range Event .. Response;
@@ -172,8 +171,9 @@ package AMI.Parser is
    function Parse_Line (Line : in String) return Pair_Type;
    --  Takes a line of text, with key-value pairs structured:
    --  Key: Value<CRLF>
-   
-   function Read_Packet (Client : access AMI.Client.Client_Type) return Packet_Type;
+
+   function Read_Packet (Client : access AMI.Client.Client_Type)
+                         return Packet_Type;
    --  Continously calls Read_Line and Parse_Line untill a complete packet has
    --  been assembled.
 

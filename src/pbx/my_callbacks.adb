@@ -24,7 +24,7 @@
 
 with Ada.Strings.Unbounded;
 
-with Common; 
+with Common;
 with System_Messages;
 
 with Model.Call;
@@ -102,7 +102,7 @@ package body My_Callbacks is
    begin
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Call_ID) then
          Call := Dequeue
-           (Call_ID => Create (To_String(Call_ID)));
+           (Call_ID => Create (To_String (Call_ID)));
 
          if Call = Null_Call then
             System_Messages.Notify
@@ -178,7 +178,6 @@ package body My_Callbacks is
         (Debug, "My_Callbacks.Join: Call Updated: " & To_String (Call));
       Update (Call);
       Notifications.Broadcast (JSON.Event.New_Call_JSON_String (Call));
-      
    end Join;
 
    --  Event: Newchannel
@@ -204,7 +203,7 @@ package body My_Callbacks is
       end if;
 
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Temp_Value) then
-         Call.ID := Create (To_String(Temp_Value));
+         Call.ID := Create (To_String (Temp_Value));
       end if;
 
       if Try_Get (Packet.Fields, AMI.Parser.Exten, Temp_Value) then

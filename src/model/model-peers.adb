@@ -39,13 +39,7 @@ package body Model.Peers is
    private
       List : Peer_List_Type.Map;
    end Peers_List;
-   
-   function Assign (Peer    : in out Peer_Type;
-                    Call_ID : in Call_ID_Type) return Call_Type is
-   begin
-      return Call_List.Get (Call_ID);
-   end Assign;
-   
+
    protected body Peers_List is
       function Get_Peer_By_ID (Agent_ID : in Unbounded_String)
                                return Peer_Type is
@@ -65,7 +59,7 @@ package body Model.Peers is
       function Get_Peer_By_PhoneName (PhoneName : in String)
                                       return Peer_Type is
          use Peer_List_Type;
-         Peer_Cursor : constant Peer_List_Type.Cursor := 
+         Peer_Cursor : constant Peer_List_Type.Cursor :=
            List.Find (To_Unbounded_String (PhoneName));
       begin
          if Peer_Cursor = Peer_List_Type.No_Element then
@@ -153,22 +147,19 @@ package body Model.Peers is
       return Ada.Strings.Hash (To_String (Peer_Address));
    end Hash;
 
-   function Image (Item : in Peer_Type) Return String is
+   function Image (Item : in Peer_Type) return String is
    begin
-      return 
-        "Agent_ID => " & To_String(Item.Agent_ID) & ", " &
+      return
+        "Agent_ID => " & To_String (Item.Agent_ID) & ", " &
         "Defined => " & Item.Defined'Img & ", " &
         "Status => " & Item.State'Img  & ", " &
         "ChannelType => " & To_String (Item.ChannelType) & ", " &
         "Peer => " & To_String (Item.Peer) & ", " &
-        
         "Port => " & To_String (Item.Port) & ", " &
         "Address => " & To_String (Item.Address) & ", " &
         "Paused => " & Item.Paused'Img & ", " &
         --  "Last_Seen => " & Image (Item.Last_Seen) & ", " &
         "Exten => " & To_String (Item.Exten);
-
-        --   Computer_ID : Unbounded_String;
    end Image;
 
    procedure Insert_Peer (New_Item : in Peer_Type) is

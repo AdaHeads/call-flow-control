@@ -1,6 +1,6 @@
 with AMI.Client;
 
-generic 
+generic
    Client     : access AMI.Client.Client_Type;
    Hostname   : String;
    Port       : Natural;
@@ -11,7 +11,7 @@ package Connection_Management is
    use AMI;
 
    Reconnection_Delay : constant Duration := 3.0;
-   
+
    procedure Wait_For_Connection;
    --  Blocking call to enable tasks to wait for a connection.
 
@@ -24,7 +24,7 @@ private
 
    type Connection_State_Type is (Connected, Not_Connected, Shutdown);
 
-   task Reconnection_Task is  
+   task Reconnection_Task is
      entry Start;
    end Reconnection_Task;
 

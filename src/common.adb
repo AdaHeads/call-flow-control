@@ -26,6 +26,17 @@ with Ada.Strings;
 with Interfaces.C;
 
 package body Common is
+   function Index (Char : Character;
+                   Item : String) return Natural is
+   begin
+      for I in Item'Range loop
+         if Item (I) = Char then
+            return I;
+         end if;
+      end loop;
+      return 0;
+   end Index;
+
    function Unix_Timestamp
      (Date : in Time)
      return String
@@ -34,19 +45,8 @@ package body Common is
       use Interfaces.C;
    begin
       return Fixed.Trim
-        (Source => long'Image 
+        (Source => long'Image
            (Ada.Calendar.Conversions.To_Unix_Time (Date)),
          Side   => Left);
    end Unix_Timestamp;
-
-   function Index (Char : Character;
-                   Item : String) return Natural is
-   begin
-      for I in Item'range loop
-         if Item (I) = Char then
-            return I;
-         end if;
-      end loop;
-      return 0;
-   end Index;
-end Common;   
+end Common;

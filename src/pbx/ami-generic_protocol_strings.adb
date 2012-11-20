@@ -38,7 +38,6 @@ package body AMI.Generic_Protocol_Strings is
    Bridge_String           : constant String := "Bridge";
    CoreSettings_String     : constant String := "CoreSettings";
    GetVar_String           : constant String := "GetVar";
-   Login_String            : constant String := "Login";
    Logoff_String           : constant String := "Logoff";
    Hangup_String           : constant String := "Hangup";
    Park_String             : constant String := "Park";
@@ -63,7 +62,7 @@ package body AMI.Generic_Protocol_Strings is
    Secret_String           : constant String := "Secret: ";
    Variable_String         : constant String := "Variable: ";
    Value_String            : constant String := "Value: ";
-   Username_String         : constant String := "Username: ";
+   Username_String         : constant String := "Username";
 
    Paused : constant array (Pause_States) of String (1 .. 1)
      := (Pause => "0", UnPause => "1");
@@ -135,7 +134,7 @@ package body AMI.Generic_Protocol_Strings is
    begin
       return
         Action_String & Action_Type'Image (Login) & Line_Termination_String &
-        Username_String & Username        & Line_Termination_String &
+        Username_String & Separator & Username    & Line_Termination_String &
         Secret_String & Secret            & Line_Termination_String &
         Asynchronous_Line (Action_ID) &
         Line_Termination_String;

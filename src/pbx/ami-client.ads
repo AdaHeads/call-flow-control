@@ -27,47 +27,54 @@ package AMI.Client is
 
    CONNECT_TIMEOUT : exception;
    CONNECT_FAILED  : exception;
-   
-   type Autenticated_Type is (Unknown, No_Reply, 
-  			      Authenticated, Not_Authenticated);
+   GET_LINE_FAILED : exception;
+   SEND_FAILED     : exception;
+
+   type Autenticated_Type is (Unknown, No_Reply,
+                              Authenticated, Not_Authenticated);
    --   type Client_Type is limited private;
    --  TODO: Move to private.
    --  type Socket_Type is new AWS.Net.Std.Socket_Type with null record;
-   
+
    type Connection_Event_Handler is not null access procedure;
-   
+
    procedure Null_Callback is null;
-   
+
    type Client_Type is tagged
       record
-	 Connected             : Boolean := False;
-	 Server_Greeting       : Ada.Strings.Unbounded.Unbounded_String;
-	 Authenticated         : Autenticated_Type := Unknown;
-	 Socket                : AWS.Net.Std.Socket_Type;
-         On_Connect_Handler    : Connection_Event_Handler := Null_Callback'Access;
-         On_Disconnect_Handler : Connection_Event_Handler := Null_Callback'Access;
-      end record; 
-   
+         Connected             : Boolean := False;
+         Server_Greeting       : Ada.Strings.Unbounded.Unbounded_String;
+         Authenticated         : Autenticated_Type := Unknown;
+         Socket                : AWS.Net.Std.Socket_Type;
+         On_Connect_Handler    : Connection_Event_Handler
+           := Null_Callback'Access;
+         On_Disconnect_Handler : Connection_Event_Handler
+           := Null_Callback'Access;
+      end record;
+
    function Create (On_Connect    : in Connection_Event_Handler;
                     On_Disconnect : in Connection_Event_Handler)
                    return Client_Type;
 
-   procedure Connect (Client   : access Client_Type;
-		      Hostname : in   String;
-		      Port     : in     Natural); 
+   procedure Connect (Client   : in out Client_Type;
+                      Hostname : in   String;
+                      Port     : in     Natural);
 
-   procedure Disconnect (Client : access Client_Type); 
+   procedure Disconnect (Client : in out Client_Type);
 
    function Get_Line (Client : in out Client_Type) return String;
 
-   procedure Send (Client : access Client_Type; 
-		   Item   : in     String);
-   -- Send an abitrary string
-   
-   function Connected (Client : access Client_Type) return Boolean;
+   procedure Send (Client : in out Client_Type;
+                   Item   : in     String);
+   --  Send an abitrary string
 
-   procedure Set_Connection_State (Client    : access Client_Type;
-                                   New_State : in boolean);
+   function Is_Connected (Client  : in out  Client_Type) return Boolean;
+
+   --  TODO: Deprecate this.
+   function Connected (Client : in out Client_Type) return Boolean;
+   --  TODO: Deprecate this.
+   procedure Set_Connection_State (Client    : in out Client_Type;
+                                   New_State : in     Boolean);
 
 private
 end AMI.Client;

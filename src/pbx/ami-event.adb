@@ -34,7 +34,7 @@ package body AMI.Event is
       Event := Event_Type'Value
         (To_String (Packet.Header.Value));
 
-      -- Launch the callback.
+      --  Launch the callback.
       Callback_Table (Event) (Packet => Packet);
 
    exception
@@ -48,6 +48,5 @@ package body AMI.Event is
    begin
       null;
    end Null_Callback;
-
 
 end AMI.Event;

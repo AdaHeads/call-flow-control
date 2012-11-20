@@ -1,5 +1,4 @@
 package Model.Call_ID is
-   
    --  TODO: Make limited
    type Call_ID_Type is tagged record
       Timestamp : Integer;
@@ -13,9 +12,9 @@ package Model.Call_ID is
 
    function "<" (Left  : in Call_ID_Type;
                  Right : in Call_ID_Type) return Boolean;
-   
+
    function "=" (Left  : in Call_ID_Type;
                  Right : in Call_ID_Type) return Boolean;
 
-   Null_Call_ID : constant Call_ID_Type := (-1,-1);
+   Null_Call_ID : constant Call_ID_Type := (-1, -1);
 end Model.Call_ID;

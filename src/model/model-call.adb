@@ -27,15 +27,20 @@ package body Model.Call is
    use System_Messages;
 
    protected body Protected_Call_List_Type is
+      function Contains (Call_ID : in Call_ID_Type) return Boolean is
+      begin
+         return List.Contains (Call_ID);
+      end Contains;
+
       --  Places the call, in the queue.
       procedure Insert (Call : in Call_Type) is
       begin
          List.Insert
            (Key       => Call.ID,
             New_Item  => Call);
-         
-      exception 
-         when CONSTRAINT_ERROR =>
+
+      exception
+         when Constraint_Error =>
             if List.Element (Key => Call.ID).ID = Call.ID then
                raise DUPLICATE_ID with "key " & To_String (Call.ID) &
                  " already in map.";
@@ -53,7 +58,7 @@ package body Model.Call is
 
       function Get (Call_ID : in Call_ID_Type) return Call_Type is
          Call : constant Call_Type :=
-           List.Element (Key => Call_ID);    
+           List.Element (Key => Call_ID);
       begin
          if Call = Null_Call then
             raise CALL_NOT_FOUND;
@@ -79,7 +84,7 @@ package body Model.Call is
               "This uniqueid could not be found in the call queue." &
               " Call.ID: " & To_String (Call_ID));
       end Remove;
-      
+
       function To_JSON return JSON_Value is
          Value     : JSON_Value := Create_Object;
          JSON_List : JSON_Array;
@@ -106,8 +111,12 @@ package body Model.Call is
 
       procedure Update (Call : in Call_Type) is
       begin
-         List.Replace (Key      => Call.ID,
-                       New_Item => Call);
+         if List.Contains (Call.ID) then
+            List.Replace (Key      => Call.ID,
+                          New_Item => Call);
+         else
+            raise CALL_NOT_FOUND;
+         end if;
       end Update;
 
       function Next return Call_Type is
@@ -115,8 +124,7 @@ package body Model.Call is
          return List.First_Element;
       end Next;
    end Protected_Call_List_Type;
-   
-   
+
    -- -------- --
    -- Wrappers --
    -- -------- --
@@ -143,13 +151,13 @@ package body Model.Call is
       Call_List.Update (Call);
    end Update;
 
-    function Dequeue (Call_ID : in Call_ID_Type) return Call_Type is
+   function Dequeue (Call_ID : in Call_ID_Type) return Call_Type is
       Call : constant Call_Type := Call_List.Get (Call_ID);
    begin
       if Call = Null_Call then
          raise CALL_NOT_FOUND;
       else
-         Call_List.Remove (Call_ID);         
+         Call_List.Remove (Call_ID);
       end if;
 
       return Call;
@@ -159,7 +167,7 @@ package body Model.Call is
    -- Conversion Utilities --
    -- -------------------- --
 
-    --  Gives the length of the call queue.
+   --  Gives the length of the call queue.
    function Length return Long_Integer is
    begin
       return Call_List.Length;
@@ -181,9 +189,7 @@ package body Model.Call is
          Value.Set_Field ("org_id", Org_ID);
          Value.Set_Field ("call_id",  To_String (Call.ID));
          Value.Set_Field ("arrival_time", Unix_Timestamp (Call.Arrived));
-         
-         Root.Set_Field ("call",Value);
-         
+         Root.Set_Field ("call", Value);
       end if;
       return Root;
    end To_JSON;
@@ -198,7 +204,7 @@ package body Model.Call is
       Append (Response, ", State => "    & Call.State'Img);
       return To_String (Response);
    end To_String;
-   
+
    -- -------------------- --
    -- Overloaded operators --
    -- -------------------- --
@@ -206,7 +212,7 @@ package body Model.Call is
    function "=" (Left  : in Call_Type;
                  Right : in Call_Type) return Boolean is
    begin
-      return (Left.ID.Timestamp = Right.ID.Timestamp) and 
+      return (Left.ID.Timestamp = Right.ID.Timestamp) and
                 (Left.ID.Sequence = Right.ID.Sequence);
    end  "=";
 

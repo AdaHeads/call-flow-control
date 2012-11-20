@@ -51,15 +51,15 @@ package body AMI.Response is
       Reponse_List.Delete (Key); --  And delete the subscription.
 
    exception
-      when CONSTRAINT_ERROR =>
+      when Constraint_Error =>
          System_Messages.Notify
            (Information, "AMI.Response.Notify: Bad index : " & Key'Img);
       when Error : others =>
-         System_Messages.Notify (Debug, "AMI.Response.Notify: Unexpected exception: ");
-         System_Messages.Notify (Debug, Ada.Exceptions.Exception_Information (Error));
-
+         System_Messages.Notify
+           (Debug, "AMI.Response.Notify: Unexpected exception: ");
+         System_Messages.Notify
+           (Debug, Ada.Exceptions.Exception_Information (Error));
    end Notify;
-
 
    --  Response list specific functions
 
@@ -77,7 +77,7 @@ package body AMI.Response is
 
    procedure Wait_For (Action_ID : in Action_ID_Type) is
    begin
-      raise PROGRAM_ERROR with "Not implemented";
+      raise Program_Error with "Not implemented";
    end Wait_For;
 
    function Image (List : in Response_List_Type.Map) return String is
@@ -95,6 +95,4 @@ package body AMI.Response is
 
       return Ada.Strings.Unbounded.To_String (Buffer);
    end Image;
-
-
 end AMI.Response;

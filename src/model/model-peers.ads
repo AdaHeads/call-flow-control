@@ -25,17 +25,13 @@ with Ada.Calendar;
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Hash;
 with Ada.Strings.Unbounded;
-with Model.Call;
-with Model.Call_ID;
 
 package Model.Peers is
    use Ada.Containers;
    use Ada.Strings.Unbounded;
-   use Model.Call;
-   use Model.Call_ID;
-   
+
    PEER_NOT_FOUND : exception;
-   
+
    type SIP_Peer_Status_Type is (Unknown, Unregistered, Idle, Busy, Paused);
 
    --  package Call_List is new
@@ -61,11 +57,8 @@ package Model.Peers is
          --  Dete skal kun symbolere de informationen, der måtte komme senere
       end record;
 
-   function Assign (Peer    : in out Peer_Type;
-                    Call_ID : in Call_ID_Type) return Call_Type;
-   
    type Peer_Type_Access is access Peer_Type;
-   function Image (Item : in Peer_Type) Return String;
+   function Image (Item : in Peer_Type) return String;
    --     procedure Print_Peer (Peer : in Peer_Type);
    procedure Insert_Peer (New_Item : in Peer_Type);
    --  Inserts a new peer in the peer list, and overwrites existing peers with

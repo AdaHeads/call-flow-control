@@ -56,81 +56,35 @@ package body Handlers.Call is
       use HTTP_Codes;
       use AWS.Status;
       use Model.Call_ID;
+      use Model.Call;
 
-      JSON    : JSON_String;
-      Call_ID : constant String :=
-        Parameters (Request).Get ("call_id");
+      Call_ID         : constant Call_ID_Type :=
+        Create (Item => Parameters (Request).Get ("Call_ID"));
       Response_Object : Response.Object := Response.Factory (Request);
-      Status          : Routines.Status_Type;
-      --  ???? Perhaps renaming Status to Call_Status, PBX_Status or something
-      --  else would make things more clear? It clashes somewhat with the
-      --  HTTP request Status_Code.
-      Status_Code     : AWS.Messages.Status_Code;
    begin
-      --   ???? Why do we have a block here? All it seems to do is catch
-      --  "unknown" exceptions. Can't these just as well be caught in the main
-      --  block?
-      declare
+      System_Messages.Notify
+        (Debug, "Hangup handle: call_id=" & Call_ID.To_String);
+      AMI.Action.Hangup (PBX.Client_Access, Call_ID);
 
-         --  ???? Agent? This constant is used with the Routines.Hangup
-         --  procedure which takes a Call_Id. Bug or by design?
-      begin
-         System_Messages.Notify (Debug, "Hangup handle: call_id=" & Call_ID);
-         AMI.Action.Hangup (PBX.Client_Access, Create (Call_ID));
-      exception
-         when others =>
-            System_Messages.Notify
-              (Debug, "Exception in Call_Queue.Call_Hangup");
+      Response_Object.Set_HTTP_Status_Code (OK);
+      Response_Object.Set_Content (Status_Message
+              ("Success", "Hangup completed"));
 
-            Response_Object.Set_HTTP_Status_Code (Server_Error);
-            Response_Object.Set_Content
+      if not Call_List.Contains (Call_ID => Call_ID) then
+         Response_Object.Set_HTTP_Status_Code (Not_Found);
+         Response_Object.Set_Content
               (Status_Message
-                 ("Exception", "Something went wrong"));
-
-            return Response_Object.Build;
-      end;
-
-      --  ???? It seems to me that this case block is more or less repeated
-      --  verbatim in this package. Perhaps it could/should be sourced into
-      --  its own local method?
-      case Status is
-         when Routines.Success =>
-            JSON := Status_Message
-              ("Success", "Hangup completed");
-            Status_Code := OK;
-         when Routines.No_Agent_Found =>
-            JSON := Status_Message
-              ("No Agent",
-               "No agent was found by that name");
-            Status_Code := Bad_Request;
-         when Routines.No_Call_Found =>
-            JSON := Status_Message
-              ("No Call",
-               "The agent had no call to hangup");
-            Status_Code := No_Content;
-         when others =>
-            JSON := Status_Message
-              ("Unknownen Error",
-               "Something went wrong");
-            Status_Code := Bad_Request;
-            --  ???? Shouldn't this be Server_Error?
-      end case;
-
-      System_Messages.Notify (Debug,
-             "Hangup is now returning the response. "
-             & "Status code: " & Status_Code'Img & ". JSON:"
-             & To_String (JSON));
-
-      Response_Object.Set_HTTP_Status_Code (Status_Code);
-      Response_Object.Set_Content (JSON);
+                 ("status", "not found"));
+         return Response_Object.Build;
+      end if;
 
       return Response_Object.Build;
+
    exception
       when others =>
          --  ???? What exceptions are we expecting, and why do we not catch
          --  exceptions in any of the other methods in this package?
          System_Messages.Notify (Debug, "Exception in Hangup");
-
          Response_Object.Set_HTTP_Status_Code (Server_Error);
          Response_Object.Set_Content
            (Status_Message
@@ -151,60 +105,39 @@ package body Handlers.Call is
       use HTTP_Codes;
       use AWS.Status;
       use Model.Call;
-      use Model.Call_ID;      
-      Context         : constant String := "Handlers.Call.Hold";
-      JSON            : JSON_String;
-      Response_Object : Response.Object := Response.Factory (Request);
-      Status          : Routines.Status_Type;
-      Status_Code     : AWS.Messages.Status_Code;
-      Call_ID         : Call_ID_Type := 
-        Create (Item => Parameters (Request).Get ("Call_ID"));
-      Call            : Call_Type := Get (Call_ID);
-   begin
-      System_Messages.Notify (Debug, "Call_Queue_Handler.Park started");
-      
-      if Call = Null_Call then
-         System_Messages.Notify
-           (Debug, Context & ": Call not found, ID: " & Call_ID.To_String);
-      end if;
+      use Model.Call_ID;
 
-      System_Messages.Notify (Debug,
-                              "Park: Action send, Call_ID => " & Call_ID.To_String);
+      Context         : constant String := "Handlers.Call.Hold";
+      Response_Object : Response.Object := Response.Factory (Request);
+      Call_ID         : constant Call_ID_Type :=
+        Create (Item => Parameters (Request).Get ("Call_ID"));
+      Call            : constant Call_Type := Get (Call_ID);
+   begin
+      System_Messages.Notify
+        (Debug, "Park: Action send, Call_ID => " & Call_ID.To_String);
 
       Routines.Park (PBX.Client_Access, Call);
 
-      case Status is
-         when Routines.Success =>
-            Status_Code := OK;
-            JSON := Status_Message
-              ("Success",
-               "The command is being process");
-
-         when Routines.No_Call_Found =>
-            Status_Code := No_Content;
-            JSON := Status_Message
-              ("No Call",
-               "There was no call to park");
-
-         when Routines.No_Agent_Found =>
-            Status_Code := Bad_Request;
-            JSON := Status_Message
-              ("No Agent",
-               "There was no agent by that name");
-         when others =>
-            Status_Code := Server_Error;
-            JSON := Status_Message
-              ("Woops",
-               "Something went wrong");
-      end case;
-
-      Response_Object.Set_HTTP_Status_Code (Status_Code);
-      Response_Object.Set_Content (JSON);
+      Response_Object.Set_HTTP_Status_Code (OK);
+      Response_Object.Set_Content
+        (Status_Message ("Success", "Request received"));
 
       return Response_Object.Build;
-      --  ???? No exception handler? Is the caller of Call_Hold expected to
-      --  deal with unhandled issues happening in for example Routines.Park,
-      --  Parameters, Call_Queue_JSON.Status_Message or Build_JSON_Response?
+   exception
+      when CALL_NOT_FOUND =>
+         System_Messages.Notify
+           (Debug, Context & ": Call not found, ID: " & Call_ID.To_String);
+         Response_Object.Set_HTTP_Status_Code (Bad_Request);
+         Response_Object.Set_Content
+           (Status_Message
+              ("bad request", "No call available to put on hold"));
+         return Response_Object.Build;
+      when others =>
+         Response_Object.Set_HTTP_Status_Code (Server_Error);
+         Response_Object.Set_Content
+           (Status_Message
+              ("oops", "Stuff went wrong :-("));
+         return Response_Object.Build;
    end Hold;
 
    ------------
@@ -222,7 +155,8 @@ package body Handlers.Call is
       --  ???? Odd naming. See ???? comment for Call_List.Call_List_Type.
    begin
       Response_Object.Set_HTTP_Status_Code (OK);
-      Response_Object.Set_Content (To_JSON_String (Model.Call.Call_List.To_JSON.Write));
+      Response_Object.Set_Content
+        (To_JSON_String (Model.Call.Call_List.To_JSON.Write));
 
       return Response_Object.Build;
    end List;
@@ -337,7 +271,8 @@ package body Handlers.Call is
       --  Why not just have a function in the Call_List package that return
       --  the final JSON and use that directly in the Build_JSON_Response call?
       Response_Object.Set_HTTP_Status_Code (OK);
-      Response_Object.Set_Content (Common.To_JSON_String (Model.Call.Call_List.To_JSON.Write));
+      Response_Object.Set_Content
+        (Common.To_JSON_String (Model.Call.Call_List.To_JSON.Write));
 
       return Response_Object.Build;
    end Queue;

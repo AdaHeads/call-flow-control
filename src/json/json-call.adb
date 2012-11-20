@@ -61,8 +61,7 @@ package body JSON.Call is
          Value.Set_Field ("org_id", Org_ID);
          Value.Set_Field ("call_id",  To_String (Call.ID));
          Value.Set_Field ("arrival_time", Unix_Timestamp (Call.Arrived));
-         
-         Root.Set_Field ("call",Value);
+         Root.Set_Field ("call", Value);
 
       end if;
       return Root;

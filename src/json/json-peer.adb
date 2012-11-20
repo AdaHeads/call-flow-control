@@ -16,11 +16,10 @@ package body JSON.Peer is
 
    function To_JSON_Object (Peer : in Peers.Peer_Type)
                            return GNATCOLL.JSON.JSON_Value;
-   
+
    function To_JSON_Object (Peer_List : in Peers.Peer_List_Type.Map)
                            return GNATCOLL.JSON.JSON_Value;
 
-   
    function To_JSON_String (Peer : in Peers.Peer_Type)
                              return JSON_String is
       JSON : JSON_Value;
@@ -29,7 +28,7 @@ package body JSON.Peer is
 
       return To_JSON_String (JSON.Write);
    end To_JSON_String;
-      
+
    function To_JSON_String (Peer_List : in Peers.Peer_List_Type.Map)
                                   return JSON_String is
       JSON : JSON_Value;
@@ -46,24 +45,25 @@ package body JSON.Peer is
       JSON      : constant JSON_Value := Create_Object;
       Peer_JSON : constant JSON_Value := Create_Object;
    begin
-      System_Messages.Notify (Debug, Peers.Image (Peer) );
-      Peer_JSON.Set_Field ("Agent_ID", To_String(Peer.Agent_Id));
+      System_Messages.Notify (Debug, Peers.Image (Peer));
+      Peer_JSON.Set_Field ("Agent_ID", To_String (Peer.Agent_ID));
       Peer_JSON.Set_Field ("Defined", Peer.Defined);
-      Peer_JSON.Set_Field ("State", To_Lower(Peer.State'Img));
-      Peer_JSON.Set_Field ("Last_State", To_Lower(Peer.Last_State'Img));
+      Peer_JSON.Set_Field ("State", To_Lower (Peer.State'Img));
+      Peer_JSON.Set_Field ("Last_State", To_Lower (Peer.Last_State'Img));
       Peer_JSON.Set_Field ("ChannelType", To_String (Peer.ChannelType));
       Peer_JSON.Set_Field ("Peer", To_String (Peer.Peer));
       Peer_JSON.Set_Field ("Port", To_String (Peer.Port));
       Peer_JSON.Set_Field ("Address", To_String (Peer.Address));
       Peer_JSON.Set_Field ("Paused", Peer.Paused);
-      Peer_JSON.Set_Field ("Last_Seen", Ada.Calendar.Formatting.Image (Peer.Last_Seen));
+      Peer_JSON.Set_Field ("Last_Seen",
+                           Ada.Calendar.Formatting.Image (Peer.Last_Seen));
       Peer_JSON.Set_Field ("Exten", Peer.Exten);
       JSON.Set_Field ("peer", Peer_JSON);
       JSON.Set_Field ("timestamp", Unix_Timestamp (Current_Time));
 
       return JSON;
-   end To_JSON_Object;      
-   
+   end To_JSON_Object;
+
    function To_JSON_Object (Peer_List : in Peers.Peer_List_Type.Map)
                            return GNATCOLL.JSON.JSON_Value is
       JSON_List : JSON_Array;
@@ -86,7 +86,7 @@ package body JSON.Peer is
    --  -----------------  --
    --  Utility functions  --
    --  -----------------  --
-   
+
    function Unix_Timestamp
      (Date : in Ada.Calendar.Time)
      return String

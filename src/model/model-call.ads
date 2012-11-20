@@ -23,7 +23,7 @@
 
 with Ada.Containers.Ordered_Maps;
 with Ada.Strings.Unbounded;
-with Model.Agent;
+with Model.Agent_ID;
 with Common;
 with Model.Call_ID;
 with GNATCOLL.JSON;
@@ -32,14 +32,14 @@ package Model.Call is
    use Ada.Strings.Unbounded;
    use GNATCOLL.JSON;
    use Common;
-   use Model.Agent;
+   use Model.Agent_ID;
    use Model.Call_ID;
 
    CALL_NOT_FOUND  : exception;
    DUPLICATE_ID    : exception;
    BAD_EXTENSION   : exception;
    EMPTY_EXTENSION : exception;
-     
+
    type Call_State is
      (Unknown, Newly_Arrived, Speaking, Ringing, OnHold, Delegated, Hung_Up);
    type Priority_Level is (Invalid, Low, Normal, High);
@@ -60,7 +60,7 @@ package Model.Call is
          Arrived        : Time := Current_Time;
          Assigned_To    : Agent_ID_Type := 0;
       end record;
-   
+
    procedure Insert (Call : in Call_Type);
    --  Places a call in the call_List.
 
@@ -76,16 +76,14 @@ package Model.Call is
    function To_String (Call : in Call_Type) return String;
    function To_JSON (Call : in Call_Type) return JSON_Value;
 
-   
    function "=" (Left  : in Call_Type;
                  Right : in Call_Type) return Boolean;
 
    function Get (Call_ID : in Call_ID_Type) return Call_Type;
    --  Returns the call with the specified Call_ID.
-      
+
    function Dequeue (Call_ID : in Call_ID_Type) return Call_Type;
    --  Removes the call with the specified Call_ID and returns it.
-
 
    type Call_Process_Type is not null access procedure (Call : in Call_Type);
 
@@ -108,7 +106,8 @@ package Model.Call is
      Ada.Containers.Ordered_Maps (Key_Type   => Call_ID_Type,
                                   Element_Type => Call_Type);
 
-   protected type Protected_Call_List_Type is 
+   protected type Protected_Call_List_Type is
+      function Contains (Call_ID : in Call_ID_Type) return Boolean;
       procedure Insert (Call : in Call_Type);
       procedure Remove (Call_ID : in Call_ID_Type);
       function Get (Call_ID : Call_ID_Type) return Call_Type;
@@ -117,11 +116,14 @@ package Model.Call is
       function To_String return String;
       procedure For_Each (Process : in Call_Process_Type);
       procedure Update (Call : in Call_Type);
+      --  Replaces the call at the ID location with the call supplied.
+      --  Raises CALL_NOT_FOUND if there is no call to replace.
+
       function Next return Call_Type;
    private
       List : Call_List_Type.Map;
    end Protected_Call_List_Type;
 
    Call_List : Protected_Call_List_Type;
-   -- Package-visible singleton.
+   --  Package-visible singleton.
 end Model.Call;

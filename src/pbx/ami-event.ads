@@ -94,7 +94,8 @@ package AMI.Event is
      );
 
    type Event_Callback is access procedure (Packet : in Packet_Type);
-   --  Prototype for an event handler. Every handler must implement this signature
+   --  Prototype for an event handler.
+   --  Every handler must implement this signature
 
    type Event_Callback_Table is array (Event_Type) of Event_Callback;
    --  Lookup table for event handlers
