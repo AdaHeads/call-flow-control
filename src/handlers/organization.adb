@@ -39,7 +39,8 @@ package body Organization is
    is
       use System_Message;
    begin
-      Error.Bad_Org_Id_Key.Notify (Message, Response_Object);
+      Error.Bad_Org_Id_Key (Message         => Message,
+                            Response_Object => Response_Object);
    end Bad_Org_Id;
 
    ----------------
@@ -69,13 +70,13 @@ package body Organization is
       O.Get_Full (O_Id => Get_Org_Id (Response_Object));
 
       if O /= Null_Organization then
-         Response_Object.Set_Cacheable (True);
-         Response_Object.Set_HTTP_Status_Code (OK);
+         Response_Object.Cacheable (True);
+         Response_Object.HTTP_Status_Code (OK);
       else
-         Response_Object.Set_HTTP_Status_Code (Not_Found);
+         Response_Object.HTTP_Status_Code (Not_Found);
       end if;
 
-      Response_Object.Set_Content (O.To_JSON_String (View.Full));
+      Response_Object.Content (O.To_JSON_String (View.Full));
    end Generate_Document;
 
    ------------------
@@ -89,7 +90,7 @@ package body Organization is
       use AWS.Status;
    begin
       return Model.Organization_Identifier'Value
-        (Parameters (Response_Object.Get_Request).Get ("org_id"));
+        (Parameters (Response_Object.Status_Data).Get ("org_id"));
    end Get_Org_Id;
 
 end Organization;

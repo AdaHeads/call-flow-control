@@ -23,19 +23,24 @@
 
 package System_Message.Info is
 
-   Alice_Startup : constant Info_Log_Object := Create
-     (Status => "Alice startup");
+   procedure Alice_Start is new Logger
+     (Log_Trace => Yolk.Log.Info,
+      Status    => "Alice startup");
 
-   Alice_Stop : constant Info_Log_Object := Create
-     (Status => "Alice controlled shutdown. Goodbye");
+   procedure Alice_Stop is new Logger
+     (Log_Trace => Yolk.Log.Info,
+      Status    => "Alice controlled shutdown. Goodbye");
 
-   Notifications_WebSocket_Created : constant Info_Log_Object := Create
-     (Status => "Created a /notifications WebSocket");
+   procedure Notifications_WebSocket_Created is new Logger
+     (Log_Trace => Yolk.Log.Info,
+      Status    => "Created a /notifications WebSocket");
 
-   Notifications_WebSocket_Opened : constant Info_Log_Object := Create
-     (Status => "Opened a /notifications WebSocket");
+   procedure Notifications_WebSocket_Opened is new Logger
+     (Log_Trace => Yolk.Log.Info,
+      Status    => "Opened a /notifications WebSocket");
 
-   Notifications_WebSocket_Closed : constant Info_Log_Object := Create
-     (Status => "Closed a /notifications WebSocket");
+   procedure Notifications_WebSocket_Closed is new Logger
+     (Log_Trace => Yolk.Log.Info,
+      Status    => "Closed a /notifications WebSocket");
 
 end System_Message.Info;

@@ -66,13 +66,13 @@ package body Handlers.Call is
         (Debug, "Hangup handle: call_id=" & Call_ID.To_String);
       AMI.Action.Hangup (PBX.Client_Access, Call_ID);
 
-      Response_Object.Set_HTTP_Status_Code (OK);
-      Response_Object.Set_Content (Status_Message
+      Response_Object.HTTP_Status_Code (OK);
+      Response_Object.Content (Status_Message
               ("Success", "Hangup completed"));
 
       if not Call_List.Contains (Call_ID => Call_ID) then
-         Response_Object.Set_HTTP_Status_Code (Not_Found);
-         Response_Object.Set_Content
+         Response_Object.HTTP_Status_Code (Not_Found);
+         Response_Object.Content
               (Status_Message
                  ("status", "not found"));
          return Response_Object.Build;
@@ -85,8 +85,8 @@ package body Handlers.Call is
          --  ???? What exceptions are we expecting, and why do we not catch
          --  exceptions in any of the other methods in this package?
          System_Messages.Notify (Debug, "Exception in Hangup");
-         Response_Object.Set_HTTP_Status_Code (Server_Error);
-         Response_Object.Set_Content
+         Response_Object.HTTP_Status_Code (Server_Error);
+         Response_Object.Content
            (Status_Message
               ("Exception", "Something went wrong"));
 
@@ -118,8 +118,8 @@ package body Handlers.Call is
 
       Routines.Park (PBX.Client_Access, Call);
 
-      Response_Object.Set_HTTP_Status_Code (OK);
-      Response_Object.Set_Content
+      Response_Object.HTTP_Status_Code (OK);
+      Response_Object.Content
         (Status_Message ("Success", "Request received"));
 
       return Response_Object.Build;
@@ -127,14 +127,14 @@ package body Handlers.Call is
       when CALL_NOT_FOUND =>
          System_Messages.Notify
            (Debug, Context & ": Call not found, ID: " & Call_ID.To_String);
-         Response_Object.Set_HTTP_Status_Code (Bad_Request);
-         Response_Object.Set_Content
+         Response_Object.HTTP_Status_Code (Bad_Request);
+         Response_Object.Content
            (Status_Message
               ("bad request", "No call available to put on hold"));
          return Response_Object.Build;
       when others =>
-         Response_Object.Set_HTTP_Status_Code (Server_Error);
-         Response_Object.Set_Content
+         Response_Object.HTTP_Status_Code (Server_Error);
+         Response_Object.Content
            (Status_Message
               ("oops", "Stuff went wrong :-("));
          return Response_Object.Build;
@@ -154,8 +154,8 @@ package body Handlers.Call is
       Response_Object : Response.Object := Response.Factory (Request);
       --  ???? Odd naming. See ???? comment for Call_List.Call_List_Type.
    begin
-      Response_Object.Set_HTTP_Status_Code (OK);
-      Response_Object.Set_Content
+      Response_Object.HTTP_Status_Code (OK);
+      Response_Object.Content
         (To_JSON_String (Model.Call.Call_List.To_JSON.Write));
 
       return Response_Object.Build;
@@ -226,26 +226,26 @@ package body Handlers.Call is
          --  (Status_Message ("Success", "The request is being processed"));
       end if;
 
-      Response_Object.Set_HTTP_Status_Code (Status_Code);
-      Response_Object.Set_Content (Content);
+      Response_Object.HTTP_Status_Code (Status_Code);
+      Response_Object.Content (Content);
 
       return Response_Object.Build;
 
    exception
       when PEER_NOT_FOUND =>
-         Response_Object.Set_HTTP_Status_Code (Bad_Request);
-         Response_Object.Set_Content
+         Response_Object.HTTP_Status_Code (Bad_Request);
+         Response_Object.Content
            (Status_Message
               ("No Parameter", "There exsist no agent by that name"));
          return Response_Object.Build;
 
       when CALL_NOT_FOUND =>
-         Response_Object.Set_HTTP_Status_Code (No_Content);
+         Response_Object.HTTP_Status_Code (No_Content);
          return Response_Object.Build;
 
       when others =>
-         Response_Object.Set_HTTP_Status_Code (Server_Error);
-         Response_Object.Set_Content
+         Response_Object.HTTP_Status_Code (Server_Error);
+         Response_Object.Content
            (Status_Message
               ("Woops", "Something went wrong at the server"));
          return Response_Object.Build;
@@ -270,8 +270,8 @@ package body Handlers.Call is
       --  hassle of getting a Call_List_Type.Vector? Do we need this here?
       --  Why not just have a function in the Call_List package that return
       --  the final JSON and use that directly in the Build_JSON_Response call?
-      Response_Object.Set_HTTP_Status_Code (OK);
-      Response_Object.Set_Content
+      Response_Object.HTTP_Status_Code (OK);
+      Response_Object.Content
         (Common.To_JSON_String (Model.Call.Call_List.To_JSON.Write));
 
       return Response_Object.Build;

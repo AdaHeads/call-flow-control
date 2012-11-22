@@ -23,6 +23,7 @@
 
 with Ada.Strings.Fixed;
 with AWS.Response.Set;
+with AWS.URL;
 
 package body Response is
 
@@ -128,6 +129,30 @@ package body Response is
       return D;
    end Build;
 
+   -----------------
+   --  Cacheable  --
+   -----------------
+
+   procedure Cacheable
+     (O     :    out Object;
+      Value : in     Boolean)
+   is
+   begin
+      O.Is_Cacheable := Value;
+   end Cacheable;
+
+   ---------------
+   --  Content  --
+   ---------------
+
+   procedure Content
+     (O     :    out Object;
+      Value : in     Common.JSON_String)
+   is
+   begin
+      O.Content := Value;
+   end Content;
+
    ---------------
    --  Factory  --
    ---------------
@@ -142,52 +167,42 @@ package body Response is
       end return;
    end Factory;
 
-   -------------------
-   --  Get_Request  --
-   -------------------
+   ------------------------
+   --  HTTP_Status_Code  --
+   ------------------------
 
-   function Get_Request
-     (O : in Object)
-      return AWS.Status.Data
-   is
-   begin
-      return O.Request;
-   end Get_Request;
-
-   ---------------------
-   --  Set_Cacheable  --
-   ---------------------
-
-   procedure Set_Cacheable
-     (O     :    out Object;
-      Value : in     Boolean)
-   is
-   begin
-      O.Is_Cacheable := Value;
-   end Set_Cacheable;
-
-   -------------------
-   --  Set_Content  --
-   -------------------
-
-   procedure Set_Content
-     (O     :    out Object;
-      Value : in     Common.JSON_String)
-   is
-   begin
-      O.Content := Value;
-   end Set_Content;
-
-   ----------------------------
-   --  Set_HTTP_Status_Code  --
-   ----------------------------
-
-   procedure Set_HTTP_Status_Code
+   procedure HTTP_Status_Code
      (O     :    out Object;
       Value : in     AWS.Messages.Status_Code)
    is
    begin
       O.HTTP_Status_Code := Value;
-   end Set_HTTP_Status_Code;
+   end HTTP_Status_Code;
+
+   -------------------
+   --  Request_URL  --
+   -------------------
+
+   function Request_URL
+     (O : in Object)
+      return String
+   is
+      use AWS.Status;
+      use AWS.URL;
+   begin
+      return URL (URI (O.Request));
+   end Request_URL;
+
+   -------------------
+   --  Status_Data  --
+   -------------------
+
+   function Status_Data
+     (O : in Object)
+      return AWS.Status.Data
+   is
+   begin
+      return O.Request;
+   end Status_Data;
 
 end Response;

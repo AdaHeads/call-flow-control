@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                         System_Message.Critical                           --
+--                                 Contact                                   --
 --                                                                           --
---                                  SPEC                                     --
+--                                  BODY                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,26 +21,32 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with HTTP_Codes;
+with System_Message.Error;
 
-package System_Message.Critical is
+package body Not_Found is
 
-   procedure Alice_Shutdown_With_Exception is new Logger
-     (Log_Trace => Yolk.Log.Critical,
-      Status    => "Shutting down Alice due to unhandled exception");
+   ----------------
+   --  Callback  --
+   ----------------
 
-   procedure Lost_Database_Connection is new Logger
-     (Log_Trace => Yolk.Log.Critical,
-      Status    => "Lost connection to database");
+   function Callback
+     return AWS.Dispatchers.Callback.Handler
+   is
+   begin
+      return AWS.Dispatchers.Callback.Create (JSON_Response'Access);
+   end Callback;
 
-   procedure Response_Exception is new Log_And_Respond
-     (Description => "Exception raised while trying to generate content",
-      Log_Trace   => Yolk.Log.Critical,
-      Status      => "server error",
-      Status_Code => HTTP_Codes.Server_Error);
+   -------------------------
+   --  Generate_Document  --
+   -------------------------
 
-   procedure Unknown_User is new Logger
-     (Log_Trace => Yolk.Log.Critical,
-      Status    => "Cannot change user for process");
+   procedure Generate_Document
+     (Response_Object : in out Response.Object)
+   is
+      use System_Message;
+   begin
+      Error.Not_Found (Message         => Response_Object.Request_URL,
+                       Response_Object => Response_Object);
+   end Generate_Document;
 
-end System_Message.Critical;
+end Not_Found;

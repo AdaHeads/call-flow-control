@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                         System_Message.Critical                           --
+--                                Not_Found                                  --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,26 +21,24 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with HTTP_Codes;
+with AWS.Dispatchers.Callback;
+with Response.Not_Cached;
 
-package System_Message.Critical is
+package Not_Found is
 
-   procedure Alice_Shutdown_With_Exception is new Logger
-     (Log_Trace => Yolk.Log.Critical,
-      Status    => "Shutting down Alice due to unhandled exception");
+   function Callback
+     return AWS.Dispatchers.Callback.Handler;
+   --  Return a callback for the "contact" interface.
 
-   procedure Lost_Database_Connection is new Logger
-     (Log_Trace => Yolk.Log.Critical,
-      Status    => "Lost connection to database");
+private
 
-   procedure Response_Exception is new Log_And_Respond
-     (Description => "Exception raised while trying to generate content",
-      Log_Trace   => Yolk.Log.Critical,
-      Status      => "server error",
-      Status_Code => HTTP_Codes.Server_Error);
+   procedure Generate_Document
+     (Response_Object : in out Response.Object);
+   --  Add a generated JSON_String to Response_Object and set HTTP status code
+   --  and whether the JSON_String is cacheable.
 
-   procedure Unknown_User is new Logger
-     (Log_Trace => Yolk.Log.Critical,
-      Status    => "Cannot change user for process");
+   function JSON_Response is new Response.Not_Cached.Generate_Response
+     (Generate_Document => Generate_Document);
+   --  Generate the AWS.Response.Data that ultimately is delivered to the user.
 
-end System_Message.Critical;
+end Not_Found;

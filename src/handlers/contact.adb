@@ -38,7 +38,9 @@ package body Contact is
    is
       use System_Message;
    begin
-      Error.Bad_Contact_Id.Notify (Message, Response_Object);
+      Error.Bad_Contact_Id
+        (Message         => Message,
+         Response_Object => Response_Object);
    end Bad_Contact_Id;
 
    ----------------
@@ -68,13 +70,13 @@ package body Contact is
       C.Get (Get_Contact_Id (Response_Object));
 
       if C /= Null_Contact then
-         Response_Object.Set_Cacheable (True);
-         Response_Object.Set_HTTP_Status_Code (OK);
+         Response_Object.Cacheable (True);
+         Response_Object.HTTP_Status_Code (OK);
       else
-         Response_Object.Set_HTTP_Status_Code (Not_Found);
+         Response_Object.HTTP_Status_Code (Not_Found);
       end if;
 
-      Response_Object.Set_Content (C.To_JSON);
+      Response_Object.Content (C.To_JSON);
    end Generate_Document;
 
    ----------------------
@@ -89,7 +91,7 @@ package body Contact is
       use Model;
    begin
       return Contact_Identifier'Value
-        (Parameters (Response_Object.Get_Request).Get ("ce_id"));
+        (Parameters (Response_Object.Status_Data).Get ("ce_id"));
    end Get_Contact_Id;
 
 end Contact;

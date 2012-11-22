@@ -68,7 +68,7 @@ package body Handlers.Notifications is
    is
       use System_Message;
    begin
-      Info.Notifications_WebSocket_Created.Notify;
+      Info.Notifications_WebSocket_Created;
 
       return Object'(AWS.Net.WebSocket.Object
                      (AWS.Net.WebSocket.Create (Socket, Request))
@@ -88,7 +88,7 @@ package body Handlers.Notifications is
 
       use System_Message;
    begin
-      Info.Notifications_WebSocket_Closed.Notify;
+      Info.Notifications_WebSocket_Closed;
    end On_Close;
 
    ---------------
@@ -104,7 +104,7 @@ package body Handlers.Notifications is
 
       use System_Message;
    begin
-      Info.Notifications_WebSocket_Opened.Notify;
+      Info.Notifications_WebSocket_Opened;
    end On_Open;
 
 end Handlers.Notifications;

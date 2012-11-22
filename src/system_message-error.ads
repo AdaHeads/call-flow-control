@@ -25,29 +25,33 @@ with HTTP_Codes;
 
 package System_Message.Error is
 
-   Bad_Contact_Id : constant Error_Log_And_Response_Object := Create
+   procedure Bad_Contact_Id is new Log_And_Respond
      (Description => "ce_id must be a valid natural integer",
+      Log_Trace   => Yolk.Log.Error,
       Status      => "bad request",
       Status_Code => HTTP_Codes.Bad_Request);
 
-   Bad_List_Kind : constant Error_Log_And_Response_Object := Create
+   procedure Bad_List_Kind is new Log_And_Respond
      (Description => "view must be either basic or full",
+      Log_Trace   => Yolk.Log.Error,
       Status      => "bad request",
       Status_Code => HTTP_Codes.Bad_Request);
 
-   Bad_Org_Id_Key : constant Error_Log_And_Response_Object := Create
+   procedure Bad_Org_Id_Key is new Log_And_Respond
      (Description => "org_id must be a valid natural integer",
+      Log_Trace   => Yolk.Log.Error,
       Status      => "bad request",
       Status_Code => HTTP_Codes.Bad_Request);
 
-   Generic_Constraint_Error : constant Error_Log_And_Response_Object := Create
+   procedure Generic_Constraint_Error is new Log_And_Respond
      (Description => "a constraint was violated",
+      Log_Trace   => Yolk.Log.Error,
       Status      => "bad request",
       Status_Code => HTTP_Codes.Bad_Request);
 
-   Unknown_Error : constant Error_Log_And_Response_Object := Create
-     (Description => "Exception raised while trying to generate content",
-      Status      => "Server error",
-      Status_Code => HTTP_Codes.Server_Error);
+   procedure Not_Found is new Responder
+     (Description => "requested resource does not exist",
+      Status      => "not found",
+      Status_Code => HTTP_Codes.Not_Found);
 
 end System_Message.Error;

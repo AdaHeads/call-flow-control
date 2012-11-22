@@ -47,8 +47,8 @@ package body Handlers.Agent is
    begin
       JSON := To_JSON_String (Peers.Get_Peers_List);
 
-      Response_Object.Set_HTTP_Status_Code (OK);
-      Response_Object.Set_Content (JSON);
+      Response_Object.HTTP_Status_Code (OK);
+      Response_Object.Content (JSON);
 
       return Response_Object.Build;
    end Agent;
@@ -71,8 +71,8 @@ package body Handlers.Agent is
       Notify (Debug, Peers.List_As_String);
       JSON := To_JSON_String (Peers.Get_Peers_List);
 
-      Response_Object.Set_HTTP_Status_Code (OK);
-      Response_Object.Set_Content (JSON);
+      Response_Object.HTTP_Status_Code (OK);
+      Response_Object.Content (JSON);
 
       return Response_Object.Build;
    end Agent_List;

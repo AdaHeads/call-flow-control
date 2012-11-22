@@ -2,9 +2,9 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                         System_Message.Critical                           --
+--                           Response.Not_Cached                             --
 --                                                                           --
---                                  SPEC                                     --
+--                                  BODY                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -21,26 +21,37 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with HTTP_Codes;
+with AWS.URL;
+with System_Message.Critical;
 
-package System_Message.Critical is
+package body Response.Not_Cached is
 
-   procedure Alice_Shutdown_With_Exception is new Logger
-     (Log_Trace => Yolk.Log.Critical,
-      Status    => "Shutting down Alice due to unhandled exception");
+   -------------------------
+   --  Generate_Response  --
+   -------------------------
 
-   procedure Lost_Database_Connection is new Logger
-     (Log_Trace => Yolk.Log.Critical,
-      Status    => "Lost connection to database");
+   function Generate_Response
+     (Request : in AWS.Status.Data)
+         return AWS.Response.Data
+   is
+      use AWS.Status;
+      use AWS.URL;
+      use System_Message;
 
-   procedure Response_Exception is new Log_And_Respond
-     (Description => "Exception raised while trying to generate content",
-      Log_Trace   => Yolk.Log.Critical,
-      Status      => "server error",
-      Status_Code => HTTP_Codes.Server_Error);
+      Response_Object : Object := Factory (Request);
+   begin
+      Generate_Document (Response_Object);
 
-   procedure Unknown_User is new Logger
-     (Log_Trace => Yolk.Log.Critical,
-      Status    => "Cannot change user for process");
+      return Response_Object.Build;
+   exception
+      when Event : others =>
+         --  For now we assume that "other" exceptions caught here are bad
+         --  enough to warrant a critical level log entry and response.
+         Critical.Response_Exception
+           (Event           => Event,
+            Message         => URL (URI (Response_Object.Request)),
+            Response_Object => Response_Object);
+         return Response_Object.Build;
+   end Generate_Response;
 
-end System_Message.Critical;
+end Response.Not_Cached;

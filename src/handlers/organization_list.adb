@@ -39,7 +39,8 @@ package body Organization_List is
    is
       use System_Message;
    begin
-      Error.Bad_List_Kind.Notify (Message, Response_Object);
+      Error.Bad_List_Kind (Message         => Message,
+                           Response_Object => Response_Object);
    end Bad_List_View_Parameter;
 
    ----------------
@@ -75,11 +76,11 @@ package body Organization_List is
       end case;
 
       if JS /= Null_JSON_String then
-         Response_Object.Set_Content (JS);
-         Response_Object.Set_Cacheable (True);
-         Response_Object.Set_HTTP_Status_Code (OK);
+         Response_Object.Content (JS);
+         Response_Object.Cacheable (True);
+         Response_Object.HTTP_Status_Code (OK);
       else
-         Response_Object.Set_HTTP_Status_Code (Not_Found);
+         Response_Object.HTTP_Status_Code (Not_Found);
       end if;
    end Generate_Document;
 
@@ -93,12 +94,12 @@ package body Organization_List is
    is
       use AWS.Status;
    begin
-      if Parameters (Response_Object.Get_Request).Count = 0 then
+      if Parameters (Response_Object.Status_Data).Count = 0 then
          return Basic;
       end if;
 
       return View_Type'Value
-        (Parameters (Response_Object.Get_Request).Get ("view"));
+        (Parameters (Response_Object.Status_Data).Get ("view"));
    end Get_List_View;
 
 end Organization_List;

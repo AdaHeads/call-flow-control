@@ -23,22 +23,63 @@
 
 with AWS.Dispatchers.Callback;
 with AWS.Net.WebSocket.Registry;
-with My_Configuration;
-with Organization;
-with Organization_List;
-with Yolk.Not_Found;
-
+with Contact;
 with Handlers.Agent;
 with Handlers.Call;
-with Contact;
 with Handlers.Notifications;
+with My_Configuration;
+with Not_Found;
+with Organization;
+with Organization_List;
 
 package body My_Handlers is
+
    use Handlers;
 
    -----------
    --  Set  --
    -----------
+
+--     procedure Set
+--       (RH : out AWS.Services.Dispatchers.Method.Handler)
+--     is
+--        POST, GET : AWS.Services.Dispatchers.URI.Handler;
+--     begin
+--        -- 404
+--        Register_Default_Callback
+--          (Dispatcher => POST,
+--          Action     => Create (Callback => Yolk.Not_Found.Generate'Access));
+--        Register_Default_Callback
+--          (Dispatcher => GET,
+--          Action     => Create (Callback => Yolk.Not_Found.Generate'Access));
+--
+--        AWS.Services.Dispatchers.URI.Register
+--          (Dispatcher => GET,
+--           URI        => Config.Get (Handler_Call_Hangup),
+--           Action     => Create
+--             (Callback => Call.Hangup'Access));
+--
+--        AWS.Services.Dispatchers.URI.Register
+--          (Dispatcher => POST,
+--           URI        => Config.Get (Handler_Organization_List),
+--           Action     => Organization_List.Callback);
+--        AWS.Services.Dispatchers.URI.Register
+--          (Dispatcher => GET,
+--           URI        => Config.Get (Handler_Organization_List),
+--           Action     => Organization_List.Callback);
+--
+--        -- ...
+--
+--        AWS.Services.Dispatchers.Method.Register (Dispatcher => RH,
+--                                                  Method     => POST,
+--                                                  Action     => POST)
+--        AWS.Services.Dispatchers.Method.Register (Dispatcher => RH,
+--                                                  Method     => GET,
+--                                                  Action     => GET)
+--        AWS.Services.Dispatchers.Method.Register (Dispatcher => RH,
+--                                                  Method     => others,
+--                                                  Action     => Not_Found)
+--     end;
 
    procedure Set
      (RH : out AWS.Services.Dispatchers.URI.Handler)
@@ -52,15 +93,9 @@ package body My_Handlers is
 
       AWS.Services.Dispatchers.URI.Register_Default_Callback
         (Dispatcher => RH,
-         Action     => Create (Callback => Yolk.Not_Found.Generate'Access));
+         Action     => Not_Found.Callback);
       --  This dispatcher is called if the requested resource doesn't match any
-      --  of the other dispatchers.
-      --  It returns a generic 404 HTML page. The template for this 404 can be
-      --  found in templates/system.
-      --  Another option is of course to use this default callback for your
-      --  main content, so if unknown resources are called, then the main
-      --  content of the website is used. I personally prefer giving back 404's
-      --  if unknown content is requested by a client.
+      --  of the other dispatchers. It returns a 404 to the user.
 
       ------------------
       --  Dispatchers --
