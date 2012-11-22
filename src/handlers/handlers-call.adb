@@ -28,8 +28,8 @@ with HTTP_Codes;
 with Response;
 
 with AMI.Action;
-
 with Model.Call;
+with Model.Calls;
 with Model.Peers;
 with JSON.Call;
 
@@ -41,6 +41,7 @@ package body Handlers.Call is
    use System_Messages;
    use AMI.Action;
    use JSON.Call;
+   use Model;
 
    package Routines renames AMI.Action;
 
@@ -57,6 +58,7 @@ package body Handlers.Call is
       use AWS.Status;
       use Model.Call_ID;
       use Model.Call;
+      use Model.Calls;
 
       Call_ID         : constant Call_ID_Type :=
         Create (Item => Parameters (Request).Get ("Call_ID"));
@@ -70,7 +72,7 @@ package body Handlers.Call is
       Response_Object.Set_Content (Status_Message
               ("Success", "Hangup completed"));
 
-      if not Call_List.Contains (Call_ID => Call_ID) then
+      if not Calls.List.Contains (Call_ID => Call_ID) then
          Response_Object.Set_HTTP_Status_Code (Not_Found);
          Response_Object.Set_Content
               (Status_Message
@@ -105,6 +107,7 @@ package body Handlers.Call is
       use HTTP_Codes;
       use AWS.Status;
       use Model.Call;
+      use Model.Calls;
       use Model.Call_ID;
 
       Context         : constant String := "Handlers.Call.Hold";
@@ -155,7 +158,7 @@ package body Handlers.Call is
    begin
       Response_Object.Set_HTTP_Status_Code (OK);
       Response_Object.Set_Content
-        (To_JSON_String (Model.Call.Call_List.To_JSON.Write));
+        (To_JSON_String (Calls.List.To_JSON.Write));
 
       return Response_Object.Build;
    end List;
@@ -170,6 +173,7 @@ package body Handlers.Call is
    is
       use AWS.Status;
       use Model.Call;
+      use Model.Calls;
       use Model.Peers;
       use Common;
       use HTTP_Codes;
@@ -193,13 +197,13 @@ package body Handlers.Call is
       if Call_ID'Length = 0 then
          System_Messages.Notify (Debug, "Get_Call - Agent_ID: " & Agent &
                                    " asks for unspecifed call");
-         Call := Call_List.Next;
+         Call := Calls.List.Next;
          System_Messages.Notify (Debug, " Sending: " & To_String (Call));
       else
          System_Messages.Notify (Debug, "Get_Call - Agent_ID: " & Agent &
                                    " ask for Call_ID: " & Call_ID);
          --  Lookup the call
-         Call := Dequeue (Create (Call_ID));
+         Call := Calls.Dequeue (Create (Call_ID));
       end if;
 
       if Call = Null_Call then
@@ -271,7 +275,7 @@ package body Handlers.Call is
       --  the final JSON and use that directly in the Build_JSON_Response call?
       Response_Object.Set_HTTP_Status_Code (OK);
       Response_Object.Set_Content
-        (Common.To_JSON_String (Model.Call.Call_List.To_JSON.Write));
+        (Common.To_JSON_String (Calls.List.To_JSON.Write));
 
       return Response_Object.Build;
    end Queue;

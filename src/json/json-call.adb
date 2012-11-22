@@ -88,7 +88,7 @@ package body JSON.Call is
       return To_JSON_String (JSON.Write);
    end To_JSON_String;
 
-   function To_JSON_String (Queue : in Model.Call.Call_List_Type.Map)
+   function To_JSON_String (Queue : in Model.Calls.Call_List_Type.Map)
                            return JSON_String is
       use Model.Call;
 

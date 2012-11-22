@@ -23,6 +23,7 @@
 
 with AMI.Response;
 with System_Messages;
+with Model.Calls;
 
 package body AMI.Action is
    use System_Messages;
@@ -53,7 +54,7 @@ package body AMI.Action is
    begin
       System_Messages.Notify (Debug, "Hangup: routine started");
 
-      Call := Model.Call.Get (Call_ID);
+      Call := Model.Calls.Get (Call_ID);
 
       System_Messages.Notify (Debug,
                               "Hangup Call: " & To_String (Call));

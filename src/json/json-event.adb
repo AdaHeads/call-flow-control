@@ -150,7 +150,7 @@ package body JSON.Event is
       Notification_JSON.Set_Field ("call", Call_JSON);
       Notification_JSON.Set_Field ("persistent", False);
       Notification_JSON.Set_Field ("event", "pickup_call");
-      Agent_JSON.Set_Field ("agent_id", Agent.Agent_ID);
+      Agent_JSON.Set_Field ("agent_id", Agent.Agent_ID'Img);
       Notification_JSON.Set_Field ("agent", Agent_JSON);
 
       JSON.Set_Field ("timestamp", Unix_Timestamp (Current_Time));
@@ -227,7 +227,7 @@ package body JSON.Event is
       Notification_JSON : constant JSON_Value := Create_Object;
       Agent_JSON        : constant JSON_Value := Create_Object;
    begin
-      Agent_JSON.Set_Field ("agent_id", Agent.Agent_ID);
+      Agent_JSON.Set_Field ("agent_id", Agent.Agent_ID'Img);
       Agent_JSON.Set_Field ("state", Agent.State'Img);
       Notification_JSON.Set_Field ("agent", Agent_JSON);
       Notification_JSON.Set_Field ("persistent", False);

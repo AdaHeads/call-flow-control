@@ -22,6 +22,7 @@
 -------------------------------------------------------------------------------
 
 with Model.Call;
+with Model.Calls;
 with Common;
 
 private with GNATCOLL.JSON;
@@ -30,7 +31,7 @@ private with GNATCOLL.JSON;
 package JSON.Call is
    use Common;
 
-   function To_JSON_String (Queue : in Model.Call.Call_List_Type.Map)
+   function To_JSON_String (Queue : in Model.Calls.Call_List_Type.Map)
                            return JSON_String;
    --  returns the entire Call Queue, in JSON format.
 

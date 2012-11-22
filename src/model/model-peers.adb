@@ -46,10 +46,10 @@ package body Model.Peers is
       begin
          for item in List.Iterate loop
             System_Messages.Notify (Debug, "Peers.Get_Peer. [" & To_String (
-                        Peer_List_Type.Element (item).Peer) &
+                        Peer_List_Type.Element (item).ID) &
                         "] = ["
                        & To_String (Agent_ID) & "]");
-            if Peer_List_Type.Element (item).Peer = Agent_ID then
+            if Peer_List_Type.Element (item).ID = Agent_ID then
                return Peer_List_Type.Element (item);
             end if;
          end loop;
@@ -89,7 +89,7 @@ package body Model.Peers is
       procedure Insert (Item : in Peer_Type) is
          use Peer_List_Type;
          Peer_Cursor : constant Peer_List_Type.Cursor :=
-           Peer_List_Type.Find (List, Item.Peer);
+           Peer_List_Type.Find (List, Item.ID);
       begin
          if Peer_Cursor /= Peer_List_Type.No_Element then
             Peer_List_Type.Replace_Element (Container => List,
@@ -97,7 +97,7 @@ package body Model.Peers is
                                             New_Item  => Item);
          else
             Peer_List_Type.Insert (Container => List,
-                                   Key       => Item.Peer,
+                                   Key       => Item.ID,
                                    New_Item  => Item);
          end if;
       end Insert;
@@ -150,11 +150,11 @@ package body Model.Peers is
    function Image (Item : in Peer_Type) return String is
    begin
       return
-        "Agent_ID => " & To_String (Item.Agent_ID) & ", " &
+        "Agent_ID => " & Item.Agent_ID'Img & ", " &
         "Defined => " & Item.Defined'Img & ", " &
         "Status => " & Item.State'Img  & ", " &
         "ChannelType => " & To_String (Item.ChannelType) & ", " &
-        "Peer => " & To_String (Item.Peer) & ", " &
+        "Peer => " & To_String (Item.ID) & ", " &
         "Port => " & To_String (Item.Port) & ", " &
         "Address => " & To_String (Item.Address) & ", " &
         "Paused => " & Item.Paused'Img & ", " &

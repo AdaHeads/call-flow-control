@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                Call_List                                  --
+--                                Model.Calls                                --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,7 +21,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Ordered_Maps;
 with Ada.Strings.Unbounded;
 with Model.Agent_ID;
 with Common;
@@ -35,8 +34,6 @@ package Model.Call is
    use Model.Agent_ID;
    use Model.Call_ID;
 
-   CALL_NOT_FOUND  : exception;
-   DUPLICATE_ID    : exception;
    BAD_EXTENSION   : exception;
    EMPTY_EXTENSION : exception;
 
@@ -61,31 +58,11 @@ package Model.Call is
          Assigned_To    : Agent_ID_Type := 0;
       end record;
 
-   procedure Insert (Call : in Call_Type);
-   --  Places a call in the call_List.
-
-   procedure Remove (Call_ID : in Call_ID_Type);
-   --  Removes a specific call from the call queue.
-
-   procedure Update (Call : in Call_Type);
-   --  Updates a Call in the list, with the information from the Call Argument
-
-   function Length return Long_Integer;
-   --  Gives the length of the call queue.
-
    function To_String (Call : in Call_Type) return String;
    function To_JSON (Call : in Call_Type) return JSON_Value;
 
    function "=" (Left  : in Call_Type;
                  Right : in Call_Type) return Boolean;
-
-   function Get (Call_ID : in Call_ID_Type) return Call_Type;
-   --  Returns the call with the specified Call_ID.
-
-   function Dequeue (Call_ID : in Call_ID_Type) return Call_Type;
-   --  Removes the call with the specified Call_ID and returns it.
-
-   type Call_Process_Type is not null access procedure (Call : in Call_Type);
 
    Null_Call : constant Call_Type :=
      (ID             => Call_ID.Null_Call_ID,
@@ -101,29 +78,4 @@ package Model.Call is
       Count          => 0,
       Arrived        => Current_Time,
       Assigned_To    => 0);
-
-   package Call_List_Type is new
-     Ada.Containers.Ordered_Maps (Key_Type   => Call_ID_Type,
-                                  Element_Type => Call_Type);
-
-   protected type Protected_Call_List_Type is
-      function Contains (Call_ID : in Call_ID_Type) return Boolean;
-      procedure Insert (Call : in Call_Type);
-      procedure Remove (Call_ID : in Call_ID_Type);
-      function Get (Call_ID : Call_ID_Type) return Call_Type;
-      function Length return Long_Integer;
-      function To_JSON return JSON_Value;
-      function To_String return String;
-      procedure For_Each (Process : in Call_Process_Type);
-      procedure Update (Call : in Call_Type);
-      --  Replaces the call at the ID location with the call supplied.
-      --  Raises CALL_NOT_FOUND if there is no call to replace.
-
-      function Next return Call_Type;
-   private
-      List : Call_List_Type.Map;
-   end Protected_Call_List_Type;
-
-   Call_List : Protected_Call_List_Type;
-   --  Package-visible singleton.
 end Model.Call;

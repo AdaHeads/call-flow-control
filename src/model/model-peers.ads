@@ -25,13 +25,16 @@ with Ada.Calendar;
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Hash;
 with Ada.Strings.Unbounded;
+with Model.Agent_ID;
 
 package Model.Peers is
    use Ada.Containers;
    use Ada.Strings.Unbounded;
+   use Model.Agent_ID;
 
    PEER_NOT_FOUND : exception;
-
+   
+   --  type Peer_ID_Type is new Unbounded_String;
    type SIP_Peer_Status_Type is (Unknown, Unregistered, Idle, Busy, Paused);
 
    --  package Call_List is new
@@ -41,12 +44,13 @@ package Model.Peers is
 
    type Peer_Type is tagged
       record
-         Agent_ID     : Unbounded_String;
+         ID           : Unbounded_String; --  Was 'peer'
+         Agent_ID     : Agent_ID_Type;
          Defined      : Boolean := False;
          State        : SIP_Peer_Status_Type := Unregistered;
          Last_State   : SIP_Peer_Status_Type := Unknown;
          ChannelType  : Unbounded_String;
-         Peer         : Unbounded_String;
+--         Peer         : Unbounded_String;
          Port         : Unbounded_String;
          Address      : Unbounded_String;
          Paused       : Boolean := False;
@@ -82,17 +86,18 @@ package Model.Peers is
    function Get_Peers_List return Peer_List_Type.Map;
    function Get_Exten (Peer : in Unbounded_String) return Unbounded_String;
    Null_Peer : Peer_Type :=
-                 (Agent_ID     => Null_Unbounded_String,
-                  Defined      => False,
-                  State        => Unregistered,
-                  Last_State   => Unknown,
-                  ChannelType  => Null_Unbounded_String,
-                  Peer         => Null_Unbounded_String,
-                  Port         => Null_Unbounded_String,
-                  Address      => Null_Unbounded_String,
-                  Paused       => False,
-                  Last_Seen    => Ada.Calendar.Clock,
-                  Exten        => Null_Unbounded_String,
-                  Computer_ID  => Null_Unbounded_String);
-
+     (ID           => Null_Unbounded_String,
+      Agent_ID     => Null_Agent_ID,
+      Defined      => False,
+      State        => Unregistered,
+      Last_State   => Unknown,
+      ChannelType  => Null_Unbounded_String,
+--      Peer         => Null_Unbounded_String,
+      Port         => Null_Unbounded_String,
+      Address      => Null_Unbounded_String,
+      Paused       => False,
+      Last_Seen    => Ada.Calendar.Clock,
+      Exten        => Null_Unbounded_String,
+      Computer_ID  => Null_Unbounded_String);
+   
 end Model.Peers;

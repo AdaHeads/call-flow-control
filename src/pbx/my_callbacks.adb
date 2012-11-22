@@ -23,11 +23,14 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
-
+with Ami;
 with Common;
 with System_Messages;
 
+with Model.Agent;
+with Model.Agents;
 with Model.Call;
+with Model.Calls;
 with Model.Peers;
 with Handlers.Notifications;
 with Model.Call_ID;
@@ -101,7 +104,7 @@ package body My_Callbacks is
       --  Temp_Value : Unbounded_String;
    begin
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Call_ID) then
-         Call := Dequeue
+         Call := Model.Calls.Dequeue
            (Call_ID => Create (To_String (Call_ID)));
 
          if Call = Null_Call then
@@ -136,7 +139,7 @@ package body My_Callbacks is
    begin
       if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Temp_Value) then
          --  The call should exsists at this point.
-         Call := Get (Create (To_String (Temp_Value)));
+         Call := Model.Calls.Get (Create (To_String (Temp_Value)));
       end if;
 
       --  There are no call with that ID, something is wrong.
@@ -176,7 +179,7 @@ package body My_Callbacks is
       end if;
       System_Messages.Notify
         (Debug, "My_Callbacks.Join: Call Updated: " & To_String (Call));
-      Update (Call);
+      Model.Calls.Update (Call);
       Notifications.Broadcast (JSON.Event.New_Call_JSON_String (Call));
    end Join;
 
@@ -212,8 +215,8 @@ package body My_Callbacks is
 
       --  Save the time when the call came in.
       Call.Arrived := Current_Time;
-      Call.State := Unknown;
-      Insert (Call);
+      Call.State := Model.Call.Unknown;
+      Model.Calls.Insert (Call);
    end New_Channel;
 
    procedure New_State
@@ -271,8 +274,8 @@ package body My_Callbacks is
       begin
          if Ada.Strings.Unbounded.Count (Text, "/") > 0 then
             Seperator_Index := Index (Text, "/");
-            Peer.Peer := Tail (Source => Text,
-                               Count  => Length (Text) - Seperator_Index);
+            Peer.ID := Tail (Source => Text,
+                             Count  => Length (Text) - Seperator_Index);
             Peer.ChannelType := Head (Text, Seperator_Index - 1);
             if To_String (Peer.ChannelType) /= "SIP" then
                System_Messages.Notify
@@ -294,46 +297,49 @@ package body My_Callbacks is
 
       System_Messages.Notify (Debug, "My_Callbacks.Peer_Status");
 
-      if Try_Get (Packet.Fields, AMI.Parser.Peer, Buffer) then
-         Set_PhoneInfo (Peer, Buffer);
-         --  Map_Key := Peer.Peer;
+      if Packet.Fields.Contains (AMI.Parser.Peer) then
+         Set_PhoneInfo (Peer, Packet.Fields.Element (AMI.Parser.Peer));
+      end if;
+
+      if Get_Peers_List.Contains (Peer.ID) then
+         Peer := Get_Peers_List.Element (Peer.ID);
+      else
+         Peer.Agent_ID := Model.Agents.Lookup (Peer.ID).ID;
       end if;
 
       --  Update fields
       Peer.Last_Seen := Current_Time;
-      if Try_Get (Packet.Fields, AMI.Parser.Address, Buffer) then
+      if Packet.Fields.Contains (AMI.Parser.Address) then
          Peer.Address := Packet.Fields.Element (Address);
       end if;
 
-      if Try_Get (Packet.Fields, AMI.Parser.Port, Buffer) then
+      if Packet.Fields.Contains (AMI.Parser.Port) then
          Peer.Port := Packet.Fields.Element (Port);
       end if;
 
-      --  Setting the State - Registrated or not.
-      if Try_Get (Packet.Fields, AMI.Parser.PeerStatus, Buffer) then
+      --  Setting the State - registered or not.
+      if Packet.Fields.Contains (AMI.Parser.PeerStatus) then
+         Buffer := Packet.Fields.Element (PeerStatus);
          --  Save the previous state.
          Peer.Last_State := Peer.State;
-         if To_String (Buffer) = "Unregistered"  then
+         if To_String (Buffer) = AMI.Peer_State_Unregistered then
             Peer.State := Unregistered;
 
-            System_Messages.Notify
-              (Debug,
-               "Got peer: " & To_String (Peer.Peer) &
-                 " with unregistrered status");
-
-         elsif To_String (Buffer) = "Registered" then
+         elsif To_String (Buffer) = AMI.Peer_State_Registered then
             Peer.State := Idle;
+
          else
             Peer.State := Unknown;
             System_Messages.Notify
-              (Error, "My_Callbacks.Peer_Status: Peer in unknown state " &
-                 Image (Peer));
+              (Critical, "My_Callbacks.Peer_Status: " & 
+                 "Peer changed state into an unknown state: " &
+                 To_String (Buffer));
          end if;
-
-         System_Messages.Notify
-           (Debug, "My_Callbacks.Peer_Status: Inserted " & Image (Peer));
-
+         
          Insert_Peer (New_Item => Peer);
+         System_Messages.Notify
+           (Debug, "My_Callbacks.Peer_Status: " &
+              Image (Peer));
       else
          System_Messages.Notify
            (Error, "My_Callbacks.Peer_Status: No state information supplied " &
@@ -341,8 +347,10 @@ package body My_Callbacks is
          raise BAD_PACKET_FORMAT;
       end if;
 
-      --  Let the clients know about the change
-      Notifications.Broadcast (JSON.Event.Agent_State_JSON_String (Peer));
+      --  Let the clients know about the change. But only on "real" changes.
+      if Peer.Last_State /= Peer.State then
+         Notifications.Broadcast (JSON.Event.Agent_State_JSON_String (Peer));
+      end if;
    end Peer_Status;
 
    --  Event: QueueCallerAbandon

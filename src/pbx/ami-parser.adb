@@ -26,6 +26,7 @@ with Ada.Strings.Maps;
 with Ada.Strings.Fixed; use Ada.Strings.Fixed; -- For Index
 with Ada.Characters.Latin_1;
 
+with Ada.Exceptions;
 with System_Messages;   use System_Messages;
 
 package body AMI.Parser is
@@ -86,13 +87,7 @@ package body AMI.Parser is
       if Line'Length = 0 then
          return Empty_Line;
       elsif Seperator_Index = 0 then
-         --  XXX FIXME
-         if Line = "ReportBlock:" then
-            return (Key   => ReportBlock,
-                    Value => To_Unbounded_String (""));
-         else
-            raise BAD_LINE_FORMAT;
-         end if;
+         raise BAD_LINE_FORMAT;
       end if;
 
       --  Sometimes we get string slice instead of a "real" string.
@@ -102,7 +97,7 @@ package body AMI.Parser is
 
       --  This one really isn't needed, but improves readability of
       --  the source code - hopefully.
-      Key_Length := Seperator_Index - Key_Value_Seperator'Length;
+      Key_Length := Seperator_Index - Key_Value_Seperator'Length-1;
       Key        := AMI_Key_Type'Value
         (Translate (Source  => Line (Line'First .. Line'First + Key_Length),
                     Mapping => Underscore_Map));
@@ -112,12 +107,15 @@ package body AMI.Parser is
               Value => To_Unbounded_String
                 (Line (Line'First + Seperator_Index + 1 .. Line'Last)));
    exception
-      when Constraint_Error =>
+      when E : Constraint_Error =>
          System_Messages.Notify
            (System_Messages.Error, "AMI.Parser.Parse_Line: Unknown line """ &
-              Line & """");
+              Line & """"); 
+         System_Messages.Notify
+           (System_Messages.Error, Ada.Exceptions.Exception_Information (E));
+        
          return Bad_Line;
-      when BAD_LINE_FORMAT =>
+      when E : BAD_LINE_FORMAT =>
          System_Messages.Notify
            (System_Messages.Error,
             "AMI.Parser.Parse_Line: Malformatted line """ &
