@@ -23,14 +23,14 @@
 
 with AWS.Dispatchers.Callback;
 with AWS.Net.WebSocket.Registry;
-with Contact;
+with Handlers.Contact;
 with Handlers.Agent;
 with Handlers.Call;
 with Handlers.Notifications;
+with Handlers.Organization;
+with Handlers.Organization_List;
 with My_Configuration;
 with Not_Found;
-with Organization;
-with Organization_List;
 
 package body My_Handlers is
 

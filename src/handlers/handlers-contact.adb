@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                 Contact                                   --
+--                             Handlers.Contact                              --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -26,7 +26,7 @@ with HTTP_Codes;
 with Model.Contacts;
 with System_Message.Error;
 
-package body Contact is
+package body Handlers.Contact is
 
    ----------------------
    --  Bad_Contact_Id  --
@@ -94,4 +94,4 @@ package body Contact is
         (Parameters (Response_Object.Status_Data).Get ("ce_id"));
    end Get_Contact_Id;
 
-end Contact;
+end Handlers.Contact;

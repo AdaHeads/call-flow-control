@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                            Organization_List                              --
+--                          Handlers.Organization                            --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -27,21 +27,21 @@ with Model.Organizations;
 with System_Message.Error;
 with View;
 
-package body Organization_List is
+package body Handlers.Organization is
 
-   -------------------------------
-   --  Bad_List_View_Parameter  --
-   -------------------------------
+   ------------------
+   --  Bad_Org_Id  --
+   ------------------
 
-   procedure Bad_List_View_Parameter
+   procedure Bad_Org_Id
      (Response_Object :    out Response.Object;
       Message         : in     String)
    is
       use System_Message;
    begin
-      Error.Bad_List_Kind (Message         => Message,
-                           Response_Object => Response_Object);
-   end Bad_List_View_Parameter;
+      Error.Bad_Org_Id_Key (Message         => Message,
+                            Response_Object => Response_Object);
+   end Bad_Org_Id;
 
    ----------------
    --  Callback  --
@@ -65,41 +65,32 @@ package body Organization_List is
       use HTTP_Codes;
       use Model.Organizations;
 
-      JS : JSON_String := Null_JSON_String;
-      OL : Organization_List_Object;
+      O : Organization_Object;
    begin
-      case Get_List_View (Response_Object) is
-         when Basic =>
-            JS := OL.To_JSON_String (View.Basic);
-         when Full =>
-            JS := OL.To_JSON_String (View.Full);
-      end case;
+      O.Get_Full (O_Id => Get_Org_Id (Response_Object));
 
-      if JS /= Null_JSON_String then
-         Response_Object.Content (JS);
+      if O /= Null_Organization then
          Response_Object.Cacheable (True);
          Response_Object.HTTP_Status_Code (OK);
       else
          Response_Object.HTTP_Status_Code (Not_Found);
       end if;
+
+      Response_Object.Content (O.To_JSON_String (View.Full));
    end Generate_Document;
 
-   ---------------------
-   --  Get_List_Kind  --
-   ---------------------
+   ------------------
+   --  Get_Org_Id  --
+   ------------------
 
-   function Get_List_View
+   function Get_Org_Id
      (Response_Object : in Response.Object)
-      return View_Type
+      return Model.Organization_Identifier
    is
       use AWS.Status;
    begin
-      if Parameters (Response_Object.Status_Data).Count = 0 then
-         return Basic;
-      end if;
+      return Model.Organization_Identifier'Value
+        (Parameters (Response_Object.Status_Data).Get ("org_id"));
+   end Get_Org_Id;
 
-      return View_Type'Value
-        (Parameters (Response_Object.Status_Data).Get ("view"));
-   end Get_List_View;
-
-end Organization_List;
+end Handlers.Organization;
