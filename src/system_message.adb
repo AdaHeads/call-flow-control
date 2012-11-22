@@ -21,6 +21,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Exceptions.Is_Null_Occurrence;
+with Ada.Strings.Unbounded;
 with Common;
 with GNATCOLL.JSON;
 
@@ -29,9 +31,9 @@ package body System_Message is
    type Delimiter_Placement is (Fore, Aft, None);
 
    procedure Build_Response_Object
-     (Description     : in     Unbounded_String;
+     (Description     : in     String;
       Response_Object :    out Response.Object;
-      Status          : in     Unbounded_String;
+      Status          : in     String;
       Status_Code     : in     AWS.Messages.Status_Code;
       Tail            : in     String);
    --  Add JSON content and HTTP code to Response_Object.
@@ -42,13 +44,19 @@ package body System_Message is
       return String;
    --  Add the " - " delimiter to S in D placement.
 
-   procedure Logger
-     (Status      : in String;
-      Tail        : in String;
-      Log_Trace   : in Yolk.Log.Trace_Handles);
+   function Construct_Message
+     (Event   : in Exception_Occurrence;
+      Message : in String)
+      return String;
+   --  Build a single message from the Event exception message and Message.
+
+   procedure Write_To_Log
+     (Status    : in String;
+      Tail      : in String;
+      Log_Trace : in Yolk.Log.Trace_Handles);
    --  Write Status - Tail to Log_Trace.
 
-   procedure Logger
+   procedure Write_To_Log
      (Description : in String;
       Status      : in String;
       Tail        : in String;
@@ -60,9 +68,9 @@ package body System_Message is
    -----------------------------
 
    procedure Build_Response_Object
-     (Description     : in     Unbounded_String;
+     (Description     : in     String;
       Response_Object :    out Response.Object;
-      Status          : in     Unbounded_String;
+      Status          : in     String;
       Status_Code     : in     AWS.Messages.Status_Code;
       Tail            : in     String)
    is
@@ -78,8 +86,8 @@ package body System_Message is
       JSON.Set_Field (Field_Name => "status",
                       Field      => Status);
 
-      Response_Object.Set_Content (To_JSON_String (JSON.Write));
-      Response_Object.Set_HTTP_Status_Code (Status_Code);
+      Response_Object.HTTP_Status_Code (Status_Code);
+      Response_Object.Content (To_JSON_String (JSON.Write));
    end Build_Response_Object;
 
    --------------------
@@ -106,161 +114,98 @@ package body System_Message is
       return S;
    end Build_String;
 
-   --------------
-   --  Create  --
-   --------------
+   -------------------------
+   --  Construct_Message  --
+   -------------------------
 
-   function Create
-     (Status : in String)
-      return Critical_Log_Object
+   function Construct_Message
+     (Event   : in Exception_Occurrence;
+      Message : in String)
+      return String
    is
-      use Common;
-      use Yolk.Log;
+      use Ada.Strings.Unbounded;
+
+      New_Msg : Unbounded_String := Null_Unbounded_String;
    begin
-      return (Log_Trace => Critical,
-              Status    => U (Status));
-   end Create;
+      if Message /= "" then
+         Append (Source   => New_Msg,
+                 New_Item => Build_String (Message, None));
+      end if;
 
-   --------------
-   --  Create  --
-   --------------
+      if not Ada.Exceptions.Is_Null_Occurrence (Event) then
+         Append (Source   => New_Msg,
+                 New_Item => Build_String (Exception_Name (Event), Fore));
 
-   function Create
-     (Description : in String;
-      Status      : in String;
-      Status_Code : in AWS.Messages.Status_Code)
-      return Critical_Response_Object
+         Append (Source   => New_Msg,
+                 New_Item => Build_String (Exception_Message (Event), Fore));
+      end if;
+
+      return To_String (New_Msg);
+   end Construct_Message;
+
+   -----------------------
+   --  Log_And_Respond  --
+   -----------------------
+
+   procedure Log_And_Respond
+     (Event           : in     Exception_Occurrence := Null_Occurrence;
+      Message         : in     String := "";
+      Response_Object : in out Response.Object)
    is
-      use Common;
+      New_Msg : constant String := Construct_Message (Event, Message);
    begin
-      return (Description => U (Description),
-              Status      => U (Status),
-              Status_Code => Status_Code);
-   end Create;
+      Write_To_Log (Description => Description,
+                    Status      => Status,
+                    Tail        => New_Msg,
+                    Log_Trace   => Log_Trace);
 
-   --------------
-   --  Create  --
-   --------------
-
-   function Create
-     (Description : in String;
-      Status      : in String;
-      Status_Code : in AWS.Messages.Status_Code)
-      return Critical_Log_And_Response_Object
-   is
-      use Common;
-   begin
-      return (Description => U (Description),
-              Log_Trace   => Yolk.Log.Critical,
-              Status      => U (Status),
-              Status_Code => Status_Code);
-   end Create;
-
-   --------------
-   --  Create  --
-   --------------
-
-   function Create
-     (Status : in String)
-      return Error_Log_Object
-   is
-      use Common;
-      use Yolk.Log;
-   begin
-      return (Log_Trace => Error,
-              Status    => U (Status));
-   end Create;
-
-   --------------
-   --  Create  --
-   --------------
-
-   function Create
-     (Description : in String;
-      Status      : in String;
-      Status_Code : in AWS.Messages.Status_Code)
-      return Error_Response_Object
-   is
-      use Common;
-   begin
-      return (Description => U (Description),
-              Status      => U (Status),
-              Status_Code => Status_Code);
-   end Create;
-
-   --------------
-   --  Create  --
-   --------------
-
-   function Create
-     (Description : in String;
-      Status      : in String;
-      Status_Code : in AWS.Messages.Status_Code)
-      return Error_Log_And_Response_Object
-   is
-      use Common;
-   begin
-      return (Description => U (Description),
-              Log_Trace   => Yolk.Log.Error,
-              Status      => U (Status),
-              Status_Code => Status_Code);
-   end Create;
-
-   --------------
-   --  Create  --
-   --------------
-
-   function Create
-     (Status : in String)
-      return Info_Log_Object
-   is
-      use Common;
-      use Yolk.Log;
-   begin
-      return (Log_Trace => Info,
-              Status    => U (Status));
-   end Create;
-
-   --------------
-   --  Create  --
-   --------------
-
-   function Create
-     (Description : in String;
-      Status      : in String;
-      Status_Code : in AWS.Messages.Status_Code)
-      return Info_Response_Object
-   is
-      use Common;
-   begin
-      return (Description => U (Description),
-              Status      => U (Status),
-              Status_Code => Status_Code);
-   end Create;
-
-   --------------
-   --  Create  --
-   --------------
-
-   function Create
-     (Description : in String;
-      Status      : in String;
-      Status_Code : in AWS.Messages.Status_Code)
-      return Info_Log_And_Response_Object
-   is
-      use Common;
-   begin
-      return (Description => U (Description),
-              Log_Trace   => Yolk.Log.Info,
-              Status      => U (Status),
-              Status_Code => Status_Code);
-   end Create;
+      Build_Response_Object
+        (Description     => Description,
+         Response_Object => Response_Object,
+         Status          => Status,
+         Status_Code     => Status_Code,
+         Tail            => New_Msg);
+   end Log_And_Respond;
 
    --------------
    --  Logger  --
    --------------
 
    procedure Logger
+     (Event   : in Exception_Occurrence := Null_Occurrence;
+      Message : in String := "")
+   is
+      New_Msg : constant String := Construct_Message (Event, Message);
+   begin
+      Write_To_Log (Status    => Status,
+                    Tail      => New_Msg,
+                    Log_Trace => Log_Trace);
+   end Logger;
+
+   -----------------
+   --  Responder  --
+   -----------------
+
+   procedure Responder
+     (Event           : in     Exception_Occurrence := Null_Occurrence;
+      Message         : in     String := "";
+      Response_Object : in out Response.Object)
+   is
+      New_Msg : constant String := Construct_Message (Event, Message);
+   begin
+      Build_Response_Object
+        (Description     => Description,
+         Response_Object => Response_Object,
+         Status          => Status,
+         Status_Code     => Status_Code,
+         Tail            => New_Msg);
+   end Responder;
+
+   --------------------
+   --  Write_To_Log  --
+   --------------------
+
+   procedure Write_To_Log
      (Status    : in String;
       Tail      : in String;
       Log_Trace : in Yolk.Log.Trace_Handles)
@@ -268,13 +213,13 @@ package body System_Message is
       use Yolk.Log;
    begin
       Trace (Log_Trace, Status & Build_String (Tail, Fore));
-   end Logger;
+   end Write_To_Log;
 
-   --------------
-   --  Logger  --
-   --------------
+   --------------------
+   --  Write_To_Log  --
+   --------------------
 
-   procedure Logger
+   procedure Write_To_Log
      (Description : in String;
       Status      : in String;
       Tail        : in String;
@@ -286,223 +231,6 @@ package body System_Message is
              Status
              & Build_String (Description, Fore)
              & Build_String (Tail, Fore));
-   end Logger;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O : in Log_Object'Class)
-   is
-   begin
-      O.Notify (Message => "");
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O       : in Log_Object'Class;
-      Message : in String)
-   is
-   begin
-      Logger (Status    => To_String (O.Status),
-              Tail      => Message,
-              Log_Trace => O.Log_Trace);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O     : in Log_Object'Class;
-      Event : in Ada.Exceptions.Exception_Occurrence)
-   is
-   begin
-      O.Notify (Event   => Event,
-                Message => "");
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O       : in Log_Object'Class;
-      Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String)
-   is
-      use Ada.Exceptions;
-
-      E_Msg   : constant String := Exception_Message (Event);
-      New_Msg : Unbounded_String := Null_Unbounded_String;
-   begin
-      Append (Source   => New_Msg,
-              New_Item => Build_String (Message, Aft));
-
-      Append (Source   => New_Msg,
-              New_Item => Build_String (Exception_Name (Event), None));
-
-      Append (Source   => New_Msg,
-              New_Item => Build_String (E_Msg, Fore));
-
-      O.Notify (Message => To_String (New_Msg));
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Response_Object'Class;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      O.Notify (Message         => "",
-                Response_Object => Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Response_Object'Class;
-      Message         : in     String;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Build_Response_Object
-        (Description     => O.Description,
-         Response_Object => Response_Object,
-         Status          => O.Status,
-         Status_Code     => O.Status_Code,
-         Tail            => Message);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Response_Object'Class;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      O.Notify (Event           => Event,
-                Message         => "",
-                Response_Object => Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Response_Object'Class;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Message         : in     String;
-      Response_Object :    out Response.Object)
-   is
-      use Ada.Exceptions;
-
-      E_Msg   : constant String := Exception_Message (Event);
-      New_Msg : Unbounded_String := Null_Unbounded_String;
-   begin
-      Append (Source   => New_Msg,
-              New_Item => Build_String (Message, Aft));
-
-      Append (Source   => New_Msg,
-              New_Item => Build_String (Exception_Name (Event), None));
-
-      Append (Source   => New_Msg,
-              New_Item => Build_String (E_Msg, Fore));
-
-      O.Notify (Message         => To_String (New_Msg),
-                Response_Object => Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Log_And_Response_Object'Class;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      O.Notify (Message         => "",
-                Response_Object => Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Log_And_Response_Object'Class;
-      Message         : in     String;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      Logger (Description => To_String (O.Description),
-              Status      => To_String (O.Status),
-              Tail        => Message,
-              Log_Trace   => O.Log_Trace);
-
-      Build_Response_Object
-        (Description     => O.Description,
-         Response_Object => Response_Object,
-         Status          => O.Status,
-         Status_Code     => O.Status_Code,
-         Tail            => Message);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Log_And_Response_Object'Class;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Response_Object :    out Response.Object)
-   is
-   begin
-      O.Notify (Event           => Event,
-                Message         => "",
-                Response_Object => Response_Object);
-   end Notify;
-
-   --------------
-   --  Notify  --
-   --------------
-
-   procedure Notify
-     (O               : in     Log_And_Response_Object'Class;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Message         : in     String;
-      Response_Object :    out Response.Object)
-   is
-      use Ada.Exceptions;
-
-      E_Msg   : constant String := Exception_Message (Event);
-      New_Msg : Unbounded_String := Null_Unbounded_String;
-   begin
-      Append (Source   => New_Msg,
-              New_Item => Build_String (Message, Aft));
-
-      Append (Source   => New_Msg,
-              New_Item => Build_String (Exception_Name (Event), None));
-
-      Append (Source   => New_Msg,
-              New_Item => Build_String (E_Msg, Fore));
-
-      O.Notify (Message         => To_String (New_Msg),
-                Response_Object => Response_Object);
-   end Notify;
+   end Write_To_Log;
 
 end System_Message;

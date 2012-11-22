@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                            Organization_List                              --
+--                                 Contact                                   --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -21,26 +21,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Status;
-with HTTP_Codes;
-with Model.Organizations;
 with System_Message.Error;
-with View;
 
-package body Organization_List is
-
-   -------------------------------
-   --  Bad_List_View_Parameter  --
-   -------------------------------
-
-   procedure Bad_List_View_Parameter
-     (Response_Object :    out Response.Object;
-      Message         : in     String)
-   is
-      use System_Message;
-   begin
-      Error.Bad_List_Kind.Notify (Message, Response_Object);
-   end Bad_List_View_Parameter;
+package body Not_Found is
 
    ----------------
    --  Callback  --
@@ -60,45 +43,10 @@ package body Organization_List is
    procedure Generate_Document
      (Response_Object : in out Response.Object)
    is
-      use Common;
-      use HTTP_Codes;
-      use Model.Organizations;
-
-      JS : JSON_String := Null_JSON_String;
-      OL : Organization_List_Object;
+      use System_Message;
    begin
-      case Get_List_View (Response_Object) is
-         when Basic =>
-            JS := OL.To_JSON_String (View.Basic);
-         when Full =>
-            JS := OL.To_JSON_String (View.Full);
-      end case;
-
-      if JS /= Null_JSON_String then
-         Response_Object.Set_Content (JS);
-         Response_Object.Set_Cacheable (True);
-         Response_Object.Set_HTTP_Status_Code (OK);
-      else
-         Response_Object.Set_HTTP_Status_Code (Not_Found);
-      end if;
+      Error.Not_Found (Message         => Response_Object.Request_URL,
+                       Response_Object => Response_Object);
    end Generate_Document;
 
-   ---------------------
-   --  Get_List_Kind  --
-   ---------------------
-
-   function Get_List_View
-     (Response_Object : in Response.Object)
-      return View_Type
-   is
-      use AWS.Status;
-   begin
-      if Parameters (Response_Object.Get_Request).Count = 0 then
-         return Basic;
-      end if;
-
-      return View_Type'Value
-        (Parameters (Response_Object.Get_Request).Get ("view"));
-   end Get_List_View;
-
-end Organization_List;
+end Not_Found;

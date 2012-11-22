@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                         System_Message.Critical                           --
+--                           Response.Not_Cached                             --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,26 +21,26 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with HTTP_Codes;
+with AWS.Response;
+with AWS.Status;
 
-package System_Message.Critical is
+package Response.Not_Cached is
 
-   procedure Alice_Shutdown_With_Exception is new Logger
-     (Log_Trace => Yolk.Log.Critical,
-      Status    => "Shutting down Alice due to unhandled exception");
+   -------------------------
+   --  Generate_Response  --
+   -------------------------
 
-   procedure Lost_Database_Connection is new Logger
-     (Log_Trace => Yolk.Log.Critical,
-      Status    => "Lost connection to database");
+   generic
 
-   procedure Response_Exception is new Log_And_Respond
-     (Description => "Exception raised while trying to generate content",
-      Log_Trace   => Yolk.Log.Critical,
-      Status      => "server error",
-      Status_Code => HTTP_Codes.Server_Error);
+      with procedure Generate_Document
+        (Response_Object : in out Object);
+      --  Generate the JSON document that is delivered to the client. If
+      --  Response_Object.Cacheable is set to True, then the JSON document is
+      --  cached.
 
-   procedure Unknown_User is new Logger
-     (Log_Trace => Yolk.Log.Critical,
-      Status    => "Cannot change user for process");
+   function Generate_Response
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --   Generate the data that is delivered to the user.
 
-end System_Message.Critical;
+end Response.Not_Cached;

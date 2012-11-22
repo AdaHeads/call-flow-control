@@ -154,7 +154,8 @@ package body Storage is
       if Connection_Type = DB_Conn_Type'Last then
          raise Database_Error with Trimmed_DB_Error;
       else
-         Critical.Lost_Primary_Database.Notify (Trimmed_DB_Error);
+         Critical.Lost_Database_Connection
+           (Message => Trimmed_DB_Error & " PRIMARY");
       end if;
    end Failed_Query;
 
@@ -228,8 +229,9 @@ package body Storage is
       end loop Fetch_Data;
    exception
       when Event : Database_Error =>
-         Critical.Lost_Secondary_Database.Notify (Event);
-         raise Database_Error with Exception_Message (Event);
+         Critical.Lost_Database_Connection
+           (Message => Exception_Message (Event) & " SECONDARY");
+         raise Database_Error;
    end Process_Query;
 
    ------------------------------------

@@ -39,32 +39,37 @@ package Response is
    --      ?jsoncallback=foo
    --  GET parameter is present.
 
-   function Factory
-     (Request : in AWS.Status.Data)
-      return Object;
-   --  Initialize a Response.Object object.
-
-   function Get_Request
-     (O : in Object)
-      return AWS.Status.Data;
-   --  Return the AWS.Status.Data object that O was initialized with.
-
-   procedure Set_Cacheable
+   procedure Cacheable
      (O     :    out Object;
       Value : in     Boolean);
    --  Set whether the contents of O is cacheable. This does not define whether
    --  or not the content of O is actually cached - it merely states that is
    --  is cacheable.
 
-   procedure Set_Content
+   procedure Content
      (O     :    out Object;
       Value : in     Common.JSON_String);
    --  Add content to O.
 
-   procedure Set_HTTP_Status_Code
+   function Factory
+     (Request : in AWS.Status.Data)
+      return Object;
+   --  Initialize a Response.Object object.
+
+   procedure HTTP_Status_Code
      (O     :    out Object;
       Value : in     AWS.Messages.Status_Code);
    --  Set the HTTP code that is returned to the client when O.Build is called.
+
+   function Request_URL
+     (O : in Object)
+      return String;
+   --  Return the full URL string for the request.
+
+   function Status_Data
+     (O : in Object)
+      return AWS.Status.Data;
+   --  Return the AWS.Status.Data object that O was initialized with.
 
 private
 

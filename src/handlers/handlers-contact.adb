@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                              Organization                                 --
+--                             Handlers.Contact                              --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -23,24 +23,25 @@
 
 with AWS.Status;
 with HTTP_Codes;
-with Model.Organizations;
+with Model.Contacts;
 with System_Message.Error;
-with View;
 
-package body Organization is
+package body Handlers.Contact is
 
-   ------------------
-   --  Bad_Org_Id  --
-   ------------------
+   ----------------------
+   --  Bad_Contact_Id  --
+   ----------------------
 
-   procedure Bad_Org_Id
+   procedure Bad_Contact_Id
      (Response_Object :    out Response.Object;
       Message         : in     String)
    is
       use System_Message;
    begin
-      Error.Bad_Org_Id_Key.Notify (Message, Response_Object);
-   end Bad_Org_Id;
+      Error.Bad_Contact_Id
+        (Message         => Message,
+         Response_Object => Response_Object);
+   end Bad_Contact_Id;
 
    ----------------
    --  Callback  --
@@ -62,34 +63,35 @@ package body Organization is
    is
       use Common;
       use HTTP_Codes;
-      use Model.Organizations;
+      use Model.Contacts;
 
-      O : Organization_Object;
+      C : Contact_Object;
    begin
-      O.Get_Full (O_Id => Get_Org_Id (Response_Object));
+      C.Get (Get_Contact_Id (Response_Object));
 
-      if O /= Null_Organization then
-         Response_Object.Set_Cacheable (True);
-         Response_Object.Set_HTTP_Status_Code (OK);
+      if C /= Null_Contact then
+         Response_Object.Cacheable (True);
+         Response_Object.HTTP_Status_Code (OK);
       else
-         Response_Object.Set_HTTP_Status_Code (Not_Found);
+         Response_Object.HTTP_Status_Code (Not_Found);
       end if;
 
-      Response_Object.Set_Content (O.To_JSON_String (View.Full));
+      Response_Object.Content (C.To_JSON);
    end Generate_Document;
 
-   ------------------
-   --  Get_Org_Id  --
-   ------------------
+   ----------------------
+   --  Get_Contact_Id  --
+   ----------------------
 
-   function Get_Org_Id
+   function Get_Contact_Id
      (Response_Object : in Response.Object)
-      return Model.Organization_Identifier
+      return Model.Contact_Identifier
    is
       use AWS.Status;
+      use Model;
    begin
-      return Model.Organization_Identifier'Value
-        (Parameters (Response_Object.Get_Request).Get ("org_id"));
-   end Get_Org_Id;
+      return Contact_Identifier'Value
+        (Parameters (Response_Object.Status_Data).Get ("ce_id"));
+   end Get_Contact_Id;
 
-end Organization;
+end Handlers.Contact;

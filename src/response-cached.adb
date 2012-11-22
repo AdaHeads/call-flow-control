@@ -22,7 +22,7 @@
 -------------------------------------------------------------------------------
 
 with AWS.URL;
-with System_Message.Error;
+with System_Message.Critical;
 
 package body Response.Cached is
 
@@ -36,7 +36,6 @@ package body Response.Cached is
    is
       use AWS.Status;
       use AWS.URL;
-      use HTTP_Codes;
       use System_Message;
 
       function Found_Cache_Key
@@ -55,7 +54,7 @@ package body Response.Cached is
       exception
          when others =>
             Bad_Request_Parameters (Response_Object,
-                                    URL (URI (Response_Object.Get_Request)));
+                                    URL (URI (Response_Object.Status_Data)));
             return False;
       end Found_Cache_Key;
    begin
@@ -77,9 +76,12 @@ package body Response.Cached is
       return Response_Object.Build;
    exception
       when Event : others =>
-         Error.Unknown_Error.Notify (Event,
-                                     URL (URI (Response_Object.Get_Request)),
-                                     Response_Object);
+         --  For now we assume that "other" exceptions caught here are bad
+         --  enough to warrant a critical level log entry and response.
+         Critical.Response_Exception
+           (Event           => Event,
+            Message         => Response_Object.Request_URL,
+            Response_Object => Response_Object);
          return Response_Object.Build;
    end Generate_Response;
 

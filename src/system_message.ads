@@ -22,188 +22,44 @@
 -------------------------------------------------------------------------------
 
 with Ada.Exceptions;
-with Ada.Strings.Unbounded;
 with AWS.Messages;
 with Response;
 with Yolk.Log;
 
 package System_Message is
 
-   use Ada.Strings.Unbounded;
+   use Ada.Exceptions;
 
-   type Object is abstract tagged limited
-      record
-         Status : Unbounded_String;
-      end record;
+   generic
+      Log_Trace : Yolk.Log.Trace_Handles;
+      Status    : String;
+   procedure Logger
+     (Event   : in Exception_Occurrence := Null_Occurrence;
+      Message : in String := "");
+   --  Log Status to Log_Trace. Append Event and/or Message, if given.
 
-   --------------------------------------------------
-   --  Log_Object type, methods and derived types  --
-   --------------------------------------------------
+   generic
+      Description : String;
+      Log_Trace   : Yolk.Log.Trace_Handles;
+      Status      : String;
+      Status_Code : AWS.Messages.Status_Code;
+   procedure Log_And_Respond
+     (Event           : in     Exception_Occurrence := Null_Occurrence;
+      Message         : in     String := "";
+      Response_Object : in out Response.Object);
+   --  Log Description and Status to Log_Trace.
+   --  Respond to user with Description, Status and Status_Code.
+   --  Append Event and/or Message to both log and response, if given.
 
-   type Log_Object is abstract limited new Object with
-      record
-         Log_Trace : Yolk.Log.Trace_Handles;
-      end record;
-
-   procedure Notify
-     (O : in Log_Object'Class);
-   --  Write O to log.
-
-   procedure Notify
-     (O       : in Log_Object'Class;
-      Message : in String);
-   --  Append Message To O and write to log.
-
-   procedure Notify
-     (O     : in Log_Object'Class;
-      Event : in Ada.Exceptions.Exception_Occurrence);
-   --  Append Event to O and write to log.
-
-   procedure Notify
-     (O       : in Log_Object'Class;
-      Event   : in Ada.Exceptions.Exception_Occurrence;
-      Message : in String);
-   --  Append Event and Message to O and write to log.
-
-   type Critical_Log_Object is new Log_Object with null record;
-   type Error_Log_Object is new Log_Object with null record;
-   type Info_Log_Object is new Log_Object with null record;
-
-   -------------------------------------------------------
-   --  Response_Object type, methods and derived types  --
-   -------------------------------------------------------
-
-   type Response_Object is abstract limited new Object with
-      record
-         Description : Unbounded_String;
-         Status_Code : AWS.Messages.Status_Code;
-      end record;
-
-   procedure Notify
-     (O               : in     Response_Object'Class;
-      Response_Object :    out Response.Object);
-   --  Write O to Response_Object.
-
-   procedure Notify
-     (O               : in     Response_Object'Class;
-      Message         : in     String;
-      Response_Object :    out Response.Object);
-   --  Append Message To O and write to Response_Object.
-
-   procedure Notify
-     (O               : in     Response_Object'Class;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Response_Object :    out Response.Object);
-   --  Append Event to O and write to Response_Object.
-
-   procedure Notify
-     (O               : in     Response_Object'Class;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Message         : in     String;
-      Response_Object :    out Response.Object);
-   --  Append Event and Message to O and write to Response_Object.
-
-   type Critical_Response_Object is new Response_Object with null record;
-   type Error_Response_Object is new Response_Object with null record;
-   type Info_Response_Object is new Response_Object with null record;
-
-   ---------------------------------------------------------------
-   --  Log_And_Response_Object type, methods and derived types  --
-   ---------------------------------------------------------------
-
-   type Log_And_Response_Object is abstract limited new Object with
-      record
-         Description : Unbounded_String;
-         Log_Trace   : Yolk.Log.Trace_Handles;
-         Status_Code : AWS.Messages.Status_Code;
-      end record;
-
-   procedure Notify
-     (O               : in     Log_And_Response_Object'Class;
-      Response_Object :    out Response.Object);
-   --  Write O to log and Response_Object.
-
-   procedure Notify
-     (O               : in     Log_And_Response_Object'Class;
-      Message         : in     String;
-      Response_Object :    out Response.Object);
-   --  Append Message To O and write to log and Response_Object.
-
-   procedure Notify
-     (O               : in     Log_And_Response_Object'Class;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Response_Object :    out Response.Object);
-   --  Append Event to O and write to log and Response_Object.
-
-   procedure Notify
-     (O               : in     Log_And_Response_Object'Class;
-      Event           : in     Ada.Exceptions.Exception_Occurrence;
-      Message         : in     String;
-      Response_Object :    out Response.Object);
-   --  Append Event and Message to O and write to log and Response_Object.
-
-   type Critical_Log_And_Response_Object is new Log_And_Response_Object with
-     null record;
-   type Error_Log_And_Response_Object is new Log_And_Response_Object with
-     null record;
-   type Info_Log_And_Response_Object is new Log_And_Response_Object with
-     null record;
-
-   function Create
-     (Status : in String)
-      return Critical_Log_Object;
-   --  Initialize a Critical_Log_Object object.
-
-   function Create
-     (Description : in String;
-      Status      : in String;
-      Status_Code : in AWS.Messages.Status_Code)
-      return Critical_Response_Object;
-   --  Initialize a Critical_Response_Object object.
-
-   function Create
-     (Description : in String;
-      Status      : in String;
-      Status_Code : in AWS.Messages.Status_Code)
-      return Critical_Log_And_Response_Object;
-   --  Initialize a Critical_Log_And_Response_Object object.
-
-   function Create
-     (Status : in String)
-      return Error_Log_Object;
-   --  Initialize an Error_Log_Object object.
-
-   function Create
-     (Description : in String;
-      Status      : in String;
-      Status_Code : in AWS.Messages.Status_Code)
-      return Error_Response_Object;
-   --  Initialize an Error_Response_Object object.
-
-   function Create
-     (Description : in String;
-      Status      : in String;
-      Status_Code : in AWS.Messages.Status_Code)
-      return Error_Log_And_Response_Object;
-   --  Initialize a Error_Log_And_Response_Object object.
-
-   function Create
-     (Status : in String)
-      return Info_Log_Object;
-   --  Initialize an Info_Log_Object object.
-
-   function Create
-     (Description : in String;
-      Status      : in String;
-      Status_Code : in AWS.Messages.Status_Code)
-      return Info_Response_Object;
-   --  Initialize an Info_Response_Object object.
-
-   function Create
-     (Description : in String;
-      Status      : in String;
-      Status_Code : in AWS.Messages.Status_Code)
-      return Info_Log_And_Response_Object;
-   --  Initialize a Info_Log_And_Response_Object object.
+   generic
+      Description : String;
+      Status      : String;
+      Status_Code : AWS.Messages.Status_Code;
+   procedure Responder
+     (Event           : in     Exception_Occurrence := Null_Occurrence;
+      Message         : in     String := "";
+      Response_Object : in out Response.Object);
+   --  Respond to user with Description, Status and Status_Code. Append Event
+   --  and / or Message, if given.
 
 end System_Message;
