@@ -7,30 +7,33 @@ with System_Messages;
 package body AMI.Response is
    use System_Messages;
 
-   procedure Subscribe (Action_ID : in Action_ID_Type;
-                        Callback  : in Callback_Type) is
+   function Hash_Equivalent_Keys (Left, Right : in Action_ID_Type)
+                                  return Boolean is
    begin
-      Reponse_List.Insert (Key => Action_ID, New_Item => Callback);
-   end Subscribe;
+      return Left = Right;
+   end Hash_Equivalent_Keys;
 
-   function Wait_For (Action_ID : in Action_ID_Type;
-                      Timeout   : in Duration := 3.0) return Boolean is
-      use Common;
-      use type Ada.Calendar.Time;
-
-      Deadline : constant Ada.Calendar.Time := Current_Time + Timeout;
+   function Hash_Function (Key : in Action_ID_Type)
+                           return Ada.Containers.Hash_Type is
    begin
-      loop
-         exit when Current_Time > Deadline;
+      return Action_ID_Type'Pos (Key);
+   end Hash_Function;
 
-         if not Reponse_List.Contains (Action_ID) then
-            return True;
-         end if;
-
-         delay 0.1;
-      end loop;
-      return False;
-   end Wait_For;
+--   function Image (List : in Response_List_Type.Map) return String is
+--      package Latin_1 renames Ada.Characters.Latin_1;
+--      Buffer : Ada.Strings.Unbounded.Unbounded_String;
+--   begin
+--      for Cursor in List.Iterate loop
+--         Ada.Strings.Unbounded.Append
+--           (Buffer,
+--            Latin_1.LF &
+--              "[" & Response_List_Type.Key (Cursor)'Img &
+--              "] => ["  &
+--              "]");
+--      end loop;
+--
+--      return Ada.Strings.Unbounded.To_String (Buffer);
+--   end Image;
 
    procedure Notify (Client : access Client_Type;
                      Packet : in     AMI.Parser.Packet_Type) is
@@ -61,38 +64,28 @@ package body AMI.Response is
            (Debug, Ada.Exceptions.Exception_Information (Error));
    end Notify;
 
-   --  Response list specific functions
-
-   function Hash_Function (Key : in Action_ID_Type)
-                           return Ada.Containers.Hash_Type is
+   procedure Subscribe (Action_ID : in Action_ID_Type;
+                        Callback  : in Callback_Type) is
    begin
-      return Action_ID_Type'Pos (Key);
-   end Hash_Function;
+      Reponse_List.Insert (Key => Action_ID, New_Item => Callback);
+   end Subscribe;
 
-   function Hash_Equivalent_Keys (Left, Right : in Action_ID_Type)
-                                  return Boolean is
-   begin
-      return Left = Right;
-   end Hash_Equivalent_Keys;
+   function Wait_For (Action_ID : in Action_ID_Type;
+                      Timeout   : in Duration := 3.0) return Boolean is
+      use Common;
+      use type Ada.Calendar.Time;
 
-   procedure Wait_For (Action_ID : in Action_ID_Type) is
+      Deadline : constant Ada.Calendar.Time := Current_Time + Timeout;
    begin
-      raise Program_Error with "Not implemented";
-   end Wait_For;
+      loop
+         exit when Current_Time > Deadline;
 
-   function Image (List : in Response_List_Type.Map) return String is
-      package Latin_1 renames Ada.Characters.Latin_1;
-      Buffer : Ada.Strings.Unbounded.Unbounded_String;
-   begin
-      for Cursor in List.Iterate loop
-         Ada.Strings.Unbounded.Append
-           (Buffer,
-            Latin_1.LF &
-              "[" & Response_List_Type.Key (Cursor)'Img &
-              "] => ["  &
-              "]");
+         if not Reponse_List.Contains (Action_ID) then
+            return True;
+         end if;
+
+         delay 0.1;
       end loop;
-
-      return Ada.Strings.Unbounded.To_String (Buffer);
-   end Image;
+      return False;
+   end Wait_For;
 end AMI.Response;

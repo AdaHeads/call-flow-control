@@ -152,7 +152,6 @@ package body Handlers.Call is
       use HTTP_Codes;
 
       Response_Object : Response.Object := Response.Factory (Request);
-      --  ???? Odd naming. See ???? comment for Call_List.Call_List_Type.
    begin
       Response_Object.Set_HTTP_Status_Code (OK);
       Response_Object.Set_Content
