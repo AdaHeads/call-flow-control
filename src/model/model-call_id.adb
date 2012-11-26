@@ -3,6 +3,24 @@ with Ada.Strings.Fixed;
 with Common;
 
 package body Model.Call_ID is
+
+   function "<" (Left  : in Call_ID_Type;
+                 Right : in Call_ID_Type) return Boolean is
+   begin
+      if Left.Timestamp = Right.Timestamp then
+         return Left.Sequence < Right.Sequence;
+      else
+         return Left.Timestamp < Right.Timestamp;
+      end if;
+   end "<";
+
+   function "=" (Left  : in Call_ID_Type;
+                 Right : in Call_ID_Type) return Boolean is
+   begin
+      return (Left.Timestamp = Right.Timestamp) and
+                (Left.Sequence = Right.Sequence);
+   end  "=";
+
    function Create (Item : String) return Call_ID_Type is
       Offset : constant Natural := Common.Index ('.', Item);
    begin
@@ -16,23 +34,6 @@ package body Model.Call_ID is
               (Item (Item'First + Offset .. Item'Last)));
       end if;
    end Create;
-
-   function "=" (Left  : in Call_ID_Type;
-                 Right : in Call_ID_Type) return Boolean is
-   begin
-      return (Left.Timestamp = Right.Timestamp) and
-                (Left.Sequence = Right.Sequence);
-   end  "=";
-
-   function "<" (Left  : in Call_ID_Type;
-                 Right : in Call_ID_Type) return Boolean is
-   begin
-      if Left.Timestamp = Right.Timestamp then
-         return Left.Sequence < Right.Sequence;
-      else
-         return Left.Timestamp < Right.Timestamp;
-      end if;
-   end "<";
 
    function To_String (Call_ID : in Call_ID_Type) return String is
    begin

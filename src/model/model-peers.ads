@@ -33,7 +33,7 @@ package Model.Peers is
    use Model.Agent_ID;
 
    PEER_NOT_FOUND : exception;
-   
+
    --  type Peer_ID_Type is new Unbounded_String;
    type SIP_Peer_Status_Type is (Unknown, Unregistered, Idle, Busy, Paused);
 
@@ -99,5 +99,5 @@ package Model.Peers is
       Last_Seen    => Ada.Calendar.Clock,
       Exten        => Null_Unbounded_String,
       Computer_ID  => Null_Unbounded_String);
-   
+
 end Model.Peers;

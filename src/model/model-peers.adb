@@ -76,16 +76,6 @@ package body Model.Peers is
          return List;
       end Get_Peers_List;
 
-      function List_As_String return String is
-         Result : Unbounded_String;
-         CRLF : constant String := (ASCII.CR, ASCII.LF);
-      begin
-         for Item of List loop
-            Append (Result, Image (Item) & CRLF);
-         end loop;
-         return To_String (Result);
-      end List_As_String;
-
       procedure Insert (Item : in Peer_Type) is
          use Peer_List_Type;
          Peer_Cursor : constant Peer_List_Type.Cursor :=
@@ -101,6 +91,17 @@ package body Model.Peers is
                                    New_Item  => Item);
          end if;
       end Insert;
+
+      function List_As_String return String is
+         Result : Unbounded_String;
+         CRLF : constant String := (ASCII.CR, ASCII.LF);
+      begin
+         for Item of List loop
+            Append (Result, Image (Item) & CRLF);
+         end loop;
+         return To_String (Result);
+      end List_As_String;
+
    end Peers_List;
 
    --  TODO change it to use a database.

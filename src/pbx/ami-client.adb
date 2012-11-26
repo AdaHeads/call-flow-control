@@ -21,8 +21,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Exceptions;
-
 with AWS.Net;
 with AWS.Net.Buffered;
 
@@ -52,7 +50,7 @@ package body AMI.Client is
                            Host   => Hostname,
                            Port   => Port,
                            Wait   => False);
-      
+
       Wait_For_Connection :
       loop
          Client.Connected := Client.Is_Connected;
@@ -60,7 +58,7 @@ package body AMI.Client is
            or Current_Time > Timeout;
          delay 0.05;
       end loop Wait_For_Connection;
-      
+
       if Client.Connected then
          System_Messages.Notify (Information, "Connected to " &
                                    Hostname & ":" &
@@ -82,7 +80,7 @@ package body AMI.Client is
          raise CONNECT_TIMEOUT;
       end if;
    exception
-      when Error : others =>
+      when others =>
          --  Synchronize the state
          Client.Connected := False;
          Client.Authenticated := Unknown;
@@ -117,8 +115,9 @@ package body AMI.Client is
       return AWS.Net.Buffered.Get_Line
         (Socket => Client.Socket);
    exception
-      when E : others =>
+      when others =>
          Client.On_Disconnect_Handler.all;
+         raise GET_LINE_FAILED;
    end Get_Line;
 
    function Is_Connected (Client  : in out Client_Type) return Boolean is
@@ -144,7 +143,7 @@ package body AMI.Client is
       AWS.Net.Buffered.Flush (Client.Socket);
       System_Messages.Notify (Debug, "Send: Sent " & Item);
    exception
-      when E : others =>
+      when others =>
          Client.On_Disconnect_Handler.all;
    end Send;
 
@@ -165,8 +164,7 @@ package body AMI.Client is
       end loop;
 
       if not Client.Connected then
-         raise AMI.CLIENT.TIMEOUT;
+         raise AMI.Client.TIMEOUT;
       end if;
-      
    end Wait_For_Connection;
 end AMI.Client;

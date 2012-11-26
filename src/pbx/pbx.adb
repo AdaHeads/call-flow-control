@@ -52,6 +52,17 @@ package body PBX is
              Secret   => Config.Get (PBX_Secret));
    end Authenticate;
 
+   procedure Connect is
+   begin
+      --  TODO: Add cooldown to prevent hammering the Asterisk server.
+      if not Shutdown then
+         System_Messages.Notify
+           (Information, "PBX.Reader_Loop: Reconnecting");
+         Client.Connect (Config.Get (PBX_Host), Config.Get (PBX_Port));
+         --  My_Connection_Manager.Signal_Disconnect;
+      end if;
+   end Connect;
+
    procedure Dispatch (Client : access AMI.Client.Client_Type;
                        Packet : in     AMI.Parser.Packet_Type) is
    begin
@@ -87,7 +98,7 @@ package body PBX is
          Dispatch (Client_Access, Read_Packet (Client_Access));
       end loop;
    exception
-      when E: others =>
+      when E : others =>
          if not Shutdown then
             System_Messages.Notify
               (Error, "PBX.Reader_Loop: Socket disconnected! ");
@@ -95,17 +106,6 @@ package body PBX is
               (Error, Ada.Exceptions.Exception_Information (E));
          end if;
    end Parser_Loop;
-   
-   procedure Connect is
-   begin
-      --  TODO: Add cooldown to prevent hammering the Asterisk server.
-      if not Shutdown then
-         System_Messages.Notify
-           (Information, "PBX.Reader_Loop: Reconnecting");
-         Client.Connect (Config.Get (PBX_Host), Config.Get (PBX_Port));
-         --  My_Connection_Manager.Signal_Disconnect;
-      end if;
-   end Connect;
 
    task body Reader_Task is
    begin
@@ -123,7 +123,7 @@ package body PBX is
          System_Messages.Notify
            (Critical, Ada.Exceptions.Exception_Information (E));
    end Reader_Task;
-   
+
    procedure Start is
    begin
       Client := AMI.Client.Create (On_Connect    => Authenticate'Access,

@@ -1,4 +1,3 @@
---with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded;
 
 with Model.Agent;

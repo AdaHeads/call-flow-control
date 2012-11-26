@@ -20,24 +20,6 @@ package body JSON.Peer is
    function To_JSON_Object (Peer_List : in Peers.Peer_List_Type.Map)
                            return GNATCOLL.JSON.JSON_Value;
 
-   function To_JSON_String (Peer : in Peers.Peer_Type)
-                             return JSON_String is
-      JSON : JSON_Value;
-   begin
-      JSON := To_JSON_Object (Peer);
-
-      return To_JSON_String (JSON.Write);
-   end To_JSON_String;
-
-   function To_JSON_String (Peer_List : in Peers.Peer_List_Type.Map)
-                                  return JSON_String is
-      JSON : JSON_Value;
-   begin
-      JSON := To_JSON_Object (Peer_List);
-
-      return To_JSON_String (JSON.Write);
-   end To_JSON_String;
-
    function To_JSON_Object (Peer : in Peers.Peer_Type)
                             return GNATCOLL.JSON.JSON_Value is
       use Ada.Calendar.Formatting;
@@ -82,6 +64,24 @@ package body JSON.Peer is
 
       return Result;
    end To_JSON_Object;
+
+   function To_JSON_String (Peer_List : in Peers.Peer_List_Type.Map)
+                                  return JSON_String is
+      JSON : JSON_Value;
+   begin
+      JSON := To_JSON_Object (Peer_List);
+
+      return To_JSON_String (JSON.Write);
+   end To_JSON_String;
+
+   function To_JSON_String (Peer : in Peers.Peer_Type)
+                             return JSON_String is
+      JSON : JSON_Value;
+   begin
+      JSON := To_JSON_Object (Peer);
+
+      return To_JSON_String (JSON.Write);
+   end To_JSON_String;
 
    --  -----------------  --
    --  Utility functions  --

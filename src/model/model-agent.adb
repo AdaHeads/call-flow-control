@@ -12,4 +12,3 @@ package body Model.Agent is
       return Call;
    end Assign;
 end Model.Agent;
-

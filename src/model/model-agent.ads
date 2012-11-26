@@ -1,4 +1,3 @@
---with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded;
 with Model.Call;
 with Model.Calls;
@@ -20,13 +19,14 @@ package Model.Agent is
 
    function Assign (Agent   : in out Agent_Type;
                     Call_ID : in Call_ID_Type;
-                    List    : in out Protected_Call_List_Type) return Call_Type;
+                    List    : in out Protected_Call_List_Type)
+                    return Call_Type;
 
    Null_Agent : constant Agent_Type;
    --   function Get (Agent_ID : in Agent_ID_Type) return Agent_Type;
 
 private
-   Null_Agent : constant Agent_Type := 
+   Null_Agent : constant Agent_Type :=
      (ID   => Null_Agent_ID,
       Peer => Null_Unbounded_String);
 end Model.Agent;

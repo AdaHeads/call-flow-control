@@ -36,23 +36,7 @@ package body Model.Calls is
          return List.Contains (Call_ID);
       end Contains;
 
-      --  Places the call, in the queue.
-      procedure Insert (Call : in Call_Type) is
-      begin
-         List.Insert
-           (Key       => Call.ID,
-            New_Item  => Call);
-
-      exception
-         when Constraint_Error =>
-            if List.Element (Key => Call.ID).ID = Call.ID then
-               raise DUPLICATE_ID with "key " & To_String (Call.ID) &
-                 " already in map.";
-            end if;
-            raise;
-      end Insert;
-
-      --  Returns the entire queue.
+      --  Process the entire queue.
       procedure For_Each (Process : in Call_Process_Type) is
       begin
          for I of List loop
@@ -71,12 +55,33 @@ package body Model.Calls is
          return Call;
       end Get;
 
+      --  Places the call, in the queue.
+      procedure Insert (Call : in Call_Type) is
+      begin
+         List.Insert
+           (Key       => Call.ID,
+            New_Item  => Call);
+
+      exception
+         when Constraint_Error =>
+            if List.Element (Key => Call.ID).ID = Call.ID then
+               raise DUPLICATE_ID with "key " & To_String (Call.ID) &
+                 " already in map.";
+            end if;
+            raise;
+      end Insert;
+
       --  Returns the total number of calls.
       function Length return Long_Integer is
          use Ada.Containers;
       begin
          return Long_Integer (List.Length);
       end Length;
+
+      function Next return Call_Type is
+      begin
+         return List.First_Element;
+      end Next;
 
       --  Removes the call with the specified UniqueID
       procedure Remove (Call_ID : Call_ID_Type) is
@@ -123,38 +128,11 @@ package body Model.Calls is
             raise CALL_NOT_FOUND;
          end if;
       end Update;
-
-      function Next return Call_Type is
-      begin
-         return List.First_Element;
-      end Next;
    end Protected_Call_List_Type;
 
    -- -------- --
    -- Wrappers --
    -- -------- --
-
-   --  Places a call on the call queue.
-   procedure Insert (Call : in Call_Type) is
-   begin
-      List.Insert (Call);
-   end Insert;
-
-   function Get (Call_ID : in Call_ID_Type) return Call_Type is
-   begin
-      return List.Get (Call_ID);
-   end Get;
-
-   --  Removes a specific call from the call queue.
-   procedure Remove (Call_ID : Call_ID_Type) is
-   begin
-      List.Remove (Call_ID);
-   end Remove;
-
-   procedure Update (Call : in Call_Type) is
-   begin
-      List.Update (Call);
-   end Update;
 
    function Dequeue (Call_ID : in Call_ID_Type) return Call_Type is
       Call : constant Call_Type := List.Get (Call_ID);
@@ -168,13 +146,31 @@ package body Model.Calls is
       return Call;
    end Dequeue;
 
-   -- -------------------- --
-   -- Conversion Utilities --
-   -- -------------------- --
+   function Get (Call_ID : in Call_ID_Type) return Call_Type is
+   begin
+      return List.Get (Call_ID);
+   end Get;
+
+   --  Places a call on the call queue.
+   procedure Insert (Call : in Call_Type) is
+   begin
+      List.Insert (Call);
+   end Insert;
 
    --  Gives the length of the call queue.
    function Length return Long_Integer is
    begin
       return List.Length;
    end Length;
+   --  Removes a specific call from the call queue.
+   procedure Remove (Call_ID : Call_ID_Type) is
+   begin
+      List.Remove (Call_ID);
+   end Remove;
+
+   procedure Update (Call : in Call_Type) is
+   begin
+      List.Update (Call);
+   end Update;
+
 end Model.Calls;
