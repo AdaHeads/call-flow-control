@@ -25,6 +25,7 @@ with Ada.Strings.Unbounded;
 with AWS.Net.Std;
 package AMI.Client is
 
+   TIMEOUT         : exception;
    CONNECT_TIMEOUT : exception;
    CONNECT_FAILED  : exception;
    GET_LINE_FAILED : exception;
@@ -76,5 +77,12 @@ package AMI.Client is
    procedure Set_Connection_State (Client    : in out Client_Type;
                                    New_State : in     Boolean);
 
+   procedure Wait_For_Connection (Client  : access Client_Type;
+                                  Timeout : in     Duration := 3.0);
+   --  Waits for a client to establish a connection for duration.
+   --  Raises TIMEOUT if the connection is not established within the
+   --  given duration.
+
 private
+   --  TODO: Move the client here.
 end AMI.Client;

@@ -52,6 +52,7 @@ package body AMI.Client is
                            Host   => Hostname,
                            Port   => Port,
                            Wait   => False);
+      
       Wait_For_Connection :
       loop
          Client.Connected := Client.Is_Connected;
@@ -59,7 +60,7 @@ package body AMI.Client is
            or Current_Time > Timeout;
          delay 0.05;
       end loop Wait_For_Connection;
-
+      
       if Client.Connected then
          System_Messages.Notify (Information, "Connected to " &
                                    Hostname & ":" &
@@ -71,6 +72,8 @@ package body AMI.Client is
                                   (Socket => Client.Socket));
          System_Messages.Notify (Debug, "Connect: Server greeted me with:" &
                                    To_String (Client.Server_Greeting));
+         --  Call the On_Connect handler
+         Client.On_Connect_Handler.all;
       else
          System_Messages.Notify
            (Information, "Connection timed out connecting to " &
@@ -80,9 +83,10 @@ package body AMI.Client is
       end if;
    exception
       when Error : others =>
+         --  Synchronize the state
          Client.Connected := False;
          Client.Authenticated := Unknown;
-         raise CONNECT_FAILED with Ada.Exceptions.Exception_Message (Error);
+         raise;
    end Connect;
 
    function Connected (Client : in out Client_Type) return Boolean is
@@ -114,7 +118,7 @@ package body AMI.Client is
         (Socket => Client.Socket);
    exception
       when E : others =>
-         raise GET_LINE_FAILED with Ada.Exceptions.Exception_Message (E);
+         Client.On_Disconnect_Handler.all;
    end Get_Line;
 
    function Is_Connected (Client  : in out Client_Type) return Boolean is
@@ -141,7 +145,7 @@ package body AMI.Client is
       System_Messages.Notify (Debug, "Send: Sent " & Item);
    exception
       when E : others =>
-         raise SEND_FAILED with Ada.Exceptions.Exception_Information (E);
+         Client.On_Disconnect_Handler.all;
    end Send;
 
    procedure Set_Connection_State (Client    : in out Client_Type;
@@ -150,4 +154,19 @@ package body AMI.Client is
       Client.Connected := New_State;
    end Set_Connection_State;
 
+   procedure Wait_For_Connection (Client  : access Client_Type;
+                                  Timeout : in     Duration := 3.0) is
+      use type Time;
+      Absolute_Timeout   : constant Time := Current_Time + Timeout;
+   begin
+      loop
+         exit  when Client.Connected or Current_Time > Absolute_Timeout;
+         delay 0.05;
+      end loop;
+
+      if not Client.Connected then
+         raise AMI.CLIENT.TIMEOUT;
+      end if;
+      
+   end Wait_For_Connection;
 end AMI.Client;

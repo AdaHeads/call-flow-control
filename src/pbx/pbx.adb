@@ -1,14 +1,11 @@
 with Ada.Strings.Unbounded;
 with Ada.Exceptions;
 
-with AWS.Net;
-
 with AMI.Action;
 with AMI.Response;
 with AMI.Parser;
 with AMI.Event;
 
-with Connection_Management;
 with My_Configuration;
 with System_Messages;
 with My_Callbacks;
@@ -41,17 +38,15 @@ package body PBX is
    procedure Dispatch (Client : access AMI.Client.Client_Type;
                        Packet : in     AMI.Parser.Packet_Type);
    procedure Parser_Loop;
-   procedure Reconnect;
+   procedure Connect;
 
-   package My_Connection_Manager is new Connection_Management
-     (Client   => Client_Access,
-      Hostname => Config.Get (PBX_Host),
-      Port     => Config.Get (PBX_Port));
+   --  package My_Connection_Manager is new Connection_Management
+   --    (Client   => Client_Access,
+   --     Hostname => Config.Get (PBX_Host),
+   --     Port     => Config.Get (PBX_Port));
 
    procedure Authenticate is
    begin
-      My_Connection_Manager.Wait_For_Connection;
-
       Login (Client   => Client_Access,
              Username => Config.Get (PBX_User),
              Secret   => Config.Get (PBX_Secret));
@@ -75,48 +70,42 @@ package body PBX is
    exception
       when E : others =>
          System_Messages.Notify
-           (Error, "PBX.Dispatch: Unexpected exception: ");
-         System_Messages.Notify
-           (Error, Ada.Exceptions.Exception_Information (E));
-         System_Messages.Notify
-           (Error, "");
-         System_Messages.Notify
-           (Error, "------------ Packet dump start ------");
-         System_Messages.Notify
-           (Error, Image (Packet));
-         System_Messages.Notify
-           (Error, "------------ Packet dump end ------");
-         System_Messages.Notify
-           (Error, "");
+           (Error, "PBX.Dispatch: Unexpected exception: " &
+              Ada.Exceptions.Exception_Information (E) &
+              "" &
+              "------------ Packet dump start ------" &
+              Image (Packet) &
+              "------------ Packet dump end ------" &
+              "");
    end Dispatch;
 
    procedure Parser_Loop is
    begin
       loop
          exit when Shutdown;
+         Client.Wait_For_Connection;
          Dispatch (Client_Access, Read_Packet (Client_Access));
       end loop;
    exception
-      when E : AWS.Net.Socket_Error =>
+      when E: others =>
          if not Shutdown then
             System_Messages.Notify
               (Error, "PBX.Reader_Loop: Socket disconnected! ");
             System_Messages.Notify
               (Error, Ada.Exceptions.Exception_Information (E));
-            Reconnect;
          end if;
    end Parser_Loop;
-
-   procedure Reconnect is
+   
+   procedure Connect is
    begin
-      Client.Connected := False;
+      --  TODO: Add cooldown to prevent hammering the Asterisk server.
       if not Shutdown then
          System_Messages.Notify
-           (Information, "PBX.Reader_Loop: Signalling disconnect: ");
-         My_Connection_Manager.Signal_Disconnect;
-         Authenticate;
+           (Information, "PBX.Reader_Loop: Reconnecting");
+         Client.Connect (Config.Get (PBX_Host), Config.Get (PBX_Port));
+         --  My_Connection_Manager.Signal_Disconnect;
       end if;
-   end Reconnect;
+   end Connect;
 
    task body Reader_Task is
    begin
@@ -125,6 +114,8 @@ package body PBX is
          exit when Shutdown;
          Parser_Loop;
       end loop;
+      System_Messages.Notify
+        (Information, "PBX.Reader_Task: Shutting down.");
    exception
       when E : others =>
          System_Messages.Notify
@@ -132,13 +123,12 @@ package body PBX is
          System_Messages.Notify
            (Critical, Ada.Exceptions.Exception_Information (E));
    end Reader_Task;
-
+   
    procedure Start is
    begin
-      My_Connection_Manager.Start;
-
-      --  Initial authentication
-      Authenticate;
+      Client := AMI.Client.Create (On_Connect    => Authenticate'Access,
+                                   On_Disconnect => Connect'Access);
+      Connect;
       Reader.Start;
    end Start;
 
@@ -149,7 +139,8 @@ package body PBX is
 
    procedure Stop is
    begin
+      System_Messages.Notify (Debug, "PBX.Shutdown");
       Shutdown := True;
-      My_Connection_Manager.Shutdown;
+      Client.Disconnect;
    end Stop;
 end PBX;

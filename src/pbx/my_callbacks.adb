@@ -23,11 +23,9 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
-with Ami;
 with Common;
 with System_Messages;
 
-with Model.Agent;
 with Model.Agents;
 with Model.Call;
 with Model.Calls;
@@ -331,11 +329,11 @@ package body My_Callbacks is
          else
             Peer.State := Unknown;
             System_Messages.Notify
-              (Critical, "My_Callbacks.Peer_Status: " & 
+              (Critical, "My_Callbacks.Peer_Status: " &
                  "Peer changed state into an unknown state: " &
                  To_String (Buffer));
          end if;
-         
+
          Insert_Peer (New_Item => Peer);
          System_Messages.Notify
            (Debug, "My_Callbacks.Peer_Status: " &
