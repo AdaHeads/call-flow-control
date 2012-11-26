@@ -19,3 +19,10 @@ with:
                   --show-possibly-lost=no \
                   --track-origins=yes alice
 
+
+Installing (Debian)
+===================
+
+* cp -p exe/alice   /usr/local/sbin/alice
+* cp -p tools/alice /etc/init.d/alice
+
