@@ -36,14 +36,13 @@ procedure Alice is
 
    Alice_Version : constant String := "0.40";
 
-   Web_Server    : HTTP := Create
-     (Set_Dispatchers => My_Handlers.Set'Access,
-      Unexpected      => Yolk.Whoops.Unexpected_Exception_Handler'Access);
+   Web_Server : HTTP := Create
+     (Unexpected => Yolk.Whoops.Unexpected_Exception_Handler'Access);
 begin
    Set_User (Config.Get (Yolk_User));
 
    PBX.Start;
-   Web_Server.Start;
+   Web_Server.Start (Dispatchers => My_Handlers.Get);
 
    Info.Alice_Start (Message => "Server version " & Alice_Version);
 

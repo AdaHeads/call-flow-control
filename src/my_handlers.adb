@@ -81,11 +81,13 @@ package body My_Handlers is
 --                                                  Action     => Not_Found)
 --     end;
 
-   procedure Set
-     (RH : out AWS.Services.Dispatchers.URI.Handler)
+   function Get
+     return AWS.Services.Dispatchers.URI.Handler
    is
       use AWS.Dispatchers.Callback;
       use My_Configuration;
+
+      RH : AWS.Services.Dispatchers.URI.Handler;
    begin
       -----------------------------------------
       --  Unknown Resource (404) Dispatcher  --
@@ -176,6 +178,7 @@ package body My_Handlers is
         (URI     => Config.Get (Handler_Notifications),
          Factory => Notifications.Create'Access);
 
-   end Set;
+      return RH;
+   end Get;
 
 end My_Handlers;
