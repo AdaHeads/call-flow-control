@@ -37,12 +37,12 @@
 NAME=alice
 
 # Path to the NAME executable.
-LOCATION=/home/opt/alice
+LOCATION=/opt/alice
+
+# Path to the config.ini file.
+CONFIG=configuration/config.ini
 
 # Path to the PID file.
-# IMPORTANT: This script creates a PID file for the application, even if you have
-# configured Yolk to create its own PID file using the PID_File configuration
-# parameter.
 PID=`realpath ${LOCATION}`/${NAME}.pid
 
 ##############################################################
@@ -87,29 +87,36 @@ yolk_start() {
     #   application in case some part of AWS/GNATcoll produce unexpected
     #   output on STDOUT.
     cd ${LOCATION};
-    ./${NAME} > /dev/null &
 
-    # Create the PID file
-    YOLK_PID=$!
-    echo $YOLK_PID > ${PID}
-
-    # Check that everything went well.
-    if [ -f ${PID} ]
+    if [ -f ${CONFIG} ]
     then
-        PROCESS=`cat ${PID}`
+	./${NAME} --yolk-config-file ${CONFIG} > /dev/null &
 
-        if [ -d /proc/${PROCESS} ]
-        then
-            echo "${NAME} is running with PID ${PROCESS}."
-        else
-            echo "No process is running with PID ${PROCESS}."
-        fi
+        # Create the PID file
+	YOLK_PID=$!
+	echo $YOLK_PID > ${PID}
+
+        # Check that everything went well.
+	if [ -f ${PID} ]
+	then
+            PROCESS=`cat ${PID}`
+
+            if [ -d /proc/${PROCESS} ]
+            then
+		echo "${NAME} is running with PID ${PROCESS}."
+            else
+		echo "No process is running with PID ${PROCESS}."
+            fi
+	else
+            echo "Cannot find PID file ${PID}."
+            echo "Starting ${NAME} failed."
+	fi
+
+	exit 1
     else
-        echo "Cannot find PID file ${PID}."
-        echo "Starting ${NAME} failed."
+	echo "Cannot open ${CONFIG}."
+	exit 1;
     fi
-
-    exit 1
 
 }
 
