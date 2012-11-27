@@ -21,40 +21,33 @@
 ##                                                                           ##
 ###############################################################################
 
-# You can use this script to start, stop, restart and check the status of a
-# Yolk application.
+# You can use this script to start, stop, restart and check the status of
+# Alice.
 #
 # NOTE:
-#   When you start a Yolk application with this script, output from the app-
-#   lication is directed to /dev/null, meaning that regular Put_Line calls are
-#   _not_ shown anywhere.
+#   When you start Alice with this script, output from the application is
+#   directed to /dev/null, meaning that regular text IO from Alice are _not_
+#   shown anywhere.
 #   This is done to avoid crashing the application if it tries to write to STDOUT
 #   while not having an actual shell.
 #   So if you need output to STDOUT, for example for debugging purposes, you'll
 #   have to start the application by calling the executable directly.
 
-###########################################################
-# Edit the following variables to match your environment. #
-###########################################################
+# The actual filename of the Alice application executable.
+NAME=alice
 
-# This is merely a name. You can write anything here, but the most sane thing
-# would probably be to write the same name as given in the config.ini parameter
-# Server_Name.
-# This name is used when the rc script output informative messages about the
-# application.
-NAME_OF_APPLICATION=Alice
+# Path to the NAME executable.
+LOCATION=/home/opt/alice
 
-# This is the actual filename of the application executable.
-NAME_OF_EXE_FILE=alice
-
-# Path to where the NAME_OF_EXE_FILE lives. Do _not_ write the trailing /
-PATH_TO_YOLK_EXE_DIRECTORY=/opt/alice
+# Path to the PID file.
+# IMPORTANT: This script creates a PID file for the application, even if you have
+# configured Yolk to create its own PID file using the PID_File configuration
+# parameter.
+PID=`realpath ${LOCATION}`/${NAME}.pid
 
 ##############################################################
 # Do not edit below here, unless you know what you're doing. #
 ##############################################################
-
-PID=${PATH_TO_YOLK_EXE_DIRECTORY}/${NAME_OF_EXE_FILE}.pid
 
 ###########
 # cleanup #
@@ -63,7 +56,6 @@ cleanup(){
 
     if [ -f ${PID} ]
     then
-        echo "Cleaning up PID file ${PID}."
         rm ${PID}
     fi
 
@@ -81,8 +73,11 @@ yolk_start() {
 
         if [ -d /proc/${PROCESS} ]
         then
-            echo "${NAME_OF_APPLICATION} is already running with PID ${PROCESS}."
+            echo "${NAME} is already running with PID ${PROCESS}."
             exit 1
+        else
+	    echo "Stale PID file found."
+	    cleanup
         fi
     fi
 
@@ -91,29 +86,27 @@ yolk_start() {
     #   We direct output to /dev/null. This is to avoid IO exceptions from the
     #   application in case some part of AWS/GNATcoll produce unexpected
     #   output on STDOUT.
-    cd ${PATH_TO_YOLK_EXE_DIRECTORY};
-    ./${NAME_OF_EXE_FILE} > /dev/null &
+    cd ${LOCATION};
+    ./${NAME} > /dev/null &
 
-    for i in 1 2 3 4
-    do
-        echo "."
-        sleep 0.25
-    done
+    # Create the PID file
+    YOLK_PID=$!
+    echo $YOLK_PID > ${PID}
 
+    # Check that everything went well.
     if [ -f ${PID} ]
     then
         PROCESS=`cat ${PID}`
 
         if [ -d /proc/${PROCESS} ]
         then
-            echo "${NAME_OF_APPLICATION} is running with PID ${PROCESS}."
+            echo "${NAME} is running with PID ${PROCESS}."
         else
             echo "No process is running with PID ${PROCESS}."
-            echo "Something bad has happened."
         fi
     else
         echo "Cannot find PID file ${PID}."
-        echo "Starting ${NAME_OF_APPLICATION} failed."
+        echo "Starting ${NAME} failed."
     fi
 
     exit 1
@@ -136,22 +129,31 @@ yolk_stop() {
 
     if [ -d /proc/${PROCESS} ]
     then
-        echo -n "Stopping the ${NAME_OF_APPLICATION} daemon."
+        echo -n "Stopping the ${NAME} daemon."
 
         kill ${PROCESS}
 
+	COUNTER=0
         while [ -d /proc/${PROCESS} ]
         do
+	    let "COUNTER++"
+
+	    if [ "$COUNTER" -gt 50 ]
+	    then
+		echo "Cannot stop ${NAME}. Giving up."
+		exit 1
+	    fi
+
             echo "."
             sleep 0.25
         done
 
-        echo "${NAME_OF_APPLICATION} stopped."
+        echo "${NAME} stopped."
     else
         echo "No running process with PID ${PROCESS}"
-
-        cleanup
     fi
+
+    cleanup
 
 }
 
@@ -162,6 +164,7 @@ yolk_restart() {
 
     yolk_stop
     sleep 1
+    echo "Starting the ${NAME} daemon."
     yolk_start
 
     exit 1
@@ -187,7 +190,7 @@ yolk_status() {
 
     if [ ${IS_RUNNING} == "true" ]
     then
-        echo "${NAME_OF_APPLICATION} is running with PID ${PROCESS}."
+        echo "${NAME} is running with PID ${PROCESS}."
         echo ""
         echo "Disk I/O utilization stats:"
         pidstat -d -p ${PROCESS}
@@ -202,7 +205,7 @@ yolk_status() {
 
         echo ""
     else
-        echo "${NAME_OF_APPLICATION} is stopped."
+        echo "${NAME} is stopped."
     fi
 
 }
