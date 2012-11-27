@@ -27,9 +27,9 @@ with AWS.Services.Dispatchers.URI;
 
 package My_Handlers is
 
-   procedure Set
-     (RH : out AWS.Services.Dispatchers.URI.Handler);
-   --  Setup content dispatchers for the server. We set URI dispatchers for
-   --  both regular HTTP requests and for WebSocket connections.
+   function Get
+     return AWS.Services.Dispatchers.URI.Handler;
+   --  Register content dispatchers for the server.
+   --  TODO: Move the websocket stuff out of this function.
 
 end My_Handlers;
