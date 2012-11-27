@@ -33,7 +33,7 @@
 #   So if you need output to STDOUT, for example for debugging purposes, you'll
 #   have to start the application by calling the executable directly.
 
-# The actual filename of the Alice application executable.
+# The actual filename of the Alice executable.
 NAME=alice
 
 # Path to the NAME executable.
