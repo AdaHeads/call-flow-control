@@ -158,6 +158,16 @@ package body My_Handlers is
          Action     => Create
            (Callback => Agent.Agent'Access));
 
+      ----------------------
+      --  Debug handlers  --
+      ----------------------
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => Config.Get (Handler_Debug_Peer_List),
+         Action     => Create
+           (Callback => Handler.Debug.Peer_List'Access));
+
       --------------------------
       --  WebSocket handlers  --
       --------------------------

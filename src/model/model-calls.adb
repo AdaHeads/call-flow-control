@@ -25,10 +25,8 @@
 --  Currently also holds a singleton call list object for easy access.
 
 with Ada.Strings.Unbounded;
-with System_Messages;
 
 package body Model.Calls is
-   use System_Messages;
 
    protected body Protected_Call_List_Type is
       function Contains (Call_ID : in Call_ID_Type) return Boolean is
@@ -87,11 +85,6 @@ package body Model.Calls is
       procedure Remove (Call_ID : Call_ID_Type) is
       begin
          List.Delete (Call_ID);
-         System_Messages.Notify
-           (Debug,
-            "Call_List - Remove:" &
-              "This uniqueid could not be found in the call queue." &
-              " Call.ID: " & To_String (Call_ID));
       end Remove;
 
       function To_JSON return JSON_Value is

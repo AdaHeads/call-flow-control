@@ -41,6 +41,7 @@ package AMI.Client is
 
    procedure Null_Callback is null;
 
+   --  TODO: Make limited.
    type Client_Type is tagged
       record
          Connected             : Boolean := False;

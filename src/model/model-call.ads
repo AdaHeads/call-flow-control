@@ -25,6 +25,7 @@ with Ada.Strings.Unbounded;
 with Model.Agent_ID;
 with Common;
 with Model.Call_ID;
+with Model.Channel_ID;
 with GNATCOLL.JSON;
 
 package Model.Call is
@@ -33,6 +34,7 @@ package Model.Call is
    use Common;
    use Model.Agent_ID;
    use Model.Call_ID;
+   use Model.Channel_ID;
 
    BAD_EXTENSION   : exception;
    EMPTY_EXTENSION : exception;
@@ -46,11 +48,8 @@ package Model.Call is
          ID             : Call_ID.Call_ID_Type;
          State          : Call_State;
          Inbound        : Boolean;
-         Extension      : Unbounded_String;
          Queue_Priority : Priority_Level;
-         Channel        : Unbounded_String;
-         CallerIDNum    : Unbounded_String;
-         CallerIDName   : Unbounded_String;
+         Channel_ID     : Channel_ID_Type;
          Queue          : Unbounded_String;
          Position       : Natural;
          Count          : Natural;
@@ -69,10 +68,7 @@ package Model.Call is
       State          => Unknown,
       Queue_Priority => Invalid,
       Inbound        => False,
-      Extension      => Null_Unbounded_String,
-      Channel        => Null_Unbounded_String,
-      CallerIDNum    => Null_Unbounded_String,
-      CallerIDName   => Null_Unbounded_String,
+      Channel_ID     => Null_Channel_ID,
       Queue          => Null_Unbounded_String,
       Position       => 0,
       Count          => 0,

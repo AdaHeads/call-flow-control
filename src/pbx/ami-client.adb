@@ -84,6 +84,7 @@ package body AMI.Client is
          --  Synchronize the state
          Client.Connected := False;
          Client.Authenticated := Unknown;
+         Client.On_Disconnect_Handler.all;
          raise;
    end Connect;
 

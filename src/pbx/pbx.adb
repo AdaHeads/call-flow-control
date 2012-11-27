@@ -55,6 +55,8 @@ package body PBX is
    procedure Connect is
    begin
       --  TODO: Add cooldown to prevent hammering the Asterisk server.
+         System_Messages.Notify
+           (Information, "PBX.Reader_Loop: Reconnecting");
       if not Shutdown then
          System_Messages.Notify
            (Information, "PBX.Reader_Loop: Reconnecting");
@@ -66,7 +68,6 @@ package body PBX is
    procedure Dispatch (Client : access AMI.Client.Client_Type;
                        Packet : in     AMI.Parser.Packet_Type) is
    begin
-      System_Messages.Notify (Debug, Image (Packet));
       if Packet.Header.Key = AMI.Parser.Response then
          AMI.Response.Notify (Client => Client,
                               Packet => Packet);
