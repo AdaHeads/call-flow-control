@@ -20,7 +20,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Alice storage and PBX front-end"
 NAME=alice
 DAEMON=/usr/local/sbin/$NAME
-DAEMON_ARGS=""
+DAEMON_ARGS="--yolk-config-file /etc/alice/yolk.ini"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
