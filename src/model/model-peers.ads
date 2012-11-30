@@ -21,83 +21,92 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Calendar;
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Hash;
 with Ada.Strings.Unbounded;
 with Model.Agent_ID;
+with Model.Peer_ID;
+with GNATCOLL.JSON;
 
+with Common;
 package Model.Peers is
    use Ada.Containers;
    use Ada.Strings.Unbounded;
    use Model.Agent_ID;
+   use Model.Peer_ID;
+   use Common;
 
    PEER_NOT_FOUND : exception;
 
-   --  type Peer_ID_Type is new Unbounded_String;
    type SIP_Peer_Status_Type is (Unknown, Unregistered, Idle, Busy, Paused);
-
-   --  package Call_List is new
-   --    Ada.Containers.Vectors (Index_Type   => Positive,
-   --                            Element_Type => Model.Call.Call_Type,
-   --                            "="          => Model.Call."=");
 
    type Peer_Type is tagged
       record
-         ID           : Unbounded_String; --  Was 'peer'
+         ID           : Peer_ID_Type; --  Was 'peer'
          Agent_ID     : Agent_ID_Type;
-         Defined      : Boolean := False;
          State        : SIP_Peer_Status_Type := Unregistered;
          Last_State   : SIP_Peer_Status_Type := Unknown;
-         ChannelType  : Unbounded_String;
---         Peer         : Unbounded_String;
          Port         : Unbounded_String;
          Address      : Unbounded_String;
          Paused       : Boolean := False;
-         Last_Seen    : Ada.Calendar.Time := Ada.Calendar.Clock;
-         Exten        : Unbounded_String;
-
-         Computer_ID : Unbounded_String;
-         --  Dete skal kun symbolere de informationen, der måtte komme senere
+         Last_Seen    : Time;
       end record;
 
-   type Peer_Type_Access is access Peer_Type;
-   function Image (Item : in Peer_Type) return String;
+   function To_JSON (Peer : in Peers.Peer_Type)
+                     return GNATCOLL.JSON.JSON_Value;
+   function To_String (Peer : in Peer_Type) return String;
+
+   --  function Image (Item : in Peer_Type) return String;
    --     procedure Print_Peer (Peer : in Peer_Type);
-   procedure Insert_Peer (New_Item : in Peer_Type);
+   --  procedure Insert_Peer (New_Item : in Peer_Type);
    --  Inserts a new peer in the peer list, and overwrites existing peers with
    --  the same key.
 
    --  Debug
-   function List_As_String return String;
---   function Image return String;
-   function Get_Peer_By_ID (Agent_ID : in Unbounded_String) return Peer_Type;
-   function Get_Peer_By_PhoneName (PhoneName : in String)
-                                   return Peer_Type;
+   --  function List_As_String return String;
+   --  function Image return String;
+   --  function Get_Peer_By_ID (Agent_ID : in Unbounded_String)
+   --  return Peer_Type;
+   --  function Get_Peer_By_PhoneName (PhoneName : in String)
+   --                                 return Peer_Type;
 
-   function Hash (Peer_Address : in Unbounded_String) return Hash_Type;
+   function Hash (Peer_ID : Peer_ID_Type) return Hash_Type;
 
-   package Peer_List_Type is new Ada.Containers.Hashed_Maps
-     (Key_Type        => Unbounded_String,
+   package Peer_List_Storage is new Ada.Containers.Hashed_Maps
+     (Key_Type        => Peer_ID_Type,
       Element_Type    => Peer_Type,
       Hash            => Hash,
       Equivalent_Keys => "=");
 
-   function Get_Peers_List return Peer_List_Type.Map;
-   function Get_Exten (Peer : in Unbounded_String) return Unbounded_String;
-   Null_Peer : Peer_Type :=
-     (ID           => Null_Unbounded_String,
+   --  function Get_Peers_List return Peer_List_Storage.Map;
+   --  function Get_Exten (Peer : in Unbounded_String) return Unbounded_String;
+
+   protected type Peer_List_Type is
+      function Get (Peer_ID : in Peer_ID_Type) return Peer_Type;
+      function Contains (Peer_ID : in Peer_ID_Type) return Boolean;
+      --        function Get_Peers_List return Peer_List_Storage.Map;
+      --        function Get_Peer_By_ID (Agent_ID : in Unbounded_String)
+      --                                 return Peer_Type;
+      --        function Get_Peer_By_PhoneName (PhoneName : in String)
+      --                                        return Peer_Type;
+      procedure Insert (Peer : in Peer_Type);
+      function To_String return String;
+      function To_JSON return GNATCOLL.JSON.JSON_Value;
+   private
+      List : Peer_List_Storage.Map;
+   end Peer_List_Type;
+
+   Null_Peer : constant Peer_Type;
+
+   List : Peer_List_Type;
+private
+      Null_Peer : constant Peer_Type :=
+     (ID           => Null_Peer_ID,
       Agent_ID     => Null_Agent_ID,
-      Defined      => False,
       State        => Unregistered,
       Last_State   => Unknown,
-      ChannelType  => Null_Unbounded_String,
---      Peer         => Null_Unbounded_String,
       Port         => Null_Unbounded_String,
       Address      => Null_Unbounded_String,
       Paused       => False,
-      Last_Seen    => Ada.Calendar.Clock,
-      Exten        => Null_Unbounded_String,
-      Computer_ID  => Null_Unbounded_String);
-
+      Last_Seen    => Current_Time);
 end Model.Peers;

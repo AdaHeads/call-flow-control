@@ -10,6 +10,7 @@ with My_Configuration;
 with System_Messages;
 with My_Callbacks;
 
+--  TODO: Cover all branches on status.
 package body PBX is
    use Ada.Strings.Unbounded;
    use AMI.Action;
@@ -28,6 +29,7 @@ package body PBX is
      (PeerStatus         => My_Callbacks.Peer_Status'Access,
       Hangup             => My_Callbacks.Hangup'Access,
       Join               => My_Callbacks.Join'Access,
+      Leave              => My_Callbacks.Leave'Access,
       Newchannel         => My_Callbacks.New_Channel'Access,
       Newstate           => My_Callbacks.New_State'Access,
       Dial               => My_Callbacks.Dial'Access,
@@ -54,15 +56,19 @@ package body PBX is
 
    procedure Connect is
    begin
+
       --  TODO: Add cooldown to prevent hammering the Asterisk server.
+      if PBX_Status /= Shutdown then
+         PBX_Status := Connecting;
          System_Messages.Notify
-           (Information, "PBX.Reader_Loop: Reconnecting");
-      if not Shutdown then
-         System_Messages.Notify
-           (Information, "PBX.Reader_Loop: Reconnecting");
+           (Information, "PBX.Connect: Connecting");
          Client.Connect (Config.Get (PBX_Host), Config.Get (PBX_Port));
-         --  My_Connection_Manager.Signal_Disconnect;
+
+         if Client.Connected then
+            PBX_Status := Running;
+         end if;
       end if;
+
    end Connect;
 
    procedure Dispatch (Client : access AMI.Client.Client_Type;
@@ -94,13 +100,13 @@ package body PBX is
    procedure Parser_Loop is
    begin
       loop
-         exit when Shutdown;
+         exit when PBX_Status = Shutdown;
          Client.Wait_For_Connection;
          Dispatch (Client_Access, Read_Packet (Client_Access));
       end loop;
    exception
       when E : others =>
-         if not Shutdown then
+         if PBX_Status /= Shutdown then
             System_Messages.Notify
               (Error, "PBX.Reader_Loop: Socket disconnected! ");
             System_Messages.Notify
@@ -112,7 +118,7 @@ package body PBX is
    begin
       accept Start;
       loop
-         exit when Shutdown;
+         exit when PBX_Status = Shutdown;
          Parser_Loop;
       end loop;
       System_Messages.Notify
@@ -133,15 +139,16 @@ package body PBX is
       Reader.Start;
    end Start;
 
-   procedure Status is
+   function Status return PBX_Status_Type is
    begin
-      null;
+      return PBX_Status;
    end Status;
 
    procedure Stop is
    begin
       System_Messages.Notify (Debug, "PBX.Shutdown");
-      Shutdown := True;
+      PBX_Status := Shutting_Down;
       Client.Disconnect;
+      PBX_Status := Shutdown;
    end Stop;
 end PBX;

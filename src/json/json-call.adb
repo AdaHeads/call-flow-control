@@ -49,15 +49,14 @@ package body JSON.Call is
       Root : constant JSON_Value := Create_Object;
       Value : constant JSON_Value := Create_Object;
       Org_ID : Ada.Strings.Unbounded.Unbounded_String;
-      Org_Prefix : constant String := "org_id";
+      --  Org_Prefix : constant String := "org_id";
    begin
       if Call /= Null_Call then
-         Org_ID := Ada.Strings.Unbounded.Tail
-           (Call.Queue,
-            Ada.Strings.Unbounded.Length (Call.Queue) - Org_Prefix'Length);
+--           Org_ID := Ada.Strings.Unbounded.Tail
+--             (Call.Queue,
+--              Ada.Strings.Unbounded.Length (Call.Queue) - Org_Prefix'Length);
 
-         Value.Set_Field ("channel", Call.Channel);
-         Value.Set_Field ("caller_id", Call.CallerIDNum);
+         Value.Set_Field ("channel", Call.Channel_ID.To_String);
          Value.Set_Field ("org_id", Org_ID);
          Value.Set_Field ("call_id",  To_String (Call.ID));
          Value.Set_Field ("arrival_time", Unix_Timestamp (Call.Arrived));

@@ -52,6 +52,7 @@ package My_Configuration is
                  Handler_Organization,
                  Handler_Organization_List,
                  Handler_Queue_Length,
+                 Handler_Debug_Peer_List,
                  Handler_Notifications,
                  PBX_Secret,
                  PBX_User,
@@ -105,6 +106,8 @@ package My_Configuration is
                        => U ("/organization/list"),
                        Handler_Queue_Length
                        => U ("/queue_length"),
+                       Handler_Debug_Peer_List
+                       => U ("/debug/peer/list"),
                        Handler_Notifications
                        => U ("/notifications"),
                       PBX_Secret

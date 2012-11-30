@@ -41,7 +41,7 @@ package body AMI.Event is
       when others =>
          System_Messages.Notify (Error, "AMI.Event.Dispatch failed for: " &
                                  (To_String (Packet.Header.Value)));
-	raise;
+         raise;
    end Dispatch;
 
    procedure Null_Callback (Packet : in AMI.Parser.Packet_Type) is

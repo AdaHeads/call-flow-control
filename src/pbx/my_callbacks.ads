@@ -14,6 +14,7 @@ package My_Callbacks is
    procedure Dial        (Packet : in Packet_Type);
    procedure Hangup      (Packet : in Packet_Type);
    procedure Join        (Packet : in Packet_Type);
+   procedure Leave (Packet : in Packet_Type);
    procedure New_Channel (Packet : in Packet_Type);
    procedure New_State   (Packet : in Packet_Type);
 

@@ -113,7 +113,7 @@ package AMI.Action is
    --  queues, as well as the corresponding service level.
 
    procedure Redirect (Client    : access Client_Type;
-                       Channel   : in     String;
+                       Channel   : in     Channel_ID_Type;
                        Extension : in     String;
                        Callback  : in     AMI.Callback.Callback_Type
                        := AMI.Callback.Null_Callback'Access);

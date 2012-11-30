@@ -49,8 +49,8 @@ package body Model.Call is
            (Call.Queue,
             Ada.Strings.Unbounded.Length (Call.Queue) - Org_Prefix'Length);
 
-         Value.Set_Field ("channel", Call.Channel);
-         Value.Set_Field ("caller_id", Call.CallerIDNum);
+         Value.Set_Field ("channel", Call.Channel_ID.To_String);
+         --  Value.Set_Field ("caller_id", Call.);
          Value.Set_Field ("org_id", Org_ID);
          Value.Set_Field ("call_id",  To_String (Call.ID));
          Value.Set_Field ("arrival_time", Unix_Timestamp (Call.Arrived));
@@ -63,8 +63,8 @@ package body Model.Call is
    function To_String (Call : in Call_Type) return String is
       Response : Unbounded_String;
    begin
-      Append (Response, "ID => " & To_String (Call.ID));
-      Append (Response, ", Channel => "    & To_String (Call.Channel));
+      Append (Response, "ID => " & Call.ID.To_String);
+      Append (Response, ", Channel => " & Call.Channel_ID.To_String);
       Append (Response, ", Queue => "    & To_String (Call.Queue));
       Append (Response, ", State => "    & Call.State'Img);
       return To_String (Response);

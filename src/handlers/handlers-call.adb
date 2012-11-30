@@ -28,6 +28,8 @@ with HTTP_Codes;
 with Response;
 
 with AMI.Action;
+with Model.Agents;
+with Model.Agent_ID;
 with Model.Call;
 with Model.Calls;
 with Model.Peers;
@@ -179,9 +181,11 @@ package body Handlers.Call is
       use HTTP_Codes;
       use Ada.Strings.Unbounded;
       use Model.Call_ID;
+      use Model.Agent_ID;
 
-      Agent   : constant String := Parameters (Request).Get ("agent_id");
-      Call_ID : constant String := Parameters (Request).Get ("call_id");
+      Agent_ID : constant Agent_ID_Type :=
+                   Create (Parameters (Request).Get ("agent_id"));
+      Call_ID  : constant String := Parameters (Request).Get ("call_id");
 
       Content         : JSON_String;
       Response_Object : Response.Object := Response.Factory (Request);
@@ -191,16 +195,19 @@ package body Handlers.Call is
    begin
 
       --  Retrieve the peer from the agent_id.
-      Peer := Get_Peer_By_PhoneName (Agent);
+      Peer := Model.Peers.List.Get
+        (Model.Agents.Get (Agent_ID => Agent_ID).Peer_ID);
 
       --  Determine which call to pickup
       if Call_ID'Length = 0 then
-         System_Messages.Notify (Debug, "Get_Call - Agent_ID: " & Agent &
+         System_Messages.Notify (Debug, "Get_Call - Agent_ID: " &
+                                   Parameters (Request).Get ("agent_id") &
                                    " asks for unspecifed call");
          Call := Calls.List.Next;
          System_Messages.Notify (Debug, " Sending: " & To_String (Call));
       else
-         System_Messages.Notify (Debug, "Get_Call - Agent_ID: " & Agent &
+         System_Messages.Notify (Debug, "Get_Call - Agent_ID: " &
+                                   Parameters (Request).Get ("agent_id") &
                                    " ask for Call_ID: " & Call_ID);
          --  Lookup the call
          Call := Calls.Dequeue (Create (Call_ID));
@@ -215,14 +222,15 @@ package body Handlers.Call is
       elsif Peer.State = Unregistered then
          System_Messages.Notify
            (Critical, "Get_Call: " &
-              "The following agent is unregistred: " & Agent);
+              "The following agent is unregistred: " &
+              Parameters (Request).Get ("agent_id"));
          Status_Code := Bad_Request;
          Content := Status_Message
            ("Bad request", "The agents phone is not registered");
       else
          --  Send the command to AMI
          AMI.Action.Redirect (Client    => PBX.Client_Access,
-                              Channel   => To_String (Call.Channel),
+                              Channel   => Call.Channel_ID,
                               Extension => "101"); --  To_String (Peer.Exten)
          Status_Code := OK;
          Content := To_JSON_String (Call);

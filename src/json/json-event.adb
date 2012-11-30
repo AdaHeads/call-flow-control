@@ -62,7 +62,7 @@ package body JSON.Event is
       Notification_JSON : constant JSON_Value := Create_Object;
       Agent_JSON        : constant JSON_Value := Create_Object;
    begin
-      Agent_JSON.Set_Field ("agent_id", Agent.Agent_ID'Img);
+      Agent_JSON.Set_Field ("agent_id", Agent.Agent_ID.ID'Img);
       Agent_JSON.Set_Field ("state", Agent.State'Img);
       Notification_JSON.Set_Field ("agent", Agent_JSON);
       Notification_JSON.Set_Field ("persistent", False);
@@ -142,9 +142,9 @@ package body JSON.Event is
       Call_JSON         : constant JSON_Value := Create_Object;
    begin
       Call_JSON.Set_Field ("call_id", To_String (Call.ID));
-      Call_JSON.Set_Field ("caller_id", Call.CallerIDName);
+      --  Call_JSON.Set_Field ("caller_id", Call.CallerIDName);
       Call_JSON.Set_Field ("arrival_time", Unix_Timestamp (Call.Arrived));
-      Call_JSON.Set_Field ("channel", Call.Channel);
+      Call_JSON.Set_Field ("channel", Call.Channel_ID.To_String);
       Call_JSON.Set_Field ("org_id", Call.Queue);
       Notification_JSON.Set_Field ("call", Call_JSON);
       Notification_JSON.Set_Field ("persistent", False);
@@ -178,7 +178,7 @@ package body JSON.Event is
       Notification_JSON.Set_Field ("call", Call_JSON);
       Notification_JSON.Set_Field ("persistent", False);
       Notification_JSON.Set_Field ("event", "pickup_call");
-      Agent_JSON.Set_Field ("agent_id", Agent.Agent_ID'Img);
+      Agent_JSON.Set_Field ("agent_id", Agent.Agent_ID.ID'Img);
       Notification_JSON.Set_Field ("agent", Agent_JSON);
 
       JSON.Set_Field ("timestamp", Unix_Timestamp (Current_Time));

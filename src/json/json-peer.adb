@@ -80,7 +80,7 @@ package body JSON.Peer is
    begin
       JSON := To_JSON_Object (Peer);
 
-      return To_JSON_String (JSON.Write);
+      return To_JSON_String (Peer.To_JSON);
    end To_JSON_String;
 
    --  -----------------  --

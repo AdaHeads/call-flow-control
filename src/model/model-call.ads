@@ -40,7 +40,8 @@ package Model.Call is
    EMPTY_EXTENSION : exception;
 
    type Call_State is
-     (Unknown, Newly_Arrived, Speaking, Ringing, OnHold, Delegated, Hung_Up);
+     (Unknown, Newly_Arrived, Requeued,
+      Speaking, Ringing, OnHold, Delegated, Hung_Up);
    type Priority_Level is (Invalid, Low, Normal, High);
 
    type Call_Type is tagged
@@ -54,8 +55,10 @@ package Model.Call is
          Position       : Natural;
          Count          : Natural;
          Arrived        : Time := Current_Time;
-         Assigned_To    : Agent_ID_Type := 0;
+         Assigned_To    : Agent_ID_Type := Create ("");
       end record;
+
+   --  function Create
 
    function To_String (Call : in Call_Type) return String;
    function To_JSON (Call : in Call_Type) return JSON_Value;
@@ -63,6 +66,8 @@ package Model.Call is
    function "=" (Left  : in Call_Type;
                  Right : in Call_Type) return Boolean;
 
+   Null_Call : constant Call_Type;
+private
    Null_Call : constant Call_Type :=
      (ID             => Call_ID.Null_Call_ID,
       State          => Unknown,
@@ -73,5 +78,5 @@ package Model.Call is
       Position       => 0,
       Count          => 0,
       Arrived        => Current_Time,
-      Assigned_To    => 0);
+      Assigned_To    => Create ("0"));
 end Model.Call;

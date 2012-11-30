@@ -21,178 +21,185 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with System_Messages;
+with Ada.Characters.Handling;
+with Ada.Calendar.Formatting;
 
 package body Model.Peers is
-   use System_Messages;
 
-   ----------------------------------------------------------------------------
-   --  TODO Navngivning, Der er brug for nogle bedre navne her.
-   protected Peers_List is
-      function Get_Peers_List return Peer_List_Type.Map;
-      function Get_Peer_By_ID (Agent_ID : in Unbounded_String)
-                               return Peer_Type;
-      function Get_Peer_By_PhoneName (PhoneName : in String)
-                                      return Peer_Type;
-      procedure Insert (Item : in Peer_Type);
-      function List_As_String return String;
-   private
-      List : Peer_List_Type.Map;
-   end Peers_List;
+   function Hash (Peer_ID : in Peer_ID_Type) return Hash_Type is
+   begin
+      return Ada.Strings.Hash (Peer_ID.To_String);
+   end Hash;
 
-   protected body Peers_List is
-      function Get_Peer_By_ID (Agent_ID : in Unbounded_String)
-                               return Peer_Type is
+   function To_JSON (Peer : in Peers.Peer_Type)
+                     return GNATCOLL.JSON.JSON_Value is
+      use GNATCOLL.JSON;
+      use Ada.Characters.Handling;
+
+      JSON      : constant JSON_Value := Create_Object;
+      Peer_JSON : constant JSON_Value := Create_Object;
+   begin
+      Peer_JSON.Set_Field ("ID", To_String (Peer.ID));
+      Peer_JSON.Set_Field ("Agent_ID", Peer.Agent_ID.To_String);
+      Peer_JSON.Set_Field ("State", To_Lower (Peer.State'Img));
+      Peer_JSON.Set_Field ("Last_State", To_Lower (Peer.Last_State'Img));
+      Peer_JSON.Set_Field ("Port", To_String (Peer.Port));
+      Peer_JSON.Set_Field ("Address", To_String (Peer.Address));
+      Peer_JSON.Set_Field ("Paused", Peer.Paused);
+      Peer_JSON.Set_Field ("Last_Seen",
+                           Ada.Calendar.Formatting.Image (Peer.Last_Seen));
+      JSON.Set_Field ("peer", Peer_JSON);
+      JSON.Set_Field ("timestamp", Unix_Timestamp (Current_Time));
+
+      return JSON;
+   end To_JSON;
+
+   function To_String (Peer : in Peer_Type) return String is
+   begin
+      return
+        "ID => "         & Peer.ID.To_String        & ", " &
+        "Agent_ID => "   & Peer.Agent_ID.To_String  & ", " &
+        "State => "      & Peer.State'Img           & ", " &
+        "Last_State => " & Peer.Last_State'Img      & ", " &
+        "Address => "    & To_String (Peer.Address) & ", " &
+        "Port => "       & To_String (Peer.Port);
+   end To_String;
+
+   protected body Peer_List_Type is
+      function Contains (Peer_ID : in Peer_ID_Type) return Boolean is
       begin
-         for item in List.Iterate loop
-            System_Messages.Notify (Debug, "Peers.Get_Peer. [" & To_String (
-                        Peer_List_Type.Element (item).ID) &
-                        "] = ["
-                       & To_String (Agent_ID) & "]");
-            if Peer_List_Type.Element (item).ID = Agent_ID then
-               return Peer_List_Type.Element (item);
-            end if;
-         end loop;
-         return Null_Peer;
-      end Get_Peer_By_ID;
+         return List.Contains (Key => Peer_ID);
+      end Contains;
 
-      function Get_Peer_By_PhoneName (PhoneName : in String)
-                                      return Peer_Type is
-         use Peer_List_Type;
-         Peer_Cursor : constant Peer_List_Type.Cursor :=
-           List.Find (To_Unbounded_String (PhoneName));
+      function Get (Peer_ID : in Peer_ID_Type) return Peer_Type is
       begin
-         if Peer_Cursor = Peer_List_Type.No_Element then
-            raise PEER_NOT_FOUND;
+         return List.Element (Key => Peer_ID);
+      end Get;
+
+      procedure Insert (Peer : in Peer_Type) is
+      begin
+         if List.Contains (Peer.ID) then
+            List.Replace (Key      => Peer.ID,
+                          New_Item => Peer);
          else
-            --  ???? Hvorfor kan jeg ikke få lov (continued)
-            --       til at bruge den cursor jeg har - Peer_Cursor
-            return List.Element (To_Unbounded_String (PhoneName));
-         end if;
-      end Get_Peer_By_PhoneName;
-
-      function Get_Peers_List return Peer_List_Type.Map is
-      begin
-         return List;
-      end Get_Peers_List;
-
-      procedure Insert (Item : in Peer_Type) is
-         use Peer_List_Type;
-         Peer_Cursor : constant Peer_List_Type.Cursor :=
-           Peer_List_Type.Find (List, Item.ID);
-      begin
-         if Peer_Cursor /= Peer_List_Type.No_Element then
-            Peer_List_Type.Replace_Element (Container => List,
-                                            Position  => Peer_Cursor,
-                                            New_Item  => Item);
-         else
-            Peer_List_Type.Insert (Container => List,
-                                   Key       => Item.ID,
-                                   New_Item  => Item);
+            List.Insert (Key      => Peer.ID,
+                         New_Item => Peer);
          end if;
       end Insert;
 
-      function List_As_String return String is
-         Result : Unbounded_String;
-         CRLF : constant String := (ASCII.CR, ASCII.LF);
+      function To_JSON return GNATCOLL.JSON.JSON_Value is
+         use GNATCOLL.JSON;
+         Value     : JSON_Value := Create_Object;
+         JSON_List : JSON_Array;
+         Root      : constant JSON_Value := Create_Object;
       begin
-         for Item of List loop
-            Append (Result, Image (Item) & CRLF);
+         for Peer of List loop
+            if Peer /= Null_Peer then
+               Value := Peer.To_JSON;
+               Append (JSON_List, Value);
+            end if;
          end loop;
-         return To_String (Result);
-      end List_As_String;
+         Root.Set_Field ("peers", JSON_List);
+         return Root;
+      end To_JSON;
 
-   end Peers_List;
+      function To_String return String is
+         Item : Unbounded_String;
+      begin
+         for Peer of List loop
+            Append (Item, Peer.To_String);
+         end loop;
+         return To_String (Item);
+      end To_String;
+   end Peer_List_Type;
 
-   --  TODO change it to use a database.
-   function Get_Exten (Peer : in Unbounded_String) return Unbounded_String is
-      Exten : Unbounded_String;
-      Peer_String : constant String := To_String (Peer);
-   begin
-      if Peer_String = "softphone1" then
-         Exten := To_Unbounded_String ("100");
-      elsif Peer_String = "softphone2" then
-         Exten := To_Unbounded_String ("101");
-      elsif Peer_String = "DesireZ" then
-         Exten := To_Unbounded_String ("102");
-      elsif Peer_String = "TP-Softphone" then
-         Exten := To_Unbounded_String ("103");
-      elsif Peer_String = "JSA-N900" then
-         Exten := To_Unbounded_String ("104");
-      else
-         System_Messages.Notify (Debug,
-                         "Could not find an Extension for: " & Peer_String);
-         Exten := Null_Unbounded_String;
-      end if;
-      return Exten;
-   end Get_Exten;
-
-   function Get_Peer_By_ID (Agent_ID : in Unbounded_String) return Peer_Type is
-   begin
-      return Peers_List.Get_Peer_By_ID (Agent_ID);
-   end Get_Peer_By_ID;
-
-   function Get_Peer_By_PhoneName (PhoneName : in String)
-                                      return Peer_Type is
-   begin
-      return Peers_List.Get_Peer_By_PhoneName (PhoneName);
-   end Get_Peer_By_PhoneName;
-
-   function Get_Peers_List return Peer_List_Type.Map is
-   begin
-      return Peers_List.Get_Peers_List;
-   end Get_Peers_List;
-
-   function Hash (Peer_Address : in Unbounded_String) return Hash_Type is
-   begin
-      return Ada.Strings.Hash (To_String (Peer_Address));
-   end Hash;
-
-   function Image (Item : in Peer_Type) return String is
-   begin
-      return
-        "Agent_ID => " & Item.Agent_ID'Img & ", " &
-        "Defined => " & Item.Defined'Img & ", " &
-        "Status => " & Item.State'Img  & ", " &
-        "ChannelType => " & To_String (Item.ChannelType) & ", " &
-        "Peer => " & To_String (Item.ID) & ", " &
-        "Port => " & To_String (Item.Port) & ", " &
-        "Address => " & To_String (Item.Address) & ", " &
-        "Paused => " & Item.Paused'Img & ", " &
-        --  "Last_Seen => " & Image (Item.Last_Seen) & ", " &
-        "Exten => " & To_String (Item.Exten);
-   end Image;
-
-   procedure Insert_Peer (New_Item : in Peer_Type) is
-   begin
-      Peers_List.Insert (New_Item);
-   end Insert_Peer;
-
---     procedure Print_Peer (Peer : in Peer_Type) is
---        use Ada.Text_IO;
+--  TODO change it to use a database.
+--     function Get_Exten (Peer : in Unbounded_String) return
+--  Unbounded_String is
+--        Exten       : Unbounded_String;
+--        Peer_String : constant String := To_String (Peer);
 --     begin
---        Put ("Peer => "   & To_String (Peer.Peer) & ", ");
---        case Peer.Status is
---        when Unregistered =>
---           Put ("Status => Unregistered, ");
---        when Registered =>
---           Put ("Status => Registered, ");
---           --  when others =>
---           --     raise PROGRAM_ERROR;
---        end case;
+--        if Peer_String = "softphone1" then
+--           Exten := To_Unbounded_String ("100");
+--        elsif Peer_String = "softphone2" then
+--           Exten := To_Unbounded_String ("101");
+--        elsif Peer_String = "DesireZ" then
+--           Exten := To_Unbounded_String ("102");
+--        elsif Peer_String = "TP-Softphone" then
+--           Exten := To_Unbounded_String ("103");
+--        elsif Peer_String = "JSA-N900" then
+--           Exten := To_Unbounded_String ("104");
+--        else
+--           System_Messages.Notify (Debug,
+--                         "Could not find an Extension for: " & Peer_String);
+--           Exten := Null_Unbounded_String;
+--        end if;
+--        return Exten;
+--     end Get_Exten;
+
+   --     function Get_Peer_By_ID (Agent_ID : in Unbounded_String)
+   --   return Peer_Type is
+--     begin
+--        return Peers_List.Get_Peer_By_ID (Agent_ID);
+--   end Get_Peer_By_ID;
+
+--     function Get_Peer_By_PhoneName (PhoneName : in String)
+--                                     return Peer_Type is
+--     begin
+--        return Peers_List.Get_Peer_By_PhoneName (PhoneName);
+--     end Get_Peer_By_PhoneName;
 --
---        Put ("Address => " & To_String (Peer.Address) & ", ");
---        Put ("Channel_Type => " & To_String (Peer.ChannelType) & ", ");
---        Put ("Port => " & To_String (Peer.Port) & ", ");
---        Put ("Exten => " & To_String (Peer.Exten) & ", ");
---        Put ("Last_Seen =>
---     " & Ada.Calendar.Formatting.Image (Peer.Last_Seen));
---        New_Line;
+--     function Get_Peers_List return Peer_List_Type.Map is
+--     begin
+--        return Peers_List.Get_Peers_List;
+--     end Get_Peers_List;
 --
---     end Print_Peer;
-   function List_As_String return String is
-   begin
-      return Peers_List.List_As_String;
-   end List_As_String;
+--
+--     function Image (Item : in Peer_Type) return String is
+--     begin
+--        return
+--          "Agent_ID => " & Item.Agent_ID'Img & ", " &
+--          "Defined => " & Item.Defined'Img & ", " &
+--          "Status => " & Item.State'Img  & ", " &
+--          "ChannelType => " & To_String (Item.ChannelType) & ", " &
+--          "Peer => " & To_String (Item.ID) & ", " &
+--          "Port => " & To_String (Item.Port) & ", " &
+--          "Address => " & To_String (Item.Address) & ", " &
+--          "Paused => " & Item.Paused'Img & ", " &
+--        --  "Last_Seen => " & Image (Item.Last_Seen) & ", " &
+--          "Exten => " & To_String (Item.Exten);
+--     end Image;
+--
+--     procedure Insert_Peer (New_Item : in Peer_Type) is
+--     begin
+--        Peers_List.Insert (New_Item);
+--     end Insert_Peer;
+--
+--     --     procedure Print_Peer (Peer : in Peer_Type) is
+--     --        use Ada.Text_IO;
+--     --     begin
+--     --        Put ("Peer => "   & To_String (Peer.Peer) & ", ");
+--     --        case Peer.Status is
+--     --        when Unregistered =>
+--     --           Put ("Status => Unregistered, ");
+--     --        when Registered =>
+--     --           Put ("Status => Registered, ");
+--     --           --  when others =>
+--     --           --     raise PROGRAM_ERROR;
+--     --        end case;
+--     --
+--     --        Put ("Address => " & To_String (Peer.Address) & ", ");
+--     --      Put ("Channel_Type => " & To_String (Peer.ChannelType) & ", ");
+--     --        Put ("Port => " & To_String (Peer.Port) & ", ");
+--     --        Put ("Exten => " & To_String (Peer.Exten) & ", ");
+--     --        Put ("Last_Seen =>
+--     --     " & Ada.Calendar.Formatting.Image (Peer.Last_Seen));
+--     --        New_Line;
+--     --
+--     --     end Print_Peer;
+--     function List_As_String return String is
+--     begin
+--        return Peers_List.List_As_String;
+--     end List_As_String;
 
 end Model.Peers;

@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                              AMI.Callback                                 --
+--                              Model.Channels                               --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -20,26 +20,37 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with AMI.Parser;
-with AMI.Client;
-package AMI.Callback is
-   use AMI.Parser;
-   use AMI.Client;
 
-   type Callback_Type is access procedure (Client : access Client_Type;
-                                           Packet : in     Packet_Type);
-   --  Signature for callback
+with Ada.Containers.Ordered_Maps;
+with Model.Channel;
+with Model.Channel_ID;
 
-   procedure Login_Callback (Client : access Client_Type;
-                             Packet : in     Packet_Type);
-   --  Default procedure for handling login responses
+package Model.Channels is
+   use Model.Channel;
+   use Model.Channel_ID;
 
-   procedure Null_Callback (Client : access Client_Type;
-                            Packet : in     Packet_Type);
+   CHANNEL_NOT_FOUND : exception;
+   DUPLICATE_ID      : exception;
 
-   procedure Ping_Callback (Client : access Client_Type;
-                            Packet : in     Packet_Type);
+   type Channel_Process_Type is not null access
+     procedure (Channel : in Channel_Type);
 
---     procedure ExtensionState (Client : access Client_Type;
---                               Packet : in     Packet_Type);
-end AMI.Callback;
+   package Channel_List_Type is new
+     Ada.Containers.Ordered_Maps (Key_Type     => Channel_ID_Type,
+                                  Element_Type => Channel_Type);
+
+   protected type Protected_Channel_List_Type is
+      function Contains (Channel_ID : in Channel_ID_Type) return Boolean;
+      procedure Insert (Channel : in Channel_Type);
+      procedure Remove (Channel_ID : in Channel_ID_Type);
+      function Get (Channel_ID : in Channel_ID_Type) return Channel_Type;
+      function Length return Natural;
+      function To_String return String;
+      procedure Update (Channel : in Channel_Type);
+   private
+      Protected_List : Channel_List_Type.Map;
+   end Protected_Channel_List_Type;
+
+   List : Protected_Channel_List_Type;
+   --  Package-visible singleton.
+end Model.Channels;

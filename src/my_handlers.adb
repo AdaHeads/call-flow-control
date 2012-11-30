@@ -26,6 +26,7 @@ with AWS.Net.WebSocket.Registry;
 with Handlers.Contact;
 with Handlers.Agent;
 with Handlers.Call;
+with Handlers.Debug;
 with Handlers.Notifications;
 with Handlers.Organization;
 with Handlers.Organization_List;
@@ -168,7 +169,7 @@ package body My_Handlers is
         (Dispatcher => RH,
          URI        => Config.Get (Handler_Debug_Peer_List),
          Action     => Create
-           (Callback => Handler.Debug.Peer_List'Access));
+           (Callback => Handlers.Debug.Peer_List'Access));
 
       --------------------------
       --  WebSocket handlers  --
