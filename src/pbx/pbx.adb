@@ -26,15 +26,19 @@ package body PBX is
    Reader    : Reader_Task;
 
    Callbacks : constant AMI.Event.Event_Callback_Table :=
-     (PeerStatus         => My_Callbacks.Peer_Status'Access,
-      Hangup             => My_Callbacks.Hangup'Access,
-      Join               => My_Callbacks.Join'Access,
-      Leave              => My_Callbacks.Leave'Access,
-      Newchannel         => My_Callbacks.New_Channel'Access,
-      Newstate           => My_Callbacks.New_State'Access,
-      Dial               => My_Callbacks.Dial'Access,
-      QueueCallerAbandon => My_Callbacks.Queue_Abandon'Access,
-      others             => AMI.Event.Null_Callback'Access);
+                 (CoreShowChannel
+                  => My_Callbacks.Core_Show_Channel'Access,
+                  CoreShowChannelsComplete
+                  => My_Callbacks.Core_Show_Channels_Complete'Access,
+                  PeerStatus         => My_Callbacks.Peer_Status'Access,
+                  Hangup             => My_Callbacks.Hangup'Access,
+                  Join               => My_Callbacks.Join'Access,
+                  Leave              => My_Callbacks.Leave'Access,
+                  Newchannel         => My_Callbacks.New_Channel'Access,
+                  Newstate           => My_Callbacks.New_State'Access,
+                  Dial               => My_Callbacks.Dial'Access,
+                  QueueCallerAbandon => My_Callbacks.Queue_Abandon'Access,
+                  others             => AMI.Event.Null_Callback'Access);
 
    procedure Authenticate;
    procedure Dispatch (Client : access AMI.Client.Client_Type;
@@ -52,6 +56,9 @@ package body PBX is
       Login (Client   => Client_Access,
              Username => Config.Get (PBX_User),
              Secret   => Config.Get (PBX_Secret));
+      --  TODO: Replace this with a real wait for reply
+      delay 0.2;
+         AMI.Action.Core_Show_Channels (Client => Client_Access);
    end Authenticate;
 
    procedure Connect is
@@ -74,6 +81,7 @@ package body PBX is
    procedure Dispatch (Client : access AMI.Client.Client_Type;
                        Packet : in     AMI.Parser.Packet_Type) is
    begin
+      --  System_Messages.Notify (Debug, Image (Packet => Packet));
       if Packet.Header.Key = AMI.Parser.Response then
          AMI.Response.Notify (Client => Client,
                               Packet => Packet);

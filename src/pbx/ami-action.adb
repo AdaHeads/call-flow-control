@@ -44,6 +44,17 @@ package body AMI.Action is
             Action_ID => Action_ID));
    end Bridge;
 
+   procedure Core_Show_Channels (Client           : access Client_Type;
+                                 Response_Handler : in     Callback_Type
+                                 := AMI.Callback.Null_Callback'Access) is
+      Action_ID : constant Action_ID_Type :=
+                    Protocol_Strings.Next_Action_ID;
+   begin
+      AMI.Response.Subscribe (Action_ID, Response_Handler);
+      Client.Send
+        (Item   => Protocol_Strings.CoreShowChannels (Action_ID => Action_ID));
+   end Core_Show_Channels;
+
    procedure Hangup (Client   : access Client_Type;
                      Call_ID  : in     Call_ID_Type;
                      Callback : in     AMI.Callback.Callback_Type
@@ -78,6 +89,25 @@ package body AMI.Action is
                       Secret    => Secret,
                       Action_ID => Action_ID));
    end Login;
+
+   procedure Originate (Client           : access Client_Type;
+                        Peer_ID          : in     Peer_ID_Type;
+                        Context          : in     String;
+                        Extension        : in     String;
+                        Priority         : in     Natural;
+                        Response_Handler : in     Callback_Type
+                        := AMI.Callback.Null_Callback'Access) is
+      Action_ID : constant Action_ID_Type :=
+                    Protocol_Strings.Next_Action_ID;
+   begin
+      AMI.Response.Subscribe (Action_ID, Response_Handler);
+      Client.Send (Item   => Protocol_Strings.Originate
+                   (Channel   => Peer_ID.To_String,
+                    Context   => Context,
+                    Extension => Extension,
+                    Priority  => Priority,
+                    Action_ID => Action_ID));
+   end Originate;
 
    procedure Park (Client   : access Client_Type;
                    Call     : in     Call_Type;

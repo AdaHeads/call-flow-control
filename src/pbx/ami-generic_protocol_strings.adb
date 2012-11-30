@@ -35,9 +35,11 @@ package body AMI.Generic_Protocol_Strings is
    --  Value part of request string
    Bridge_String           : constant String := "Bridge";
    CoreSettings_String     : constant String := "CoreSettings";
+   CoreShowChannels_String : constant String := "CoreShowChannels";
    GetVar_String           : constant String := "GetVar";
    Logoff_String           : constant String := "Logoff";
    Hangup_String           : constant String := "Hangup";
+   Originate_String        : constant String := "Originate";
    Park_String             : constant String := "Park";
    Ping_String             : constant String := "Ping";
    QueueStatus_String      : constant String := "QueueStatus";
@@ -109,6 +111,15 @@ package body AMI.Generic_Protocol_Strings is
         Line_Termination_String;
    end CoreSettings;
 
+   function CoreShowChannels (Action_ID : in Action_ID_Type) return String is
+   begin
+      return
+        Action_String & Separator &
+        CoreShowChannels_String & Line_Termination_String &
+        Asynchronous_Line (Action_ID) &
+        Line_Termination_String;
+   end CoreShowChannels;
+
    function Get_Var (Channel      : in String;
                      VariableName : in String;
                      Action_ID    : in Action_ID_Type) return String is
@@ -163,6 +174,27 @@ package body AMI.Generic_Protocol_Strings is
          return Null_Action_ID;
       end if;
    end Next_Action_ID;
+
+   function Originate (Channel   : in String;
+                       Context   : in String;
+                       Extension : in String;
+                       Priority  : in Natural;
+                       Action_ID : Action_ID_Type) return String is
+   begin
+      return
+        Action_String  & Separator & Originate_String &
+                                      Line_Termination_String &
+        Channel_String  & Separator & Channel &
+                                      Line_Termination_String &
+        Context_String & Separator & Context &
+                                      Line_Termination_String &
+        Exten_String & Separator & Extension &
+                                      Line_Termination_String &
+        Priority_String & Separator & Priority'Img &
+                                      Line_Termination_String &
+        Asynchronous_Line (Action_ID) &
+        Line_Termination_String;
+   end Originate;
 
    function Park (Channel          : in String;
                   Fallback_Channel : in String;

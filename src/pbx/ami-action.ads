@@ -29,6 +29,7 @@ with AMI.Client;
 with Model.Call;
 with Model.Call_ID;
 with Model.Channel_ID;
+with Model.Peer_ID;
 
 package AMI.Action is
    use Ada.Strings.Unbounded;
@@ -37,6 +38,7 @@ package AMI.Action is
    use Model.Call_ID;
    use Model.Call;
    use Model.Channel_ID;
+   use Model.Peer_ID;
 
    procedure Absolute_Timeout (Client           : access Client_Type;
                                Channel_ID       : in     Channel_ID_Type;
@@ -53,6 +55,12 @@ package AMI.Action is
                      Callback : in     AMI.Callback.Callback_Type
                      := AMI.Callback.Null_Callback'Access);
    --  Bridge: Bridge two channels already in the PBX (Priv: call,all)
+
+   procedure Core_Show_Channels (Client           : access Client_Type;
+                                 Response_Handler : in     Callback_Type
+                                 := AMI.Callback.Null_Callback'Access);
+   --  Ask the AMI to reveal the the current channels. They will be spawned as
+   --  events.
 
    procedure Extension_State (Client           : access Client_Type;
                               Context          : in     String;
@@ -86,11 +94,12 @@ package AMI.Action is
    --  Logs off the current manager session.
 
    procedure Originate (Client           : access Client_Type;
-                        Channel_ID       : in     Channel_ID_Type;
+                        Peer_ID          : in     Peer_ID_Type;
                         Context          : in     String;
+                        Extension        : in     String;
                         Priority         : in     Natural;
                         Response_Handler : in     Callback_Type
-                        := AMI.Callback.Null_Callback'Access) is null;
+                        := AMI.Callback.Null_Callback'Access);
    --  Originate Call (Priv: originate,all)
 
    procedure Park (Client   : access Client_Type;

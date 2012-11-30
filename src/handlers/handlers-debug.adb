@@ -2,6 +2,7 @@ with Common;
 with HTTP_Codes;
 with Response;
 with Model.Peers;
+with Model.Channels;
 
 package body Handlers.Debug is
    use Common;
@@ -15,7 +16,7 @@ package body Handlers.Debug is
    begin
       Response_Object.HTTP_Status_Code (OK);
       Response_Object.Content
-        (To_JSON_String (Peers.List.To_JSON.Write));
+        (To_JSON_String (Channels.List.To_JSON.Write));
 
       return Response_Object.Build;
    end Channel_List;

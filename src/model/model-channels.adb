@@ -78,6 +78,22 @@ package body Model.Channels is
          Protected_List.Delete (Channel_ID);
       end Remove;
 
+      function To_JSON return GNATCOLL.JSON.JSON_Value is
+         use GNATCOLL.JSON;
+         Value     : JSON_Value := Create_Object;
+         JSON_List : JSON_Array;
+         Root      : constant JSON_Value := Create_Object;
+      begin
+         for Channel of Protected_List loop
+            if Channel /= Null_Channel then
+               Value := Channel.To_JSON;
+               Append (JSON_List, Value);
+            end if;
+         end loop;
+         Root.Set_Field ("channels", JSON_List);
+         return Root;
+      end To_JSON;
+
       function To_String return String is
          use Ada.Strings.Unbounded;
          Item : Unbounded_String;

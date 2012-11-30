@@ -44,6 +44,7 @@ package My_Configuration is
                  Handler_Agent,
                  Handler_Agent_List,
                  Handler_Call_Hangup,
+                 Handler_Call_Originate,
                  Handler_Call_Pickup,
                  Handler_Call_Hold,
                  Handler_Call_List,
@@ -52,6 +53,7 @@ package My_Configuration is
                  Handler_Organization,
                  Handler_Organization_List,
                  Handler_Queue_Length,
+                 Handler_Debug_Channnel_List,
                  Handler_Debug_Peer_List,
                  Handler_Notifications,
                  PBX_Secret,
@@ -88,6 +90,8 @@ package My_Configuration is
                        => U ("/agent"),
                        Handler_Agent_List
                        => U ("/agent/list"),
+                       Handler_Call_Originate
+                       => U ("/call/originate"),
                        Handler_Call_Hangup
                        => U ("/call/hangup"),
                        Handler_Call_Hold
@@ -106,6 +110,8 @@ package My_Configuration is
                        => U ("/organization/list"),
                        Handler_Queue_Length
                        => U ("/queue_length"),
+                       Handler_Debug_Channnel_List
+                       => U ("/debug/channel/list"),
                        Handler_Debug_Peer_List
                        => U ("/debug/peer/list"),
                        Handler_Notifications

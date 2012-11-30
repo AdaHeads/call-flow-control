@@ -28,6 +28,7 @@ with HTTP_Codes;
 with Response;
 
 with AMI.Action;
+with Model.Agent;
 with Model.Agents;
 with Model.Agent_ID;
 with Model.Call;
@@ -164,6 +165,42 @@ package body Handlers.Call is
 
       return Response_Object.Build;
    end List;
+
+   -----------------
+   --  Originate  --
+   -----------------
+
+   --  /call/originate?[agent_id=<agent_id>|cm_id=<cm_id>|pstn_number=
+   --  <Pstn_NumbEr >  | sip =  < sip_uri > ]
+   function Originate
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data is
+      use Common;
+      use HTTP_Codes;
+      use AWS.Status;
+      use Model.Agent;
+
+      Agent_ID_String  : constant String :=
+                          Parameters (Request).Get ("agent_id");
+      Extension_String : constant String :=
+                           Parameters (Request).Get ("extension");
+      Agent            : Model.Agent.Agent_Type := Null_Agent;
+      Response_Object  : Response.Object := Response.Factory (Request);
+
+   begin
+      Agent := Model.Agents.Get (Model.Agent_ID.Create (Agent_ID_String));
+
+      AMI.Action.Originate (Client    => PBX.Client_Access,
+                            Peer_ID   => Agent.Peer_ID,
+                            Context   => "LocalSets",
+                            Extension => Extension_String,
+                            Priority  => 1);
+
+      Response_Object.HTTP_Status_Code (OK);
+      Response_Object.Content (Status_Message
+                        ("status", "ok"));
+      return Response_Object.Build;
+   end Originate;
 
    --------------
    --  Pickup  --

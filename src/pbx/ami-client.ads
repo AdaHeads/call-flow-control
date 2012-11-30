@@ -46,7 +46,7 @@ package AMI.Client is
       record
          Connected             : Boolean := False;
          Server_Greeting       : Ada.Strings.Unbounded.Unbounded_String;
-         Authenticated         : Autenticated_Type := Unknown;
+         Authenticated         : Boolean := False;
          Socket                : AWS.Net.Std.Socket_Type;
          On_Connect_Handler    : Connection_Event_Handler
            := Null_Callback'Access;

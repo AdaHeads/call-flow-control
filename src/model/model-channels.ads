@@ -22,6 +22,9 @@
 -------------------------------------------------------------------------------
 
 with Ada.Containers.Ordered_Maps;
+
+with GNATCOLL.JSON;
+
 with Model.Channel;
 with Model.Channel_ID;
 
@@ -45,6 +48,7 @@ package Model.Channels is
       procedure Remove (Channel_ID : in Channel_ID_Type);
       function Get (Channel_ID : in Channel_ID_Type) return Channel_Type;
       function Length return Natural;
+      function To_JSON return GNATCOLL.JSON.JSON_Value;
       function To_String return String;
       procedure Update (Channel : in Channel_Type);
    private

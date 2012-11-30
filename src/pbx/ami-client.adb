@@ -41,7 +41,7 @@ package body AMI.Client is
       AWS.Net.Buffered.Shutdown (Client.Socket);
 
       Client.Connected := False;
-      Client.Authenticated := Unknown;
+      Client.Authenticated := False;
 
       System_Messages.Notify (Debug, "Connecting to " &
                                 Hostname & ":" &
@@ -83,7 +83,7 @@ package body AMI.Client is
       when others =>
          --  Synchronize the state
          Client.Connected := False;
-         Client.Authenticated := Unknown;
+         Client.Authenticated := False;
          Client.On_Disconnect_Handler.all;
          raise;
    end Connect;
@@ -100,7 +100,7 @@ package body AMI.Client is
    begin
       return (Connected             => False,
               Server_Greeting       => Null_Unbounded_String,
-              Authenticated         => Unknown,
+              Authenticated         => False,
               Socket                => Socket,
               On_Connect_Handler    => On_Connect,
               On_Disconnect_Handler => On_Disconnect);

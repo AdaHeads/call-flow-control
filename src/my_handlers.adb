@@ -161,6 +161,12 @@ package body My_Handlers is
          Action     => Create
            (Callback => Agent.Agent'Access));
 
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => Config.Get (Handler_Call_Originate),
+         Action     => Create
+           (Callback => Handlers.Call.Originate'Access));
+
       ----------------------
       --  Debug handlers  --
       ----------------------
@@ -170,6 +176,12 @@ package body My_Handlers is
          URI        => Config.Get (Handler_Debug_Peer_List),
          Action     => Create
            (Callback => Handlers.Debug.Peer_List'Access));
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => Config.Get (Handler_Debug_Channnel_List),
+         Action     => Create
+           (Callback => Handlers.Debug.Channel_List'Access));
 
       --------------------------
       --  WebSocket handlers  --

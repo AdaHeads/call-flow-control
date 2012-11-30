@@ -76,6 +76,56 @@ package body My_Callbacks is
       System_Messages.Notify (Debug, "Bridge not implemented");
    end Bridge;
 
+   --  Event: CoreShowChannel
+   --  Channel: SIP/softphone1-0000003f
+   --  UniqueID: 1354109368.63
+   --  Context: LocalSets
+   --  Extension: 7001
+   --  Priority: 5
+   --  ChannelState: 6
+   --  ChannelStateDesc: Up
+   --  Application: Queue
+   --  ApplicationData: org_id1
+   --  CallerIDnum: softphone1
+   --  Duration: 54:08:10
+   --  AccountCode:
+   --  BridgedChannel:
+   --  BridgedUniqueID:
+   procedure Core_Show_Channel (Packet : in Packet_Type) is
+      Channel : Model.Channel.Channel_Type := Null_Channel;
+   begin
+      System_Messages.Notify (Debug, "Core_Show_Channel: ");
+
+      if not Model.Channels.List.Contains (Channel_ID => Channel.ID) then
+         Channel.ID        :=
+           Create (To_String (Packet.Fields.Element (AMI.Parser.Channel)));
+         Channel.State     :=
+           Model.Channel.To_Channel_State
+             (To_String (Packet.Fields.Element (AMI.Parser.ChannelState)));
+         Channel.Description :=
+           Packet.Fields.Element (AMI.Parser.ChannelStateDesc);
+         Channel.CallerIDNum :=
+           Packet.Fields.Element (AMI.Parser.CallerIDNum);
+         Channel.Call_ID := Create
+           (To_String (Packet.Fields.Element (AMI.Parser.Uniqueid)));
+         Model.Channels.List.Insert (Channel);
+      end if;
+   end Core_Show_Channel;
+
+   --  Occurs at the end of a set of CoreShowChannel events.
+   procedure Core_Show_Channels_Complete (Packet : in Packet_Type) is
+      Context          : constant String :=
+                           "Core_Show_Channels_Complete";
+      Number_Of_Events : constant Natural :=
+        Natural'Value (To_String (Packet.Fields.Element (ListItems)));
+   begin
+      System_Messages.Notify (Debug, "Core_Show_Channel_Complete");
+      if Number_Of_Events /= Model.Channels.List.Length then
+         System_Messages.Notify (Error, Package_Name & "." & Context & ": " &
+                                "Channel list inconsistant!");
+      end if;
+   end Core_Show_Channels_Complete;
+
    --  Event: Dial
    --  Privilege: call,all
    --  SubEvent: Begin
@@ -178,10 +228,6 @@ package body My_Callbacks is
    procedure New_Channel (Packet : in Packet_Type) is
       Channel : Model.Channel.Channel_Type := Null_Channel;
    begin
-      System_Messages.Notify (Debug, Integer'Image (
-        Integer'Value (
-          (To_String (Packet.Fields.Element (AMI.Parser.ChannelState))))));
-
       Channel.ID        :=
         Create (To_String (Packet.Fields.Element (AMI.Parser.Channel)));
       Channel.State     :=
@@ -199,21 +245,13 @@ package body My_Callbacks is
       Channel.Context :=
         Packet.Fields.Element (AMI.Parser.Context);
       Channel.Call_ID := Create
-        (To_String (Packet.Fields.Element (AMI.Parser.Context)));
+        (To_String (Packet.Fields.Element (AMI.Parser.Uniqueid)));
 
       Model.Channels.List.Insert (Channel => Channel);
       System_Messages.Notify
         (Debug, "My_Callbacks.New_Channel: Channel_List: " &
            Model.Channels.List.To_String);
    end New_Channel;
-
-   procedure New_State
-     (Packet : in Packet_Type)
-   is
-      pragma Unreferenced (Packet);
-   begin
-      System_Messages.Notify (Debug, "My.Callbacks.New_State not implemented");
-   end New_State;
 
    --  Event: Newstate
    --  Privilege: call,all
@@ -223,10 +261,31 @@ package body My_Callbacks is
    --  CallerIDNum: 100
    --  CallerIDName:
    --  Uniqueid: 1340097427.11
-   procedure NewState is
+   procedure New_State (Packet : in Packet_Type) is
+      use Model;
+      Context : constant String            := "New_State";
+      Channel : Model.Channel.Channel_Type := Null_Channel;
    begin
-      System_Messages.Notify (Debug, "NewState_Callback not implemented");
-   end NewState;
+      --  Fetch the previous channel image
+      Channel := Channels.List.Get
+        (Create (To_String (Packet.Fields.Element (AMI.Parser.Channel))));
+
+      --  Update the fields
+      Channel.State := To_Channel_State
+        (To_String (Packet.Fields.Element (ChannelState)));
+
+      Channel.Description  := Packet.Fields.Element (ChannelStateDesc);
+      Channel.CallerIDNum  := Packet.Fields.Element (CallerIDNum);
+      Channel.CallerIDName := Packet.Fields.Element (CallerIDName);
+
+      Channels.List.Update (Channel);
+   exception
+      when others =>
+         System_Messages.Notify (Error, Package_Name & "." & Context & ": " &
+                                   "failed to update channel " &
+                                   Channel.To_String);
+
+   end New_State;
 
    --  Event: PeerStatus
    --  Privilege: system,all

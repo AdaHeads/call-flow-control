@@ -1,5 +1,7 @@
 with Ada.Strings.Unbounded;
 
+with GNATCOLL.JSON;
+
 with Model.Call_ID;
 with Model.Channel_ID;
 
@@ -8,19 +10,9 @@ package Model.Channel is
    use Model.Channel_ID;
 
    use Ada.Strings.Unbounded;
-   type Channel_State_Type is (Unknown, Bad_Extention, Hung_Up, Local_Ring,
-                               Ringing, Answered, Busy, Off_Hook,
-                               Is_Off_Hook, Congestion);
-   for Channel_State_Type use (Unknown       => -1,
-                               Bad_Extention => 0,
-                               Hung_Up       => 1,
-                               Local_Ring    => 2,
-                               Ringing       => 3,
-                               Answered      => 4,
-                               Busy          => 5,
-                               Off_Hook      => 6,
-                               Is_Off_Hook   => 7,
-                               Congestion    => 8);
+
+   type Channel_State_Type is (Unknown, Down, Reserved, Off_Hook,
+                               Dialed, Ringing, Receiver_Ringing, Up, Busy);
 
    type Channel_Type is tagged record
       ID           : Channel_ID_Type;
@@ -34,11 +26,10 @@ package Model.Channel is
       Context      : Unbounded_String;
    end record;
 
-   Null_Channel : constant Channel_Type;
+   function To_JSON (Channel : in Channel_Type)
+                     return GNATCOLL.JSON.JSON_Value;
 
-   function Description (Channel : in Channel_State_Type) return String;
-   --  Returns a debug- and human friendly description of what the channel
-   --  state represents.
+   Null_Channel : constant Channel_Type;
 
    function To_Channel_State (Item : in String) return Channel_State_Type;
    function To_Channel_State (Item : in Integer) return Channel_State_Type;
@@ -55,5 +46,16 @@ private
                      AccountCode  => Null_Unbounded_String,
                      Extension    => Null_Unbounded_String,
                      Context      => Null_Unbounded_String);
+
+   Channel_State_Map : array (-1 .. 7) of Channel_State_Type :=
+                         (-1  => Unknown,
+                          0   => Down,
+                          1   => Reserved,
+                          2   => Off_Hook,
+                          3   => Dialed,
+                          4   => Ringing,
+                          5   => Receiver_Ringing,
+                          6   => Up,
+                          7   => Busy);
 
 end Model.Channel;
