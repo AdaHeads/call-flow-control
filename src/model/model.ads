@@ -23,8 +23,8 @@
 
 package Model is
 
-   type Contact_Identifier is mod 2 ** 31 - 1;
-   type Organization_Identifier is mod 2 ** 31 - 1;
+   type Contact_Identifier is new Natural;
+   type Organization_Identifier is new Natural;
 
    type Organization_Contact_Identifier is
       record
