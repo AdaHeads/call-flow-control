@@ -50,7 +50,7 @@ package body View.Organization is
       if O /= Null_Organization then
          J := Create_Object;
 
-         J.Set_Field (Organization_Id, Integer (O.Organization_Id));
+         J.Set_Field (Organization_Id, Integer (O.Organization_ID));
 
          J.Set_Field (Full_Name, O.Full_Name);
 
@@ -78,7 +78,7 @@ package body View.Organization is
             J := Create_Object;
          end if;
 
-         J.Set_Field (Organization_Id, Integer (O.Organization_Id));
+         J.Set_Field (Organization_Id, Integer (O.Organization_ID));
 
          J.Set_Field (Full_Name, O.Full_Name);
 

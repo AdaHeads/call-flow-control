@@ -47,7 +47,7 @@ package body Model.Contact_Attributes is
       Attribute : in     Contact_Attributes_Object'Class)
    is
    begin
-      Self.A_Map.Include (Key      => Attribute.Id,
+      Self.A_Map.Include (Key      => Attribute.ID,
                           New_Item => Contact_Attributes_Object (Attribute));
    end Add_Attributes;
 
@@ -61,37 +61,37 @@ package body Model.Contact_Attributes is
    is
    begin
       return Contact_Attributes_Object'
-        (Id   => Attributes_Identifier'
-           (C_Id => Contact_Identifier (C.Integer_Value (0, Default => 0)),
-            O_Id => Organization_Identifier
+        (ID   => Attributes_Identifier'
+           (C_ID => Contact_Identifier (C.Integer_Value (0, Default => 0)),
+            O_ID => Organization_Identifier
               (C.Integer_Value (1, Default => 0))),
          JSON => C.Json_Object_Value (2));
    end Contact_Attributes_Element;
 
    ------------------
-   --  Contact_Id  --
+   --  Contact_ID  --
    ------------------
 
-   function Contact_Id
+   function Contact_ID
      (Self : in Contact_Attributes_Object)
       return Contact_Identifier
    is
    begin
-      return Self.Id.C_Id;
-   end Contact_Id;
+      return Self.ID.C_ID;
+   end Contact_ID;
 
    --------------
    --  Create  --
    --------------
 
    function Create
-     (Id   : in Attributes_Identifier;
+     (ID   : in Attributes_Identifier;
       JSON : in GNATCOLL.JSON.JSON_Value)
       return Contact_Attributes_Object
    is
    begin
       return Contact_Attributes_Object'
-        (Attributes_Identifier'(C_Id => Id.C_Id, O_Id => Id.O_Id),
+        (Attributes_Identifier'(C_ID => ID.C_ID, O_ID => ID.O_ID),
          JSON => JSON);
    end Create;
 
@@ -139,11 +139,11 @@ package body Model.Contact_Attributes is
    ----------------
 
    procedure For_Each
-     (C_Id    : in Contact_Identifier;
+     (C_ID    : in Contact_Identifier;
       Process : not null access
         procedure (Element : in Contact_Attributes_Object'Class))
    is
-      Parameters : constant SQL_Parameters := (1 => +Integer (C_Id));
+      Parameters : constant SQL_Parameters := (1 => +Integer (C_ID));
    begin
       Fetch_Contact_Attributes_Object
         (Process_Element    => Process,
@@ -156,12 +156,12 @@ package body Model.Contact_Attributes is
    ----------------
 
    procedure For_Each
-     (Id      : in Attributes_Identifier;
+     (ID      : in Attributes_Identifier;
       Process : not null access
         procedure (Element : in Contact_Attributes_Object'Class))
    is
-      Parameters : constant SQL_Parameters := (1 => +Integer (Id.C_Id),
-                                               2 => +Integer (Id.O_Id));
+      Parameters : constant SQL_Parameters := (1 => +Integer (ID.C_ID),
+                                               2 => +Integer (ID.O_ID));
    begin
       Fetch_Contact_Attributes_Object
         (Process_Element    => Process,
@@ -175,7 +175,7 @@ package body Model.Contact_Attributes is
 
    procedure Get
      (Self : in out Contact_Attributes_Object;
-      Id   : in     Attributes_Identifier)
+      ID   : in     Attributes_Identifier)
    is
       procedure Get_Element
         (Contact_Attributes : in Contact_Attributes_Object'Class);
@@ -191,7 +191,7 @@ package body Model.Contact_Attributes is
          Self := Contact_Attributes_Object (Contact_Attributes);
       end Get_Element;
    begin
-      For_Each (Id, Get_Element'Access);
+      For_Each (ID, Get_Element'Access);
    end Get;
 
    ------------
@@ -216,21 +216,21 @@ package body Model.Contact_Attributes is
    is
    begin
       return Ada.Strings.Hash
-        (Contact_Identifier'Image (Key.C_Id) &
-           Organization_Identifier'Image (Key.O_Id));
+        (Contact_Identifier'Image (Key.C_ID) &
+           Organization_Identifier'Image (Key.O_ID));
    end Key_Hash;
 
    -----------------------
-   --  Organization_Id  --
+   --  Organization_ID  --
    -----------------------
 
-   function Organization_Id
+   function Organization_ID
      (Self : Contact_Attributes_Object)
       return Organization_Identifier
    is
    begin
-      return Self.Id.O_Id;
-   end Organization_Id;
+      return Self.ID.O_ID;
+   end Organization_ID;
 
    ---------------
    --  To_JSON  --

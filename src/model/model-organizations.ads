@@ -48,10 +48,10 @@ package Model.Organizations is
    --  to process. These objects do NOT contain any contacts.
 
    procedure For_Each
-     (O_Id    : in Organization_Identifier;
+     (O_ID    : in Organization_Identifier;
       Process : not null access
         procedure (Element : in Organization_Object'Class));
-   --  For every organization with O_Id in the database, an Organization_Object
+   --  For every organization with O_ID in the database, an Organization_Object
    --  is handed to Process. These organization objects do NOT contain any
    --  contacts.
 
@@ -62,15 +62,15 @@ package Model.Organizations is
 
    procedure Get
      (Self : in out Organization_Object;
-      O_Id : in Organization_Identifier);
-   --  Get the organization that match O_Id. This does NOT fetch the contacts
-   --  that belong to the O_Id organization.
+      O_ID : in Organization_Identifier);
+   --  Get the organization that match O_ID. This does NOT fetch the contacts
+   --  that belong to the O_ID organization.
 
    procedure Get_Full
      (Self : in out Organization_Object;
-      O_Id : in     Organization_Identifier);
-   --  Get the organization that match O_Id. This object contains ALL the
-   --  contacts that are associated with the O_Id organization.
+      O_ID : in     Organization_Identifier);
+   --  Get the organization that match O_ID. This object contains ALL the
+   --  contacts that are associated with the O_ID organization.
 
    function Identifier
      (Self : in Organization_Object)
@@ -82,7 +82,7 @@ package Model.Organizations is
       return GNATCOLL.JSON.JSON_Value;
    --  Return the JSON document for the Self organization.
 
-   function Organization_Id
+   function Organization_ID
      (Self : in Organization_Object)
       return Organization_Identifier;
    --  Return the Organization_Identifier for the Self organization.
@@ -134,7 +134,7 @@ private
          Full_Name  : Unbounded_String := Null_Unbounded_String;
          Identifier : Unbounded_String := Null_Unbounded_String;
          JSON       : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.JSON_Null;
-         O_Id       : Organization_Identifier := 0;
+         O_ID       : Organization_Identifier := 0;
       end record;
 
    Null_Organization : constant Organization_Object
@@ -142,7 +142,7 @@ private
          Full_Name  => Null_Unbounded_String,
          Identifier => Null_Unbounded_String,
          JSON       => GNATCOLL.JSON.JSON_Null,
-         O_Id       => 0);
+         O_ID       => 0);
 
    type Organization_List_Object is tagged null record;
 

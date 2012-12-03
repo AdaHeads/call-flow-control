@@ -41,7 +41,7 @@ package Model.Contact_Attributes is
    --  Add an attribute object to the list.
 
    function Create
-     (Id   : in Attributes_Identifier;
+     (ID   : in Attributes_Identifier;
       JSON : in GNATCOLL.JSON.JSON_Value)
       return Contact_Attributes_Object;
    --  Create a Contact_Attributes_Object.
@@ -50,41 +50,42 @@ package Model.Contact_Attributes is
      (Self    : in Contact_Attributes_List_Object;
       Process : not null access
         procedure (Element : in Contact_Attributes_Object));
-   --  TODO: Write comment
-
-   procedure For_Each
-     (C_Id    : in Contact_Identifier;
-      Process : not null access
-        procedure (Element : in Contact_Attributes_Object'Class));
-   --  For every contact_attributes row with C_Id in the database, a
+   --  For every contact attribute set add to Self by Add_Attributes, a
    --  Contact_Attributes_Object is handed to Process.
 
    procedure For_Each
-     (Id      : in Attributes_Identifier;
+     (C_ID    : in Contact_Identifier;
       Process : not null access
         procedure (Element : in Contact_Attributes_Object'Class));
-   --  For every contact_attributes row with Id in the database, a
+   --  For every contact_attributes row with C_ID in the database, a
+   --  Contact_Attributes_Object is handed to Process.
+
+   procedure For_Each
+     (ID      : in Attributes_Identifier;
+      Process : not null access
+        procedure (Element : in Contact_Attributes_Object'Class));
+   --  For every contact_attributes row with ID in the database, a
    --  Contact_Attributes_Object is handed to Process.
 
    procedure Get
      (Self : in out Contact_Attributes_OBject;
-      Id   : in     Attributes_Identifier);
-   --  Get the contact attribute set that belongs to Id.
+      ID   : in     Attributes_Identifier);
+   --  Get the contact attribute set that belongs to ID.
 
-   function Contact_Id
+   function Contact_ID
      (Self : in Contact_Attributes_Object)
       return Contact_Identifier;
-   --  Return the contact id for the Self attribute set.
+   --  Return the contact ID for the Self attribute set.
 
    function JSON
      (Self : in Contact_Attributes_Object)
       return GNATCOLL.JSON.JSON_Value;
    --  Return the JSON document for the Self attribute set.
 
-   function Organization_Id
+   function Organization_ID
      (Self : in Contact_Attributes_Object)
       return Organization_Identifier;
-   --  Return the organization id for the Self Attribute set.
+   --  Return the organization ID for the Self Attribute set.
 
    function To_JSON
      (Self : in Contact_Attributes_Object)
@@ -112,12 +113,12 @@ private
 
    type Contact_Attributes_Object is tagged
       record
-         Id   : Attributes_Identifier;
+         ID   : Attributes_Identifier;
          JSON : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.JSON_Null;
       end record;
 
    Null_Contact_Attributes : constant Contact_Attributes_Object :=
-                               (Id   => (C_Id => 0, O_Id => 0),
+                               (ID   => (C_ID => 0, O_ID => 0),
                                 JSON => GNATCOLL.JSON.JSON_Null);
 
    package Attributes_Map is new Ada.Containers.Hashed_Maps
