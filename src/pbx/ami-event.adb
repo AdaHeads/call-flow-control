@@ -39,9 +39,9 @@ package body AMI.Event is
 
    exception
       when others =>
-         System_Messages.Notify (Error, "Unknown Event: " &
+         System_Messages.Notify (Error, "AMI.Event.Dispatch failed for: " &
                                  (To_String (Packet.Header.Value)));
-
+         raise;
    end Dispatch;
 
    procedure Null_Callback (Packet : in AMI.Parser.Packet_Type) is

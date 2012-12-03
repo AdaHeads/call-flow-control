@@ -28,6 +28,9 @@ package body JSON.Event is
    use GNATCOLL.JSON;
    use Model.Call_ID;
 
+   function Agent_State_To_JSON_Object (Agent : in Peer_Type)
+                           return GNATCOLL.JSON.JSON_Value;
+
    function Hangup_Call_To_JSON_Object (Call : in Call_Type)
                                        return GNATCOLL.JSON.JSON_Value;
 
@@ -44,59 +47,6 @@ package body JSON.Event is
    function Transfer_Call_To_JSON_Object (Call : in Call_Type)
                                      return GNATCOLL.JSON.JSON_Value;
 
-   function Agent_State_To_JSON_Object (Agent : in Peer_Type)
-                           return GNATCOLL.JSON.JSON_Value;
-
-   --  ---------------------  --
-   --  JSON String functions  --
-   --  ---------------------  --
-
-   function Hangup_JSON_String (Call : in Call_Type)
-                                return JSON_String is
-      JSON : JSON_Value;
-   begin
-      JSON := Hangup_Call_To_JSON_Object (Call);
-
-      return To_JSON_String (JSON.Write);
-   end Hangup_JSON_String;
-
-   function New_Call_JSON_String (Call : in Call_Type)
-                                return JSON_String is
-      JSON : JSON_Value;
-   begin
-      JSON := New_Call_To_JSON_Object (Call);
-
-      return To_JSON_String (JSON.Write);
-   end New_Call_JSON_String;
-
-   function Pickup_Call_JSON_String (Call  : in Call_Type;
-                                     Agent : in Peer_Type)
-                                    return JSON_String is
-      JSON : JSON_Value;
-   begin
-      JSON := Pickup_Call_To_JSON_Object (Call, Agent);
-
-      return To_JSON_String (JSON.Write);
-   end Pickup_Call_JSON_String;
-
-   function Hold_Call_JSON_String (Call  : in Call_Type)
-                                  return JSON_String is
-      JSON : JSON_Value;
-   begin
-      JSON := Hold_Call_To_JSON_Object (Call);
-
-      return To_JSON_String (JSON.Write);
-   end Hold_Call_JSON_String;
-
-   function Transfer_Call_JSON_String (Call  : in Call_Type)
-                                      return JSON_String is
-      JSON : JSON_Value;
-   begin
-      JSON := Transfer_Call_To_JSON_Object (Call);
-
-      return To_JSON_String (JSON.Write);
-   end Transfer_Call_JSON_String;
-
    function Agent_State_JSON_String (Agent : in Peer_Type)
                                     return JSON_String is
       JSON : JSON_Value;
@@ -106,58 +56,23 @@ package body JSON.Event is
       return To_JSON_String (JSON.Write);
    end Agent_State_JSON_String;
 
-   --  ---------------------  --
-   --  JSON Object functions  --
-   --  ---------------------  --
-
-   function New_Call_To_JSON_Object (Call : in Call_Type)
+   function Agent_State_To_JSON_Object (Agent : in Peer_Type)
                            return GNATCOLL.JSON.JSON_Value is
       JSON              : constant JSON_Value := Create_Object;
       Notification_JSON : constant JSON_Value := Create_Object;
-      Call_JSON         : constant JSON_Value := Create_Object;
-   begin
-      Call_JSON.Set_Field ("call_id", To_String (Call.ID));
-      Call_JSON.Set_Field ("caller_id", Call.CallerIDName);
-      Call_JSON.Set_Field ("arrival_time", Unix_Timestamp (Call.Arrived));
-      Call_JSON.Set_Field ("channel", Call.Channel);
-      Call_JSON.Set_Field ("org_id", Call.Queue);
-      Notification_JSON.Set_Field ("call", Call_JSON);
-      Notification_JSON.Set_Field ("persistent", False);
-      Notification_JSON.Set_Field ("event", "new_call");
-
-      JSON.Set_Field ("timestamp", Unix_Timestamp (Current_Time));
-      JSON.Set_Field ("notification", Notification_JSON);
-
-      return JSON;
-   end New_Call_To_JSON_Object;
-
-   --  {
-   --    "notification" : {
-   --       "persistent" : false,
-   --       "event" : "call_pickup",
-   --       "agent" : { "agent_id" : "SomeAgent_ID" },
-   --       "call" : { "call_id" : "SomeCall_ID" }
-   --  }
-   function Pickup_Call_To_JSON_Object (Call  : in Call_Type;
-                                        Agent : in Peer_Type)
-                                    return GNATCOLL.JSON.JSON_Value is
-      JSON              : constant JSON_Value := Create_Object;
-      Notification_JSON : constant JSON_Value := Create_Object;
-      Call_JSON         : constant JSON_Value := Create_Object;
       Agent_JSON        : constant JSON_Value := Create_Object;
    begin
-      Call_JSON.Set_Field ("call_id", To_String (Call.ID));
-      Notification_JSON.Set_Field ("call", Call_JSON);
-      Notification_JSON.Set_Field ("persistent", False);
-      Notification_JSON.Set_Field ("event", "pickup_call");
-      Agent_JSON.Set_Field ("agent_id", Agent.Agent_ID);
+      Agent_JSON.Set_Field ("agent_id", Agent.Agent_ID.ID'Img);
+      Agent_JSON.Set_Field ("state", Agent.State'Img);
       Notification_JSON.Set_Field ("agent", Agent_JSON);
+      Notification_JSON.Set_Field ("persistent", False);
+      Notification_JSON.Set_Field ("event", "agent_state");
 
       JSON.Set_Field ("timestamp", Unix_Timestamp (Current_Time));
       JSON.Set_Field ("notification", Notification_JSON);
 
       return JSON;
-   end Pickup_Call_To_JSON_Object;
+   end Agent_State_To_JSON_Object;
 
    function Hangup_Call_To_JSON_Object (Call : in Call_Type)
                            return GNATCOLL.JSON.JSON_Value is
@@ -176,16 +91,24 @@ package body JSON.Event is
       return JSON;
    end Hangup_Call_To_JSON_Object;
 
-   --  Example JSON
-   --  {
-   --      "notification": {
-   --          "persistent": false,
-   --          "event": "hold_call",
-   --          "call": {
-   --              "call_id": 1
-   --          }
-   --      }
-   --  }
+   function Hangup_JSON_String (Call : in Call_Type)
+                                return JSON_String is
+      JSON : JSON_Value;
+   begin
+      JSON := Hangup_Call_To_JSON_Object (Call);
+
+      return To_JSON_String (JSON.Write);
+   end Hangup_JSON_String;
+
+   function Hold_Call_JSON_String (Call  : in Call_Type)
+                                  return JSON_String is
+      JSON : JSON_Value;
+   begin
+      JSON := Hold_Call_To_JSON_Object (Call);
+
+      return To_JSON_String (JSON.Write);
+   end Hold_Call_JSON_String;
+
    function Hold_Call_To_JSON_Object (Call : in Call_Type)
                            return GNATCOLL.JSON.JSON_Value is
       JSON              : constant JSON_Value := Create_Object;
@@ -202,6 +125,76 @@ package body JSON.Event is
 
       return JSON;
    end Hold_Call_To_JSON_Object;
+
+   function New_Call_JSON_String (Call : in Call_Type)
+                                return JSON_String is
+      JSON : JSON_Value;
+   begin
+      JSON := New_Call_To_JSON_Object (Call);
+
+      return To_JSON_String (JSON.Write);
+   end New_Call_JSON_String;
+
+   function New_Call_To_JSON_Object (Call : in Call_Type)
+                           return GNATCOLL.JSON.JSON_Value is
+      JSON              : constant JSON_Value := Create_Object;
+      Notification_JSON : constant JSON_Value := Create_Object;
+      Call_JSON         : constant JSON_Value := Create_Object;
+   begin
+      Call_JSON.Set_Field ("call_id", To_String (Call.ID));
+      --  Call_JSON.Set_Field ("caller_id", Call.CallerIDName);
+      Call_JSON.Set_Field ("arrival_time", Unix_Timestamp (Call.Arrived));
+      Call_JSON.Set_Field ("channel", Call.Channel_ID.To_String);
+      Call_JSON.Set_Field ("org_id", Call.Queue);
+      Notification_JSON.Set_Field ("call", Call_JSON);
+      Notification_JSON.Set_Field ("persistent", False);
+      Notification_JSON.Set_Field ("event", "new_call");
+
+      JSON.Set_Field ("timestamp", Unix_Timestamp (Current_Time));
+      JSON.Set_Field ("notification", Notification_JSON);
+
+      return JSON;
+   end New_Call_To_JSON_Object;
+
+   function Pickup_Call_JSON_String (Call  : in Call_Type;
+                                     Agent : in Peer_Type)
+                                    return JSON_String is
+      JSON : JSON_Value;
+   begin
+      JSON := Pickup_Call_To_JSON_Object (Call, Agent);
+
+      return To_JSON_String (JSON.Write);
+   end Pickup_Call_JSON_String;
+
+   function Pickup_Call_To_JSON_Object (Call  : in Call_Type;
+                                        Agent : in Peer_Type)
+                                    return GNATCOLL.JSON.JSON_Value is
+      JSON              : constant JSON_Value := Create_Object;
+      Notification_JSON : constant JSON_Value := Create_Object;
+      Call_JSON         : constant JSON_Value := Create_Object;
+      Agent_JSON        : constant JSON_Value := Create_Object;
+   begin
+      Call_JSON.Set_Field ("call_id", To_String (Call.ID));
+      Notification_JSON.Set_Field ("call", Call_JSON);
+      Notification_JSON.Set_Field ("persistent", False);
+      Notification_JSON.Set_Field ("event", "pickup_call");
+      Agent_JSON.Set_Field ("agent_id", Agent.Agent_ID.ID'Img);
+      Notification_JSON.Set_Field ("agent", Agent_JSON);
+
+      JSON.Set_Field ("timestamp", Unix_Timestamp (Current_Time));
+      JSON.Set_Field ("notification", Notification_JSON);
+
+      return JSON;
+   end Pickup_Call_To_JSON_Object;
+
+   function Transfer_Call_JSON_String (Call  : in Call_Type)
+                                      return JSON_String is
+      JSON : JSON_Value;
+   begin
+      JSON := Transfer_Call_To_JSON_Object (Call);
+
+      return To_JSON_String (JSON.Write);
+   end Transfer_Call_JSON_String;
 
    function Transfer_Call_To_JSON_Object (Call : in Call_Type)
                            return GNATCOLL.JSON.JSON_Value is
@@ -221,21 +214,4 @@ package body JSON.Event is
       return JSON;
    end Transfer_Call_To_JSON_Object;
 
-   function Agent_State_To_JSON_Object (Agent : in Peer_Type)
-                           return GNATCOLL.JSON.JSON_Value is
-      JSON              : constant JSON_Value := Create_Object;
-      Notification_JSON : constant JSON_Value := Create_Object;
-      Agent_JSON        : constant JSON_Value := Create_Object;
-   begin
-      Agent_JSON.Set_Field ("agent_id", Agent.Agent_ID);
-      Agent_JSON.Set_Field ("state", Agent.State'Img);
-      Notification_JSON.Set_Field ("agent", Agent_JSON);
-      Notification_JSON.Set_Field ("persistent", False);
-      Notification_JSON.Set_Field ("event", "agent_state");
-
-      JSON.Set_Field ("timestamp", Unix_Timestamp (Current_Time));
-      JSON.Set_Field ("notification", Notification_JSON);
-
-      return JSON;
-   end Agent_State_To_JSON_Object;
 end JSON.Event;

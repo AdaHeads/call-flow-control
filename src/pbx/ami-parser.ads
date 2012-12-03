@@ -29,7 +29,11 @@ package AMI.Parser is
    use Ada.Strings.Unbounded;
 
    type AMI_Key_Type is
-     (Null_Key,
+     (ApplicationData,
+      BridgedChannel,
+      BridgedUniqueID,
+      Duration,
+      Null_Key,
       To,
       From,
       PT,
@@ -38,6 +42,7 @@ package AMI.Parser is
       PacketsLost,
       HighestSequence,
       SequenceNumberCycles,
+      ListItems,
       LastSR,
       Event,
       Response,
@@ -49,6 +54,7 @@ package AMI.Parser is
       Channel2,
       CallerID,
       CallerIDName,
+      Eventlist,
       Queue,
       Position,
       Count,

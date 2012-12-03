@@ -26,6 +26,7 @@ with AWS.Net.WebSocket.Registry;
 with Handlers.Contact;
 with Handlers.Agent;
 with Handlers.Call;
+with Handlers.Debug;
 with Handlers.Notifications;
 with Handlers.Organization;
 with Handlers.Organization_List;
@@ -159,6 +160,28 @@ package body My_Handlers is
          URI        => Config.Get (Handler_Agent),
          Action     => Create
            (Callback => Agent.Agent'Access));
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => Config.Get (Handler_Call_Originate),
+         Action     => Create
+           (Callback => Handlers.Call.Originate'Access));
+
+      ----------------------
+      --  Debug handlers  --
+      ----------------------
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => Config.Get (Handler_Debug_Peer_List),
+         Action     => Create
+           (Callback => Handlers.Debug.Peer_List'Access));
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => Config.Get (Handler_Debug_Channnel_List),
+         Action     => Create
+           (Callback => Handlers.Debug.Channel_List'Access));
 
       --------------------------
       --  WebSocket handlers  --

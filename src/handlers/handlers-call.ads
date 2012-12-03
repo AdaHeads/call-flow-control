@@ -26,6 +26,10 @@ with AWS.Status;
 
 package Handlers.Call is
 
+   function Originate
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+
    function Hangup
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;

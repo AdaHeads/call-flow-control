@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                              AMI.Callback                                 --
+--                              Handlers.Debug                               --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -20,26 +20,19 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with AMI.Parser;
-with AMI.Client;
-package AMI.Callback is
-   use AMI.Parser;
-   use AMI.Client;
 
-   type Callback_Type is access procedure (Client : access Client_Type;
-                                           Packet : in     Packet_Type);
-   --  Signature for callback
+with AWS.Response;
+with AWS.Status;
 
-   procedure Login_Callback (Client : access Client_Type;
-                             Packet : in     Packet_Type);
-   --  Default procedure for handling login responses
+package Handlers.Debug is
 
-   procedure Null_Callback (Client : access Client_Type;
-                            Packet : in     Packet_Type);
+   function Peer_List
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --
 
-   procedure Ping_Callback (Client : access Client_Type;
-                            Packet : in     Packet_Type);
-
---     procedure ExtensionState (Client : access Client_Type;
---                               Packet : in     Packet_Type);
-end AMI.Callback;
+   function Channel_List
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --  TODO: Write comment
+end Handlers.Debug;

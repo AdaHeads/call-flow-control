@@ -20,24 +20,6 @@ package body JSON.Peer is
    function To_JSON_Object (Peer_List : in Peers.Peer_List_Type.Map)
                            return GNATCOLL.JSON.JSON_Value;
 
-   function To_JSON_String (Peer : in Peers.Peer_Type)
-                             return JSON_String is
-      JSON : JSON_Value;
-   begin
-      JSON := To_JSON_Object (Peer);
-
-      return To_JSON_String (JSON.Write);
-   end To_JSON_String;
-
-   function To_JSON_String (Peer_List : in Peers.Peer_List_Type.Map)
-                                  return JSON_String is
-      JSON : JSON_Value;
-   begin
-      JSON := To_JSON_Object (Peer_List);
-
-      return To_JSON_String (JSON.Write);
-   end To_JSON_String;
-
    function To_JSON_Object (Peer : in Peers.Peer_Type)
                             return GNATCOLL.JSON.JSON_Value is
       use Ada.Calendar.Formatting;
@@ -46,12 +28,12 @@ package body JSON.Peer is
       Peer_JSON : constant JSON_Value := Create_Object;
    begin
       System_Messages.Notify (Debug, Peers.Image (Peer));
-      Peer_JSON.Set_Field ("Agent_ID", To_String (Peer.Agent_ID));
+      Peer_JSON.Set_Field ("ID", To_String (Peer.ID));
+      Peer_JSON.Set_Field ("Agent_ID", Peer.Agent_ID'Img);
       Peer_JSON.Set_Field ("Defined", Peer.Defined);
       Peer_JSON.Set_Field ("State", To_Lower (Peer.State'Img));
       Peer_JSON.Set_Field ("Last_State", To_Lower (Peer.Last_State'Img));
       Peer_JSON.Set_Field ("ChannelType", To_String (Peer.ChannelType));
-      Peer_JSON.Set_Field ("Peer", To_String (Peer.Peer));
       Peer_JSON.Set_Field ("Port", To_String (Peer.Port));
       Peer_JSON.Set_Field ("Address", To_String (Peer.Address));
       Peer_JSON.Set_Field ("Paused", Peer.Paused);
@@ -82,6 +64,24 @@ package body JSON.Peer is
 
       return Result;
    end To_JSON_Object;
+
+   function To_JSON_String (Peer_List : in Peers.Peer_List_Type.Map)
+                                  return JSON_String is
+      JSON : JSON_Value;
+   begin
+      JSON := To_JSON_Object (Peer_List);
+
+      return To_JSON_String (JSON.Write);
+   end To_JSON_String;
+
+   function To_JSON_String (Peer : in Peers.Peer_Type)
+                             return JSON_String is
+      JSON : JSON_Value;
+   begin
+      JSON := To_JSON_Object (Peer);
+
+      return To_JSON_String (Peer.To_JSON);
+   end To_JSON_String;
 
    --  -----------------  --
    --  Utility functions  --

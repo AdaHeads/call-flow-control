@@ -33,14 +33,14 @@ package body JSON.Call is
 
    Length_String : constant String := "length";
 
-   function To_JSON_String (Call : in Model.Call.Call_Type)
-                                return JSON_String is
-      JSON : JSON_Value;
+   function Status_Message (Title   : in String;
+                            Message : in String) return JSON_String is
+      JSON : constant JSON_Value := Create_Object;
    begin
-      JSON := To_JSON_Object (Call => Call);
-
+      JSON.Set_Field ("status", Title);
+      JSON.Set_Field ("description", Message);
       return To_JSON_String (JSON.Write);
-   end To_JSON_String;
+   end Status_Message;
 
    function To_JSON_Object (Call : in Model.Call.Call_Type)
                            return GNATCOLL.JSON.JSON_Value is
@@ -49,15 +49,14 @@ package body JSON.Call is
       Root : constant JSON_Value := Create_Object;
       Value : constant JSON_Value := Create_Object;
       Org_ID : Ada.Strings.Unbounded.Unbounded_String;
-      Org_Prefix : constant String := "org_id";
+      --  Org_Prefix : constant String := "org_id";
    begin
       if Call /= Null_Call then
-         Org_ID := Ada.Strings.Unbounded.Tail
-           (Call.Queue,
-            Ada.Strings.Unbounded.Length (Call.Queue) - Org_Prefix'Length);
+--           Org_ID := Ada.Strings.Unbounded.Tail
+--             (Call.Queue,
+--              Ada.Strings.Unbounded.Length (Call.Queue) - Org_Prefix'Length);
 
-         Value.Set_Field ("channel", Call.Channel);
-         Value.Set_Field ("caller_id", Call.CallerIDNum);
+         Value.Set_Field ("channel", Call.Channel_ID.To_String);
          Value.Set_Field ("org_id", Org_ID);
          Value.Set_Field ("call_id",  To_String (Call.ID));
          Value.Set_Field ("arrival_time", Unix_Timestamp (Call.Arrived));
@@ -88,7 +87,7 @@ package body JSON.Call is
       return To_JSON_String (JSON.Write);
    end To_JSON_String;
 
-   function To_JSON_String (Queue : in Model.Call.Call_List_Type.Map)
+   function To_JSON_String (Queue : in Model.Calls.Call_List_Type.Map)
                            return JSON_String is
       use Model.Call;
 
@@ -109,13 +108,13 @@ package body JSON.Call is
       return To_JSON_String (Result.Write);
    end To_JSON_String;
 
-   function Status_Message (Title   : in String;
-                            Message : in String) return JSON_String is
-      JSON : constant JSON_Value := Create_Object;
+   function To_JSON_String (Call : in Model.Call.Call_Type)
+                                return JSON_String is
+      JSON : JSON_Value;
    begin
-      JSON.Set_Field ("status", Title);
-      JSON.Set_Field ("description", Message);
+      JSON := To_JSON_Object (Call => Call);
+
       return To_JSON_String (JSON.Write);
-   end Status_Message;
+   end To_JSON_String;
 
 end JSON.Call;

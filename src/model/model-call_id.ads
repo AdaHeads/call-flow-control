@@ -1,5 +1,7 @@
+
 package Model.Call_ID is
-   --  TODO: Make limited
+--  TODO: Make limited
+--  TODO: Associate with channel_id in some spectacular fashion.
    type Call_ID_Type is tagged record
       Timestamp : Integer;
       Sequence  : Integer;

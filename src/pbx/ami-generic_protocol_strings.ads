@@ -31,6 +31,8 @@ package AMI.Generic_Protocol_Strings is
                     Channel2  : in String;
                     Action_ID : in Action_ID_Type) return String with inline;
 
+   function CoreShowChannels (Action_ID : in Action_ID_Type) return String;
+
    function CoreSettings (Action_ID : in Action_ID_Type)
                           return String with inline;
 
@@ -47,6 +49,12 @@ package AMI.Generic_Protocol_Strings is
                    Action_ID : in Action_ID_Type) return String with inline;
 
    function Logoff (Action_ID : in Action_ID_Type) return String with inline;
+
+   function Originate (Channel   : in String;
+                       Context   : in String;
+                       Extension : in String;
+                       Priority  : in Natural;
+                       Action_ID : Action_ID_Type) return String;
 
    function Park (Channel          : in String;
                   Fallback_Channel : in String;

@@ -39,6 +39,8 @@ package AMI.Event is
       AgentDump,
       Agentlogin,
       Agentlogoff,
+      CoreShowChannel,
+      CoreShowChannelsComplete,
       QueueMemberAdded,
       QueueMemberPaused,
       QueueMemberStatus,

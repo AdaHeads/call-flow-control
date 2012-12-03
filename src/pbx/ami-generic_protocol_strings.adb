@@ -24,8 +24,6 @@
 with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
 
-with System_Messages; use System_Messages;
-
 package body AMI.Generic_Protocol_Strings is
    --  LF is never enough for some people..
    package Latin_1 renames Ada.Characters.Latin_1;
@@ -37,9 +35,11 @@ package body AMI.Generic_Protocol_Strings is
    --  Value part of request string
    Bridge_String           : constant String := "Bridge";
    CoreSettings_String     : constant String := "CoreSettings";
+   CoreShowChannels_String : constant String := "CoreShowChannels";
    GetVar_String           : constant String := "GetVar";
    Logoff_String           : constant String := "Logoff";
    Hangup_String           : constant String := "Hangup";
+   Originate_String        : constant String := "Originate";
    Park_String             : constant String := "Park";
    Ping_String             : constant String := "Ping";
    QueueStatus_String      : constant String := "QueueStatus";
@@ -48,20 +48,20 @@ package body AMI.Generic_Protocol_Strings is
    SetVar_String           : constant String := "Setvar";
 
    --  Key part of request string
-   Action_String           : constant String := "Action: ";
-   ActionID_String         : constant String := "ActionID: ";
-   Async_String            : constant String := "Async: ";
-   Channel_String          : constant String := "Channel: ";
-   Channel1_String         : constant String := "Channel1: ";
-   Channel2_String         : constant String := "Channel2: ";
-   Context_String          : constant String := "Context: ";
-   Exten_String            : constant String := "Exten: ";
-   Interface_String        : constant String := "Interface: ";
-   Paused_String           : constant String := "Paused: ";
-   Priority_String         : constant String := "Priority: ";
-   Secret_String           : constant String := "Secret: ";
-   Variable_String         : constant String := "Variable: ";
-   Value_String            : constant String := "Value: ";
+   Action_String           : constant String := "Action";
+   ActionID_String         : constant String := "ActionID";
+   Async_String            : constant String := "Async";
+   Channel_String          : constant String := "Channel";
+   Channel1_String         : constant String := "Channel1";
+   Channel2_String         : constant String := "Channel2";
+   Context_String          : constant String := "Context";
+   Exten_String            : constant String := "Exten";
+   Interface_String        : constant String := "Interface";
+   Paused_String           : constant String := "Paused";
+   Priority_String         : constant String := "Priority";
+   Secret_String           : constant String := "Secret";
+   Variable_String         : constant String := "Variable";
+   Value_String            : constant String := "Value";
    Username_String         : constant String := "Username";
 
    Paused : constant array (Pause_States) of String (1 .. 1)
@@ -73,9 +73,10 @@ package body AMI.Generic_Protocol_Strings is
    begin
       if Asynchronous then
          return
-           Async_String & Asynchronous'Img & Line_Termination_String &
-           ActionID_String & Action_ID_Type'Image (Action_ID) &
-           Line_Termination_String;
+           Async_String    & Separator & Asynchronous'Img &
+                             Line_Termination_String &
+           ActionID_String & Separator & Action_ID_Type'Image (Action_ID) &
+                             Line_Termination_String;
       else
          return "";
       end if;
@@ -94,27 +95,39 @@ package body AMI.Generic_Protocol_Strings is
                     Channel2  : in  String;
                     Action_ID : in Action_ID_Type) return String is
    begin
-      return Action_String & Bridge_String & Line_Termination_String &
-        Channel1_String & Channel1         & Line_Termination_String &
-        Channel2_String & Channel2         & Line_Termination_String &
+      return
+        Action_String   & Separator & Bridge_String & Line_Termination_String &
+        Channel1_String & Separator & Channel1      & Line_Termination_String &
+        Channel2_String & Separator & Channel2      & Line_Termination_String &
         Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Bridge;
 
    function CoreSettings (Action_ID : in Action_ID_Type) return String is
    begin
-      return Action_String & CoreSettings_String & Line_Termination_String &
+      return
+        Action_String & CoreSettings_String & Line_Termination_String &
         Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end CoreSettings;
+
+   function CoreShowChannels (Action_ID : in Action_ID_Type) return String is
+   begin
+      return
+        Action_String & Separator &
+        CoreShowChannels_String & Line_Termination_String &
+        Asynchronous_Line (Action_ID) &
+        Line_Termination_String;
+   end CoreShowChannels;
 
    function Get_Var (Channel      : in String;
                      VariableName : in String;
                      Action_ID    : in Action_ID_Type) return String is
    begin
-      return Action_String & GetVar_String & Line_Termination_String &
-        Channel_String & Channel           & Line_Termination_String &
-        Variable_String & VariableName     & Line_Termination_String &
+      return
+        Action_String   & Separator & GetVar_String & Line_Termination_String &
+        Channel_String  & Separator & Channel       & Line_Termination_String &
+        Variable_String & Separator & VariableName  & Line_Termination_String &
         Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Get_Var;
@@ -122,8 +135,9 @@ package body AMI.Generic_Protocol_Strings is
    function Hangup (Channel   : in String;
                     Action_ID : in Action_ID_Type) return String is
    begin
-      return Action_String & Hangup_String & Line_Termination_String &
-        Channel_String & Channel           & Line_Termination_String &
+      return
+        Action_String  & Separator & Hangup_String & Line_Termination_String &
+        Channel_String & Separator & Channel       & Line_Termination_String &
         Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Hangup;
@@ -133,23 +147,26 @@ package body AMI.Generic_Protocol_Strings is
                    Action_ID : in Action_ID_Type) return String is
    begin
       return
-        Action_String & Action_Type'Image (Login) & Line_Termination_String &
-        Username_String & Separator & Username    & Line_Termination_String &
-        Secret_String & Secret            & Line_Termination_String &
+        Action_String   & Separator & Action_Type'Image (Login) &
+                                      Line_Termination_String &
+        Username_String & Separator & Username &
+                                      Line_Termination_String &
+        Secret_String   & Separator & Secret &
+                                      Line_Termination_String &
         Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Login;
 
    function Logoff (Action_ID : in Action_ID_Type) return String is
    begin
-      return Action_String & Logoff_String & Line_Termination_String &
+      return
+        Action_String & Separator & Logoff_String & Line_Termination_String &
         Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Logoff;
 
    function Next_Action_ID return Action_ID_Type is
    begin
-      System_Messages.Notify (Debug, "Next_action_ID");
       if Asynchronous then
          Current_Action_ID := Action_ID_Type'Succ (Current_Action_ID);
          return Current_Action_ID;
@@ -158,20 +175,46 @@ package body AMI.Generic_Protocol_Strings is
       end if;
    end Next_Action_ID;
 
+   function Originate (Channel   : in String;
+                       Context   : in String;
+                       Extension : in String;
+                       Priority  : in Natural;
+                       Action_ID : Action_ID_Type) return String is
+   begin
+      return
+        Action_String  & Separator & Originate_String &
+                                      Line_Termination_String &
+        Channel_String  & Separator & Channel &
+                                      Line_Termination_String &
+        Context_String & Separator & Context &
+                                      Line_Termination_String &
+        Exten_String & Separator & Extension &
+                                      Line_Termination_String &
+        Priority_String & Separator & Priority'Img &
+                                      Line_Termination_String &
+        Asynchronous_Line (Action_ID) &
+        Line_Termination_String;
+   end Originate;
+
    function Park (Channel          : in String;
                   Fallback_Channel : in String;
                   Action_ID        : in Action_ID_Type) return String is
    begin
-      return Action_String & Park_String   & Line_Termination_String &
-        Channel_String & Channel           & Line_Termination_String &
-        Channel2_String & Fallback_Channel & Line_Termination_String &
+      return
+        Action_String   & Separator & Park_String &
+                                      Line_Termination_String &
+        Channel_String  & Separator & Channel &
+                                      Line_Termination_String &
+        Channel2_String & Separator & Fallback_Channel &
+                                      Line_Termination_String &
         Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Park;
 
    function Ping (Action_ID : in Action_ID_Type) return String is
    begin
-      return Action_String & Ping_String & Line_Termination_String &
+      return
+        Action_String & Separator & Ping_String & Line_Termination_String &
         Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Ping;
@@ -183,9 +226,13 @@ package body AMI.Generic_Protocol_Strings is
                         State      : in Pause_States;
                         Action_ID  : in Action_ID_Type) return String is
    begin
-      return Action_String & QueuePause_String & Line_Termination_String &
-        Interface_String & DeviceName          & Line_Termination_String &
-        Paused_String & Paused (State)         & Line_Termination_String &
+      return
+        Action_String    & Separator & QueuePause_String &
+                                       Line_Termination_String &
+        Interface_String & Separator & DeviceName &
+                                       Line_Termination_String &
+        Paused_String    & Separator & Paused (State) &
+                                       Line_Termination_String &
         Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end QueuePause;
@@ -193,7 +240,8 @@ package body AMI.Generic_Protocol_Strings is
    function QueueStatus (Action_ID  : in Action_ID_Type) return String is
    begin
       return
-        Action_String & QueueStatus_String & Line_Termination_String &
+        Action_String & Separator & QueueStatus_String &
+                                    Line_Termination_String &
         Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end QueueStatus;
@@ -211,11 +259,17 @@ package body AMI.Generic_Protocol_Strings is
       Priority_To_String : constant String := Ada.Strings.Fixed.Trim
         (Integer'Image (Priority), Ada.Strings.Left);
    begin
-      return Action_String & Redirect_String & Line_Termination_String &
-        Channel_String & Channel             & Line_Termination_String &
-        Exten_String & Exten                 & Line_Termination_String &
-        Context_String & Context             & Line_Termination_String &
-        Priority_String & Priority_To_String & Line_Termination_String &
+      return
+        Action_String   & Separator & Redirect_String &
+                                      Line_Termination_String &
+        Channel_String  & Separator & Channel &
+                                      Line_Termination_String &
+        Exten_String    & Separator & Exten &
+                                      Line_Termination_String &
+        Context_String  & Separator & Context &
+                                      Line_Termination_String &
+        Priority_String & Separator & Priority_To_String &
+                                      Line_Termination_String &
         Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Redirect;
@@ -225,10 +279,15 @@ package body AMI.Generic_Protocol_Strings is
                      Value        : in String;
                      Action_ID    : in Action_ID_Type) return String is
    begin
-      return Action_String & SetVar_String & Line_Termination_String &
-        Channel_String & Channel           & Line_Termination_String &
-        Variable_String & VariableName     & Line_Termination_String &
-        Value_String & Value               & Line_Termination_String &
+      return
+        Action_String   & Separator & SetVar_String &
+                                      Line_Termination_String &
+        Channel_String  & Separator & Channel &
+                                      Line_Termination_String &
+        Variable_String & Separator & VariableName &
+                                      Line_Termination_String &
+        Value_String    & Separator & Value &
+                                      Line_Termination_String &
         Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Set_Var;

@@ -53,6 +53,7 @@ project Alice is
               use ("-gnatwa",
                    "-gnaty3abcdefhiklmnoprstux",
                    "-Wall",
+                   "-pipe",
                    "-O2",
                    "-gnat2012");
          when "Debug" =>

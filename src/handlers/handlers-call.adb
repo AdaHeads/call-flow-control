@@ -28,8 +28,11 @@ with HTTP_Codes;
 with Response;
 
 with AMI.Action;
-
+with Model.Agent;
+with Model.Agents;
+with Model.Agent_ID;
 with Model.Call;
+with Model.Calls;
 with Model.Peers;
 with JSON.Call;
 
@@ -41,6 +44,7 @@ package body Handlers.Call is
    use System_Messages;
    use AMI.Action;
    use JSON.Call;
+   use Model;
 
    package Routines renames AMI.Action;
 
@@ -57,6 +61,7 @@ package body Handlers.Call is
       use AWS.Status;
       use Model.Call_ID;
       use Model.Call;
+      use Model.Calls;
 
       Call_ID         : constant Call_ID_Type :=
         Create (Item => Parameters (Request).Get ("Call_ID"));
@@ -70,7 +75,7 @@ package body Handlers.Call is
       Response_Object.Content (Status_Message
               ("Success", "Hangup completed"));
 
-      if not Call_List.Contains (Call_ID => Call_ID) then
+      if not Calls.List.Contains (Call_ID => Call_ID) then
          Response_Object.HTTP_Status_Code (Not_Found);
          Response_Object.Content
               (Status_Message
@@ -105,6 +110,7 @@ package body Handlers.Call is
       use HTTP_Codes;
       use AWS.Status;
       use Model.Call;
+      use Model.Calls;
       use Model.Call_ID;
 
       Context         : constant String := "Handlers.Call.Hold";
@@ -152,14 +158,49 @@ package body Handlers.Call is
       use HTTP_Codes;
 
       Response_Object : Response.Object := Response.Factory (Request);
-      --  ???? Odd naming. See ???? comment for Call_List.Call_List_Type.
    begin
       Response_Object.HTTP_Status_Code (OK);
       Response_Object.Content
-        (To_JSON_String (Model.Call.Call_List.To_JSON.Write));
+        (To_JSON_String (Calls.List.To_JSON.Write));
 
       return Response_Object.Build;
    end List;
+
+   -----------------
+   --  Originate  --
+   -----------------
+
+   --  /call/originate?[agent_id=<agent_id>|cm_id=<cm_id>|pstn_number=
+   --  <Pstn_NumbEr >  | sip =  < sip_uri > ]
+   function Originate
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data is
+      use Common;
+      use HTTP_Codes;
+      use AWS.Status;
+      use Model.Agent;
+
+      Agent_ID_String  : constant String :=
+                          Parameters (Request).Get ("agent_id");
+      Extension_String : constant String :=
+                           Parameters (Request).Get ("extension");
+      Agent            : Model.Agent.Agent_Type := Null_Agent;
+      Response_Object  : Response.Object := Response.Factory (Request);
+
+   begin
+      Agent := Model.Agents.Get (Model.Agent_ID.Create (Agent_ID_String));
+
+      AMI.Action.Originate (Client    => PBX.Client_Access,
+                            Peer_ID   => Agent.Peer_ID,
+                            Context   => "LocalSets",
+                            Extension => Extension_String,
+                            Priority  => 1);
+
+      Response_Object.HTTP_Status_Code (OK);
+      Response_Object.Content (Status_Message
+                        ("status", "ok"));
+      return Response_Object.Build;
+   end Originate;
 
    --------------
    --  Pickup  --
@@ -171,14 +212,17 @@ package body Handlers.Call is
    is
       use AWS.Status;
       use Model.Call;
+      use Model.Calls;
       use Model.Peers;
       use Common;
       use HTTP_Codes;
       use Ada.Strings.Unbounded;
       use Model.Call_ID;
+      use Model.Agent_ID;
 
-      Agent   : constant String := Parameters (Request).Get ("agent_id");
-      Call_ID : constant String := Parameters (Request).Get ("call_id");
+      Agent_ID : constant Agent_ID_Type :=
+                   Create (Parameters (Request).Get ("agent_id"));
+      Call_ID  : constant String := Parameters (Request).Get ("call_id");
 
       Content         : JSON_String;
       Response_Object : Response.Object := Response.Factory (Request);
@@ -188,19 +232,22 @@ package body Handlers.Call is
    begin
 
       --  Retrieve the peer from the agent_id.
-      Peer := Get_Peer_By_PhoneName (Agent);
+      Peer := Model.Peers.List.Get
+        (Model.Agents.Get (Agent_ID => Agent_ID).Peer_ID);
 
       --  Determine which call to pickup
       if Call_ID'Length = 0 then
-         System_Messages.Notify (Debug, "Get_Call - Agent_ID: " & Agent &
+         System_Messages.Notify (Debug, "Get_Call - Agent_ID: " &
+                                   Parameters (Request).Get ("agent_id") &
                                    " asks for unspecifed call");
-         Call := Call_List.Next;
+         Call := Calls.List.Next;
          System_Messages.Notify (Debug, " Sending: " & To_String (Call));
       else
-         System_Messages.Notify (Debug, "Get_Call - Agent_ID: " & Agent &
+         System_Messages.Notify (Debug, "Get_Call - Agent_ID: " &
+                                   Parameters (Request).Get ("agent_id") &
                                    " ask for Call_ID: " & Call_ID);
          --  Lookup the call
-         Call := Dequeue (Create (Call_ID));
+         Call := Calls.Dequeue (Create (Call_ID));
       end if;
 
       if Call = Null_Call then
@@ -212,14 +259,15 @@ package body Handlers.Call is
       elsif Peer.State = Unregistered then
          System_Messages.Notify
            (Critical, "Get_Call: " &
-              "The following agent is unregistred: " & Agent);
+              "The following agent is unregistred: " &
+              Parameters (Request).Get ("agent_id"));
          Status_Code := Bad_Request;
          Content := Status_Message
            ("Bad request", "The agents phone is not registered");
       else
          --  Send the command to AMI
          AMI.Action.Redirect (Client    => PBX.Client_Access,
-                              Channel   => To_String (Call.Channel),
+                              Channel   => Call.Channel_ID,
                               Extension => "101"); --  To_String (Peer.Exten)
          Status_Code := OK;
          Content := To_JSON_String (Call);
@@ -270,9 +318,10 @@ package body Handlers.Call is
       --  hassle of getting a Call_List_Type.Vector? Do we need this here?
       --  Why not just have a function in the Call_List package that return
       --  the final JSON and use that directly in the Build_JSON_Response call?
+
       Response_Object.HTTP_Status_Code (OK);
       Response_Object.Content
-        (Common.To_JSON_String (Model.Call.Call_List.To_JSON.Write));
+        (Common.To_JSON_String (Calls.List.To_JSON.Write));
 
       return Response_Object.Build;
    end Queue;

@@ -17,14 +17,14 @@ package body AMI.Callback is
       if Client /= null and then Packet /= New_Packet then
          if Try_Get (Packet.Fields, Message, Value) then
             if To_String (Value) = Authentication_Accepted_String then
-               Client.Authenticated := Authenticated;
+               Client.Authenticated := True;
 
             elsif To_String (Value) = Authentication_Failed_String then
-               Client.Authenticated := Not_Authenticated;
+               Client.Authenticated := False;
                System_Messages.Notify (Error, "Login_Callback: " &
                                          Authentication_Failed_String);
             else
-               Client.Authenticated := Unknown;
+               Client.Authenticated := True;
                System_Messages.Notify (Error, "Login_Callback: Bad Reply:" &
                                          To_String (Value));
             end if;

@@ -28,58 +28,108 @@ with AMI.Generic_Protocol_Strings;
 with AMI.Client;
 with Model.Call;
 with Model.Call_ID;
+with Model.Channel_ID;
+with Model.Peer_ID;
+
 package AMI.Action is
    use Ada.Strings.Unbounded;
    use AMI.Client;
+   use AMI.Callback;
    use Model.Call_ID;
    use Model.Call;
+   use Model.Channel_ID;
+   use Model.Peer_ID;
 
-   type Status_Type is
-     (Success,
-      No_Agent_Found,
-      No_Call_Found,
-      Unregistered_Agent,
-      Agent_Already_In_Call,
-      Unknown_Error);
-
-   procedure Login
-     (Client   : access Client_Type;
-      Username : in     String;
-      Secret   : in     String;
-      Callback : in     AMI.Callback.Callback_Type
-      := AMI.Callback.Login_Callback'Access
-     );
+   procedure Absolute_Timeout (Client           : access Client_Type;
+                               Channel_ID       : in     Channel_ID_Type;
+                               Timeout          : in     Duration := 20.0;
+                               Response_Handler : in     Callback_Type
+                               := AMI.Callback.Null_Callback'Access) is null;
+   --  Set Absolute Timeout (Priv : system, call, all)
+   --  This will hangup a specified channel after a certain number of seconds,
+   --  thereby actively ending the call.
 
    procedure Bridge (Client   : access Client_Type;
                      ChannelA : in     String;
                      ChannelB : in     String;
                      Callback : in     AMI.Callback.Callback_Type
                      := AMI.Callback.Null_Callback'Access);
+   --  Bridge: Bridge two channels already in the PBX (Priv: call,all)
 
-   procedure Ping (Client   : access Client_Type;
-                   Callback : in     AMI.Callback.Callback_Type
-                   := AMI.Callback.Ping_Callback'Access);
+   procedure Core_Show_Channels (Client           : access Client_Type;
+                                 Response_Handler : in     Callback_Type
+                                 := AMI.Callback.Null_Callback'Access);
+   --  Ask the AMI to reveal the the current channels. They will be spawned as
+   --  events.
 
-   --     --------------------------------------------------------
-   --     --  Should be out of the AMI directory.
+   procedure Extension_State (Client           : access Client_Type;
+                              Context          : in     String;
+                              Extension        : in     String;
+                              Response_Handler : in     Callback_Type
+                              := AMI.Callback.Null_Callback'Access) is null;
+   --  This will report one of the following statuses:
+   --  -1 : Extension not found
+   --  0 : Idle
+   --  1 : In Use
+   --  4 : Unavailable
+   --  8 : Ringing
 
-   --     procedure Bridge_Call (Call_Id_1 : in     Unbounded_String;
-   --                            Call_Id_2 : in     Unbounded_String;
-   --                            Status    :    out Status_Type);
+   procedure Hangup (Client   : access Client_Type;
+                     Call_ID  : in     Call_ID_Type;
+                     Callback : in     AMI.Callback.Callback_Type
+                     := AMI.Callback.Null_Callback'Access);
 
-   procedure Redirect (Client    : access Client_Type;
-                       Channel   : in     String;
-                       Extension : in     String;
-                       Callback  : in     AMI.Callback.Callback_Type
-                         := AMI.Callback.Null_Callback'Access);
-   --  Takes a call from the call_Queue, and redirects it to the channel.
+   procedure Login (Client   : access Client_Type;
+                    Username : in     String;
+                    Secret   : in     String;
+                    Callback : in     AMI.Callback.Callback_Type
+                    := AMI.Callback.Login_Callback'Access);
+   --  Login to the AMI socket. This is mandatory, and the socket will
+   --  close after a timeout if login is not sent immidiately
+   --  after the socket connection is established.
 
-   --     procedure Get_Version; --  return String;
+   procedure Logoff (Client           : access Client_Type;
+                     Response_Handler : in     AMI.Callback.Callback_Type
+                     := AMI.Callback.Null_Callback'Access) is null;
+   --  Logs off the current manager session.
+
+   procedure Originate (Client           : access Client_Type;
+                        Peer_ID          : in     Peer_ID_Type;
+                        Context          : in     String;
+                        Extension        : in     String;
+                        Priority         : in     Natural;
+                        Response_Handler : in     Callback_Type
+                        := AMI.Callback.Null_Callback'Access);
+   --  Originate Call (Priv: originate,all)
 
    procedure Park (Client   : access Client_Type;
                    Call     : in     Call_Type;
                    Callback : in AMI.Callback.Callback_Type :=
-                     AMI.Callback.Login_Callback'Access);
+                     AMI.Callback.Null_Callback'Access);
+   --  Park a channel (Priv: call,all).
+
+   procedure Ping (Client   : access Client_Type;
+                   Callback : in     AMI.Callback.Callback_Type
+                   := AMI.Callback.Null_Callback'Access);
+   --  Ping is a sort of dummy call that returns a pong response. It can be
+   --  Used to provide a keep-alive refresh on a socket with a timeout.
+
+   procedure Queues (Client   : access Client_Type;
+                     Callback : in     AMI.Callback.Callback_Type
+                     := AMI.Callback.Null_Callback'Access) is null;
+   --  Queue Status (Priv: <none>).
+   --  Checks statistical information about calls delivered to the existing
+   --  queues, as well as the corresponding service level.
+
+   procedure Redirect (Client    : access Client_Type;
+                       Channel   : in     Channel_ID_Type;
+                       Extension : in     String;
+                       Callback  : in     AMI.Callback.Callback_Type
+                       := AMI.Callback.Null_Callback'Access);
+   --  Redirect: Redirect (transfer) a call (Priv: call,all)
+   --  Sends an active channel to an extension.
+
+   --     procedure Get_Version; --  return String;
 
    --     procedure Unpark ( --  Agent_ID : in     String;
    --                       Call_Id : in     String;
@@ -88,20 +138,14 @@ package AMI.Action is
    --     procedure Register_Agent (Phone_Name  : in Unbounded_String;
    --                               Computer_Id : in Unbounded_String);
 
-   procedure Hangup (Client   : access Client_Type;
-                     Call_ID  : in     Call_ID_Type;
-                     Callback : in     AMI.Callback.Callback_Type
-                       := AMI.Callback.Null_Callback'Access);
+   procedure SIP_Peers (Client   : access Client_Type;
+                        Callback : in     AMI.Callback.Callback_Type
+                        := AMI.Callback.Null_Callback'Access) is null;
 
-   --     --  Checks if the internal call queue is the same on Asterisk.
-   --  --     procedure Consistency_Check;
-
-   --     procedure Startup_Sequence;
-   --     --  TODO: Write comment.
-
-   --     procedure Test_Status_Print;
-   --     --  TODO: Write comment.
-   --     ---------------------------------------------------------
+   procedure Status (Client     : access Client_Type;
+                     Channel_ID : in     Channel_ID_Type;
+                     Callback   : in     AMI.Callback.Callback_Type
+                     := Null_Callback'Access) is null;
 
 private
    package Protocol_Strings is

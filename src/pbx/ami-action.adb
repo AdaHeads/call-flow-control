@@ -23,6 +23,7 @@
 
 with AMI.Response;
 with System_Messages;
+with Model.Calls;
 
 package body AMI.Action is
    use System_Messages;
@@ -43,25 +44,30 @@ package body AMI.Action is
             Action_ID => Action_ID));
    end Bridge;
 
+   procedure Core_Show_Channels (Client           : access Client_Type;
+                                 Response_Handler : in     Callback_Type
+                                 := AMI.Callback.Null_Callback'Access) is
+      Action_ID : constant Action_ID_Type :=
+                    Protocol_Strings.Next_Action_ID;
+   begin
+      AMI.Response.Subscribe (Action_ID, Response_Handler);
+      Client.Send
+        (Item   => Protocol_Strings.CoreShowChannels (Action_ID => Action_ID));
+   end Core_Show_Channels;
+
    procedure Hangup (Client   : access Client_Type;
                      Call_ID  : in     Call_ID_Type;
                      Callback : in     AMI.Callback.Callback_Type
                        := AMI.Callback.Null_Callback'Access) is
-      Call      : Call_Type;
+      Call      : constant Call_Type := Model.Calls.Get (Call_ID);
       Action_ID : constant Action_ID_Type :=
                     Protocol_Strings.Next_Action_ID;
    begin
-      System_Messages.Notify (Debug, "Hangup: routine started");
-
-      Call := Model.Call.Get (Call_ID);
-
-      System_Messages.Notify (Debug,
-                              "Hangup Call: " & To_String (Call));
-
       AMI.Response.Subscribe (Action_ID, Callback);
       Client.Send
-        (Item   => Protocol_Strings.Hangup
-           (Ada.Strings.Unbounded.To_String (Call.Channel), Action_ID));
+        (Item   =>
+           Protocol_Strings.Hangup
+           (Call.Channel_ID.To_String, Action_ID));
 
       System_Messages.Notify (Debug, "The Hangup routine is done.");
    end Hangup;
@@ -83,6 +89,25 @@ package body AMI.Action is
                       Secret    => Secret,
                       Action_ID => Action_ID));
    end Login;
+
+   procedure Originate (Client           : access Client_Type;
+                        Peer_ID          : in     Peer_ID_Type;
+                        Context          : in     String;
+                        Extension        : in     String;
+                        Priority         : in     Natural;
+                        Response_Handler : in     Callback_Type
+                        := AMI.Callback.Null_Callback'Access) is
+      Action_ID : constant Action_ID_Type :=
+                    Protocol_Strings.Next_Action_ID;
+   begin
+      AMI.Response.Subscribe (Action_ID, Response_Handler);
+      Client.Send (Item   => Protocol_Strings.Originate
+                   (Channel   => Peer_ID.To_String,
+                    Context   => Context,
+                    Extension => Extension,
+                    Priority  => Priority,
+                    Action_ID => Action_ID));
+   end Originate;
 
    procedure Park (Client   : access Client_Type;
                    Call     : in     Call_Type;
@@ -120,13 +145,13 @@ package body AMI.Action is
       --              VariableName => "Extension",
       --              Value        => Exten);
 
-      if Call.Extension = Null_Unbounded_String or else
-        To_String (Call.Extension) = "(null)" then
-         raise BAD_EXTENSION;
-
-      elsif To_String (Call.Extension) = "" then
-         raise EMPTY_EXTENSION;
-      end if;
+--        if Call.Extension = Null_Unbounded_String or else
+--          To_String (Call.Extension) = "(null)" then
+--           raise BAD_EXTENSION;
+--
+--        elsif To_String (Call.Extension) = "" then
+--           raise EMPTY_EXTENSION;
+--        end if;
 
       --  Sets the variable that tells this call is a call on hold.
       --           AMI.Action.Action_Manager.Set_Var
@@ -136,12 +161,10 @@ package body AMI.Action is
 
       --  Move the call back to the queue
 
-      Client.Send
-        (Item   =>      Protocol_Strings.Redirect
-           (Channel   => To_String (Call.Channel),
-            Exten     => To_String (Call.Extension),
-            Context   => "LocalSets", --  TODO change to Agent.Context;
-            Action_ID => Action_ID));
+      Client.Send (Item   => Protocol_Strings.Park
+                   (Channel          => Call.Channel_ID.To_String,
+                    Fallback_Channel => "",
+                    Action_ID        => Action_ID));
    end Park;
 
    procedure Ping (Client   : access Client_Type;
@@ -160,7 +183,7 @@ package body AMI.Action is
    --  Get the specific call with UniqueId matching
    --  If unitqueID is null, then the first call in the queue is taken.
    procedure Redirect (Client    : access Client_Type;
-                       Channel   : in     String;
+                       Channel   : in     Channel_ID_Type;
                        Extension : in     String;
                        Callback  : in     AMI.Callback.Callback_Type
                          := AMI.Callback.Null_Callback'Access) is
@@ -171,7 +194,7 @@ package body AMI.Action is
       --  Send the call out to the phone
       Client.Send
         (Item   => Protocol_Strings.Redirect
-           (Channel   => Channel,
+           (Channel   => Channel.To_String,
             Exten     => Extension,
             Context   => "LocalSets",
             Action_ID => Action_ID));

@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                Call_List                                  --
+--                                Model.Calls                                --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,11 +21,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Ordered_Maps;
 with Ada.Strings.Unbounded;
 with Model.Agent_ID;
 with Common;
 with Model.Call_ID;
+with Model.Channel_ID;
 with GNATCOLL.JSON;
 
 package Model.Call is
@@ -34,14 +34,14 @@ package Model.Call is
    use Common;
    use Model.Agent_ID;
    use Model.Call_ID;
+   use Model.Channel_ID;
 
-   CALL_NOT_FOUND  : exception;
-   DUPLICATE_ID    : exception;
    BAD_EXTENSION   : exception;
    EMPTY_EXTENSION : exception;
 
    type Call_State is
-     (Unknown, Newly_Arrived, Speaking, Ringing, OnHold, Delegated, Hung_Up);
+     (Unknown, Newly_Arrived, Requeued,
+      Speaking, Ringing, OnHold, Delegated, Hung_Up);
    type Priority_Level is (Invalid, Low, Normal, High);
 
    type Call_Type is tagged
@@ -49,29 +49,16 @@ package Model.Call is
          ID             : Call_ID.Call_ID_Type;
          State          : Call_State;
          Inbound        : Boolean;
-         Extension      : Unbounded_String;
          Queue_Priority : Priority_Level;
-         Channel        : Unbounded_String;
-         CallerIDNum    : Unbounded_String;
-         CallerIDName   : Unbounded_String;
+         Channel_ID     : Channel_ID_Type;
          Queue          : Unbounded_String;
          Position       : Natural;
          Count          : Natural;
          Arrived        : Time := Current_Time;
-         Assigned_To    : Agent_ID_Type := 0;
+         Assigned_To    : Agent_ID_Type := Create ("");
       end record;
 
-   procedure Insert (Call : in Call_Type);
-   --  Places a call in the call_List.
-
-   procedure Remove (Call_ID : in Call_ID_Type);
-   --  Removes a specific call from the call queue.
-
-   procedure Update (Call : in Call_Type);
-   --  Updates a Call in the list, with the information from the Call Argument
-
-   function Length return Long_Integer;
-   --  Gives the length of the call queue.
+   --  function Create
 
    function To_String (Call : in Call_Type) return String;
    function To_JSON (Call : in Call_Type) return JSON_Value;
@@ -79,51 +66,17 @@ package Model.Call is
    function "=" (Left  : in Call_Type;
                  Right : in Call_Type) return Boolean;
 
-   function Get (Call_ID : in Call_ID_Type) return Call_Type;
-   --  Returns the call with the specified Call_ID.
-
-   function Dequeue (Call_ID : in Call_ID_Type) return Call_Type;
-   --  Removes the call with the specified Call_ID and returns it.
-
-   type Call_Process_Type is not null access procedure (Call : in Call_Type);
-
+   Null_Call : constant Call_Type;
+private
    Null_Call : constant Call_Type :=
      (ID             => Call_ID.Null_Call_ID,
       State          => Unknown,
       Queue_Priority => Invalid,
       Inbound        => False,
-      Extension      => Null_Unbounded_String,
-      Channel        => Null_Unbounded_String,
-      CallerIDNum    => Null_Unbounded_String,
-      CallerIDName   => Null_Unbounded_String,
+      Channel_ID     => Null_Channel_ID,
       Queue          => Null_Unbounded_String,
       Position       => 0,
       Count          => 0,
       Arrived        => Current_Time,
-      Assigned_To    => 0);
-
-   package Call_List_Type is new
-     Ada.Containers.Ordered_Maps (Key_Type   => Call_ID_Type,
-                                  Element_Type => Call_Type);
-
-   protected type Protected_Call_List_Type is
-      function Contains (Call_ID : in Call_ID_Type) return Boolean;
-      procedure Insert (Call : in Call_Type);
-      procedure Remove (Call_ID : in Call_ID_Type);
-      function Get (Call_ID : Call_ID_Type) return Call_Type;
-      function Length return Long_Integer;
-      function To_JSON return JSON_Value;
-      function To_String return String;
-      procedure For_Each (Process : in Call_Process_Type);
-      procedure Update (Call : in Call_Type);
-      --  Replaces the call at the ID location with the call supplied.
-      --  Raises CALL_NOT_FOUND if there is no call to replace.
-
-      function Next return Call_Type;
-   private
-      List : Call_List_Type.Map;
-   end Protected_Call_List_Type;
-
-   Call_List : Protected_Call_List_Type;
-   --  Package-visible singleton.
+      Assigned_To    => Create ("0"));
 end Model.Call;

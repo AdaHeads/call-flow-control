@@ -38,11 +38,7 @@ package AMI.Response is
 
    procedure Notify (Client : access Client_Type;
                      Packet : in     AMI.Parser.Packet_Type);
-   --  Notify about a reposense
-
-   procedure Wait_For (Action_ID : in Action_ID_Type);
-   --  Block a thread untill an reponse with action ID occurs
-
+   --  Notify subscribers about a reposense
 private
    function Hash_Function (Key : in Action_ID_Type)
                            return Ada.Containers.Hash_Type;
@@ -59,10 +55,4 @@ private
    Reponse_List : Response_List_Type.Map;
    --  TODO: Rip this out of the library
 
-   --  protected Waiter is
-   --     entry Wait_For (Key : in Action_ID_Type);
-   --     procedure Signal (Key : in Action_ID_Type);
-   --  private
-   --     Connected : Boolean := False;
-   --  end Connection;
 end AMI.Response;

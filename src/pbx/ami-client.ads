@@ -25,6 +25,7 @@ with Ada.Strings.Unbounded;
 with AWS.Net.Std;
 package AMI.Client is
 
+   TIMEOUT         : exception;
    CONNECT_TIMEOUT : exception;
    CONNECT_FAILED  : exception;
    GET_LINE_FAILED : exception;
@@ -40,11 +41,12 @@ package AMI.Client is
 
    procedure Null_Callback is null;
 
+   --  TODO: Make limited.
    type Client_Type is tagged
       record
          Connected             : Boolean := False;
          Server_Greeting       : Ada.Strings.Unbounded.Unbounded_String;
-         Authenticated         : Autenticated_Type := Unknown;
+         Authenticated         : Boolean := False;
          Socket                : AWS.Net.Std.Socket_Type;
          On_Connect_Handler    : Connection_Event_Handler
            := Null_Callback'Access;
@@ -76,5 +78,12 @@ package AMI.Client is
    procedure Set_Connection_State (Client    : in out Client_Type;
                                    New_State : in     Boolean);
 
+   procedure Wait_For_Connection (Client  : access Client_Type;
+                                  Timeout : in     Duration := 3.0);
+   --  Waits for a client to establish a connection for duration.
+   --  Raises TIMEOUT if the connection is not established within the
+   --  given duration.
+
 private
+   --  TODO: Move the client here.
 end AMI.Client;
