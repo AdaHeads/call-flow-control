@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                Not_Found                                  --
+--                           Unexpected_Exception                            --
 --                                                                           --
 --                                  SPEC                                     --
 --                                                                           --
@@ -21,24 +21,25 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Dispatchers.Callback;
-with Response.Not_Cached;
+with Ada.Exceptions;
+with AWS.Exceptions;
+with AWS.Log;
+with AWS.Response;
 
-package Not_Found is
+package Unexpected_Exception is
 
    function Callback
-     return AWS.Dispatchers.Callback.Handler;
-   --  Return a callback for the Not_Found (404) response.
+     return AWS.Exceptions.Unexpected_Exception_Handler;
+   --  Return a callback for the Unexpected_Exception response.
 
 private
 
-   procedure Generate_Document
-     (Response_Object : in out Response.Object);
-   --  Add a generated JSON_String to Response_Object and set HTTP status code
-   --  to 404.
+   procedure Unexpected_Exception_Handler
+     (E      : Ada.Exceptions.Exception_Occurrence;
+      Log    : in out AWS.Log.Object;
+      Error  : AWS.Exceptions.Data;
+      Answer : in out AWS.Response.Data);
+   --  Take care of unhandled exceptions, which in the context of Alice means
+   --  log the disaster and send a 500 response object to the client.
 
-   function JSON_Response is new Response.Not_Cached.Generate_Response
-     (Generate_Document => Generate_Document);
-   --  Generate the AWS.Response.Data that ultimately is delivered to the user.
-
-end Not_Found;
+end Unexpected_Exception;

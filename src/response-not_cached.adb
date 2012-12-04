@@ -21,7 +21,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.URL;
 with System_Message.Critical;
 
 package body Response.Not_Cached is
@@ -35,7 +34,6 @@ package body Response.Not_Cached is
          return AWS.Response.Data
    is
       use AWS.Status;
-      use AWS.URL;
       use System_Message;
 
       Response_Object : Object := Factory (Request);
@@ -49,7 +47,7 @@ package body Response.Not_Cached is
          --  enough to warrant a critical level log entry and response.
          Critical.Response_Exception
            (Event           => Event,
-            Message         => URL (URI (Response_Object.Request)),
+            Message         => Response_Object.To_Debug_String,
             Response_Object => Response_Object);
          return Response_Object.Build;
    end Generate_Response;

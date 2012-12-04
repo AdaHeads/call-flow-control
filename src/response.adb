@@ -22,7 +22,9 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;
 with AWS.Response.Set;
+with AWS.Session;
 with AWS.URL;
 
 package body Response is
@@ -204,5 +206,62 @@ package body Response is
    begin
       return O.Request;
    end Status_Data;
+
+   -----------------------
+   --  To_Debug_String  --
+   -----------------------
+
+   function To_Debug_String
+     (O : in Object)
+      return String
+   is
+      use Ada.Strings.Unbounded;
+      use AWS.Session;
+      use AWS.Status;
+
+      Session_String : Unbounded_String;
+
+      procedure Action
+        (N          : in     Positive;
+         Key, Value : in     String;
+         Quit       : in out Boolean);
+      --  Create a human-readable string from users session data.
+
+      --------------
+      --  Action  --
+      --------------
+      procedure Action
+        (N          : in     Positive;
+         Key, Value : in     String;
+         Quit       : in out Boolean)
+      is
+         pragma Unreferenced (N, Quit);
+      begin
+         Append (Session_String, Key & ":" & Value & " ");
+      end Action;
+
+      procedure Session_Data_Reader is new AWS.Session.For_Every_Session_Data
+        (Action => Action);
+
+      Msg : Unbounded_String;
+   begin
+      Append (Msg, O.Request_URL & " - ");
+      Append (Msg, "Peer " & Peername (O.Request) & " - ");
+      Append (Msg, "User-Agent " & User_Agent (O.Request));
+
+      if Has_Session (O.Request) then
+         Append (Msg, " - ");
+         Session_Data_Reader (Session (O.Request));
+         Append (Msg, "Session ID " & Image (Session (O.Request)));
+
+         if Length (Session_String) > 0 then
+            Append (Msg,  " - " & "Session data " & Session_String);
+         else
+            Append (Msg, " - No Session data");
+         end if;
+      end if;
+
+      return To_String (Msg);
+   end To_Debug_String;
 
 end Response;
