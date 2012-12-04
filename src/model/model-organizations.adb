@@ -30,6 +30,12 @@ package body Model.Organizations is
 
    package SQL renames SQL_Statements;
 
+   function Organization_Element
+     (C : in out Cursor'Class)
+      return Organization_Object;
+   --  Transforms the low level index based Cursor into the more readable
+   --  Organization_Object record. This one does NOT contain any contacts.
+
    procedure Fetch_Organization_Object is new Storage.Process_Query
      (Database_Cursor   => Cursor,
       Element           => Organization_Object,
@@ -37,14 +43,14 @@ package body Model.Organizations is
 
    procedure For_Each
      (Process : not null access
-        procedure (Element : in Organization_Object'Class));
+        procedure (Element : in Organization_Object));
    --  For every organization in the database, an Organization_Object is handed
    --  to Process. These organization objects do NOT contain any contacts.
 
    procedure For_Each_Full
      (O_Id    : in Organization_Identifier;
       Process : not null access
-        procedure (Element : in Organization_Object'Class));
+        procedure (Element : in Organization_Object));
    --  For every organization with O_Id in the database, an Organization_Object
    --  is handed to Process. These organization objects do contain contacts.
 
@@ -66,7 +72,7 @@ package body Model.Organizations is
 
    procedure For_Each
      (Process : not null access
-        procedure (Element : in Organization_Object'Class))
+        procedure (Element : in Organization_Object))
    is
       use GNATCOLL.SQL.Exec;
    begin
@@ -83,7 +89,7 @@ package body Model.Organizations is
    procedure For_Each
      (O_ID    : in Organization_Identifier;
       Process : not null access
-        procedure (Element : in Organization_Object'Class))
+        procedure (Element : in Organization_Object))
    is
       use GNATCOLL.SQL.Exec;
 
@@ -102,7 +108,7 @@ package body Model.Organizations is
    procedure For_Each
      (Self    : in Organization_List_Object;
       Process : not null access
-        procedure (Element : in Organization_Object'Class))
+        procedure (Element : in Organization_Object))
    is
       pragma Unreferenced (Self);
    begin
@@ -116,7 +122,7 @@ package body Model.Organizations is
    procedure For_Each_Full
      (O_Id    : in Organization_Identifier;
       Process : not null access
-        procedure (Element : in Organization_Object'Class))
+        procedure (Element : in Organization_Object))
    is
       use GNATCOLL.SQL.Exec;
 
@@ -144,50 +150,56 @@ package body Model.Organizations is
    --  Get  --
    -----------
 
-   procedure Get
-     (Self : in out Organization_Object;
-      O_ID : in     Organization_Identifier)
+   function Get
+     (ID : in Organization_Identifier)
+      return Organization_Object
    is
       procedure Get_Element
-        (Organization : in Organization_Object'Class);
+        (Organization : in Organization_Object);
+
+      O : Organization_Object;
 
       -------------------
       --  Get_Element  --
       -------------------
 
       procedure Get_Element
-        (Organization : in Organization_Object'Class)
+        (Organization : in Organization_Object)
       is
       begin
-         Self := Organization_Object (Organization);
+         O := Organization;
       end Get_Element;
    begin
-      For_Each (O_ID, Get_Element'Access);
+      For_Each (ID, Get_Element'Access);
+      return O;
    end Get;
 
    ----------------
    --  Get_Full  --
    ----------------
 
-   procedure Get_Full
-     (Self : in out Organization_Object;
-      O_ID : in     Organization_Identifier)
+   function Get_Full
+     (ID : in Organization_Identifier)
+      return Organization_Object
    is
       procedure Get_Element
-        (Organization : in Organization_Object'Class);
+        (Organization : in Organization_Object);
+
+      O : Organization_Object;
 
       -------------------
       --  Get_Element  --
       -------------------
 
       procedure Get_Element
-        (Organization : in Organization_Object'Class)
+        (Organization : in Organization_Object)
       is
       begin
-         Self := Organization_Object (Organization);
+         O := Organization;
       end Get_Element;
    begin
-      For_Each_Full (O_ID, Get_Element'Access);
+      For_Each_Full (ID, Get_Element'Access);
+      return O;
    end Get_Full;
 
    ------------------
@@ -219,8 +231,8 @@ package body Model.Organizations is
    ----------------------------------
 
    function Organization_Element
-     (C : in out Cursor)
-      return Organization_Object'Class
+     (C : in out Cursor'Class)
+      return Organization_Object
    is
       use Common;
       use Model.Contacts;
@@ -231,12 +243,11 @@ package body Model.Organizations is
 
       O : Organization_Object;
    begin
-      O := Organization_Object'
-        (C_List     => Contacts.Null_Contact_List,
-         Full_Name  => U (C.Value (0)),
-         Identifier => U (C.Value (1)),
-         JSON       => C.Json_Object_Value (2),
-         O_ID       => Organization_Identifier (C.Integer_Value (3)));
+      O := (C_List     => Contacts.Null_Contact_List,
+            Full_Name  => U (C.Value (0)),
+            Identifier => U (C.Value (1)),
+            JSON       => C.Json_Object_Value (2),
+            O_ID       => Organization_Identifier (C.Integer_Value (3)));
 
       if C.Field_Count > 4 then
          --  This is a full organization, complete with contacts.

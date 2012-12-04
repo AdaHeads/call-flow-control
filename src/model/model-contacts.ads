@@ -24,7 +24,6 @@
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded;
 with Common;
-with GNATCOLL.SQL.Exec;
 with Model.Contact_Attributes;
 
 package Model.Contacts is
@@ -68,9 +67,9 @@ package Model.Contacts is
       return String;
    --  Return the full name of the Contact.
 
-   procedure Get
-     (Self : in out Contact_Object;
-      C_ID : in     Contact_Identifier);
+   function Get
+     (ID : in Contact_Identifier)
+      return Contact_Object;
    --  Get the contact that match C_ID, complete with all the attributes that
    --  may be associated with the contact.
 
@@ -80,23 +79,22 @@ package Model.Contacts is
    --  Get a list of contacts that belong to the O_ID organization.
 
    function Get
-     (C_ID : in Contact_Identifier;
-      O_ID : in Organization_Identifier)
+     (ID : in Organization_Contact_Identifier)
       return Contact_Object;
-   --  Return the contact that match C_ID, complete with all the attributes
+   --  Return the contact that match ID, complete with all the attributes
    --  that may be associated with the contact.
 
    procedure For_Each
      (C_ID    : in Contact_Identifier;
       Process : not null access
-        procedure (Element : in Contact_Object'Class));
+        procedure (Element : in Contact_Object));
    --  For every contact with C_ID in the database, a Contact_Object is handed
    --  to Process.
 
    procedure For_Each
      (O_ID    : in Organization_Identifier;
       Process : not null access
-        procedure (Element : in Contact_Object'Class));
+        procedure (Element : in Contact_Object));
    --  Hands a Contact_Object to Process for every contact in the database that
    --  belongs to O_ID.
 
@@ -104,7 +102,7 @@ package Model.Contacts is
      (C_ID    : in Contact_Identifier;
       O_ID    : in Organization_Identifier;
       Process : not null access
-        procedure (Element : in Contact_Object'Class));
+        procedure (Element : in Contact_Object));
    --  Hands a Contact_Object to Process for every contact in the database that
    --  match C_ID and belongs to O_ID.
 
@@ -144,8 +142,6 @@ private
       return Ada.Containers.Hash_Type;
    --  Hashing function used by the hashed maps.
 
-   type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null record;
-
    type Contact_Object is tagged
       record
          Attr_List : Model.Contact_Attributes.Contact_Attributes_List_Object;
@@ -174,17 +170,5 @@ private
 
    Null_Contact_List : constant Contact_List_Object
      := (Contacts => Contact_Map.Empty_Map);
-
-   function Contact_Element
-     (C : in out Cursor)
-      return Contact_Object'Class;
-   --  Transforms the low level index based Cursor into ONE Contact_Object
-   --  record.
-
-   function Contact_Elements
-     (C : in out Cursor)
-      return Contact_Object'Class;
-   --  Transforms the low level index based Cursor into potentially several
-   --  Contact_Object records.
 
 end Model.Contacts;

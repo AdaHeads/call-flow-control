@@ -33,6 +33,18 @@ package body Model.Contacts is
 
    package SQL renames SQL_Statements;
 
+   function Contact_Element
+     (C : in out Cursor'Class)
+      return Contact_Object;
+   --  Transforms the low level index based Cursor into ONE Contact_Object
+   --  record.
+
+   function Contact_Elements
+     (C : in out Cursor'Class)
+      return Contact_Object;
+   --  Transforms the low level index based Cursor into potentially several
+   --  Contact_Object records.
+
    procedure Fetch_Contact_Object is new Storage.Process_Query
      (Database_Cursor   => Cursor,
       Element           => Contact_Object,
@@ -88,18 +100,19 @@ package body Model.Contacts is
    -----------------------
 
    function Contact_Element
-     (C : in out Cursor)
-      return Contact_Object'Class
+     (C : in out Cursor'Class)
+      return Contact_Object
    is
       use Common;
 
       CO : Contact_Object;
    begin
-      CO := Contact_Object'
-        (Attr_List => Model.Contact_Attributes.Null_Contact_Attributes_List,
-         C_ID      => Contact_Identifier (C.Integer_Value (0, Default => 0)),
-         Full_Name => U (C.Value (1)),
-         Is_Human  => C.Boolean_Value (2));
+      CO := (Attr_List =>
+               Model.Contact_Attributes.Null_Contact_Attributes_List,
+             C_ID      =>
+               Contact_Identifier (C.Integer_Value (0, Default => 0)),
+             Full_Name => U (C.Value (1)),
+             Is_Human  => C.Boolean_Value (2));
 
       while C.Has_Row loop
          if not C.Is_Null (3) then
@@ -124,19 +137,20 @@ package body Model.Contacts is
    ------------------------
 
    function Contact_Elements
-     (C : in out Cursor)
-      return Contact_Object'Class
+     (C : in out Cursor'Class)
+      return Contact_Object
    is
       use Common;
 
       A_Id : Attributes_Identifier;
       CO   : Contact_Object;
    begin
-      CO := Contact_Object'
-        (Attr_List => Model.Contact_Attributes.Null_Contact_Attributes_List,
-         C_ID      => Contact_Identifier (C.Integer_Value (0, Default => 0)),
-         Full_Name => U (C.Value (1)),
-         Is_Human  => C.Boolean_Value (2));
+      CO := (Attr_List =>
+               Model.Contact_Attributes.Null_Contact_Attributes_List,
+             C_ID      =>
+               Contact_Identifier (C.Integer_Value (0, Default => 0)),
+             Full_Name => U (C.Value (1)),
+             Is_Human  => C.Boolean_Value (2));
 
       if not C.Is_Null (3) then
          A_Id := (Contact_Identifier (C.Integer_Value (4, Default => 0)),
@@ -175,11 +189,11 @@ package body Model.Contacts is
    is
       use Common;
    begin
-      return Contact_Object'
-        (Attr_List => Model.Contact_Attributes.Null_Contact_Attributes_List,
-         C_ID      => C_ID,
-         Full_Name => U (Full_Name),
-         Is_Human  => Is_Human);
+      return (Attr_List =>
+                Model.Contact_Attributes.Null_Contact_Attributes_List,
+              C_ID      => C_ID,
+              Full_Name => U (Full_Name),
+              Is_Human  => Is_Human);
    end Create;
 
    ----------------------
@@ -214,7 +228,7 @@ package body Model.Contacts is
    procedure For_Each
      (C_ID    : in Contact_Identifier;
       Process : not null access
-        procedure (Element : in Contact_Object'Class))
+        procedure (Element : in Contact_Object))
    is
       Parameters : constant SQL_Parameters := (1 => +Integer (C_ID));
    begin
@@ -231,7 +245,7 @@ package body Model.Contacts is
    procedure For_Each
      (O_ID    : in Organization_Identifier;
       Process : not null access
-        procedure (Element : in Contact_Object'Class))
+        procedure (Element : in Contact_Object))
    is
       Parameters : constant SQL_Parameters := (1 => +Integer (O_ID));
    begin
@@ -249,7 +263,7 @@ package body Model.Contacts is
      (C_ID    : in Contact_Identifier;
       O_ID    : in Organization_Identifier;
       Process : not null access
-        procedure (Element : in Contact_Object'Class))
+        procedure (Element : in Contact_Object))
    is
       Parameters : constant SQL_Parameters := (1 => +Integer (C_ID),
                                                2 => +Integer (O_ID));
@@ -291,25 +305,28 @@ package body Model.Contacts is
    --  Get  --
    -----------
 
-   procedure Get
-     (Self : in out Contact_Object;
-      C_ID : in     Contact_Identifier)
+   function Get
+     (ID : in Contact_Identifier)
+      return Contact_Object
    is
       procedure Get_Element
-        (Contact : in Contact_Object'Class);
+        (Contact : in Contact_Object);
+
+      C : Contact_Object := Null_Contact;
 
       -------------------
       --  Get_Element  --
       -------------------
 
       procedure Get_Element
-        (Contact : in Contact_Object'Class)
+        (Contact : in Contact_Object)
       is
       begin
-         Self := Contact_Object (Contact);
+         C := Contact;
       end Get_Element;
    begin
-      For_Each (C_ID, Get_Element'Access);
+      For_Each (ID, Get_Element'Access);
+      return C;
    end Get;
 
    -----------
@@ -321,20 +338,20 @@ package body Model.Contacts is
       O_ID : in     Organization_Identifier)
    is
       procedure Get_Element
-        (Contact : in Contact_Object'Class);
+        (Contact : in Contact_Object);
 
       -------------------
       --  Get_Element  --
       -------------------
 
       procedure Get_Element
-        (Contact : in Contact_Object'Class)
+        (Contact : in Contact_Object)
       is
       begin
          Self.Contacts.Include
            (Key      => Organization_Contact_Identifier'
               (C_ID => Contact.C_ID, O_ID => O_ID),
-            New_Item => Contact_Object (Contact));
+            New_Item => Contact);
       end Get_Element;
    begin
       For_Each (O_ID, Get_Element'Access);
@@ -345,12 +362,11 @@ package body Model.Contacts is
    -----------
 
    function Get
-     (C_ID : in Contact_Identifier;
-      O_ID : in Organization_Identifier)
+     (ID : in Organization_Contact_Identifier)
       return Contact_Object
    is
       procedure Get_Element
-        (Contact : in Contact_Object'Class);
+        (Contact : in Contact_Object);
 
       C : Contact_Object := Null_Contact;
 
@@ -359,13 +375,13 @@ package body Model.Contacts is
       -------------------
 
       procedure Get_Element
-        (Contact : in Contact_Object'Class)
+        (Contact : in Contact_Object)
       is
       begin
-         C := Contact_Object (Contact);
+         C := Contact;
       end Get_Element;
    begin
-      For_Each (C_ID, O_ID, Get_Element'Access);
+      For_Each (ID.C_ID, ID.O_ID, Get_Element'Access);
       return C;
    end Get;
 

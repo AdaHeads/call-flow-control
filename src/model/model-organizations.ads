@@ -24,7 +24,6 @@
 with Ada.Strings.Unbounded;
 with Common;
 with GNATCOLL.JSON;
-with GNATCOLL.SQL.Exec;
 with Model.Contacts;
 with View;
 
@@ -43,14 +42,14 @@ package Model.Organizations is
    procedure For_Each
      (Self    : in Organization_List_Object;
       Process : not null access
-        procedure (Element : in Organization_Object'Class));
+        procedure (Element : in Organization_Object));
    --  For every organization in the database, an Organization_Object is handed
    --  to process. These objects do NOT contain any contacts.
 
    procedure For_Each
      (O_ID    : in Organization_Identifier;
       Process : not null access
-        procedure (Element : in Organization_Object'Class));
+        procedure (Element : in Organization_Object));
    --  For every organization with O_ID in the database, an Organization_Object
    --  is handed to Process. These organization objects do NOT contain any
    --  contacts.
@@ -60,16 +59,16 @@ package Model.Organizations is
       return String;
    --  Return the full name of the Self organization.
 
-   procedure Get
-     (Self : in out Organization_Object;
-      O_ID : in Organization_Identifier);
-   --  Get the organization that match O_ID. This does NOT fetch the contacts
+   function Get
+     (ID : in Organization_Identifier)
+      return Organization_Object;
+   --  Get the organization that match ID. This does NOT fetch the contacts
    --  that belong to the O_ID organization.
 
-   procedure Get_Full
-     (Self : in out Organization_Object;
-      O_ID : in     Organization_Identifier);
-   --  Get the organization that match O_ID. This object contains ALL the
+   function Get_Full
+     (ID : in Organization_Identifier)
+      return Organization_Object;
+   --  Get the organization that match ID. This object contains ALL the
    --  contacts that are associated with the O_ID organization.
 
    function Identifier
@@ -126,8 +125,6 @@ private
 
    use Ada.Strings.Unbounded;
 
-   type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null record;
-
    type Organization_Object is tagged
       record
          C_List     : Contacts.Contact_List_Object;
@@ -145,11 +142,5 @@ private
          O_ID       => 0);
 
    type Organization_List_Object is tagged null record;
-
-   function Organization_Element
-     (C : in out Cursor)
-      return Organization_Object'Class;
-   --  Transforms the low level index based Cursor into the more readable
-   --  Organization_Object record. This one does NOT contain any contacts.
 
 end Model.Organizations;

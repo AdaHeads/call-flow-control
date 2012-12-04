@@ -21,6 +21,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with GNATCOLL.SQL.Exec;
+
 package Model is
 
    type Contact_Identifier is new Natural;
@@ -38,5 +40,9 @@ package Model is
    --  context of the O_ID organization.
    --  The same as Organization_Contact_Identifier, but renamed for clarity in
    --  the code.
+
+private
+
+   type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null record;
 
 end Model;

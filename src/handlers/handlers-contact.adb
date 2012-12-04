@@ -67,7 +67,7 @@ package body Handlers.Contact is
 
       C : Contact_Object;
    begin
-      C.Get (Get_Contact_Id (Response_Object));
+      C := Get (Get_Contact_Id (Response_Object));
 
       if C /= Null_Contact then
          Response_Object.Cacheable (True);

@@ -197,7 +197,7 @@ package body Storage is
    ---------------------
 
    procedure Process_Query
-     (Process_Element    : not null access procedure (E : in Element'Class);
+     (Process_Element    : not null access procedure (E : in Element);
       Prepared_Statement : in GNATCOLL.SQL.Exec.Prepared_Statement;
       Query_Parameters   : in GNATCOLL.SQL.Exec.SQL_Parameters)
    is

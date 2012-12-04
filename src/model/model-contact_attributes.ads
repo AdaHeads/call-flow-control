@@ -24,7 +24,6 @@
 with Ada.Containers.Hashed_Maps;
 with Common;
 with GNATCOLL.JSON;
-with GNATCOLL.SQL.Exec;
 
 package Model.Contact_Attributes is
 
@@ -56,20 +55,20 @@ package Model.Contact_Attributes is
    procedure For_Each
      (C_ID    : in Contact_Identifier;
       Process : not null access
-        procedure (Element : in Contact_Attributes_Object'Class));
+        procedure (Element : in Contact_Attributes_Object));
    --  For every contact_attributes row with C_ID in the database, a
    --  Contact_Attributes_Object is handed to Process.
 
    procedure For_Each
      (ID      : in Attributes_Identifier;
       Process : not null access
-        procedure (Element : in Contact_Attributes_Object'Class));
+        procedure (Element : in Contact_Attributes_Object));
    --  For every contact_attributes row with ID in the database, a
    --  Contact_Attributes_Object is handed to Process.
 
-   procedure Get
-     (Self : in out Contact_Attributes_OBject;
-      ID   : in     Attributes_Identifier);
+   function Get
+     (ID : in Attributes_Identifier)
+      return Contact_Attributes_Object;
    --  Get the contact attribute set that belongs to ID.
 
    function Contact_ID
@@ -94,8 +93,6 @@ package Model.Contact_Attributes is
    --  View.Contact_Attributes.To_JSON function.
 
 private
-
-   type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null record;
 
    function Equal_Elements
      (Left, Right : in Contact_Attributes_Object)
@@ -135,11 +132,5 @@ private
 
    Null_Contact_Attributes_List : constant Contact_Attributes_List_Object
      := (A_Map => Attributes_Map.Empty_Map);
-
-   function Contact_Attributes_Element
-     (C : in out Cursor)
-      return Contact_Attributes_Object'Class;
-   --  Transforms the low level index based Cursor into the more readable
-   --  Contact_Attributes_Object record.
 
 end Model.Contact_Attributes;

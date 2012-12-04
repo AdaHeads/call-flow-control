@@ -140,7 +140,7 @@ package body View.Organization is
       return JSON_Value
    is
       procedure Process
-        (O : in Organization_Object'Class);
+        (O : in Organization_Object);
       --  Add each Organization_Object to O_Array.
 
       O_Array : JSON_Array;
@@ -151,10 +151,10 @@ package body View.Organization is
       ---------------
 
       procedure Process
-        (O : in Organization_Object'Class)
+        (O : in Organization_Object)
       is
       begin
-         Append (O_Array, To_JSON (Organization_Object (O), View));
+         Append (O_Array, To_JSON (O, View));
       end Process;
    begin
       O.For_Each (Process'Access);

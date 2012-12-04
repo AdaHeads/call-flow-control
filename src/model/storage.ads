@@ -36,11 +36,11 @@ package Storage is
       type Element (<>) is tagged private;
 
       with function Cursor_To_Element
-        (C : in out Database_Cursor)
-        return Element'Class;
+        (C : in out Database_Cursor'Class)
+        return Element;
 
    procedure Process_Query
-     (Process_Element    : not null access procedure (E : in Element'Class);
+     (Process_Element    : not null access procedure (E : in Element);
       Prepared_Statement : in GNATCOLL.SQL.Exec.Prepared_Statement;
       Query_Parameters   : in GNATCOLL.SQL.Exec.SQL_Parameters);
 

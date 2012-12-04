@@ -33,6 +33,12 @@ package body Model.Contact_Attributes is
 
    package SQL renames SQL_Statements;
 
+   function Contact_Attributes_Element
+     (C : in out Cursor'Class)
+      return Contact_Attributes_Object;
+   --  Transforms the low level index based Cursor into the more readable
+   --  Contact_Attributes_Object record.
+
    procedure Fetch_Contact_Attributes_Object is new Storage.Process_Query
      (Database_Cursor   => Cursor,
       Element           => Contact_Attributes_Object,
@@ -56,15 +62,16 @@ package body Model.Contact_Attributes is
    ----------------------------------
 
    function Contact_Attributes_Element
-     (C : in out Cursor)
-      return Contact_Attributes_Object'Class
+     (C : in out Cursor'Class)
+      return Contact_Attributes_Object
    is
    begin
-      return Contact_Attributes_Object'
+      return
         (ID   => Attributes_Identifier'
-           (C_ID => Contact_Identifier (C.Integer_Value (0, Default => 0)),
-            O_ID => Organization_Identifier
-              (C.Integer_Value (1, Default => 0))),
+           (C_ID =>
+              Contact_Identifier (C.Integer_Value (0, Default => 0)),
+            O_ID =>
+              Organization_Identifier (C.Integer_Value (1, Default => 0))),
          JSON => C.Json_Object_Value (2));
    end Contact_Attributes_Element;
 
@@ -90,9 +97,8 @@ package body Model.Contact_Attributes is
       return Contact_Attributes_Object
    is
    begin
-      return Contact_Attributes_Object'
-        (Attributes_Identifier'(C_ID => ID.C_ID, O_ID => ID.O_ID),
-         JSON => JSON);
+      return (Attributes_Identifier'(C_ID => ID.C_ID, O_ID => ID.O_ID),
+              JSON => JSON);
    end Create;
 
    ----------------------
@@ -141,7 +147,7 @@ package body Model.Contact_Attributes is
    procedure For_Each
      (C_ID    : in Contact_Identifier;
       Process : not null access
-        procedure (Element : in Contact_Attributes_Object'Class))
+        procedure (Element : in Contact_Attributes_Object))
    is
       Parameters : constant SQL_Parameters := (1 => +Integer (C_ID));
    begin
@@ -158,7 +164,7 @@ package body Model.Contact_Attributes is
    procedure For_Each
      (ID      : in Attributes_Identifier;
       Process : not null access
-        procedure (Element : in Contact_Attributes_Object'Class))
+        procedure (Element : in Contact_Attributes_Object))
    is
       Parameters : constant SQL_Parameters := (1 => +Integer (ID.C_ID),
                                                2 => +Integer (ID.O_ID));
@@ -173,25 +179,28 @@ package body Model.Contact_Attributes is
    --  Get  --
    -----------
 
-   procedure Get
-     (Self : in out Contact_Attributes_Object;
-      ID   : in     Attributes_Identifier)
+   function Get
+     (ID : in Attributes_Identifier)
+      return Contact_Attributes_Object
    is
       procedure Get_Element
-        (Contact_Attributes : in Contact_Attributes_Object'Class);
+        (Contact_Attributes : in Contact_Attributes_Object);
+
+      CA : Contact_Attributes_Object;
 
       -------------------
       --  Get_Element  --
       -------------------
 
       procedure Get_Element
-        (Contact_Attributes : in Contact_Attributes_Object'Class)
+        (Contact_Attributes : in Contact_Attributes_Object)
       is
       begin
-         Self := Contact_Attributes_Object (Contact_Attributes);
+         CA := Contact_Attributes;
       end Get_Element;
    begin
       For_Each (ID, Get_Element'Access);
+      return CA;
    end Get;
 
    ------------
