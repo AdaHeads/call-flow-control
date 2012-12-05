@@ -36,7 +36,10 @@ package Model.Peers is
    use Model.Peer_ID;
    use Common;
 
-   PEER_NOT_FOUND : exception;
+   Peer_Not_Found : exception;
+   --  When a peer is not found in the list, something is terribly wrong.
+   --  It means we have an inconsistant state between Agent and Peer, and
+   --  thus, we raise an exception.
 
    type SIP_Peer_Status_Type is (Unknown, Unregistered, Idle, Busy, Paused);
 
@@ -48,9 +51,10 @@ package Model.Peers is
          Last_State   : SIP_Peer_Status_Type := Unknown;
          Port         : Unbounded_String;
          Address      : Unbounded_String;
-         Paused       : Boolean := False;
          Last_Seen    : Time;
       end record;
+
+   function Available (Peer : in Peer_Type) return Boolean;
 
    function To_JSON (Peer : in Peers.Peer_Type)
                      return GNATCOLL.JSON.JSON_Value;
@@ -107,6 +111,5 @@ private
       Last_State   => Unknown,
       Port         => Null_Unbounded_String,
       Address      => Null_Unbounded_String,
-      Paused       => False,
       Last_Seen    => Current_Time);
 end Model.Peers;

@@ -22,9 +22,22 @@ package body PBX is
    task type Reader_Task is
       entry Start;
    end Reader_Task;
+   --  Continous reader loop that is reponsible for reading and dispatching
+   --  packets. Does not die unless the stop primitive is called.
+
+   procedure Authenticate;
+   --  Wraps the entire authentication mechanism and provides a neat callback
+   --  for the On_Connect event in the AMI.Client.
+
+   procedure Dispatch (Client : access AMI.Client.Client_Type;
+                       Packet : in     AMI.Parser.Packet_Type);
+   --  Dispatches to the appropriate handlers (response or event)
+
+   procedure Connect;
+   --  Wraps the connection and wait mechanism and provides a neat callback
+   --  for the On_Disconnect event in the AMI.Client.
 
    Reader    : Reader_Task;
-
    Callbacks : constant AMI.Event.Event_Callback_Table :=
                  (CoreShowChannel
                   => My_Callbacks.Core_Show_Channel'Access,
@@ -38,25 +51,16 @@ package body PBX is
                   Newstate           => My_Callbacks.New_State'Access,
                   Dial               => My_Callbacks.Dial'Access,
                   QueueCallerAbandon => My_Callbacks.Queue_Abandon'Access,
-                  others             => AMI.Event.Null_Callback'Access);
-
-   procedure Authenticate;
-   procedure Dispatch (Client : access AMI.Client.Client_Type;
-                       Packet : in     AMI.Parser.Packet_Type);
-   procedure Parser_Loop;
-   procedure Connect;
-
-   --  package My_Connection_Manager is new Connection_Management
-   --    (Client   => Client_Access,
-   --     Hostname => Config.Get (PBX_Host),
-   --     Port     => Config.Get (PBX_Port));
+                  others             => My_Callbacks.Default_Callback'Access);
+   --  Event dispatch table.
 
    procedure Authenticate is
    begin
       Login (Client   => Client_Access,
              Username => Config.Get (PBX_User),
              Secret   => Config.Get (PBX_Secret));
-      --  TODO: Replace this with a real wait for reply
+      --  TODO: Replace this with a real wait for reply, and turn the
+      --  Action into a synchronous call
       delay 0.2;
          AMI.Action.Core_Show_Channels (Client => Client_Access);
    end Authenticate;
@@ -105,24 +109,28 @@ package body PBX is
               "");
    end Dispatch;
 
-   procedure Parser_Loop is
-   begin
-      loop
-         exit when PBX_Status = Shutdown;
-         Client.Wait_For_Connection;
-         Dispatch (Client_Access, Read_Packet (Client_Access));
-      end loop;
-   exception
-      when E : others =>
-         if PBX_Status /= Shutdown then
-            System_Messages.Notify
-              (Error, "PBX.Reader_Loop: Socket disconnected! ");
-            System_Messages.Notify
-              (Error, Ada.Exceptions.Exception_Information (E));
-         end if;
-   end Parser_Loop;
-
    task body Reader_Task is
+      procedure Parser_Loop;
+      --  Wraps the continous Read_Packet, Dispatch calls and catches
+      --  exceptions.
+
+      procedure Parser_Loop is
+      begin
+         loop
+            exit when PBX_Status = Shutdown;
+            Client.Wait_For_Connection;
+            Dispatch (Client_Access, Read_Packet (Client_Access));
+         end loop;
+      exception
+         when E : others =>
+            if PBX_Status /= Shutdown then
+               System_Messages.Notify
+                 (Error, "PBX.Reader_Loop: Socket disconnected! ");
+               System_Messages.Notify
+                 (Error, Ada.Exceptions.Exception_Information (E));
+            end if;
+      end Parser_Loop;
+
    begin
       accept Start;
       loop
@@ -143,7 +151,7 @@ package body PBX is
    begin
       Client := AMI.Client.Create (On_Connect    => Authenticate'Access,
                                    On_Disconnect => Connect'Access);
-      Connect;
+      Connect; --  Initial connect.
       Reader.Start;
    end Start;
 

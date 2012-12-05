@@ -26,6 +26,12 @@ with Ada.Calendar.Formatting;
 
 package body Model.Peers is
 
+   --  TODO: Add a time limit for when we timeout a peer
+   function Available (Peer : in Peer_Type) return Boolean is
+   begin
+      return Peer /= Null_Peer and Peer.State not in Unknown .. Unregistered;
+   end Available;
+
    function Hash (Peer_ID : in Peer_ID_Type) return Hash_Type is
    begin
       return Ada.Strings.Hash (Peer_ID.To_String);
@@ -45,7 +51,6 @@ package body Model.Peers is
       Peer_JSON.Set_Field ("Last_State", To_Lower (Peer.Last_State'Img));
       Peer_JSON.Set_Field ("Port", To_String (Peer.Port));
       Peer_JSON.Set_Field ("Address", To_String (Peer.Address));
-      Peer_JSON.Set_Field ("Paused", Peer.Paused);
       Peer_JSON.Set_Field ("Last_Seen",
                            Ada.Calendar.Formatting.Image (Peer.Last_Seen));
       JSON.Set_Field ("peer", Peer_JSON);

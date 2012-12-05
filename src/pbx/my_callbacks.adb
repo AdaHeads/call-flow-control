@@ -126,22 +126,63 @@ package body My_Callbacks is
       end if;
    end Core_Show_Channels_Complete;
 
+   procedure Default_Callback (Packet : in Packet_Type) is
+      --  Context : constant String := "Default_Callback";
+   begin
+      null;
+      --  System_Messages.Notify (Debug, Package_Name & "." & Context & ": " &
+      --                          To_String (Packet.Header.Value));
+   end Default_Callback;
+
    --  Event: Dial
    --  Privilege: call,all
    --  SubEvent: Begin
-   --  Channel: SIP/softphone2-0000000a
-   --  Destination: SIP/softphone1-0000000b
-   --  CallerIDNum: softphone2
+   --  Channel: SIP/softphone1-00000064
+   --  Destination: SIP/DesireZ-00000065
+   --  CallerIDNum: <unknown>
    --  CallerIDName: <unknown>
-   --  UniqueID: 1340097427.10
-   --  DestUniqueID: 1340097427.11
-   --  Dialstring: softphone1
+   --  UniqueID: 1354524869.100
+   --  DestUniqueID: 1354524871.101
+   --  Dialstring: DesireZ
+   ---    OR
+   --  Event: Dial
+   --  Privilege: call,all
+   --  SubEvent: End
+   --  Channel: SIP/softphone1-00000064
+   --  UniqueID: 1354524869.100
+   --  DialStatus: ANSWER
    procedure Dial (Packet : in Packet_Type) is
-      --  use Ada.Strings.Unbonded;
-   --  Temp_Value : Unbounded_String;
-   pragma Unreferenced (Packet);
+      Context : constant String := "Dial";
+      Call    : Call_Type       := Null_Call;
    begin
-      System_Messages.Notify (Debug, "Dial not implemented");
+      --  There is a sequence to a Dial event represented by a SubEvent.
+      --  It consists of "Begin" or "End"
+      if To_String (Packet.Fields.Element (SubEvent)) = "Begin" then
+         System_Messages.Notify (Debug, Package_Name & "." & Context & ": " &
+                                   "Dial Begin");
+         Call.ID := Model.Call_ID.Create
+           (To_String (Packet.Fields.Element (Uniqueid)));
+         Call.Channel_ID := Model.Channel_ID.Create
+           (To_String (Packet.Fields.Element (Channel)));
+         Call.Inbound := False; --  A dial event implies outbound.
+         Call.Arrived := Current_Time;
+
+         Model.Calls.List.Insert (Call => Call);
+
+      --  When a Dial event ends, the call is over, and must thus be removed
+      --  From the call list.
+      elsif To_String (Packet.Fields.Element (SubEvent)) = "End" then
+         System_Messages.Notify (Debug, Package_Name & "." & Context & ": " &
+                                   "Dial End");
+         Call.ID := Model.Call_ID.Create
+           (To_String (Packet.Fields.Element (Uniqueid)));
+         Model.Calls.List.Remove (Call_ID => Call.ID);
+      else
+         System_Messages.Notify
+           (Error, Package_Name & "." & Context & ": " &
+              "unknown SubEvent: " &
+              To_String (Packet.Fields.Element (SubEvent)));
+      end if;
    end Dial;
 
    --  Clear out channels
@@ -173,6 +214,7 @@ package body My_Callbacks is
       Temp_Value : Unbounded_String;
    begin
       Call.ID := Create (To_String (Packet.Fields.Element (Uniqueid)));
+      Call.Inbound := True;  --  Join implies an inbound call.
 
       --  See if the call already exists
       if Model.Calls.List.Contains (Call_ID => Call.ID) then
@@ -189,7 +231,7 @@ package body My_Callbacks is
       System_Messages.Notify
         (Debug, "My_Callbacks.Join: Inserting call: " & Call.To_String);
 
-      Model.Calls.Insert (Call);
+      Model.Calls.List.Insert (Call);
 
       Notifications.Broadcast (JSON.Event.New_Call_JSON_String (Call));
    exception
@@ -352,7 +394,7 @@ package body My_Callbacks is
       end if;
 
       --  Set the agent field
-      Peer.Agent_ID := Model.Agents.Lookup (Peer_ID => Peer.ID).ID;
+      Model.Agents.Lookup (Peer_ID => Peer.ID).Assign (Peer => Peer);
 
       --  Update fields
       Peer.Last_Seen := Current_Time;

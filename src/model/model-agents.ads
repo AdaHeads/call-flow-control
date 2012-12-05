@@ -8,6 +8,8 @@ package Model.Agents is
    use Model.Peer_ID;
 
    function Get (Agent_ID : in Agent_ID_Type) return Agent_Type;
+   --  Returns the agent with the given ID
+
    function Lookup (Peer_ID : Peer_ID_Type) return Agent_Type;
 
 end Model.Agents;

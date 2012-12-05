@@ -59,7 +59,7 @@ package body AMI.Action is
                      Call_ID  : in     Call_ID_Type;
                      Callback : in     AMI.Callback.Callback_Type
                        := AMI.Callback.Null_Callback'Access) is
-      Call      : constant Call_Type := Model.Calls.Get (Call_ID);
+      Call      : constant Call_Type := Model.Calls.List.Get (Call_ID);
       Action_ID : constant Action_ID_Type :=
                     Protocol_Strings.Next_Action_ID;
    begin
@@ -109,9 +109,9 @@ package body AMI.Action is
                     Action_ID => Action_ID));
    end Originate;
 
-   procedure Park (Client   : access Client_Type;
-                   Call     : in     Call_Type;
-                   Callback : in AMI.Callback.Callback_Type :=
+   procedure Park (Client     : access Client_Type;
+                   Channel_ID : in     Channel_ID_Type;
+                   Callback   : in AMI.Callback.Callback_Type :=
                      AMI.Callback.Login_Callback'Access) is
       Action_ID : constant Action_ID_Type :=
                     Protocol_Strings.Next_Action_ID;
@@ -162,7 +162,7 @@ package body AMI.Action is
       --  Move the call back to the queue
 
       Client.Send (Item   => Protocol_Strings.Park
-                   (Channel          => Call.Channel_ID.To_String,
+                   (Channel          => Channel_ID.To_String,
                     Fallback_Channel => "",
                     Action_ID        => Action_ID));
    end Park;

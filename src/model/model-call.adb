@@ -21,11 +21,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with View.Call;
+
 package body Model.Call is
 
-   -- -------------------- --
+   --------------------------
    -- Overloaded operators --
-   -- -------------------- --
+   --------------------------
 
    function "=" (Left  : in Call_Type;
                  Right : in Call_Type) return Boolean is
@@ -34,32 +36,19 @@ package body Model.Call is
                 (Left.ID.Sequence = Right.ID.Sequence);
    end  "=";
 
-   -- -------------------- --
-   -- Conversion Utilities --
-   -- -------------------- --
+   -------------
+   -- To_JSON --
+   -------------
 
    function To_JSON (Call : in Call_Type) return JSON_Value is
-      Root : constant JSON_Value := Create_Object;
-      Value : constant JSON_Value := Create_Object;
-      Org_ID : Ada.Strings.Unbounded.Unbounded_String;
-      Org_Prefix : constant String := "org_id";
    begin
-      if Call /= Null_Call then
-         Org_ID := Ada.Strings.Unbounded.Tail
-           (Call.Queue,
-            Ada.Strings.Unbounded.Length (Call.Queue) - Org_Prefix'Length);
-
-         Value.Set_Field ("channel", Call.Channel_ID.To_String);
-         --  Value.Set_Field ("caller_id", Call.);
-         Value.Set_Field ("org_id", Org_ID);
-         Value.Set_Field ("call_id",  To_String (Call.ID));
-         Value.Set_Field ("arrival_time", Unix_Timestamp (Call.Arrived));
-         Root.Set_Field ("call", Value);
-      end if;
-      return Root;
+      return View.Call.To_JSON (Call);
    end To_JSON;
 
-   --  Returns a call in String format.
+   -------------
+   -- To_JSON --
+   -------------
+
    function To_String (Call : in Call_Type) return String is
       Response : Unbounded_String;
    begin

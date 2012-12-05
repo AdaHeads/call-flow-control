@@ -31,49 +31,60 @@ package Model.Calls is
    use Model.Call_ID;
    use Model.Call;
 
-   CALL_NOT_FOUND  : exception;
-   DUPLICATE_ID    : exception;
-
-   procedure Insert (Call : in Call_Type);
-   --  Places a call in the call_List.
-
-   procedure Remove (Call_ID : in Call_ID_Type);
-   --  Removes a specific call from the call queue.
-
-   procedure Update (Call : in Call_Type);
-   --  Updates a Call in the list, with the information from the Call Argument
-
-   function Length return Long_Integer;
-   --  Gives the length of the call queue.
-
-   function Get (Call_ID : in Call_ID_Type) return Call_Type;
-   --  Returns the call with the specified Call_ID.
-
-   function Dequeue (Call_ID : in Call_ID_Type) return Call_Type;
-   --  Removes the call with the specified Call_ID and returns it.
+   Call_Not_Found  : exception;
+   Duplicate_ID    : exception;
+   Null_Exception  : exception;
 
    type Call_Process_Type is not null access procedure (Call : in Call_Type);
 
-   package Call_List_Type is new
+   package Call_Storage is new
      Ada.Containers.Ordered_Maps (Key_Type   => Call_ID_Type,
                                   Element_Type => Call_Type);
 
    protected type Protected_Call_List_Type is
       function Contains (Call_ID : in Call_ID_Type) return Boolean;
+      --  Detemine if a call is already represented in the call queue.
+
+      procedure Dequeue
+        (Call_ID : in     Call_ID_Type := Null_Call_ID;
+         Call    : in out Call_Type);
+      --  Removes the call with the specified Call_ID and returns it in Call
+      --  If no Call_ID (or a Null_Call_ID) is supplied, the call will
+      --  Dequeue the first element from the list.
+
+      function Get (Call_ID : in Call_ID_Type) return Call_Type;
+      --  Returns the call with the specified Call_ID, or Null_Call if the
+      --  Call_ID is not present.
+
       procedure Insert (Call : in Call_Type);
+      --  Places a call in the call_List or raises Duplicate_ID if the call is
+      --  already in the queue.
+
+      procedure Put (Call : in Call_Type);
+      --  Inserts or updates a call regardless of whether the call exists in
+      --  the list or not.
+
       procedure Remove (Call_ID : in Call_ID_Type);
-      function Get (Call_ID : Call_ID_Type) return Call_Type;
-      function Length return Long_Integer;
+      --  Removes a specific call from the call queue.
+
+      function Length return Natural;
+      --  Returns the length of the queue.
+
       function To_JSON return JSON_Value;
+      --  Convert the entire queue to a JSON array
+
       function To_String return String;
+      --  Debug-friendly represenation of the list.
+
       procedure For_Each (Process : in Call_Process_Type);
+      --  Primitive iterator.
+
       procedure Update (Call : in Call_Type);
       --  Replaces the call at the ID location with the call supplied.
-      --  Raises CALL_NOT_FOUND if there is no call to replace.
+      --  Raises Call_Not_Found if there is no call to replace.
 
-      function Next return Call_Type;
    private
-      List : Call_List_Type.Map;
+      Protected_List : Call_Storage.Map;
    end Protected_Call_List_Type;
 
    List : Protected_Call_List_Type;

@@ -12,6 +12,8 @@ package My_Callbacks is
    procedure Peer_Status (Packet : in Packet_Type);
    procedure Core_Show_Channel (Packet : in Packet_Type);
    procedure Core_Show_Channels_Complete (Packet : in Packet_Type);
+   procedure Default_Callback (Packet : in Packet_Type);
+
    procedure Dial        (Packet : in Packet_Type);
    procedure Hangup      (Packet : in Packet_Type);
    procedure Join        (Packet : in Packet_Type);

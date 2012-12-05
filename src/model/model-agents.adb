@@ -9,7 +9,7 @@ package body Model.Agents is
          return Agent.Create
            (ID        => Model.Agent_ID.Create ("1"),
             Peer_ID   => Model.Peer_ID.Create ("SIP/softphone1"),
-            Extension => To_Unbounded_String ("101"));
+            Extension => "101");
       else
          return Null_Agent;
       end if;
@@ -25,7 +25,7 @@ package body Model.Agents is
          return Agent.Create
            (ID        => Agent_ID.Create ("2"),
             Peer_ID   => Peer_ID,
-            Extension => To_Unbounded_String ("102"));
+            Extension => "102");
       end if;
       return Null_Agent;
    end Lookup;

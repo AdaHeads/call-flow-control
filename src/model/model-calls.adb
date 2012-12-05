@@ -31,23 +31,46 @@ package body Model.Calls is
    protected body Protected_Call_List_Type is
       function Contains (Call_ID : in Call_ID_Type) return Boolean is
       begin
-         return List.Contains (Call_ID);
+         return Protected_List.Contains (Call_ID);
       end Contains;
+
+      -------------
+      -- Dequeue --
+      -------------
+
+      procedure Dequeue
+        (Call_ID : in     Call_ID_Type := Null_Call_ID;
+         Call    : in out Call_Type) is
+      begin
+         Call := Null_Call;
+
+         --  If no call ID is supplied we, by default, pick up the
+         --  first element
+         if Call_ID = Null_Call_ID then
+            if not Protected_List.Is_Empty then
+               Call := Protected_List.First_Element;
+            end if;
+         else
+            if Protected_List.Contains (Key => Call_ID) then
+               Call := Protected_List.Element (Call_ID);
+            end if;
+         end if;
+      end Dequeue;
 
       --  Process the entire queue.
       procedure For_Each (Process : in Call_Process_Type) is
       begin
-         for I of List loop
+         for I of Protected_List loop
             Process (I);
          end loop;
       end For_Each;
 
       function Get (Call_ID : in Call_ID_Type) return Call_Type is
          Call : constant Call_Type :=
-           List.Element (Key => Call_ID);
+           Protected_List.Element (Key => Call_ID);
       begin
          if Call = Null_Call then
-            raise CALL_NOT_FOUND;
+            raise Call_Not_Found;
          end if;
 
          return Call;
@@ -56,35 +79,35 @@ package body Model.Calls is
       --  Places the call, in the queue.
       procedure Insert (Call : in Call_Type) is
       begin
-         List.Insert
+         Protected_List.Insert
            (Key       => Call.ID,
             New_Item  => Call);
 
       exception
          when Constraint_Error =>
-            if List.Element (Key => Call.ID).ID = Call.ID then
-               raise DUPLICATE_ID with "key " & To_String (Call.ID) &
+            if Protected_List.Element (Key => Call.ID).ID = Call.ID then
+               raise Duplicate_ID with "key " & To_String (Call.ID) &
                  " already in map.";
             end if;
             raise;
       end Insert;
 
       --  Returns the total number of calls.
-      function Length return Long_Integer is
+      function Length return Natural is
          use Ada.Containers;
       begin
-         return Long_Integer (List.Length);
+         return Natural (Protected_List.Length);
       end Length;
 
-      function Next return Call_Type is
+      procedure Put (Call : in Call_Type) is
       begin
-         return List.First_Element;
-      end Next;
+         raise Program_Error;
+      end Put;
 
       --  Removes the call with the specified UniqueID
       procedure Remove (Call_ID : Call_ID_Type) is
       begin
-         List.Delete (Call_ID);
+         Protected_List.Delete (Call_ID);
       end Remove;
 
       function To_JSON return JSON_Value is
@@ -92,7 +115,7 @@ package body Model.Calls is
          JSON_List : JSON_Array;
          Root      : constant JSON_Value := Create_Object;
       begin
-         for Call of List loop
+         for Call of Protected_List loop
             if Call /= Null_Call then
                Value := Call.To_JSON;
                Append (JSON_List, Value);
@@ -106,64 +129,20 @@ package body Model.Calls is
          use Ada.Strings.Unbounded;
          Item : Unbounded_String;
       begin
-         for Call of List loop
-            Append (Item, To_String (Call));
+         for Call of Protected_List loop
+            Append (Item, Call.To_String);
          end loop;
          return To_String (Item);
       end To_String;
 
       procedure Update (Call : in Call_Type) is
       begin
-         if List.Contains (Call.ID) then
-            List.Replace (Key      => Call.ID,
+         if Protected_List.Contains (Call.ID) then
+            Protected_List.Replace (Key      => Call.ID,
                           New_Item => Call);
          else
-            raise CALL_NOT_FOUND;
+            raise Call_Not_Found;
          end if;
       end Update;
    end Protected_Call_List_Type;
-
-   -- -------- --
-   -- Wrappers --
-   -- -------- --
-
-   function Dequeue (Call_ID : in Call_ID_Type) return Call_Type is
-      Call : constant Call_Type := List.Get (Call_ID);
-   begin
-      if Call = Null_Call then
-         raise CALL_NOT_FOUND;
-      else
-         List.Remove (Call_ID);
-      end if;
-
-      return Call;
-   end Dequeue;
-
-   function Get (Call_ID : in Call_ID_Type) return Call_Type is
-   begin
-      return List.Get (Call_ID);
-   end Get;
-
-   --  Places a call on the call queue.
-   procedure Insert (Call : in Call_Type) is
-   begin
-      List.Insert (Call);
-   end Insert;
-
-   --  Gives the length of the call queue.
-   function Length return Long_Integer is
-   begin
-      return List.Length;
-   end Length;
-   --  Removes a specific call from the call queue.
-   procedure Remove (Call_ID : Call_ID_Type) is
-   begin
-      List.Remove (Call_ID);
-   end Remove;
-
-   procedure Update (Call : in Call_Type) is
-   begin
-      List.Update (Call);
-   end Update;
-
 end Model.Calls;

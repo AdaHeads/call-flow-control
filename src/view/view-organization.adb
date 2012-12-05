@@ -68,6 +68,7 @@ package body View.Organization is
      (O : in Organization_Object)
       return JSON_Value
    is
+
       C_Array : JSON_Array;
       J       : JSON_Value := JSON_Null;
    begin
@@ -86,7 +87,7 @@ package body View.Organization is
 
          C_Array := View.Contact.To_JSON (O.Contact_List);
 
-         if Length (C_Array) > 0 then
+         if GNATCOLL.JSON.Length (C_Array) > 0 then
             J.Set_Field (Contacts, C_Array);
          end if;
       end if;
@@ -159,7 +160,7 @@ package body View.Organization is
    begin
       O.For_Each (Process'Access);
 
-      if Length (O_Array) > 0 then
+      if GNATCOLL.JSON.Length (O_Array) > 0 then
          J := Create_Object;
          J.Set_Field (Organization_List, O_Array);
       end if;

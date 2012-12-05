@@ -32,6 +32,20 @@ with Model.Channel_ID;
 with Model.Peer_ID;
 
 package AMI.Action is
+
+   type Request_Type is (Login, Logoff, Ping);
+   Max_Number_Of_Fields : constant Natural := 64;
+
+   type Response_Handler_Type is not null access procedure;
+   type Request_Field_List is array
+     (1 .. Max_Number_Of_Fields) of access String;
+
+   type Action_Request is abstract tagged record
+      Request : Request_Type;
+
+      Response_Handler : Response_Handler_Type;
+   end record;
+
    use Ada.Strings.Unbounded;
    use AMI.Client;
    use AMI.Callback;
@@ -102,9 +116,9 @@ package AMI.Action is
                         := AMI.Callback.Null_Callback'Access);
    --  Originate Call (Priv: originate,all)
 
-   procedure Park (Client   : access Client_Type;
-                   Call     : in     Call_Type;
-                   Callback : in AMI.Callback.Callback_Type :=
+   procedure Park (Client     : access Client_Type;
+                   Channel_ID : in     Channel_ID_Type;
+                   Callback   : in AMI.Callback.Callback_Type :=
                      AMI.Callback.Null_Callback'Access);
    --  Park a channel (Priv: call,all).
 

@@ -26,6 +26,8 @@ with AWS.Status;
 
 package Handlers.Call is
 
+   Package_Name : constant String := "Handlers.Call";
+
    function Originate
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
@@ -39,6 +41,9 @@ package Handlers.Call is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
    --  Put current call on hold.
+
+   function Park (Request : in AWS.Status.Data)
+                  return AWS.Response.Data;
 
    function Pickup
      (Request : in AWS.Status.Data)

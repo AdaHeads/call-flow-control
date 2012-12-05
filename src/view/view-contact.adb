@@ -64,6 +64,7 @@ package body View.Contact is
      (O : in Contact_Object)
       return JSON_Value
    is
+      use GNATCOLL;
       Attr_Array : JSON_Array;
       J          : JSON_Value := JSON_Null;
    begin
@@ -78,7 +79,7 @@ package body View.Contact is
 
          Attr_Array := View.Contact_Attributes.To_JSON (O.Attributes);
 
-         if Length (Attr_Array) > 0 then
+         if JSON.Length (Attr_Array) > 0 then
             J.Set_Field (Attributes, Attr_Array);
          end if;
       end if;
