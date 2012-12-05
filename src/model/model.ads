@@ -23,20 +23,20 @@
 
 package Model is
 
-   type Contact_Identifier is mod 2 ** 31 - 1;
-   type Organization_Identifier is mod 2 ** 31 - 1;
+   type Contact_Identifier is new Natural;
+   type Organization_Identifier is new Natural;
 
    type Organization_Contact_Identifier is
       record
-         C_Id : Contact_Identifier;
-         O_Id : Organization_Identifier;
+         C_ID : Contact_Identifier;
+         O_ID : Organization_Identifier;
       end record;
-   --  Identifies the C_Id contact in the context of the O_Id organization.
+   --  Identifies the C_ID contact in the context of the O_ID organization.
 
    type Attributes_Identifier is new Organization_Contact_Identifier;
-   --  Identifies a set of contact attributes for the C_Id contact in the
-   --  context of the O_Id organization.
-   --  The same as Organization_Contact_Identifier, but with rename for clarity
-   --  in the code.
+   --  Identifies a set of contact attributes for the C_ID contact in the
+   --  context of the O_ID organization.
+   --  The same as Organization_Contact_Identifier, but renamed for clarity in
+   --  the code.
 
 end Model;

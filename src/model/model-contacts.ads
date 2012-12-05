@@ -38,12 +38,12 @@ package Model.Contacts is
    procedure Add_Contact
      (Self    : in out Contact_List_Object;
       Contact : in     Contact_Object'Class;
-      O_Id    : in     Organization_Identifier);
+      O_ID    : in     Organization_Identifier);
    --  Add Contact to the Self Contact_List_Object.
 
    procedure Add_Attribute
-     (Self       : in out Contact_Object;
-      Attribute  : in     Model.Contact_Attributes.Contact_Attributes_Object);
+     (Self      : in out Contact_Object;
+      Attribute : in     Model.Contact_Attributes.Contact_Attributes_Object);
    --  Add Attribute to the Self Contact_Object.
 
    function Attributes
@@ -51,13 +51,13 @@ package Model.Contacts is
       return Model.Contact_Attributes.Contact_Attributes_List_Object;
    --  Return the Contact_Attributes_Object's associated with Self.
 
-   function Contact_Id
+   function Contact_ID
      (Self : in Contact_Object)
       return Contact_Identifier;
-   --  Return the id of the Contact.
+   --  Return the ID of the Contact.
 
    function Create
-     (C_Id      : in Contact_Identifier;
+     (C_ID      : in Contact_Identifier;
       Full_Name : in String;
       Is_Human  : in Boolean)
       return Contact_Object;
@@ -70,43 +70,43 @@ package Model.Contacts is
 
    procedure Get
      (Self : in out Contact_Object;
-      C_Id : in     Contact_Identifier);
-   --  Get the contact that match C_Id, complete with all the attributes that
+      C_ID : in     Contact_Identifier);
+   --  Get the contact that match C_ID, complete with all the attributes that
    --  may be associated with the contact.
 
    procedure Get
      (Self : in out Contact_List_Object;
-      O_Id : in     Organization_Identifier);
-   --  Get a list of contacts that belong to the O_Id organization.
+      O_ID : in     Organization_Identifier);
+   --  Get a list of contacts that belong to the O_ID organization.
 
    function Get
-     (C_Id : in Contact_Identifier;
-      O_Id : in Organization_Identifier)
+     (C_ID : in Contact_Identifier;
+      O_ID : in Organization_Identifier)
       return Contact_Object;
-   --  Return the contact that match C_Id, complete with all the attributes
+   --  Return the contact that match C_ID, complete with all the attributes
    --  that may be associated with the contact.
 
    procedure For_Each
-     (C_Id    : in Contact_Identifier;
+     (C_ID    : in Contact_Identifier;
       Process : not null access
         procedure (Element : in Contact_Object'Class));
-   --  For every contact with C_Id in the database, a Contact_Object is handed
+   --  For every contact with C_ID in the database, a Contact_Object is handed
    --  to Process.
 
    procedure For_Each
-     (O_Id    : in Organization_Identifier;
+     (O_ID    : in Organization_Identifier;
       Process : not null access
         procedure (Element : in Contact_Object'Class));
    --  Hands a Contact_Object to Process for every contact in the database that
-   --  belongs to O_Id.
+   --  belongs to O_ID.
 
    procedure For_Each
-     (C_Id    : in Contact_Identifier;
-      O_Id    : in Organization_Identifier;
+     (C_ID    : in Contact_Identifier;
+      O_ID    : in Organization_Identifier;
       Process : not null access
         procedure (Element : in Contact_Object'Class));
    --  Hands a Contact_Object to Process for every contact in the database that
-   --  match C_Id and belongs to O_Id.
+   --  match C_ID and belongs to O_ID.
 
    procedure For_Each
      (Self    : in Contact_List_Object;
@@ -149,14 +149,14 @@ private
    type Contact_Object is tagged
       record
          Attr_List : Model.Contact_Attributes.Contact_Attributes_List_Object;
-         C_Id      : Contact_Identifier := 0;
+         C_ID      : Contact_Identifier := 0;
          Full_Name : Unbounded_String := Null_Unbounded_String;
          Is_Human  : Boolean := True;
       end record;
 
    Null_Contact : constant Contact_Object
      := (Attr_List => Model.Contact_Attributes.Null_Contact_Attributes_List,
-         C_Id      => 0,
+         C_ID      => 0,
          Full_Name => Null_Unbounded_String,
          Is_Human  => True);
 

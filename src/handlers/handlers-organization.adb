@@ -67,7 +67,7 @@ package body Handlers.Organization is
 
       O : Organization_Object;
    begin
-      O.Get_Full (O_Id => Get_Org_Id (Response_Object));
+      O.Get_Full (O_ID => Get_Org_Id (Response_Object));
 
       if O /= Null_Organization then
          Response_Object.Cacheable (True);

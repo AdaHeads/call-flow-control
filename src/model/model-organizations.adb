@@ -81,13 +81,13 @@ package body Model.Organizations is
    ----------------
 
    procedure For_Each
-     (O_Id    : in Organization_Identifier;
+     (O_ID    : in Organization_Identifier;
       Process : not null access
         procedure (Element : in Organization_Object'Class))
    is
       use GNATCOLL.SQL.Exec;
 
-      Parameters : constant SQL_Parameters := (1 => +Integer (O_Id));
+      Parameters : constant SQL_Parameters := (1 => +Integer (O_ID));
    begin
       Fetch_Organization_Object
         (Process_Element    => Process,
@@ -146,7 +146,7 @@ package body Model.Organizations is
 
    procedure Get
      (Self : in out Organization_Object;
-      O_Id : in     Organization_Identifier)
+      O_ID : in     Organization_Identifier)
    is
       procedure Get_Element
         (Organization : in Organization_Object'Class);
@@ -162,7 +162,7 @@ package body Model.Organizations is
          Self := Organization_Object (Organization);
       end Get_Element;
    begin
-      For_Each (O_Id, Get_Element'Access);
+      For_Each (O_ID, Get_Element'Access);
    end Get;
 
    ----------------
@@ -171,7 +171,7 @@ package body Model.Organizations is
 
    procedure Get_Full
      (Self : in out Organization_Object;
-      O_Id : in     Organization_Identifier)
+      O_ID : in     Organization_Identifier)
    is
       procedure Get_Element
         (Organization : in Organization_Object'Class);
@@ -187,7 +187,7 @@ package body Model.Organizations is
          Self := Organization_Object (Organization);
       end Get_Element;
    begin
-      For_Each_Full (O_Id, Get_Element'Access);
+      For_Each_Full (O_ID, Get_Element'Access);
    end Get_Full;
 
    ------------------
@@ -236,25 +236,25 @@ package body Model.Organizations is
          Full_Name  => U (C.Value (0)),
          Identifier => U (C.Value (1)),
          JSON       => C.Json_Object_Value (2),
-         O_Id       => Organization_Identifier (C.Integer_Value (3)));
+         O_ID       => Organization_Identifier (C.Integer_Value (3)));
 
       if C.Field_Count > 4 then
          --  This is a full organization, complete with contacts.
          while C.Has_Row loop
             if not C.Is_Null (4) then
                Contact := Create
-                 (C_Id      => Contact_Identifier
+                 (C_ID      => Contact_Identifier
                     (C.Integer_Value (4, Default => 0)),
                   Full_Name => C.Value (5),
                   Is_Human  => C.Boolean_Value (6));
 
                Contact.Add_Attribute
-                 (Create (Id   => Attributes_Identifier'
-                            (C_Id => Contact.Contact_Id, O_Id => O.O_Id),
+                 (Create (ID   => Attributes_Identifier'
+                            (C_ID => Contact.Contact_ID, O_ID => O.O_ID),
                           JSON => C.Json_Object_Value (7)));
 
                O.C_List.Add_Contact (Contact => Contact,
-                                     O_Id    => O.O_Id);
+                                     O_ID    => O.O_ID);
 
             end if;
 
@@ -266,16 +266,16 @@ package body Model.Organizations is
    end Organization_Element;
 
    -----------------------
-   --  Organization_Id  --
+   --  Organization_ID  --
    -----------------------
 
-   function Organization_Id
+   function Organization_ID
      (Self : in Organization_Object)
       return Organization_Identifier
    is
    begin
-      return Self.O_Id;
-   end Organization_Id;
+      return Self.O_ID;
+   end Organization_ID;
 
    ----------------------
    --  To_JSON_String  --

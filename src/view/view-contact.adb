@@ -71,7 +71,7 @@ package body View.Contact is
       if O /= Null_Contact then
          J := Create_Object;
 
-         J.Set_Field (Contact_Id, Integer (O.Contact_Id));
+         J.Set_Field (Contact_Id, Integer (O.Contact_ID));
 
          J.Set_Field (Full_Name, O.Full_Name);
 

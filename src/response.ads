@@ -71,6 +71,12 @@ package Response is
       return AWS.Status.Data;
    --  Return the AWS.Status.Data object that O was initialized with.
 
+   function To_Debug_String
+     (O : in Object)
+      return String;
+   --  Generate a debug message containing as much information as we can force
+   --  from the grubby hands of the original AWS.Status.Data object.
+
 private
 
    type Object is tagged limited

@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                                Not_Found                                  --
+--                           Unexpected_Exception                            --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -21,32 +21,67 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with System_Message.Error;
+with Response;
+with System_Message.Critical;
 
-package body Not_Found is
+package body Unexpected_Exception is
 
    ----------------
    --  Callback  --
    ----------------
 
    function Callback
-     return AWS.Dispatchers.Callback.Handler
+     return AWS.Exceptions.Unexpected_Exception_Handler
    is
    begin
-      return AWS.Dispatchers.Callback.Create (JSON_Response'Access);
+      return Unexpected_Exception_Handler'Access;
    end Callback;
 
-   -------------------------
-   --  Generate_Document  --
-   -------------------------
+   ----------------------------------
+   -- Unexpected_Exception_Handler --
+   ----------------------------------
 
-   procedure Generate_Document
-     (Response_Object : in out Response.Object)
+   procedure Unexpected_Exception_Handler
+     (E      : in     Ada.Exceptions.Exception_Occurrence;
+      Log    : in out AWS.Log.Object;
+      Error  : in     AWS.Exceptions.Data;
+      Answer : in out AWS.Response.Data)
    is
-      use System_Message;
-   begin
-      Error.Not_Found (Message         => Response_Object.Request_URL,
-                       Response_Object => Response_Object);
-   end Generate_Document;
+      pragma Unreferenced (Log);
 
-end Not_Found;
+      function Message
+        return String;
+      --  Build the message that is appended to the log and response object.
+
+      use System_Message;
+
+      Response_Object : Response.Object := Response.Factory (Error.Request);
+
+      ---------------
+      --  Message  --
+      ---------------
+
+      function Message
+        return String
+      is
+      begin
+         if Error.Fatal then
+            return Response_Object.To_Debug_String
+              & " - Fatal error - "
+              & "AWS slot number"
+              & Positive'Image (Error.Slot)
+              & " died.";
+         end if;
+
+         return Response_Object.To_Debug_String;
+      end Message;
+   begin
+      Critical.Unhandled_Exception
+           (Event           => E,
+            Message         => Message,
+            Response_Object => Response_Object);
+
+      Answer := Response_Object.Build;
+   end Unexpected_Exception_Handler;
+
+end Unexpected_Exception;

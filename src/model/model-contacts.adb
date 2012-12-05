@@ -62,12 +62,12 @@ package body Model.Contacts is
    procedure Add_Contact
      (Self    : in out Contact_List_Object;
       Contact : in     Contact_Object'Class;
-      O_Id    : in     Organization_Identifier)
+      O_ID    : in     Organization_Identifier)
    is
    begin
       Self.Contacts.Include
-        (Key      => Organization_Contact_Identifier'(C_Id => Contact.C_Id,
-                                                      O_Id => O_Id),
+        (Key      => Organization_Contact_Identifier'(C_ID => Contact.C_ID,
+                                                      O_ID => O_ID),
          New_Item => Contact_Object (Contact));
    end Add_Contact;
 
@@ -97,7 +97,7 @@ package body Model.Contacts is
    begin
       CO := Contact_Object'
         (Attr_List => Model.Contact_Attributes.Null_Contact_Attributes_List,
-         C_Id      => Contact_Identifier (C.Integer_Value (0, Default => 0)),
+         C_ID      => Contact_Identifier (C.Integer_Value (0, Default => 0)),
          Full_Name => U (C.Value (1)),
          Is_Human  => C.Boolean_Value (2));
 
@@ -105,10 +105,10 @@ package body Model.Contacts is
          if not C.Is_Null (3) then
             CO.Attr_List.Add_Attributes
               (Model.Contact_Attributes.Create
-                 (Id   => Attributes_Identifier'
-                    (C_Id => Contact_Identifier
+                 (ID   => Attributes_Identifier'
+                    (C_ID => Contact_Identifier
                        (C.Integer_Value (4, Default => 0)),
-                     O_Id => Organization_Identifier
+                     O_ID => Organization_Identifier
                        (C.Integer_Value (5, Default => 0))),
                   JSON => C.Json_Object_Value (3)));
          end if;
@@ -134,7 +134,7 @@ package body Model.Contacts is
    begin
       CO := Contact_Object'
         (Attr_List => Model.Contact_Attributes.Null_Contact_Attributes_List,
-         C_Id      => Contact_Identifier (C.Integer_Value (0, Default => 0)),
+         C_ID      => Contact_Identifier (C.Integer_Value (0, Default => 0)),
          Full_Name => U (C.Value (1)),
          Is_Human  => C.Boolean_Value (2));
 
@@ -144,7 +144,7 @@ package body Model.Contacts is
 
          CO.Attr_List.Add_Attributes
            (Model.Contact_Attributes.Create
-              (Id   => A_Id,
+              (ID   => A_Id,
                JSON => C.Json_Object_Value (3)));
       end if;
 
@@ -152,23 +152,23 @@ package body Model.Contacts is
    end Contact_Elements;
 
    ------------------
-   --  Contact_Id  --
+   --  Contact_ID  --
    ------------------
 
-   function Contact_Id
+   function Contact_ID
      (Self : in Contact_Object)
       return Contact_Identifier
    is
    begin
-      return Self.C_Id;
-   end Contact_Id;
+      return Self.C_ID;
+   end Contact_ID;
 
    --------------
    --  Create  --
    --------------
 
    function Create
-     (C_Id      : in Contact_Identifier;
+     (C_ID      : in Contact_Identifier;
       Full_Name : in String;
       Is_Human  : in Boolean)
       return Contact_Object
@@ -177,7 +177,7 @@ package body Model.Contacts is
    begin
       return Contact_Object'
         (Attr_List => Model.Contact_Attributes.Null_Contact_Attributes_List,
-         C_Id      => C_Id,
+         C_ID      => C_ID,
          Full_Name => U (Full_Name),
          Is_Human  => Is_Human);
    end Create;
@@ -212,11 +212,11 @@ package body Model.Contacts is
    ----------------
 
    procedure For_Each
-     (C_Id    : in Contact_Identifier;
+     (C_ID    : in Contact_Identifier;
       Process : not null access
         procedure (Element : in Contact_Object'Class))
    is
-      Parameters : constant SQL_Parameters := (1 => +Integer (C_Id));
+      Parameters : constant SQL_Parameters := (1 => +Integer (C_ID));
    begin
       Fetch_Contact_Object
         (Process_Element    => Process,
@@ -229,11 +229,11 @@ package body Model.Contacts is
    ----------------
 
    procedure For_Each
-     (O_Id    : in Organization_Identifier;
+     (O_ID    : in Organization_Identifier;
       Process : not null access
         procedure (Element : in Contact_Object'Class))
    is
-      Parameters : constant SQL_Parameters := (1 => +Integer (O_Id));
+      Parameters : constant SQL_Parameters := (1 => +Integer (O_ID));
    begin
       Fetch_Contact_Objects
         (Process_Element    => Process,
@@ -246,13 +246,13 @@ package body Model.Contacts is
    ----------------
 
    procedure For_Each
-     (C_Id    : in Contact_Identifier;
-      O_Id    : in Organization_Identifier;
+     (C_ID    : in Contact_Identifier;
+      O_ID    : in Organization_Identifier;
       Process : not null access
         procedure (Element : in Contact_Object'Class))
    is
-      Parameters : constant SQL_Parameters := (1 => +Integer (C_Id),
-                                               2 => +Integer (O_Id));
+      Parameters : constant SQL_Parameters := (1 => +Integer (C_ID),
+                                               2 => +Integer (O_ID));
    begin
       Fetch_Contact_Object
         (Process_Element    => Process,
@@ -293,7 +293,7 @@ package body Model.Contacts is
 
    procedure Get
      (Self : in out Contact_Object;
-      C_Id : in     Contact_Identifier)
+      C_ID : in     Contact_Identifier)
    is
       procedure Get_Element
         (Contact : in Contact_Object'Class);
@@ -309,7 +309,7 @@ package body Model.Contacts is
          Self := Contact_Object (Contact);
       end Get_Element;
    begin
-      For_Each (C_Id, Get_Element'Access);
+      For_Each (C_ID, Get_Element'Access);
    end Get;
 
    -----------
@@ -318,7 +318,7 @@ package body Model.Contacts is
 
    procedure Get
      (Self : in out Contact_List_Object;
-      O_Id : in     Organization_Identifier)
+      O_ID : in     Organization_Identifier)
    is
       procedure Get_Element
         (Contact : in Contact_Object'Class);
@@ -333,11 +333,11 @@ package body Model.Contacts is
       begin
          Self.Contacts.Include
            (Key      => Organization_Contact_Identifier'
-              (C_Id => Contact.C_Id, O_Id => O_Id),
+              (C_ID => Contact.C_ID, O_ID => O_ID),
             New_Item => Contact_Object (Contact));
       end Get_Element;
    begin
-      For_Each (O_Id, Get_Element'Access);
+      For_Each (O_ID, Get_Element'Access);
    end Get;
 
    -----------
@@ -345,8 +345,8 @@ package body Model.Contacts is
    -----------
 
    function Get
-     (C_Id : in Contact_Identifier;
-      O_Id : in Organization_Identifier)
+     (C_ID : in Contact_Identifier;
+      O_ID : in Organization_Identifier)
       return Contact_Object
    is
       procedure Get_Element
@@ -365,7 +365,7 @@ package body Model.Contacts is
          C := Contact_Object (Contact);
       end Get_Element;
    begin
-      For_Each (C_Id, O_Id, Get_Element'Access);
+      For_Each (C_ID, O_ID, Get_Element'Access);
       return C;
    end Get;
 
@@ -391,8 +391,8 @@ package body Model.Contacts is
    is
    begin
       return Ada.Strings.Hash
-        (Contact_Identifier'Image (Key.C_Id) &
-           Organization_Identifier'Image (Key.O_Id));
+        (Contact_Identifier'Image (Key.C_ID) &
+           Organization_Identifier'Image (Key.O_ID));
    end Key_Hash;
 
    ---------------

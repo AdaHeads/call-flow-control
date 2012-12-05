@@ -70,10 +70,10 @@ package body View.Contact_Attributes is
          J := Create_Object;
       end if;
 
-      J.Set_Field (Contact_Id, Integer (O.Contact_Id));
+      J.Set_Field (Contact_Id, Integer (O.Contact_ID));
 
       J.Set_Field (Organization_Id,
-                   Integer (O.Organization_Id));
+                   Integer (O.Organization_ID));
 
       return J;
    end To_JSON;
