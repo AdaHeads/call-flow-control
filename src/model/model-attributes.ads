@@ -54,15 +54,15 @@ private
       return Boolean;
 
    function Equivalent_Keys
-     (Left, Right : in Attribute_ID)
+     (Left, Right : in Attribute_Identifier)
       return Boolean;
 
    function Key_Hash
-     (Key : in Attribute_ID)
+     (Key : in Attribute_Identifier)
       return Ada.Containers.Hash_Type;
 
    package Attributes_Map is new Ada.Containers.Hashed_Maps
-     (Key_Type        => Attribute_ID,
+     (Key_Type        => Attribute_Identifier,
       Element_Type    => Model.Attribute.Object,
       Hash            => Key_Hash,
       Equivalent_Keys => Equivalent_Keys,

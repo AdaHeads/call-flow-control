@@ -29,7 +29,7 @@ package Model.Attribute is
    --  Return the contact identifier for Instance.
 
    function Create
-     (ID   : in Attribute_ID;
+     (ID   : in Attribute_Identifier;
       JSON : in GNATCOLL.JSON.JSON_Value)
       return Object;
    --  Create a contact attribute object. Note that the JSON is free-form. It
@@ -37,13 +37,13 @@ package Model.Attribute is
    --  use the JSON. No checks are done by Alice.
 
    function Get
-     (ID : in Attribute_ID)
+     (ID : in Attribute_Identifier)
       return Object;
    --  Get the attribute object that belongs to ID.
 
    function ID
      (Instance : in Object)
-      return Attribute_ID;
+      return Attribute_Identifier;
    --  Return the ID of Instance.
 
    function JSON
@@ -66,7 +66,7 @@ private
 
    type Object is tagged
       record
-         ID   : Attribute_ID;
+         ID   : Attribute_Identifier;
          JSON : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.JSON_Null;
       end record;
 

@@ -267,7 +267,7 @@ package body Model.Organizations is
                   Is_Human  => C.Boolean_Value (6));
 
                Contact.Add_Attribute
-                 (Model.Attribute.Create (ID   => Attribute_ID'
+                 (Model.Attribute.Create (ID   => Attribute_Identifier'
                             (CID => Contact.ID, OID => O.O_ID),
                           JSON => C.Json_Object_Value (7)));
 

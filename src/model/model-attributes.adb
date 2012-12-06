@@ -92,7 +92,7 @@ package body Model.Attributes is
    -----------------------
 
    function Equivalent_Keys
-     (Left, Right : in Attribute_ID)
+     (Left, Right : in Attribute_Identifier)
       return Boolean
    is
    begin
@@ -153,7 +153,7 @@ package body Model.Attributes is
    ----------------
 
    function Key_Hash
-     (Key : in Attribute_ID)
+     (Key : in Attribute_Identifier)
       return Ada.Containers.Hash_Type
    is
    begin

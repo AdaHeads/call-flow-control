@@ -59,7 +59,7 @@ package Model.Contact is
    --  be associated with the contact.
 
    function Get
-     (ID : in Organization_Contact_ID)
+     (ID : in Organization_Contact_Identifier)
       return Object;
    --  Return the contact that match ID, complete with all the attributes that
    --  may be associated with the contact.

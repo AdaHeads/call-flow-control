@@ -50,7 +50,7 @@ package body Model.Contacts is
    is
    begin
       Instance.Contacts.Include
-        (Key      => Organization_Contact_ID'
+        (Key      => Organization_Contact_Identifier'
            (CID => Contact.ID,
             OID => ID),
          New_Item => Contact);
@@ -66,7 +66,7 @@ package body Model.Contacts is
    is
       use Model.Contact;
 
-      A_Id    : Attribute_ID;
+      A_Id    : Attribute_Identifier;
       Contact : Object;
    begin
       Contact := Create
@@ -106,7 +106,7 @@ package body Model.Contacts is
    -----------------------
 
    function Equivalent_Keys
-     (Left, Right : in Organization_Contact_ID)
+     (Left, Right : in Organization_Contact_Identifier)
       return Boolean
    is
    begin
@@ -165,7 +165,7 @@ package body Model.Contacts is
       is
       begin
          O.Contacts.Include
-           (Key      => Organization_Contact_ID'
+           (Key      => Organization_Contact_Identifier'
               (CID => Contact.ID, OID => ID),
             New_Item => Contact);
       end Get_Element;
@@ -179,7 +179,7 @@ package body Model.Contacts is
    ----------------
 
    function Key_Hash
-     (Key : in Organization_Contact_ID)
+     (Key : in Organization_Contact_Identifier)
       return Ada.Containers.Hash_Type
    is
    begin

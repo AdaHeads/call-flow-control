@@ -99,7 +99,7 @@ package body Model.Contact is
          if not C.Is_Null (3) then
             CO.Attributes.Add_Attribute
               (Model.Attribute.Create
-                 (ID   => Attribute_ID'
+                 (ID   => Attribute_Identifier'
                     (CID => Contact_Identifier
                        (C.Integer_Value (4, Default => 0)),
                      OID => Organization_Identifier
@@ -211,7 +211,7 @@ package body Model.Contact is
    -----------
 
    function Get
-     (ID : in Organization_Contact_ID)
+     (ID : in Organization_Contact_Identifier)
       return Object
    is
       procedure Get_Element

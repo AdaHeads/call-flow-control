@@ -38,7 +38,7 @@ package body Model.Attribute is
       Cursor_To_Element => Contact_Attributes_Element);
 
    procedure For_Each
-     (ID      : in Attribute_ID;
+     (ID      : in Attribute_Identifier;
       Process : not null access
         procedure (Element : in Object));
    --  For every contact attribute row with ID in the database, an attribute
@@ -54,7 +54,7 @@ package body Model.Attribute is
    is
    begin
       return
-        (ID   => Attribute_ID'
+        (ID   => Attribute_Identifier'
            (CID => Contact_Identifier (C.Integer_Value (0, Default => 0)),
             OID => Organization_Identifier
               (C.Integer_Value (1, Default => 0))),
@@ -78,12 +78,12 @@ package body Model.Attribute is
    --------------
 
    function Create
-     (ID   : in Attribute_ID;
+     (ID   : in Attribute_Identifier;
       JSON : in GNATCOLL.JSON.JSON_Value)
       return Object
    is
    begin
-      return (ID   => Attribute_ID'(CID => ID.CID, OID => ID.OID),
+      return (ID   => Attribute_Identifier'(CID => ID.CID, OID => ID.OID),
               JSON => JSON);
    end Create;
 
@@ -92,7 +92,7 @@ package body Model.Attribute is
    ----------------
 
    procedure For_Each
-     (ID      : in Attribute_ID;
+     (ID      : in Attribute_Identifier;
       Process : not null access
         procedure (Element : in Object))
    is
@@ -110,7 +110,7 @@ package body Model.Attribute is
    -----------
 
    function Get
-     (ID : in Attribute_ID)
+     (ID : in Attribute_Identifier)
       return Object
    is
       procedure Get_Element
@@ -139,7 +139,7 @@ package body Model.Attribute is
 
    function ID
      (Instance : in Object)
-      return Attribute_ID
+      return Attribute_Identifier
    is
    begin
       return Instance.ID;

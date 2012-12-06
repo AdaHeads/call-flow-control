@@ -63,15 +63,15 @@ private
       return Boolean;
 
    function Equivalent_Keys
-     (Left, Right : in Organization_Contact_ID)
+     (Left, Right : in Organization_Contact_Identifier)
       return Boolean;
 
    function Key_Hash
-     (Key : in Organization_Contact_ID)
+     (Key : in Organization_Contact_Identifier)
       return Ada.Containers.Hash_Type;
 
    package Contact_Map is new Ada.Containers.Hashed_Maps
-     (Key_Type        => Organization_Contact_ID,
+     (Key_Type        => Organization_Contact_Identifier,
       Element_Type    => Model.Contact.Object,
       Hash            => Key_Hash,
       Equivalent_Keys => Equivalent_Keys,

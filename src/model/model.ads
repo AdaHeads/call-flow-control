@@ -22,18 +22,16 @@ package Model is
    type Contact_Identifier is new Natural;
    type Organization_Identifier is new Natural;
 
-   type Organization_Contact_ID is
+   type Organization_Contact_Identifier is
       record
          CID : Contact_Identifier;
          OID : Organization_Identifier;
       end record;
    --  Identifies the CID contact in the context of the OID organization.
 
-   type Attribute_ID is new Organization_Contact_ID;
+   type Attribute_Identifier is new Organization_Contact_Identifier;
    --  Identifies a set of contact attributes for the CID contact in the
    --  context of the OID organization.
-   --  The same as Organization_Contact_ID, but renamed for clarity in
-   --  the code.
 
 private
 
