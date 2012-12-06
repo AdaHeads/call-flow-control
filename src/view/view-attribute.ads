@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                        View.Contacts_Attributes                           --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -23,27 +17,27 @@
 
 with Common;
 with GNATCOLL.JSON;
-with Model.Contact_Attributes;
+with Model.Attribute;
+with Model.Attributes;
 
-package View.Contact_Attributes is
+package View.Attribute is
 
    use Common;
    use GNATCOLL.JSON;
-   use Model.Contact_Attributes;
 
    function To_JSON
-     (O : in Contact_Attributes_List_Object)
-      return JSON_Array;
-   --  Convert O into a JSON array.
-
-   function To_JSON
-     (O : in Contact_Attributes_Object)
+     (Instance : in Model.Attribute.Object)
       return JSON_Value;
-   --  Convert O into a JSON object.
+   --  Convert Instance into a JSON object.
 
-   function To_JSON
-     (O : in Contact_Attributes_Object)
+   function To_JSON_Array
+     (Instance : in Model.Attributes.List)
+      return JSON_Array;
+   --  Convert Instance into a JSON array.
+
+   function To_JSON_String
+     (Instance : in Model.Attribute.Object)
       return JSON_String;
-   --  Convert O into a JSON string.
+   --  Convert Instance into a JSON string.
 
-end View.Contact_Attributes;
+end View.Attribute;

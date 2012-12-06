@@ -15,15 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Database;
-with GNATCOLL.SQL.Exec;
-
-package SQL_Statements is
-
-   use GNATCOLL.SQL;
-   use GNATCOLL.SQL.Exec;
-
-   package DB renames Database;
+package SQL_Statements.Organization is
 
    --------------------------------------------------------------------
    --  Statement for fetching a basic organization without contacts  --
@@ -99,4 +91,4 @@ package SQL_Statements is
                  On_Server     => True,
                  Name          => "contacts");
 
-end SQL_Statements;
+end SQL_Statements.Organization;

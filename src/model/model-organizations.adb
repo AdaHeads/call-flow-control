@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                           Model.Organizations                             --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -21,23 +15,24 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Model.Contact_Attributes;
-with SQL_Statements;
+with Model.Contact;
+with Model.Attribute;
+with SQL_Statements.Organization;
 with Storage;
 with View.Organization;
 
 package body Model.Organizations is
 
-   package SQL renames SQL_Statements;
+   package SQL renames SQL_Statements.Organization;
 
    function Organization_Element
-     (C : in out Cursor'Class)
+     (C : in out Database_Cursor'Class)
       return Organization_Object;
    --  Transforms the low level index based Cursor into the more readable
    --  Organization_Object record. This one does NOT contain any contacts.
 
-   procedure Fetch_Organization_Object is new Storage.Process_Query
-     (Database_Cursor   => Cursor,
+   procedure Fetch_Organization_Object is new Storage.Process_Select_Query
+     (Database_Cursor   => Database_Cursor,
       Element           => Organization_Object,
       Cursor_To_Element => Organization_Element);
 
@@ -60,7 +55,7 @@ package body Model.Organizations is
 
    function Contact_List
      (Self : in Organization_Object)
-      return Model.Contacts.Contact_List_Object
+      return Model.Contacts.List
    is
    begin
       return Self.C_List;
@@ -202,6 +197,18 @@ package body Model.Organizations is
       return O;
    end Get_Full;
 
+   ----------
+   --  ID  --
+   ----------
+
+   function ID
+     (Self : in Organization_Object)
+      return Organization_Identifier
+   is
+   begin
+      return Self.O_ID;
+   end ID;
+
    ------------------
    --  Identifier  --
    ------------------
@@ -231,19 +238,19 @@ package body Model.Organizations is
    ----------------------------------
 
    function Organization_Element
-     (C : in out Cursor'Class)
+     (C : in out Database_Cursor'Class)
       return Organization_Object
    is
       use Common;
-      use Model.Contacts;
-      use Model.Contact_Attributes;
+      use Model.Contact;
+      --  use Model.Attributes;
       use type GNATCOLL.SQL.Exec.Field_Index;
 
-      Contact : Model.Contacts.Contact_Object;
+      Contact : Model.Contact.Object;
 
       O : Organization_Object;
    begin
-      O := (C_List     => Contacts.Null_Contact_List,
+      O := (C_List     => Contacts.Null_List,
             Full_Name  => U (C.Value (0)),
             Identifier => U (C.Value (1)),
             JSON       => C.Json_Object_Value (2),
@@ -254,18 +261,18 @@ package body Model.Organizations is
          while C.Has_Row loop
             if not C.Is_Null (4) then
                Contact := Create
-                 (C_ID      => Contact_Identifier
+                 (ID      => Contact_Identifier
                     (C.Integer_Value (4, Default => 0)),
                   Full_Name => C.Value (5),
                   Is_Human  => C.Boolean_Value (6));
 
                Contact.Add_Attribute
-                 (Create (ID   => Attributes_Identifier'
-                            (C_ID => Contact.Contact_ID, O_ID => O.O_ID),
+                 (Model.Attribute.Create (ID   => Attribute_ID'
+                            (CID => Contact.ID, OID => O.O_ID),
                           JSON => C.Json_Object_Value (7)));
 
                O.C_List.Add_Contact (Contact => Contact,
-                                     O_ID    => O.O_ID);
+                                     ID      => O.O_ID);
 
             end if;
 
@@ -275,18 +282,6 @@ package body Model.Organizations is
 
       return O;
    end Organization_Element;
-
-   -----------------------
-   --  Organization_ID  --
-   -----------------------
-
-   function Organization_ID
-     (Self : in Organization_Object)
-      return Organization_Identifier
-   is
-   begin
-      return Self.O_ID;
-   end Organization_ID;
 
    ----------------------
    --  To_JSON_String  --

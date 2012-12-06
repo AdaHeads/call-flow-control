@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                           Model.Organizations                             --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -24,6 +18,7 @@
 with Ada.Strings.Unbounded;
 with Common;
 with GNATCOLL.JSON;
+--  with Model.Contact;
 with Model.Contacts;
 with View;
 
@@ -36,7 +31,7 @@ package Model.Organizations is
 
    function Contact_List
      (Self : in Organization_Object)
-      return Model.Contacts.Contact_List_Object;
+      return Model.Contacts.List;
    --  Return all the contacts associated with the Self organization.
 
    procedure For_Each
@@ -71,6 +66,11 @@ package Model.Organizations is
    --  Get the organization that match ID. This object contains ALL the
    --  contacts that are associated with the O_ID organization.
 
+   function ID
+     (Self : in Organization_Object)
+      return Organization_Identifier;
+   --  Return the Organization_ID for the Self organization.
+
    function Identifier
      (Self : in Organization_Object)
       return String;
@@ -80,11 +80,6 @@ package Model.Organizations is
      (Self : in Organization_Object)
       return GNATCOLL.JSON.JSON_Value;
    --  Return the JSON document for the Self organization.
-
-   function Organization_ID
-     (Self : in Organization_Object)
-      return Organization_Identifier;
-   --  Return the Organization_Identifier for the Self organization.
 
    function To_JSON_String
      (Self      : in out Organization_List_Object;
@@ -127,7 +122,7 @@ private
 
    type Organization_Object is tagged
       record
-         C_List     : Contacts.Contact_List_Object;
+         C_List     : Contacts.List;
          Full_Name  : Unbounded_String := Null_Unbounded_String;
          Identifier : Unbounded_String := Null_Unbounded_String;
          JSON       : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.JSON_Null;
@@ -135,7 +130,7 @@ private
       end record;
 
    Null_Organization : constant Organization_Object
-     := (C_List     => Contacts.Null_Contact_List,
+     := (C_List     => Contacts.Null_List,
          Full_Name  => Null_Unbounded_String,
          Identifier => Null_Unbounded_String,
          JSON       => GNATCOLL.JSON.JSON_Null,

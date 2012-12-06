@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                             Handlers.Contact                              --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -23,7 +17,7 @@
 
 with AWS.Status;
 with HTTP_Codes;
-with Model.Contacts;
+with Model.Contact;
 with System_Message.Error;
 
 package body Handlers.Contact is
@@ -63,13 +57,13 @@ package body Handlers.Contact is
    is
       use Common;
       use HTTP_Codes;
-      use Model.Contacts;
+      use Model.Contact;
 
-      C : Contact_Object;
+      C : Object;
    begin
       C := Get (Get_Contact_Id (Response_Object));
 
-      if C /= Null_Contact then
+      if C /= Null_Object then
          Response_Object.Cacheable (True);
          Response_Object.HTTP_Status_Code (OK);
       else

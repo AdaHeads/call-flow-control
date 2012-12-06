@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                            View.Organization                              --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -20,8 +14,6 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-
-with View.Contact;
 
 package body View.Organization is
 
@@ -50,7 +42,7 @@ package body View.Organization is
       if O /= Null_Organization then
          J := Create_Object;
 
-         J.Set_Field (Organization_Id, Integer (O.Organization_ID));
+         J.Set_Field (Organization_Id, Integer (O.ID));
 
          J.Set_Field (Full_Name, O.Full_Name);
 
@@ -78,13 +70,13 @@ package body View.Organization is
             J := Create_Object;
          end if;
 
-         J.Set_Field (Organization_Id, Integer (O.Organization_ID));
+         J.Set_Field (Organization_Id, Integer (O.ID));
 
          J.Set_Field (Full_Name, O.Full_Name);
 
          J.Set_Field (Identifier, O.Identifier);
 
-         C_Array := View.Contact.To_JSON (O.Contact_List);
+         C_Array := O.Contact_List.To_JSON_Array;
 
          if Length (C_Array) > 0 then
             J.Set_Field (Contacts, C_Array);

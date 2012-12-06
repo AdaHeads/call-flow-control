@@ -25,9 +25,9 @@ with GNATCOLL.SQL.Exec;
 
 package Storage is
 
-   ---------------------
-   --  Process_Query  --
-   ---------------------
+   ----------------------------
+   --  Process_Select_Query  --
+   ----------------------------
 
    generic
 
@@ -39,7 +39,7 @@ package Storage is
         (C : in out Database_Cursor'Class)
         return Element;
 
-   procedure Process_Query
+   procedure Process_Select_Query
      (Process_Element    : not null access procedure (E : in Element);
       Prepared_Statement : in GNATCOLL.SQL.Exec.Prepared_Statement;
       Query_Parameters   : in GNATCOLL.SQL.Exec.SQL_Parameters);
