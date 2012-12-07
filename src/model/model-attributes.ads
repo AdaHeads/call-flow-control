@@ -17,38 +17,29 @@
 
 with Ada.Containers.Hashed_Maps;
 with GNATCOLL.JSON;
-with Model.Contact;
+with Model.Attribute;
 
-package Model.Contacts is
+package Model.Attributes is
 
    type List is tagged private;
    Null_List : constant List;
 
-   procedure Add_Contact
-     (Instance : in out List;
-      Contact  : in     Model.Contact.Object;
-      ID       : in     Organization_Identifier);
-   --  Add Contact to Instance.
-
-   function Get
-     (ID : in Organization_Identifier)
-      return List;
-   --  Get a list of contacts that belong to the ID organization. This call
-   --  is more expensive than just calling For_Each (ID....), so if you just
-   --  need to list the contacts some memory and CPU cycles can be saved by
-   --  using the For_Each (ID....) call instead.
+   procedure Add_Attribute
+     (Instance  : in out List;
+      Attribute : in     Model.Attribute.Object);
+   --  Add an attribute object to the list.
 
    procedure For_Each
      (Instance : in List;
-      Process  : not null access procedure
-        (Element : in Model.Contact.Object));
-   --  Hands a contact object to process for every contact found in Instance.
+      Process  : not null access
+        procedure (Element : in Model.Attribute.Object));
+   --  For every contact attribute set added to Instance by Add_Attributes, an
+   --  attributes object is handed to Process.
 
-   procedure For_Each
-     (ID      : in Organization_Identifier;
-      Process : not null access procedure (Element : in Model.Contact.Object));
-   --  Hands a contact object to Process for every contact in the database that
-   --  belongs to ID.
+   function Get
+     (ID : in Contact_Identifier)
+      return List;
+   --  Get the attributes list that belongs to ID.
 
    function To_JSON_Array
      (Instance : in List)
@@ -59,29 +50,29 @@ package Model.Contacts is
 private
 
    function Equal_Elements
-     (Left, Right : in Model.Contact.Object)
+     (Left, Right : in Model.Attribute.Object)
       return Boolean;
 
    function Equivalent_Keys
-     (Left, Right : in Organization_Contact_Identifier)
+     (Left, Right : in Attribute_Identifier)
       return Boolean;
 
    function Key_Hash
-     (Key : in Organization_Contact_Identifier)
+     (Key : in Attribute_Identifier)
       return Ada.Containers.Hash_Type;
 
-   package Contact_Map is new Ada.Containers.Hashed_Maps
-     (Key_Type        => Organization_Contact_Identifier,
-      Element_Type    => Model.Contact.Object,
+   package Attributes_Map is new Ada.Containers.Hashed_Maps
+     (Key_Type        => Attribute_Identifier,
+      Element_Type    => Model.Attribute.Object,
       Hash            => Key_Hash,
       Equivalent_Keys => Equivalent_Keys,
       "="             => Equal_Elements);
 
    type List is tagged
       record
-         Contacts : Contact_Map.Map := Contact_Map.Empty_Map;
+         Attributes : Attributes_Map.Map := Attributes_Map.Empty_Map;
       end record;
 
-   Null_List : constant List := (Contacts => Contact_Map.Empty_Map);
+   Null_List : constant List := (Attributes => Attributes_Map.Empty_Map);
 
-end Model.Contacts;
+end Model.Attributes;

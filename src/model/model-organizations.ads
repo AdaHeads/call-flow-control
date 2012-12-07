@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                           Model.Organizations                             --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -24,7 +18,7 @@
 with Ada.Strings.Unbounded;
 with Common;
 with GNATCOLL.JSON;
-with GNATCOLL.SQL.Exec;
+--  with Model.Contact;
 with Model.Contacts;
 with View;
 
@@ -37,20 +31,20 @@ package Model.Organizations is
 
    function Contact_List
      (Self : in Organization_Object)
-      return Model.Contacts.Contact_List_Object;
+      return Model.Contacts.List;
    --  Return all the contacts associated with the Self organization.
 
    procedure For_Each
      (Self    : in Organization_List_Object;
       Process : not null access
-        procedure (Element : in Organization_Object'Class));
+        procedure (Element : in Organization_Object));
    --  For every organization in the database, an Organization_Object is handed
    --  to process. These objects do NOT contain any contacts.
 
    procedure For_Each
      (O_ID    : in Organization_Identifier;
       Process : not null access
-        procedure (Element : in Organization_Object'Class));
+        procedure (Element : in Organization_Object));
    --  For every organization with O_ID in the database, an Organization_Object
    --  is handed to Process. These organization objects do NOT contain any
    --  contacts.
@@ -60,17 +54,22 @@ package Model.Organizations is
       return String;
    --  Return the full name of the Self organization.
 
-   procedure Get
-     (Self : in out Organization_Object;
-      O_ID : in Organization_Identifier);
-   --  Get the organization that match O_ID. This does NOT fetch the contacts
+   function Get
+     (ID : in Organization_Identifier)
+      return Organization_Object;
+   --  Get the organization that match ID. This does NOT fetch the contacts
    --  that belong to the O_ID organization.
 
-   procedure Get_Full
-     (Self : in out Organization_Object;
-      O_ID : in     Organization_Identifier);
-   --  Get the organization that match O_ID. This object contains ALL the
+   function Get_Full
+     (ID : in Organization_Identifier)
+      return Organization_Object;
+   --  Get the organization that match ID. This object contains ALL the
    --  contacts that are associated with the O_ID organization.
+
+   function ID
+     (Self : in Organization_Object)
+      return Organization_Identifier;
+   --  Return the Organization_ID for the Self organization.
 
    function Identifier
      (Self : in Organization_Object)
@@ -81,11 +80,6 @@ package Model.Organizations is
      (Self : in Organization_Object)
       return GNATCOLL.JSON.JSON_Value;
    --  Return the JSON document for the Self organization.
-
-   function Organization_ID
-     (Self : in Organization_Object)
-      return Organization_Identifier;
-   --  Return the Organization_Identifier for the Self organization.
 
    function To_JSON_String
      (Self      : in out Organization_List_Object;
@@ -126,11 +120,9 @@ private
 
    use Ada.Strings.Unbounded;
 
-   type Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null record;
-
    type Organization_Object is tagged
       record
-         C_List     : Contacts.Contact_List_Object;
+         C_List     : Contacts.List;
          Full_Name  : Unbounded_String := Null_Unbounded_String;
          Identifier : Unbounded_String := Null_Unbounded_String;
          JSON       : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.JSON_Null;
@@ -138,18 +130,12 @@ private
       end record;
 
    Null_Organization : constant Organization_Object
-     := (C_List     => Contacts.Null_Contact_List,
+     := (C_List     => Contacts.Null_List,
          Full_Name  => Null_Unbounded_String,
          Identifier => Null_Unbounded_String,
          JSON       => GNATCOLL.JSON.JSON_Null,
          O_ID       => 0);
 
    type Organization_List_Object is tagged null record;
-
-   function Organization_Element
-     (C : in out Cursor)
-      return Organization_Object'Class;
-   --  Transforms the low level index based Cursor into the more readable
-   --  Organization_Object record. This one does NOT contain any contacts.
 
 end Model.Organizations;

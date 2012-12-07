@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                          Handlers.Organization                            --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -67,7 +61,7 @@ package body Handlers.Organization is
 
       O : Organization_Object;
    begin
-      O.Get_Full (O_ID => Get_Org_Id (Response_Object));
+      O := Get_Full (Get_Org_Id (Response_Object));
 
       if O /= Null_Organization then
          Response_Object.Cacheable (True);

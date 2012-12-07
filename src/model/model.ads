@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                                  Model                                    --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -21,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with GNATCOLL.SQL.Exec;
+
 package Model is
 
    type Contact_Identifier is new Natural;
@@ -28,15 +24,18 @@ package Model is
 
    type Organization_Contact_Identifier is
       record
-         C_ID : Contact_Identifier;
-         O_ID : Organization_Identifier;
+         CID : Contact_Identifier;
+         OID : Organization_Identifier;
       end record;
-   --  Identifies the C_ID contact in the context of the O_ID organization.
+   --  Identifies the CID contact in the context of the OID organization.
 
-   type Attributes_Identifier is new Organization_Contact_Identifier;
-   --  Identifies a set of contact attributes for the C_ID contact in the
-   --  context of the O_ID organization.
-   --  The same as Organization_Contact_Identifier, but renamed for clarity in
-   --  the code.
+   type Attribute_Identifier is new Organization_Contact_Identifier;
+   --  Identifies a set of contact attributes for the CID contact in the
+   --  context of the OID organization.
+
+private
+
+   type Database_Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null
+     record;
 
 end Model;
