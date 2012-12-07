@@ -15,43 +15,15 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package body Model.Agent is
+with GNATCOLL.JSON;
 
-   procedure Assign (Agent : in     Agent_Type;
-                     Peer  :    out Peer_Type) is
-   begin
-      Peer.Agent_ID := Agent.ID;
-   end Assign;
+with Model.Peers;
 
-   function Context (Agent : in Agent_Type) return String is
-   begin
-      return To_String (Agent.Context);
-   end Context;
+--  Utility functions for converting a peer to viewable types
+package View.Peer is
+   use Model;
 
-   function Create (ID        : in Agent_ID_Type;
-                    Peer_ID   : in Peer_ID_Type;
-                    Extension : in String) return Agent_Type is
-   begin
-      return (ID        => ID,
-              Name      => Null_Unbounded_String,
-              Context   => Null_Unbounded_String,
-              Peer_ID   => Peer_ID,
-              Extension => To_Unbounded_String (Extension));
-   end Create;
+   function To_JSON (Peer : in Peers.Peer_Type)
+                        return GNATCOLL.JSON.JSON_Value;
 
-   function Extension (Agent : in Agent_Type) return String is
-   begin
-      return To_String (Agent.Extension);
-   end Extension;
-
-   function ID (Agent : in Agent_Type) return Agent_ID_Type is
-   begin
-      return Agent.ID;
-   end ID;
-
-   function Peer_ID (Agent : in Agent_Type) return Peer_ID_Type is
-   begin
-      return Agent.Peer_ID;
-   end Peer_ID;
-
-end Model.Agent;
+end View.Peer;

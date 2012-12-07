@@ -1,35 +1,41 @@
 with Common;
-with System_Messages;
 
 package body Model.Peer_ID is
-   use System_Messages;
 
    function "<" (Left  : in Peer_ID_Type;
                  Right : in Peer_ID_Type) return Boolean is
    begin
-      return Left.Class < Right.Class and then
+      return Left.Kind < Right.Kind and then
         Left.Peername < Right.Peername;
    end "<";
 
    function "=" (Left  : in Peer_ID_Type;
                  Right : in Peer_ID_Type) return Boolean is
    begin
-      return Left.Class = Right.Class and Left.Peername = Right.Peername;
+      return Left.Kind = Right.Kind and Left.Peername = Right.Peername;
    end "=";
 
    function Create (Item : in String) return Peer_ID_Type is
-      Class_Offset    : constant Natural := Common.Index ('/', Item);
+      Kind_Offset    : constant Natural := Common.Index ('/', Item);
    begin
-      if Class_Offset > 2 then
+      if Kind_Offset > 2 then
          return
-           (Class    => Channel_Type'Value
-              (Item (Item'First .. Item'First + Class_Offset - 2)),
-            Peername =>
-              To_Unbounded_String
-                (Item (Item'First + Class_Offset .. Item'Last)));
+           Create (Channel_Kind =>
+                     Item (Item'First .. Item'First + Kind_Offset - 2),
+                   Peername     =>
+                     Item (Item'First + Kind_Offset .. Item'Last));
       end if;
-      System_Messages.Notify (Debug, "Model.Peer_ID.Create: Returning Null!");
-      return Null_Peer_ID;
+      raise Constraint_Error;
+   exception
+      when Constraint_Error =>
+         raise Invalid_ID with "Invalid Peer ID: " & Item;
+   end Create;
+
+   function Create (Channel_Kind : in String;
+                    Peername     : in String) return Peer_ID_Type is
+   begin
+      return (Kind     => Channel_Type'Value (Channel_Kind),
+              Peername => To_Unbounded_String (Peername));
    end Create;
 
    function To_String (Peer_ID : in Peer_ID_Type) return String is
@@ -37,7 +43,7 @@ package body Model.Peer_ID is
       if Peer_ID = Null_Peer_ID then
          return "<null>";
       else
-         return Peer_ID.Class'Img & "/" & To_String (Peer_ID.Peername);
+         return Peer_ID.Kind'Img & "/" & To_String (Peer_ID.Peername);
       end if;
    end To_String;
 

@@ -109,61 +109,23 @@ package body AMI.Action is
                     Action_ID => Action_ID));
    end Originate;
 
-   procedure Park (Client     : access Client_Type;
-                   Channel_ID : in     Channel_ID_Type;
-                   Callback   : in AMI.Callback.Callback_Type :=
+   procedure Park (Client           : access Client_Type;
+                   Channel          : in     String;
+                   Fallback_Channel : in     String;
+                   Timeout          : in     Natural := 60000;
+                   Callback         : in AMI.Callback.Callback_Type :=
                      AMI.Callback.Login_Callback'Access) is
       Action_ID : constant Action_ID_Type :=
                     Protocol_Strings.Next_Action_ID;
    begin
       AMI.Response.Subscribe (Action_ID, Callback);
-      --  Finds the Agent, to get the call to park.
-      --   Peer := Peers.Get_Peer (Agent_ID => To_Unbounded_String (Agent_ID));
-      --        if Peer = Peers.null_Peer then
-      --           --  No peer found
-      --           Status := No_Agent_Found;
-      --           System_Messages.Notify (Debug,
-      --                           "Park Routine: The agent does not exsist: "
-      --                           & Agent_ID);
-      --           return;
-      --        elsif Peer.Status = Unregistered then
-      --           Status := Unregistred_Agent;
-      --           System_Messages.Notify (Debug,
-      --                           "Park Routine: The agent does not exsist: "
-      --                           & Agent_ID);
-      --           return;
-      --        end if;
-
-      --  Move the call back to the Queue, which will act like a parking lot.
-
-      --  TODO Update, There have to be an easier way
-      --   to find the companies Extension.
-      --  Get the extension the queue is tied up to.
-
-      --           AMI.Action.Action_Manager.Get_Var
-      --             (Channel      => To_String (Call.Channel),
-      --              VariableName => "Extension",
-      --              Value        => Exten);
-
---        if Call.Extension = Null_Unbounded_String or else
---          To_String (Call.Extension) = "(null)" then
---           raise BAD_EXTENSION;
---
---        elsif To_String (Call.Extension) = "" then
---           raise EMPTY_EXTENSION;
---        end if;
-
-      --  Sets the variable that tells this call is a call on hold.
-      --           AMI.Action.Action_Manager.Set_Var
-      --             (Channel      => To_String (Call.Channel),
-      --              VariableName => "CallState",
-      --              Value        => "onhold");
 
       --  Move the call back to the queue
 
       Client.Send (Item   => Protocol_Strings.Park
-                   (Channel          => Channel_ID.To_String,
-                    Fallback_Channel => "",
+                   (Channel          => Channel,
+                    Fallback_Channel => Fallback_Channel,
+                    Timeout          => Timeout,
                     Action_ID        => Action_ID));
    end Park;
 
@@ -199,6 +161,17 @@ package body AMI.Action is
             Context   => "LocalSets",
             Action_ID => Action_ID));
    end Redirect;
+
+   procedure SIP_Peers (Client   : access Client_Type;
+                        Callback : in     AMI.Callback.Callback_Type
+                        := AMI.Callback.Null_Callback'Access) is
+      Action_ID : constant Action_ID_Type :=
+        Protocol_Strings.Next_Action_ID;
+   begin
+      AMI.Response.Subscribe (Action_ID, Callback);
+      Client.Send
+        (Item => Protocol_Strings.SIP_Peers (Action_ID => Action_ID));
+   end SIP_Peers;
 
 --  --  Takes two channels, and bridge the them together.
 --     procedure Bridge_Call (Call_Id_1 : in     Unbounded_String;

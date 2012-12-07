@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                                Model.Calls                                --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -22,18 +16,21 @@
 -------------------------------------------------------------------------------
 
 with Ada.Containers.Ordered_Maps;
+with Model.Agent;
 with Model.Call;
 with Model.Call_ID;
 with GNATCOLL.JSON;
 
 package Model.Calls is
    use GNATCOLL.JSON;
+   use Model.Agent;
    use Model.Call_ID;
    use Model.Call;
 
-   Call_Not_Found  : exception;
-   Duplicate_ID    : exception;
-   Null_Exception  : exception;
+   Call_Not_Found   : exception;
+   Duplicate_ID     : exception;
+   Null_Exception   : exception;
+   Already_Assigned : exception;
 
    type Call_Process_Type is not null access procedure (Call : in Call_Type);
 
@@ -42,6 +39,11 @@ package Model.Calls is
                                   Element_Type => Call_Type);
 
    protected type Protected_Call_List_Type is
+      procedure Assign (Agent  :  in     Agent_Type;
+                        Call   :  in out Call_Type);
+      --  Assign a given call to an agent. This call merely update the
+      --  Links between the two recordt types.
+
       function Contains (Call_ID : in Call_ID_Type) return Boolean;
       --  Detemine if a call is already represented in the call queue.
 
@@ -55,6 +57,9 @@ package Model.Calls is
       function Get (Call_ID : in Call_ID_Type) return Call_Type;
       --  Returns the call with the specified Call_ID, or Null_Call if the
       --  Call_ID is not present.
+
+      function Is_Empty return Boolean;
+      --  Returns true if the list contains no calls.
 
       procedure Insert (Call : in Call_Type);
       --  Places a call in the call_List or raises Duplicate_ID if the call is

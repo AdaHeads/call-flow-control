@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                             Model.Agent_ID                                --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -29,6 +23,11 @@ package body Model.Agent_ID is
       when Constraint_Error =>
          raise Invalid_ID with "Bad value: " & Agent_ID;
    end Create;
+
+   function ID (Agent_ID : in Agent_ID_Type) return Natural is
+   begin
+      return Agent_ID.ID;
+   end ID;
 
    function To_String (Agent_ID : in Agent_ID_Type) return String is
    begin

@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                              Handlers.Call                                --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -31,19 +25,18 @@ package Handlers.Call is
    function Originate
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
+   --  Places a new call from the agent to a given extension.
 
    function Hangup
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
-   --  TODO: Write comment
+   --  End a call in progress, regardless of state
 
-   function Hold
+   function Park
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
-   --  Put current call on hold.
-
-   function Park (Request : in AWS.Status.Data)
-                  return AWS.Response.Data;
+   --  Put current call on hold. Return No Content if there is no call
+   --  to be put on hold.
 
    function Pickup
      (Request : in AWS.Status.Data)

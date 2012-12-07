@@ -1,12 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                               AMI.Parser
-----
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -31,6 +24,10 @@ package AMI.Parser is
    type AMI_Key_Type is
      (ApplicationData,
       ReloadReason,
+      CommandId,
+      Command,
+      ResultCode,
+      Result,
       Registry_Count,
       Peer_Count,
       ModuleLoadStatus,
@@ -80,6 +77,16 @@ package AMI.Parser is
       Application,
       AppData,
       Oldname,
+      ObjectName,
+      ChanObjectType,
+      IPaddress,
+      IPport,
+      Dynamic,
+      Natsupport,
+      VideoSupport,
+      TextSupport,
+      ACL,
+      RealtimeDevice,
       Newname,
       Shutdown,
       Restart,

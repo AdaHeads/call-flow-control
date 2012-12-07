@@ -1,11 +1,4 @@
-
 -------------------------------------------------------------------------------
---                                                                           --
---                                  Alice                                    --
---                                                                           --
---                              My_Callbacks                                 --
---                                                                           --
---                                  BODY                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -122,7 +115,7 @@ package body My_Callbacks is
       System_Messages.Notify (Debug, "Core_Show_Channel_Complete");
       if Number_Of_Events /= Model.Channels.List.Length then
          System_Messages.Notify (Error, Package_Name & "." & Context & ": " &
-                                "Channel list inconsistant!");
+                                "Channel list inconsistent!");
       end if;
    end Core_Show_Channels_Complete;
 
@@ -134,23 +127,7 @@ package body My_Callbacks is
       --                          To_String (Packet.Header.Value));
    end Default_Callback;
 
-   --  Event: Dial
-   --  Privilege: call,all
-   --  SubEvent: Begin
-   --  Channel: SIP/softphone1-00000064
-   --  Destination: SIP/DesireZ-00000065
-   --  CallerIDNum: <unknown>
-   --  CallerIDName: <unknown>
-   --  UniqueID: 1354524869.100
-   --  DestUniqueID: 1354524871.101
-   --  Dialstring: DesireZ
-   ---    OR
-   --  Event: Dial
-   --  Privilege: call,all
-   --  SubEvent: End
-   --  Channel: SIP/softphone1-00000064
-   --  UniqueID: 1354524869.100
-   --  DialStatus: ANSWER
+   --  A dial event occurs when a peer actively dials an extension.
    procedure Dial (Packet : in Packet_Type) is
       Context : constant String := "Dial";
       Call    : Call_Type       := Null_Call;
@@ -329,75 +306,84 @@ package body My_Callbacks is
 
    end New_State;
 
-   --  Event: PeerStatus
-   --  Privilege: system,all
-   --  ChannelType: SIP
-   --  Peer: SIP/softphone1
-   --  PeerStatus: Registered
-   --  Address: 192.168.2.142
-   --  Port: 5060
+   ----------------
+   -- Peer_Entry --
+   ----------------
 
-   --  Event: PeerStatus
-   --  Privilege: system,all
-   --  ChannelType: SIP
-   --  Peer: SIP/softphone1
-   --  PeerStatus: Unregistered
+   procedure Peer_Entry (Packet : in Packet_Type) is
+      --  Context : constant String := "Peer_Entry";
+      Peer    : Peer_Type := Null_Peer;
+   begin
+      --  Fetch the peer's ID.
+      Peer.ID := Create
+        (Channel_Kind =>
+           To_String (Packet.Fields.Element (AMI.Parser.ChannelType)),
+         Peername     =>
+           To_String (Packet.Fields.Element (AMI.Parser.ObjectName)));
+
+      --  Set the agent field
+      Model.Agents.Get (Peer_ID => Peer.ID).Assign (Peer => Peer);
+
+      if To_String (Packet.Fields.Element (IPaddress)) /= "-none-" then
+         Peer.Address := Packet.Fields.Element (IPaddress);
+         Peer.Port := Packet.Fields.Element (IPport);
+
+         Peer.State := Unknown;
+      else
+         Peer.State := Unregistered;
+      end if;
+
+      --  Update the peer
+      Model.Peers.List.Put (Peer => Peer);
+
+      --  Let the clients know about the change. But only on "real" changes.
+      if Peer.Last_State /= Peer.State then
+         Notifications.Broadcast (JSON.Event.Agent_State_JSON_String (Peer));
+      end if;
+
+   end Peer_Entry;
+
+   procedure Peer_List_Complete (Packet : in Packet_Type) is
+      Context          : constant String :=
+                           "Peer_List_Complete";
+      Number_Of_Events : constant Natural :=
+        Natural'Value (To_String (Packet.Fields.Element (ListItems)));
+   begin
+      if Number_Of_Events /= Model.Peers.List.Count then
+         System_Messages.Notify (Error, Package_Name & "." & Context & ": " &
+                                   "peer list inconsistent! Got" &
+                                   Number_Of_Events'Img &
+                                " - expected" & Model.Peers.List.Count'Img);
+      end if;
+   end Peer_List_Complete;
+
+   -----------------
+   -- Peer_Status --
+   -----------------
+
    procedure Peer_Status (Packet : in Packet_Type) is
 
---        procedure Set_PhoneInfo
---          (Peer : in out Peer_Type;
---           Text : in     Unbounded_String);
---        --  Extracts the channel type, and the phonename,
---        --    and saves them in the peer. Format: ChannelType/phonename
---
---        ---------------------
---        --  Set_PhoneInfo  --
---        ---------------------
---
---        procedure Set_PhoneInfo
---          (Peer : in out Peer_Type;
---           Text : in     Unbounded_String)
---        is
---           Seperator_Index : Integer;
---        begin
---           if Ada.Strings.Unbounded.Count (Text, "/") > 0 then
---              Seperator_Index := Index (Text, "/");
---              Peer.ID := Tail (Source => Text,
---                               Count  => Length (Text) - Seperator_Index);
---              Peer.ChannelType := Head (Text, Seperator_Index - 1);
---              if To_String (Peer.ChannelType) /= "SIP" then
---                 System_Messages.Notify
---                   (Information, To_String (Peer.ChannelType));
---              end if;
---           else
---              System_Messages.Notify
---                (Debug,
---                 "Set_PhoneInfo:" &
---                   "This peer does not have a Channeltype: "
---                 & To_String (Text));
---           end if;
---        end Set_PhoneInfo;
-
+      Context : constant String := "Peer_Status";
       Peer    : Peer_Type := Null_Peer;
-      Peer_ID : constant Peer_ID_Type :=
-                  Create (To_String (Packet.Fields.Element (AMI.Parser.Peer)));
+
       Buffer  : Unbounded_String;
    begin
 
-      Peer.ID := Peer_ID;
+      Peer.ID := Create (To_String (Packet.Fields.Element (AMI.Parser.Peer)));
       --  Check if the peer is known
       if Model.Peers.List.Contains (Peer.ID) then
-         Peer := Model.Peers.List.Get (Peer_ID);
+         Peer := Model.Peers.List.Get (Peer.ID);
       else
-         System_Messages.Notify (Debug, "My_Callbacks: Peer list does not " &
-                                   "Contain " & Peer_ID.To_String);
+         System_Messages.Notify (Critical,
+                                 Package_Name & "." & Context &
+                                 ": got unknown peer " & Peer.ID.To_String);
       end if;
 
       --  Set the agent field
-      Model.Agents.Lookup (Peer_ID => Peer.ID).Assign (Peer => Peer);
+      Model.Agents.Get (Peer_ID => Peer.ID).Assign (Peer => Peer);
 
       --  Update fields
-      Peer.Last_Seen := Current_Time;
+      Peer.Seen; --  Bump timstamp.
       if Packet.Fields.Contains (AMI.Parser.Address) then
          Peer.Address := Packet.Fields.Element (Address);
       end if;
@@ -436,7 +422,7 @@ package body My_Callbacks is
       end if;
 
       --  Update the peer
-      Model.Peers.List.Insert (Peer => Peer);
+      Model.Peers.List.Put (Peer => Peer);
 
       --  Let the clients know about the change. But only on "real" changes.
       if Peer.Last_State /= Peer.State then
@@ -485,29 +471,5 @@ package body My_Callbacks is
                                 " seconds. Position:" & Position'Img & "," &
                                 " original position" & Original_Position'Img);
    end Queue_Abandon;
-
-   --  Lists the SIP peers. Returns a PeerEntry event for each
-   --  SIP peer, and a PeerlistComplete event upon completetion
-   --  Event: PeerEntry
-   --  Channeltype: SIP
-   --  ObjectName: softphone2
-   --  ChanObjectType: peer
-   --  IPaddress: 90.184.227.68
-   --  IPport: 59028
-   --  Dynamic: yes
-   --  Natsupport: yes
-   --  VideoSupport: no
-   --  TextSupport: no
-   --  ACL: no
-   --  Status: Unmonitored
-   --  RealtimeDevice: no
-   --
-   --  Event: PeerlistComplete
-   --  EventList: Complete
-   --  ListItems: 2
-   procedure SIPPeers is
-   begin
-      System_Messages.Notify (Debug, "SipPeers_Callback not implemented");
-   end SIPPeers;
 
 end My_Callbacks;

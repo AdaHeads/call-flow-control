@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                               AMI.Protocol                                --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -60,6 +54,8 @@ package body AMI.Generic_Protocol_Strings is
    Paused_String           : constant String := "Paused";
    Priority_String         : constant String := "Priority";
    Secret_String           : constant String := "Secret";
+   SIPPeers_String         : constant String := "SIPPeers";
+   Timeout_String          : constant String := "Timeout";
    Variable_String         : constant String := "Variable";
    Value_String            : constant String := "Value";
    Username_String         : constant String := "Username";
@@ -196,8 +192,10 @@ package body AMI.Generic_Protocol_Strings is
         Line_Termination_String;
    end Originate;
 
+   --  TODO: Add timeout
    function Park (Channel          : in String;
                   Fallback_Channel : in String;
+                  Timeout          : in Natural;
                   Action_ID        : in Action_ID_Type) return String is
    begin
       return
@@ -206,7 +204,9 @@ package body AMI.Generic_Protocol_Strings is
         Channel_String  & Separator & Channel &
                                       Line_Termination_String &
         Channel2_String & Separator & Fallback_Channel &
-                                      Line_Termination_String &
+        Line_Termination_String &
+        Timeout_String & Separator & Timeout'Img &
+        Line_Termination_String &
         Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Park;
@@ -291,5 +291,14 @@ package body AMI.Generic_Protocol_Strings is
         Asynchronous_Line (Action_ID) &
         Line_Termination_String;
    end Set_Var;
+
+   function SIP_Peers (Action_ID : in Action_ID_Type) return String is
+   begin
+      return
+        Action_String  & Separator & SIPPeers_String &
+        Line_Termination_String &
+        Asynchronous_Line (Action_ID) &
+        Line_Termination_String;
+   end SIP_Peers;
 
 end AMI.Generic_Protocol_Strings;

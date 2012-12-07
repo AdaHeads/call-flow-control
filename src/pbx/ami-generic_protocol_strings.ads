@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                              AMI.Protocol                                 --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -29,26 +23,26 @@ package AMI.Generic_Protocol_Strings is
 
    function Bridge (Channel1  : in String;
                     Channel2  : in String;
-                    Action_ID : in Action_ID_Type) return String with inline;
+                    Action_ID : in Action_ID_Type) return String;
 
    function CoreShowChannels (Action_ID : in Action_ID_Type) return String;
 
    function CoreSettings (Action_ID : in Action_ID_Type)
-                          return String with inline;
+                          return String;
 
    function Get_Var (Channel      : in String;
                      VariableName : in String;
                      Action_ID    : in Action_ID_Type)
-                     return String with inline;
+                     return String;
 
    function Hangup (Channel   : in String;
-                    Action_ID : in Action_ID_Type) return String with inline;
+                    Action_ID : in Action_ID_Type) return String;
 
    function Login (Username  : in String;
                    Secret    : in String;
-                   Action_ID : in Action_ID_Type) return String with inline;
+                   Action_ID : in Action_ID_Type) return String;
 
-   function Logoff (Action_ID : in Action_ID_Type) return String with inline;
+   function Logoff (Action_ID : in Action_ID_Type) return String;
 
    function Originate (Channel   : in String;
                        Context   : in String;
@@ -58,10 +52,11 @@ package AMI.Generic_Protocol_Strings is
 
    function Park (Channel          : in String;
                   Fallback_Channel : in String;
+                  Timeout          : in Natural;
                   Action_ID        : in Action_ID_Type)
                   return String with inline;
 
-   function Ping (Action_ID : in Action_ID_Type) return String with inline;
+   function Ping (Action_ID : in Action_ID_Type) return String;
 
    function QueuePause (DeviceName : in String;
                         State      : in Pause_States;
@@ -75,13 +70,15 @@ package AMI.Generic_Protocol_Strings is
                       Context   : in String;
                       Exten     : in String;
                       Priority  : in Integer := 1;
-                      Action_ID : in Action_ID_Type) return String with inline;
+                      Action_ID : in Action_ID_Type) return String;
 
    function Set_Var (Channel       : in String;
                      VariableName  : in String;
                      Value         : in String;
                      Action_ID     : in Action_ID_Type)
                      return String with inline;
+
+   function SIP_Peers (Action_ID : in Action_ID_Type) return String;
 
    function Next_Action_ID return Action_ID_Type;
 

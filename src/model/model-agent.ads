@@ -22,7 +22,6 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
-with Model.Call;
 with Model.Agent_ID;
 with Model.Peers;
 with Model.Peer_ID;
@@ -30,10 +29,8 @@ with Model.Peer_ID;
 package Model.Agent is
    use Ada.Strings.Unbounded;
    use Model.Agent_ID;
-   use Model.Call;
    use Model.Peers;
    use Model.Peer_ID;
-   use Model;
 
    type Agent_Type is tagged private;
 
@@ -41,15 +38,14 @@ package Model.Agent is
                     Peer_ID   : in Peer_ID_Type;
                     Extension : in String) return Agent_Type;
 
-   procedure Assign (Agent  :  in     Agent_Type;
-                     Call   :     out Call_Type);
-   --  Assign a given call to an agent. This call merely update the
-   --  Links between the two recordt types.
-
    procedure Assign (Agent : in     Agent_Type;
                      Peer  :    out Peer_Type);
 
+   function Context (Agent : in Agent_Type) return String;
+
    function Extension (Agent : in Agent_Type) return String;
+
+   function ID (Agent : in Agent_Type) return Agent_ID_Type;
 
    function Peer_ID (Agent : in Agent_Type) return Peer_ID_Type;
 
@@ -60,12 +56,16 @@ private
    type Agent_Type is tagged
       record
          ID        : Agent_ID_Type;
+         Name      : Unbounded_String;
+         Context   : Unbounded_String;
          Peer_ID   : Peer_ID_Type;
          Extension : Unbounded_String;
       end record;
 
    Null_Agent : constant Agent_Type :=
-     (ID        => Null_Agent_ID,
-      Peer_ID   => Null_Peer_ID,
-      Extension => Null_Unbounded_String);
+                  (ID        => Null_Agent_ID,
+                   Name      => Null_Unbounded_String,
+                   Context   => Null_Unbounded_String,
+                   Peer_ID   => Null_Peer_ID,
+                   Extension => Null_Unbounded_String);
 end Model.Agent;

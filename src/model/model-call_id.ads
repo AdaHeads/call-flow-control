@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                              Model.Call_ID                                --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -22,19 +16,21 @@
 -------------------------------------------------------------------------------
 
 package Model.Call_ID is
---  TODO: Make limited
 --  TODO: Associate with channel_id in some spectacular fashion.
+--        and perhaps make private.
    type Call_ID_Type is tagged record
       Timestamp : Integer;
       Sequence  : Integer;
    end record;
 
    Invalid_ID : exception;
+   --  Raised on parse errors.
 
    function Create (Item : in String) return Call_ID_Type;
-   --  Constructor.
+   --  Constructor. Raises Invalid_ID on parse errors.
 
    function To_String (Call_ID : in Call_ID_Type) return String;
+   --  Debug-friendly represenation of the call ID.
 
    function "<" (Left  : in Call_ID_Type;
                  Right : in Call_ID_Type) return Boolean;
@@ -45,4 +41,6 @@ package Model.Call_ID is
    Null_Call_ID : constant Call_ID_Type := (-1, -1);
 
    function Validate (Item : in String) return Boolean;
+   --  Non-exception-raising way of checking whether a string can be
+   --  converted into a Call_ID
 end Model.Call_ID;

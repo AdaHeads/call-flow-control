@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                   AMI                                     --
---                                                                           --
---                                 Action                                    --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -26,6 +20,7 @@ with Ada.Strings.Unbounded;
 with AMI.Callback;
 with AMI.Generic_Protocol_Strings;
 with AMI.Client;
+
 with Model.Call;
 with Model.Call_ID;
 with Model.Channel_ID;
@@ -62,6 +57,33 @@ package AMI.Action is
    --  Set Absolute Timeout (Priv : system, call, all)
    --  This will hangup a specified channel after a certain number of seconds,
    --  thereby actively ending the call.
+   --  Asterisk will acknowledge the timeout setting with a
+   --  Timeout Set message.
+
+   --  TOOD: Convert to function returning Action_Request
+   procedure Agent_Callback_Login
+     (Agent     : in String;
+      --  Agent ID of the agent to log in to the system,
+      --  as specified in agents.conf.
+      Extension : String;
+      --  Extension to use for callback.
+      Context   : String := "";
+      Acknlowledgde_Call : Boolean := False;
+      --  Set to true to require an acknowledgement (the agent pressing the
+      --  # key) to accept the call when agent is called back.
+      WrapupTime         : Duration := 0.0)
+   is null;
+   --  Sets an agent as logged in to the queue system in callback mode
+   --  Logs the specified agent in to the Asterisk queue system in callback
+   --  mode. When a call is distributed to this agent,
+   --  it will ring the specified extension.
+
+   procedure Agent_Logoff (Agent : in String;
+                           --  Agent ID of the agent to log off
+                           Soft  : in Boolean := False
+                           --  Set to true to not hangup existing calls.
+                          ) is null;
+   --  Logs off the specified agent for the queue system.
 
    procedure Bridge (Client   : access Client_Type;
                      ChannelA : in     String;
@@ -116,10 +138,16 @@ package AMI.Action is
                         := AMI.Callback.Null_Callback'Access);
    --  Originate Call (Priv: originate,all)
 
-   procedure Park (Client     : access Client_Type;
-                   Channel_ID : in     Channel_ID_Type;
-                   Callback   : in AMI.Callback.Callback_Type :=
-                     AMI.Callback.Null_Callback'Access);
+   procedure Park (Client           : access Client_Type;
+                   Channel          : in     String;
+                   --  Channel name to park
+                   Fallback_Channel : in     String;
+                   --  Channel to announce park info to
+                   --  (and return the call to if the parking times out).
+                   Timeout          : in Natural := 60000;
+                   --  Number of milliseconds to wait before callback.
+                   Callback         : in AMI.Callback.Callback_Type :=
+                     AMI.Callback.Login_Callback'Access);
    --  Park a channel (Priv: call,all).
 
    procedure Ping (Client   : access Client_Type;
@@ -154,7 +182,8 @@ package AMI.Action is
 
    procedure SIP_Peers (Client   : access Client_Type;
                         Callback : in     AMI.Callback.Callback_Type
-                        := AMI.Callback.Null_Callback'Access) is null;
+                        := AMI.Callback.Null_Callback'Access);
+   --  Lists the currently configured SIP peers along with their status.
 
    procedure Status (Client     : access Client_Type;
                      Channel_ID : in     Channel_ID_Type;

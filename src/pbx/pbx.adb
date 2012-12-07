@@ -44,6 +44,8 @@ package body PBX is
                   CoreShowChannelsComplete
                   => My_Callbacks.Core_Show_Channels_Complete'Access,
                   PeerStatus         => My_Callbacks.Peer_Status'Access,
+                  PeerEntry          => My_Callbacks.Peer_Entry'Access,
+                  PeerlistComplete   => My_Callbacks.Peer_List_Complete'Access,
                   Hangup             => My_Callbacks.Hangup'Access,
                   Join               => My_Callbacks.Join'Access,
                   Leave              => My_Callbacks.Leave'Access,
@@ -62,7 +64,11 @@ package body PBX is
       --  TODO: Replace this with a real wait for reply, and turn the
       --  Action into a synchronous call
       delay 0.2;
-         AMI.Action.Core_Show_Channels (Client => Client_Access);
+
+      --  Reload the state;
+      AMI.Action.Core_Show_Channels (Client => Client_Access);
+      AMI.Action.SIP_Peers (Client => Client_Access);
+
    end Authenticate;
 
    procedure Connect is

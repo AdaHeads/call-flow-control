@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                              Handlers.Call                                --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -49,34 +43,30 @@ package body Handlers.Call is
    use View.Call;
    use Model;
 
-   package Routines renames AMI.Action;
-
    --------------
    --  Hangup  --
    --------------
 
+   --  TODO: Add check for valid agent.
    function Hangup
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
       use Common;
-      use Model.Call_ID;
-      use Model.Call;
-      use Model.Calls;
 
-      Call_ID         : constant Call_ID_Type :=
-        Create (Item => Parameters (Request).Get ("Call_ID"));
-      Response_Object : Response.Object := Response.Factory (Request);
+      Requested_Call_ID : constant Call_ID.Call_ID_Type :=
+        Call_ID.Create (Item => Parameters (Request).Get ("Call_ID"));
+      Response_Object  : Response.Object := Response.Factory (Request);
    begin
       System_Messages.Notify
-        (Debug, "Hangup handle: call_id=" & Call_ID.To_String);
-      AMI.Action.Hangup (PBX.Client_Access, Call_ID);
+        (Debug, "Hangup handle: call_id=" & Requested_Call_ID.To_String);
+      AMI.Action.Hangup (PBX.Client_Access, Requested_Call_ID);
 
       Response_Object.HTTP_Status_Code (OK);
       Response_Object.Content (Status_Message
               ("Success", "Hangup completed"));
 
-      if not Calls.List.Contains (Call_ID => Call_ID) then
+      if not Calls.List.Contains (Call_ID => Requested_Call_ID) then
          Response_Object.HTTP_Status_Code (Not_Found);
          Response_Object.Content
               (Status_Message
@@ -87,69 +77,13 @@ package body Handlers.Call is
       return Response_Object.Build;
 
    exception
-      when others =>
-         --  ???? What exceptions are we expecting, and why do we not catch
-         --  exceptions in any of the other methods in this package?
-         System_Messages.Notify (Debug, "Exception in Hangup");
-         Response_Object.HTTP_Status_Code (Server_Error);
-         Response_Object.Content
-           (Status_Message
-              ("Exception", "Something went wrong"));
-
-         return Response_Object.Build;
-   end Hangup;
-
-   ------------
-   --  Hold  --
-   ------------
-
-   function Hold
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data
-   is
-      use Common;
-      use Model.Call;
-      use Model.Calls;
-      use Model.Call_ID;
-
-      Context         : constant String := "Hold";
-      Response_Object : Response.Object := Response.Factory (Request);
-      Call_ID         : constant Call_ID_Type :=
-                          Create
-                            (Item => Parameters (Request).Get ("call_id"));
-      Call            : Call_Type := Null_Call;
-
-   begin
-      Call := Model.Calls.List.Get (Call_ID);
-
-      if Call = Null_Call then
-         System_Messages.Notify
-           (Debug, Context & ": Call not found, ID: " & Call_ID.To_String);
-         Response_Object.HTTP_Status_Code (Bad_Request);
-         Response_Object.Content
-           (Status_Message
-              ("bad request", "No call available to put on hold"));
-         return Response_Object.Build;
-      end if;
-
-      System_Messages.Notify
-        (Debug, "Park: Action send, Call_ID => " & Call_ID.To_String);
-
-      Routines.Park (PBX.Client_Access, Call.Channel_ID);
-
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content
-        (Status_Message ("success", "request received"));
-
-      return Response_Object.Build;
-   exception
       when E : others =>
          System_Message.Critical.Response_Exception
            (Event           => E,
             Message         => "Hold failed",
             Response_Object => Response_Object);
          return Response_Object.Build;
-   end Hold;
+   end Hangup;
 
    ------------
    --  List  --
@@ -163,11 +97,24 @@ package body Handlers.Call is
 
       Response_Object : Response.Object := Response.Factory (Request);
    begin
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content
-        (To_JSON_String (Calls.List.To_JSON.Write));
+      --  Only return a call list when there actual calls in it.
+      if not Calls.List.Is_Empty then
+         Response_Object.HTTP_Status_Code (OK);
+         Response_Object.Content
+           (To_JSON_String (Calls.List.To_JSON.Write));
+      else
+         Response_Object.HTTP_Status_Code (No_Content);
+      end if;
 
       return Response_Object.Build;
+   exception
+      when E : others =>
+         System_Message.Critical.Response_Exception
+           (Event           => E,
+            Message         => "List failed",
+            Response_Object => Response_Object);
+         return Response_Object.Build;
+
    end List;
 
    -----------------
@@ -180,21 +127,21 @@ package body Handlers.Call is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data is
       use Common;
-      use Model.Agent;
 
-      Agent_ID_String  : constant String :=
-                          Parameters (Request).Get ("agent_id");
-      Extension_String : constant String :=
-                           Parameters (Request).Get ("extension");
-      Agent            : Model.Agent.Agent_Type := Null_Agent;
-      Response_Object  : Response.Object := Response.Factory (Request);
+      Agent_ID_String   : constant String :=
+                            Parameters (Request).Get ("agent_id");
+      Extension_String  : constant String :=
+                            Parameters (Request).Get ("extension");
+      Originating_Agent : Model.Agent.Agent_Type := Agent.Null_Agent;
+      Response_Object   : Response.Object := Response.Factory (Request);
 
    begin
-      Agent := Model.Agents.Get (Model.Agent_ID.Create (Agent_ID_String));
+      Originating_Agent :=
+        Model.Agents.Get (Model.Agent_ID.Create (Agent_ID_String));
 
       AMI.Action.Originate (Client    => PBX.Client_Access,
-                            Peer_ID   => Agent.Peer_ID,
-                            Context   => "LocalSets",
+                            Peer_ID   => Originating_Agent.Peer_ID,
+                            Context   => Originating_Agent.Context,
                             Extension => Extension_String,
                             Priority  => 1);
 
@@ -202,6 +149,14 @@ package body Handlers.Call is
       Response_Object.Content (Status_Message
                         ("status", "ok"));
       return Response_Object.Build;
+   exception
+      when E : others =>
+         System_Message.Critical.Response_Exception
+           (Event           => E,
+            Message         => "Originate failed",
+            Response_Object => Response_Object);
+         return Response_Object.Build;
+
    end Originate;
 
    ------------
@@ -210,22 +165,46 @@ package body Handlers.Call is
 
    function Park (Request : in AWS.Status.Data)
                   return AWS.Response.Data is
-      use Model.Call;
 
-      Response_Object  : Response.Object := Response.Factory (Request);
-      Call             : constant Call_Type :=
-                           Model.Calls.List.Get
-                             (Model.Call_ID.Create
-                                (Parameters (Request).Get ("call_id")));
+      Response_Object   : Response.Object      := Response.Factory (Request);
+      Requested_Call    : Model.Call.Call_Type       := Model.Call.Null_Call;
+      Call_ID_Parameter : constant String :=
+                            Parameters (Request).Get ("call_id");
    begin
-      AMI.Action.Park (Client      => PBX.Client_Access,
-                       Channel_ID  => Call.Channel_ID);
+      --  Fetch the call from the call list.
+      if not Calls.List.Contains (Call_ID.Create (Call_ID_Parameter)) then
+         Response_Object.HTTP_Status_Code (Not_Found);
+         Response_Object.Content (Status_Message ("status", "not found"));
+      else
+         --  Fetch the call
+         Requested_Call := Calls.List.Get
+           (Call_ID.Create (Call_ID_Parameter));
 
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content (Status_Message ("status", "ok"));
+         --  Park it
+         AMI.Action.Park (Client      => PBX.Client_Access,
+                          Channel  => Requested_Call.Channel_ID.To_String,
+                          Fallback_Channel => "");
+
+         --  And let the user know that everything went according to plan.
+         Response_Object.HTTP_Status_Code (OK);
+         Response_Object.Content (Status_Message ("status", "ok"));
+      end if;
 
       return Response_Object.Build;
+   exception
+      when Call_ID.Invalid_ID =>
+         Response_Object.HTTP_Status_Code (Bad_Request);
+         Response_Object.Content (Status_Message
+                                  ("status", "bad parameter ""Call_ID"""));
+         return Response_Object.Build;
+      when E : others =>
+         System_Message.Critical.Response_Exception
+           (Event           => E,
+            Message         => "Park failed",
+            Response_Object => Response_Object);
+         return Response_Object.Build;
    end Park;
+
    --------------
    --  Pickup  --
    --------------
@@ -302,7 +281,7 @@ package body Handlers.Call is
       else
          --  We're good - transfer the call.
          Agent := Model.Agents.Get (Agent_ID => Agent_ID);
-         Agent.Assign (Call => Requested_Call);
+         Calls.List.Assign (Agent, Requested_Call);
 
          --  Set the call state.
          Requested_Call.State := Speaking;
@@ -332,6 +311,14 @@ package body Handlers.Call is
               ("Uh-oh", "You don't seem to have a valid agent ID"));
          return Response_Object.Build;
 
+      when Calls.Already_Assigned =>
+         Response_Object.HTTP_Status_Code (Bad_Request);
+         Response_Object.Content
+           (Status_Message
+              ("Already assigned",
+               "Agent tried to claim call that is already assigned"));
+         return Response_Object.Build;
+
       when Peer_Not_Found =>
          Response_Object.HTTP_Status_Code (Bad_Request);
          Response_Object.Content
@@ -353,6 +340,8 @@ package body Handlers.Call is
    -------------
    --  Queue  --
    -------------
+   --  TODO, extend the call list so that it will be able to return only
+   --  inbound calls on this interface.
 
    function Queue
      (Request : in AWS.Status.Data)
@@ -360,19 +349,10 @@ package body Handlers.Call is
    is
       use Common;
 
-      Response_Object : Response.Object := Response.Factory (Request);
+      --  Response_Object : Response.Object := Response.Factory (Request);
    begin
-      --  ???? If we're ultimately just interested in getting a queue JSON
-      --  document, be it empty or filled with calls, why go through all the
-      --  hassle of getting a Call_List_Type.Vector? Do we need this here?
-      --  Why not just have a function in the Call_List package that return
-      --  the final JSON and use that directly in the Build_JSON_Response call?
 
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content
-        (Common.To_JSON_String (Calls.List.To_JSON.Write));
-
-      return Response_Object.Build;
+      return List (Request);
    end Queue;
 
 end Handlers.Call;

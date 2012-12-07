@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                                  Peers                                    --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -43,6 +37,17 @@ package Model.Peers is
 
    type SIP_Peer_Status_Type is (Unknown, Unregistered, Idle, Busy, Paused);
 
+   type Conditional_Time (Never : Boolean := True) is record
+      case Never is
+         when True =>
+            null;
+         when False =>
+            Time : Common.Time := Current_Time;
+      end case;
+   end record;
+
+   function To_String (Item : in Conditional_Time) return String;
+
    type Peer_Type is tagged
       record
          ID           : Peer_ID_Type; --  Was 'peer'
@@ -51,28 +56,17 @@ package Model.Peers is
          Last_State   : SIP_Peer_Status_Type := Unknown;
          Port         : Unbounded_String;
          Address      : Unbounded_String;
-         Last_Seen    : Time;
+         Last_Seen    : Conditional_Time;
       end record;
 
    function Available (Peer : in Peer_Type) return Boolean;
 
+   procedure Seen (Peer : out Peer_Type);
+   --  Bump the timestamp for the peer to the current_time.
+
    function To_JSON (Peer : in Peers.Peer_Type)
                      return GNATCOLL.JSON.JSON_Value;
    function To_String (Peer : in Peer_Type) return String;
-
-   --  function Image (Item : in Peer_Type) return String;
-   --     procedure Print_Peer (Peer : in Peer_Type);
-   --  procedure Insert_Peer (New_Item : in Peer_Type);
-   --  Inserts a new peer in the peer list, and overwrites existing peers with
-   --  the same key.
-
-   --  Debug
-   --  function List_As_String return String;
-   --  function Image return String;
-   --  function Get_Peer_By_ID (Agent_ID : in Unbounded_String)
-   --  return Peer_Type;
-   --  function Get_Peer_By_PhoneName (PhoneName : in String)
-   --                                 return Peer_Type;
 
    function Hash (Peer_ID : Peer_ID_Type) return Hash_Type;
 
@@ -86,14 +80,10 @@ package Model.Peers is
    --  function Get_Exten (Peer : in Unbounded_String) return Unbounded_String;
 
    protected type Peer_List_Type is
-      function Get (Peer_ID : in Peer_ID_Type) return Peer_Type;
       function Contains (Peer_ID : in Peer_ID_Type) return Boolean;
-      --        function Get_Peers_List return Peer_List_Storage.Map;
-      --        function Get_Peer_By_ID (Agent_ID : in Unbounded_String)
-      --                                 return Peer_Type;
-      --        function Get_Peer_By_PhoneName (PhoneName : in String)
-      --                                        return Peer_Type;
-      procedure Insert (Peer : in Peer_Type);
+      function Count return Natural;
+      function Get (Peer_ID : in Peer_ID_Type) return Peer_Type;
+      procedure Put (Peer : in Peer_Type);
       function To_String return String;
       function To_JSON return GNATCOLL.JSON.JSON_Value;
    private
@@ -103,6 +93,8 @@ package Model.Peers is
    Null_Peer : constant Peer_Type;
 
    List : Peer_List_Type;
+   --  Package-visisble singleton.
+
 private
       Null_Peer : constant Peer_Type :=
      (ID           => Null_Peer_ID,
@@ -111,5 +103,5 @@ private
       Last_State   => Unknown,
       Port         => Null_Unbounded_String,
       Address      => Null_Unbounded_String,
-      Last_Seen    => Current_Time);
+      Last_Seen    => (Never => True));
 end Model.Peers;
