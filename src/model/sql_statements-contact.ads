@@ -15,9 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with GNATCOLL.SQL.Exec;
+
 package SQL_Statements.Contact is
 
-      ------------------------------------------------------------------------
+   use GNATCOLL.SQL;
+   use GNATCOLL.SQL.Exec;
+
+   ------------------------------------------------------------------------
    --  Statement for all contacts associated with an organization. This  --
    --  does not include the organization itself.                         --
    ------------------------------------------------------------------------
@@ -41,12 +46,13 @@ package SQL_Statements.Contact is
 
    Contacts_Query : constant SQL_Query
      := SQL_Select (Fields =>
-                      DB.Contact.Id &                         --  0
-                      DB.Contact.Full_Name &                  --  1
-                      DB.Contact.Is_Human &                   --  2
-                      DB.Contact_Attributes.Json &            --  3
-                      DB.Contact_Attributes.Contact_Id &      --  4
-                      DB.Contact_Attributes.Organization_Id,  --  5
+                      DB.Contact.Id &                          --  0
+                      DB.Contact.Full_Name &                   --  1
+                      DB.Contact.Is_Human &                    --  2
+                      DB.Contact_Attributes.Json &             --  3
+                      DB.Contact_Attributes.Contact_Id &       --  4
+                      DB.Contact_Attributes.Organization_Id &  --  5
+                      DB.Organization.Id,                      --  6
                     From   => Contacts_Attributes_Left_Join,
                     Where  =>
                       DB.Organization.Id = Integer_Param (1)

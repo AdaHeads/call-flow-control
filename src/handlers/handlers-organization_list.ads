@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                        Handlers.Organization_List                         --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -37,7 +31,7 @@ private
 
    use My_Configuration;
 
-   type View_Type is (Basic, Full);
+   type View_Type is (Mini, Midi);
 
    procedure Bad_List_View_Parameter
      (Response_Object :    out Response.Object;
@@ -48,8 +42,8 @@ private
    function Get_List_View
      (Response_Object : in Response.Object)
       return View_Type;
-   --  Return Basic or Full. Note that if no "view" parameter is found, the
-   --  default is Basic.
+   --  Return Mini or Midi. Note that if no "view" parameter is found, the
+   --  default is Mini.
 
    package Cache is new Yolk.Cache.Discrete_Keys
      (Key_Type        => View_Type,

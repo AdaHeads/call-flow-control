@@ -37,13 +37,6 @@ package body Model.Attribute is
       Element           => Object,
       Cursor_To_Element => Contact_Attributes_Element);
 
-   procedure For_Each
-     (ID      : in Attribute_Identifier;
-      Process : not null access
-        procedure (Element : in Object));
-   --  For every contact attribute row with ID in the database, an attribute
-   --  object is handed to Process.
-
    ----------------------------------
    --  Contact_Attributes_Element  --
    ----------------------------------
@@ -87,24 +80,6 @@ package body Model.Attribute is
               JSON => JSON);
    end Create;
 
-   ----------------
-   --  For_Each  --
-   ----------------
-
-   procedure For_Each
-     (ID      : in Attribute_Identifier;
-      Process : not null access
-        procedure (Element : in Object))
-   is
-      Parameters : constant SQL_Parameters := (1 => +Integer (ID.CID),
-                                               2 => +Integer (ID.OID));
-   begin
-      Process_Select_Query
-        (Process_Element    => Process,
-         Prepared_Statement => SQL.Contact_Organization_Attributes_Prepared,
-         Query_Parameters   => Parameters);
-   end For_Each;
-
    -----------
    --  Get  --
    -----------
@@ -114,23 +89,30 @@ package body Model.Attribute is
       return Object
    is
       procedure Get_Element
-        (Contact_Attributes : in Object);
+        (Instance : in Object);
 
-      CA : Object;
+      Attribute : Object;
 
       -------------------
       --  Get_Element  --
       -------------------
 
       procedure Get_Element
-        (Contact_Attributes : in Object)
+        (Instance : in Object)
       is
       begin
-         CA := Contact_Attributes;
+         Attribute := Instance;
       end Get_Element;
+
+      Parameters : constant SQL_Parameters := (1 => +Integer (ID.CID),
+                                               2 => +Integer (ID.OID));
    begin
-      For_Each (ID, Get_Element'Access);
-      return CA;
+      Process_Select_Query
+        (Process_Element    => Get_Element'Access,
+         Prepared_Statement => SQL.Contact_Organization_Attributes_Prepared,
+         Query_Parameters   => Parameters);
+
+      return Attribute;
    end Get;
 
    ----------

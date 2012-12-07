@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
---                                                                           --
---                                  Alice                                    --
---                                                                           --
---                            View.Organization                              --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
+--                                                                           --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -23,17 +17,16 @@
 
 with Common;
 with GNATCOLL.JSON;
+with Model.Organization;
 with Model.Organizations;
 
 package View.Organization is
 
    use Common;
    use GNATCOLL.JSON;
-   use Model.Organizations;
 
    function To_JSON
-     (O    : in Organization_Object;
-      View : in Mode)
+     (O         : in Model.Organization.Organization_Object)
       return JSON_Value;
    --  Convert O to a JSON object.
    --
@@ -45,9 +38,8 @@ package View.Organization is
    --  name and all the organization contacts are added to the organization
    --  JSON document.
 
-   function To_JSON
-     (O    : in Organization_Object;
-      View : in Mode)
+   function To_JSON_String
+     (Instance  : in Model.Organization.Organization_Object)
       return JSON_String;
    --  Convert O to a JSON string.
    --
@@ -60,35 +52,13 @@ package View.Organization is
    --  JSON document.
 
    function To_JSON
-     (O    : in Organization_List_Object;
-      View : in Mode)
+     (Instance : in Model.Organizations.Organization_List_Object)
       return JSON_Value;
-   --  Convert O into a JSON object.
-   --
-   --  If View_Mode is View.Basic then the organization JSON documents are NOT
-   --  added to the final JSON object. This is handy in cases where only the
-   --  id, identifier and full name of the organization is needed.
-   --
-   --  If View_Mode is View.Full, then the organization id, identifier and full
-   --  name are added to the organization JSON document.
-   --
-   --  No matter the View_Mode, the organization contacts are NEVER added to
-   --  the final JSON object.
+   --  Convert Instance into a JSON object.
 
-   function To_JSON
-     (O    : in Organization_List_Object;
-      View : in Mode)
+   function To_JSON_String
+     (Instance : in Model.Organizations.Organization_List_Object)
       return JSON_String;
-   --  Convert O into a JSON string.
-   --
-   --  If View_Mode is View.Basic then the organization JSON documents are NOT
-   --  added to the final JSON string. This is handy in cases where only the
-   --  id, identifier and full name of the organization is needed.
-   --
-   --  If View_Mode is View.Full, then the organization id, identifier and full
-   --  name are added to the organization JSON document.
-   --
-   --  No matter the View_Mode, the organization contacts are NEVER added to
-   --  the final JSON string.
+   --  Convert Instance into a JSON string.
 
 end View.Organization;

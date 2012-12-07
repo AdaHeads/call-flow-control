@@ -15,8 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Model.Contact;
-with Model.Attribute;
+with Ada.Strings.Hash;
+with GNATCOLL.JSON;
 with SQL_Statements.Organization;
 with Storage;
 with View.Organization;
@@ -25,288 +25,191 @@ package body Model.Organizations is
 
    package SQL renames SQL_Statements.Organization;
 
-   function Organization_Element
+   function Organization_Midi
      (C : in out Database_Cursor'Class)
-      return Organization_Object;
-   --  Transforms the low level index based Cursor into the more readable
-   --  Organization_Object record. This one does NOT contain any contacts.
+      return Organization_List_Object;
 
-   procedure Fetch_Organization_Object is new Storage.Process_Select_Query
+   function Organization_Mini
+     (C : in out Database_Cursor'Class)
+      return Organization_List_Object;
+
+   procedure Process_Select_Query_Midi is new Storage.Process_Select_Query
      (Database_Cursor   => Database_Cursor,
-      Element           => Organization_Object,
-      Cursor_To_Element => Organization_Element);
+      Element           => Organization_List_Object,
+      Cursor_To_Element => Organization_Midi);
 
-   procedure For_Each
-     (Process : not null access
-        procedure (Element : in Organization_Object));
-   --  For every organization in the database, an Organization_Object is handed
-   --  to Process. These organization objects do NOT contain any contacts.
+   procedure Process_Select_Query_Mini is new Storage.Process_Select_Query
+     (Database_Cursor   => Database_Cursor,
+      Element           => Organization_List_Object,
+      Cursor_To_Element => Organization_Mini);
 
-   procedure For_Each_Full
-     (O_Id    : in Organization_Identifier;
-      Process : not null access
-        procedure (Element : in Organization_Object));
-   --  For every organization with O_Id in the database, an Organization_Object
-   --  is handed to Process. These organization objects do contain contacts.
+   ----------------------
+   --  Equal_Elements  --
+   ----------------------
 
-   --------------------
-   --  Contact_List  --
-   --------------------
+   function Equal_Elements
+     (Left, Right : in Model.Organization.Organization_Object)
+      return Boolean
+   is
+      use type Model.Organization.Organization_Object;
+   begin
+      return Left = Right;
+   end Equal_Elements;
 
-   function Contact_List
-     (Self : in Organization_Object)
-      return Model.Contacts.List
+   -----------------------
+   --  Equivalent_Keys  --
+   -----------------------
+
+   function Equivalent_Keys
+     (Left, Right : in Organization_Identifier)
+      return Boolean
    is
    begin
-      return Self.C_List;
-   end Contact_List;
+      return Left = Right;
+   end Equivalent_Keys;
 
    ----------------
    --  For_Each  --
    ----------------
 
    procedure For_Each
-     (Process : not null access
-        procedure (Element : in Organization_Object))
+     (Instance : in Organization_List_Object;
+      Process  : not null access procedure
+        (Element : in Model.Organization.Organization_Object))
    is
-      use GNATCOLL.SQL.Exec;
    begin
-      Fetch_Organization_Object
-        (Process_Element    => Process,
-         Prepared_Statement => SQL.Organizations_Prepared,
-         Query_Parameters   => No_Parameters);
+      for Elem of Instance.Organizations loop
+         Process (Elem);
+      end loop;
    end For_Each;
-
-   ----------------
-   --  For_Each  --
-   ----------------
-
-   procedure For_Each
-     (O_ID    : in Organization_Identifier;
-      Process : not null access
-        procedure (Element : in Organization_Object))
-   is
-      use GNATCOLL.SQL.Exec;
-
-      Parameters : constant SQL_Parameters := (1 => +Integer (O_ID));
-   begin
-      Fetch_Organization_Object
-        (Process_Element    => Process,
-         Prepared_Statement => SQL.Organization_Prepared,
-         Query_Parameters   => Parameters);
-   end For_Each;
-
-   ----------------
-   --  For_Each  --
-   ----------------
-
-   procedure For_Each
-     (Self    : in Organization_List_Object;
-      Process : not null access
-        procedure (Element : in Organization_Object))
-   is
-      pragma Unreferenced (Self);
-   begin
-      For_Each (Process);
-   end For_Each;
-
-   ---------------------
-   --  For_Each_Full  --
-   ---------------------
-
-   procedure For_Each_Full
-     (O_Id    : in Organization_Identifier;
-      Process : not null access
-        procedure (Element : in Organization_Object))
-   is
-      use GNATCOLL.SQL.Exec;
-
-      Parameters : constant SQL_Parameters := (1 => +Integer (O_Id));
-   begin
-      Fetch_Organization_Object
-        (Process_Element    => Process,
-         Prepared_Statement => SQL.Org_Contacts_Prepared,
-         Query_Parameters   => Parameters);
-   end For_Each_Full;
-
-   -----------------
-   --  Full_Name  --
-   -----------------
-
-   function Full_Name
-     (Self : in Organization_Object)
-      return String
-   is
-   begin
-      return To_String (Self.Full_Name);
-   end Full_Name;
 
    -----------
    --  Get  --
    -----------
 
    function Get
-     (ID : in Organization_Identifier)
-      return Organization_Object
+     (Mode : in Data_Mode := Mini)
+      return Organization_List_Object
    is
-      procedure Get_Element
-        (Organization : in Organization_Object);
+      use GNATCOLL.SQL.Exec;
+      use Model.Organization;
 
-      O : Organization_Object;
+      procedure Get_Element
+        (Instance : in Organization_List_Object);
+
+      O : Organization_List_Object;
 
       -------------------
       --  Get_Element  --
       -------------------
 
       procedure Get_Element
-        (Organization : in Organization_Object)
+        (Instance : in Organization_List_Object)
       is
       begin
-         O := Organization;
+         O := Instance;
       end Get_Element;
    begin
-      For_Each (ID, Get_Element'Access);
+      case Mode is
+         when Mini =>
+            Process_Select_Query_Mini
+              (Process_Element    => Get_Element'Access,
+               Prepared_Statement => SQL.Organizations_Mini_Prepared,
+               Query_Parameters   => No_Parameters);
+         when Midi =>
+            Process_Select_Query_Midi
+              (Process_Element    => Get_Element'Access,
+               Prepared_Statement => SQL.Organizations_Midi_Prepared,
+               Query_Parameters   => No_Parameters);
+      end case;
+
       return O;
    end Get;
 
    ----------------
-   --  Get_Full  --
+   --  Key_Hash  --
    ----------------
 
-   function Get_Full
-     (ID : in Organization_Identifier)
-      return Organization_Object
-   is
-      procedure Get_Element
-        (Organization : in Organization_Object);
-
-      O : Organization_Object;
-
-      -------------------
-      --  Get_Element  --
-      -------------------
-
-      procedure Get_Element
-        (Organization : in Organization_Object)
-      is
-      begin
-         O := Organization;
-      end Get_Element;
-   begin
-      For_Each_Full (ID, Get_Element'Access);
-      return O;
-   end Get_Full;
-
-   ----------
-   --  ID  --
-   ----------
-
-   function ID
-     (Self : in Organization_Object)
-      return Organization_Identifier
+   function Key_Hash
+     (Key : in Organization_Identifier)
+      return Ada.Containers.Hash_Type
    is
    begin
-      return Self.O_ID;
-   end ID;
+      return Ada.Strings.Hash (Organization_Identifier'Image (Key));
+   end Key_Hash;
 
-   ------------------
-   --  Identifier  --
-   ------------------
+   -------------------------
+   --  Organization_Midi  --
+   -------------------------
 
-   function Identifier
-     (Self : in Organization_Object)
-      return String
-   is
-   begin
-      return To_String (Self.Identifier);
-   end Identifier;
-
-   ------------
-   --  JSON  --
-   ------------
-
-   function JSON
-     (Self : in Organization_Object)
-      return GNATCOLL.JSON.JSON_Value
-   is
-   begin
-      return Self.JSON;
-   end JSON;
-
-   ----------------------------------
-   --  Organization_Element_Basic  --
-   ----------------------------------
-
-   function Organization_Element
+   function Organization_Midi
      (C : in out Database_Cursor'Class)
-      return Organization_Object
+      return Organization_List_Object
    is
-      use Common;
-      use Model.Contact;
-      --  use Model.Attributes;
-      use type GNATCOLL.SQL.Exec.Field_Index;
+      use Model.Organization;
 
-      Contact : Model.Contact.Object;
-
-      O : Organization_Object;
+      A_List : Organization_List_Object;
+      O : Model.Organization.Organization_Object;
    begin
-      O := (C_List     => Contacts.Null_List,
-            Full_Name  => U (C.Value (0)),
-            Identifier => U (C.Value (1)),
+      while C.Has_Row loop
+         O := Model.Organization.Create
+           (ID         => Organization_Identifier (C.Integer_Value (3)),
+            Full_Name  => C.Value (0),
+            Identifier => C.Value (1),
             JSON       => C.Json_Object_Value (2),
-            O_ID       => Organization_Identifier (C.Integer_Value (3)));
+            Mode       => Maxi);
 
-      if C.Field_Count > 4 then
-         --  This is a full organization, complete with contacts.
-         while C.Has_Row loop
-            if not C.Is_Null (4) then
-               Contact := Create
-                 (ID      => Contact_Identifier
-                    (C.Integer_Value (4, Default => 0)),
-                  Full_Name => C.Value (5),
-                  Is_Human  => C.Boolean_Value (6));
+         A_List.Organizations.Include
+           (Key      => O.ID,
+            New_Item => O);
 
-               Contact.Add_Attribute
-                 (Model.Attribute.Create (ID   => Attribute_Identifier'
-                            (CID => Contact.ID, OID => O.O_ID),
-                          JSON => C.Json_Object_Value (7)));
+         C.Next;
+      end loop;
 
-               O.C_List.Add_Contact (Contact => Contact,
-                                     ID      => O.O_ID);
+      return A_List;
+   end Organization_Midi;
 
-            end if;
+   ------------------------
+   --  Organization_Mini --
+   ------------------------
 
-            C.Next;
-         end loop;
-      end if;
+   function Organization_Mini
+     (C : in out Database_Cursor'Class)
+      return Organization_List_Object
+   is
+      use Model.Organization;
 
-      return O;
-   end Organization_Element;
+      A_List : Organization_List_Object;
+      O : Model.Organization.Organization_Object;
+   begin
+      while C.Has_Row loop
+         O := Model.Organization.Create
+           (ID         => Organization_Identifier (C.Integer_Value (2)),
+            Full_Name  => C.Value (0),
+            Identifier => C.Value (1),
+            JSON       => GNATCOLL.JSON.JSON_Null,
+            Mode       => Mini);
+
+         A_List.Organizations.Include
+           (Key      => O.ID,
+            New_Item => O);
+
+         C.Next;
+      end loop;
+
+      return A_List;
+   end Organization_Mini;
 
    ----------------------
    --  To_JSON_String  --
    ----------------------
 
    function To_JSON_String
-     (Self      : in out Organization_List_Object;
-      View_Mode : in     View.Mode)
+     (Self : in out Organization_List_Object)
       return Common.JSON_String
    is
    begin
-      return View.Organization.To_JSON (Self, View_Mode);
-   end To_JSON_String;
-
-   ----------------------
-   --  To_JSON_String  --
-   ----------------------
-
-   function To_JSON_String
-     (Self      : in Organization_Object;
-      View_Mode : in View.Mode)
-      return Common.JSON_String
-   is
-   begin
-      return View.Organization.To_JSON (Self, View_Mode);
+      return View.Organization.To_JSON_String (Self);
    end To_JSON_String;
 
 end Model.Organizations;
