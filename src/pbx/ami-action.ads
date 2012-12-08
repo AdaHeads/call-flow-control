@@ -21,7 +21,6 @@ with AMI.Callback;
 with AMI.Generic_Protocol_Strings;
 with AMI.Client;
 
-with Model.Call_ID;
 with Model.Channel_ID;
 with Model.Peer_ID;
 
@@ -29,7 +28,6 @@ package AMI.Action is
    use Ada.Strings.Unbounded;
    use AMI.Client;
    use AMI.Callback;
-   use Model.Call_ID;
    use Model.Channel_ID;
    use Model.Peer_ID;
 
@@ -95,7 +93,7 @@ package AMI.Action is
    --  8 : Ringing
 
    procedure Hangup (Client   : access Client_Type;
-                     Call_ID  : in     Call_ID_Type;
+                     Call_ID  : in     String;
                      Callback : in     AMI.Callback.Callback_Type
                      := AMI.Callback.Null_Callback'Access);
 

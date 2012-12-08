@@ -20,6 +20,7 @@ with AMI.Parser;
 
 package body AMI.Packet.Action is
    use Ada.Strings.Unbounded;
+   use AMI.Parser;
 
    function Create (Action : in Valid_Action;
                     Fields : in Field_List.List :=
@@ -47,6 +48,20 @@ package body AMI.Packet.Action is
               Response_Handler => On_Response);
    end Create;
 
+   function Hangup (Channel     : in String;
+                    On_Response : in Response_Handler_Type :=
+                      Null_Reponse_Handler'Access) return Request is
+      Fields : AMI.Packet.Field.Field_List.List :=
+                 AMI.Packet.Field.Field_List.Empty_List;
+   begin
+      Fields.Append (AMI.Packet.Field.Create (Key   => AMI.Parser.Channel,
+                                              Value => Channel));
+
+      return Action.Create (Action      => Hangup,
+                            Fields      => Fields,
+                            On_Response => On_Response);
+   end Hangup;
+
    function Ping (On_Response : in Response_Handler_Type :=
                     Null_Reponse_Handler'Access) return Request is
    begin
@@ -55,7 +70,6 @@ package body AMI.Packet.Action is
 
    function To_AMI_Packet
      (R : in Request) return AMI_Packet is
-      use AMI.Parser;
 
       Buffer : Unbounded_String :=
                  To_Unbounded_String

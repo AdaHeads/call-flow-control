@@ -22,6 +22,7 @@ with HTTP_Codes;
 with Response;
 
 with AMI.Action;
+with AMI.Packet.Action;
 with Model.Agent;
 with Model.Agents;
 with Model.Agent_ID;
@@ -34,6 +35,7 @@ with PBX;
 with Model.Call_ID;
 with System_Messages;
 with System_Message.Critical;
+with System_Message.Error;
 
 package body Handlers.Call is
    use AWS.Status;
@@ -54,33 +56,47 @@ package body Handlers.Call is
    is
       use Common;
 
-      Requested_Call_ID : constant Call_ID.Call_ID_Type :=
-        Call_ID.Create (Item => Parameters (Request).Get ("Call_ID"));
-      Response_Object  : Response.Object := Response.Factory (Request);
+      Requested_Call_ID : Call_ID.Call_ID_Type := Call_ID.Null_Call_ID;
+      Response_Object   : Response.Object := Response.Factory (Request);
    begin
-      System_Messages.Notify
-        (Debug, "Hangup handle: call_id=" & Requested_Call_ID.To_String);
-      AMI.Action.Hangup (PBX.Client_Access, Requested_Call_ID);
-
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content (Status_Message
-              ("Success", "Hangup completed"));
+      Requested_Call_ID :=
+        Call_ID.Create (Item => Parameters (Request).Get ("call_id"));
+      --  Will raise exception, if ID is not valid.
 
       if not Calls.List.Contains (Call_ID => Requested_Call_ID) then
          Response_Object.HTTP_Status_Code (Not_Found);
          Response_Object.Content
               (Status_Message
                  ("status", "not found"));
-         return Response_Object.Build;
+      else
+         declare
+            Hangup_Action : AMI.Packet.Action.Request :=
+                              AMI.Packet.Action.Hangup
+                                (Channel => Requested_Call_ID.To_String);
+         begin
+            --  AMI.Action.Hangup (PBX.Client_Access, Requested_Call_ID.To_String);
+            System_Messages.Notify (Debug, String (Hangup_Action.To_AMI_Packet));
+            PBX.Client.Send (Hangup_Action.To_AMI_Packet);
+         end;
+            Response_Object.HTTP_Status_Code (OK);
+            Response_Object.Content (Status_Message
+                                     ("Success", "Hangup completed"));
       end if;
 
       return Response_Object.Build;
 
    exception
+      when E : Call_ID.Invalid_ID =>
+         System_Message.Error.Bad_Call_ID_Key
+           (Event           => E,
+            Message         => "Could not lookup call",
+            Response_Object => Response_Object);
+         return Response_Object.Build;
+
       when E : others =>
          System_Message.Critical.Response_Exception
            (Event           => E,
-            Message         => "Hold failed",
+            Message         => "Hangup failed",
             Response_Object => Response_Object);
          return Response_Object.Build;
    end Hangup;
@@ -222,7 +238,7 @@ package body Handlers.Call is
       use Model.Call_ID;
       use Model.Peers;
 
-      Call_ID_Request   : constant String :=
+      Call_ID_String    : constant String :=
                             Parameters (Request).Get (Name => "call_id");
       Agent_ID_String   : constant String :=
                             Parameters (Request).Get (Name => "agent_id");
@@ -238,7 +254,7 @@ package body Handlers.Call is
 
       --  No call id is supplied, just give the client the next call.
       if Parameters (Request).Exist ("call_id") then
-         if not Model.Call_ID.Validate (Call_ID_Request) then
+         if not Model.Call_ID.Validate (Call_ID_String) then
             Response_Object.HTTP_Status_Code (Bad_Request);
             Response_Object.Content
               (Status_Message
@@ -256,9 +272,6 @@ package body Handlers.Call is
 
       --  If we did not claim a call at this point, return HTTP 204.
       if Requested_Call = Null_Call then
-         System_Messages.Notify
-           (Debug, "Get_Call: No Call to take with ID: " &
-              Requested_Call_ID.To_String);
          Response_Object.HTTP_Status_Code (No_Content);
          return Response_Object.Build;
       end if;

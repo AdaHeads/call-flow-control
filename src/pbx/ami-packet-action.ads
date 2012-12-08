@@ -20,7 +20,7 @@ with AMI.Packet.Field;
 package AMI.Packet.Action is
    use AMI.Packet.Field;
 
-   type Valid_Action is (Undefined, Login, Logoff, Ping);
+   type Valid_Action is (Undefined, Login, Logoff, Ping, Hangup);
 
    type Response_Handler_Type is not null access procedure;
 
@@ -34,6 +34,10 @@ package AMI.Packet.Action is
    procedure Add_Field (R : in out Request;
                         F : in     AMI.Packet.Field.Field);
    --  Add a custom field.
+
+   function Hangup (Channel     : in String;
+                    On_Response : in Response_Handler_Type :=
+                    Null_Reponse_Handler'Access) return Request;
 
    function Ping (On_Response : in Response_Handler_Type :=
                     Null_Reponse_Handler'Access) return Request;

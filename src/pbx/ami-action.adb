@@ -17,12 +17,9 @@
 
 with AMI.Response;
 with System_Messages;
-with Model.Calls;
-with Model.Call;
 
 package body AMI.Action is
    use System_Messages;
-   use Model.Call;
 
    procedure Bridge (Client   : access Client_Type;
                      ChannelA : in     String;
@@ -52,10 +49,9 @@ package body AMI.Action is
    end Core_Show_Channels;
 
    procedure Hangup (Client   : access Client_Type;
-                     Call_ID  : in     Call_ID_Type;
+                     Call_ID  : in     String;
                      Callback : in     AMI.Callback.Callback_Type
                        := AMI.Callback.Null_Callback'Access) is
-      Call      : constant Call_Type := Model.Calls.List.Get (Call_ID);
       Action_ID : constant Action_ID_Type :=
                     Protocol_Strings.Next_Action_ID;
    begin
@@ -63,9 +59,8 @@ package body AMI.Action is
       Client.Send
         (Item   =>
            Protocol_Strings.Hangup
-           (Call.Channel_ID.To_String, Action_ID));
+           (Call_ID, Action_ID));
 
-      System_Messages.Notify (Debug, "The Hangup routine is done.");
    end Hangup;
 
    procedure Login
