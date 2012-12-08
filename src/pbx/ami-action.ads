@@ -21,31 +21,15 @@ with AMI.Callback;
 with AMI.Generic_Protocol_Strings;
 with AMI.Client;
 
-with Model.Call;
 with Model.Call_ID;
 with Model.Channel_ID;
 with Model.Peer_ID;
 
 package AMI.Action is
-
-   type Request_Type is (Login, Logoff, Ping);
-   Max_Number_Of_Fields : constant Natural := 64;
-
-   type Response_Handler_Type is not null access procedure;
-   type Request_Field_List is array
-     (1 .. Max_Number_Of_Fields) of access String;
-
-   type Action_Request is abstract tagged record
-      Request : Request_Type;
-
-      Response_Handler : Response_Handler_Type;
-   end record;
-
    use Ada.Strings.Unbounded;
    use AMI.Client;
    use AMI.Callback;
    use Model.Call_ID;
-   use Model.Call;
    use Model.Channel_ID;
    use Model.Peer_ID;
 

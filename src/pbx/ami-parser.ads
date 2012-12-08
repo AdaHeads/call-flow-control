@@ -22,7 +22,8 @@ package AMI.Parser is
    use Ada.Strings.Unbounded;
 
    type AMI_Key_Type is
-     (ApplicationData,
+     (Async,
+      ApplicationData,
       ReloadReason,
       CommandId,
       Command,

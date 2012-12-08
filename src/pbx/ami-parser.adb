@@ -1,12 +1,6 @@
 
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                               Event_Parser                                --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --

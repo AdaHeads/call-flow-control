@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                                 Routines                                  --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -24,9 +18,11 @@
 with AMI.Response;
 with System_Messages;
 with Model.Calls;
+with Model.Call;
 
 package body AMI.Action is
    use System_Messages;
+   use Model.Call;
 
    procedure Bridge (Client   : access Client_Type;
                      ChannelA : in     String;
