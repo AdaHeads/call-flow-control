@@ -16,87 +16,9 @@
 -------------------------------------------------------------------------------
 
 with Database;
-with GNATCOLL.SQL.Exec;
 
 package SQL_Statements is
 
-   use GNATCOLL.SQL;
-   use GNATCOLL.SQL.Exec;
-
    package DB renames Database;
-
-   --------------------------------------------------------------------
-   --  Statement for fetching a basic organization without contacts  --
-   --------------------------------------------------------------------
-
-   Organizations_Query : constant SQL_Query
-     := SQL_Select (Fields =>
-                      DB.Organization.Full_Name &   --  0
-                      DB.Organization.Identifier &  --  1
-                      DB.Organization.Json &        --  2
-                      DB.Organization.Id,           --  3
-                    From => DB.Organization);
-
-   Organization_Query : constant SQL_Query
-     := Where_And (Organizations_Query,
-                   DB.Organization.Id = Integer_Param (1));
-
-   Organization_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Organization_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "organization_basic");
-
-   Organizations_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Organizations_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "organizations_basic");
-
-   --------------------------------------------------------------------------
-   --  Statement for fetching an organization and all associated contacts  --
-   --------------------------------------------------------------------------
-
-   Org_Contacts_Join_1 : constant SQL_Left_Join_Table
-     := Left_Join (Full    => DB.Organization,
-                   Partial => DB.Organization_Contacts,
-                   On      =>
-                     DB.Organization_Contacts.FK (DB.Organization));
-
-   Org_Contacts_Join_2 : constant SQL_Left_Join_Table
-     := Left_Join (Full    => Org_Contacts_Join_1,
-                   Partial => DB.Contact,
-                   On      => DB.Organization_Contacts.FK (DB.Contact));
-
-   Org_Contacts_Attributes_Left_Join : constant SQL_Left_Join_Table
-     := Left_Join (Full    => Org_Contacts_Join_2,
-                   Partial => DB.Contact_Attributes,
-                   On      =>
-                     DB.Contact_Attributes.FK (DB.Contact));
-
-   Org_Contacts_Query : constant SQL_Query
-     := SQL_Select (Fields =>
-                      DB.Organization.Full_Name &   --  0
-                      DB.Organization.Identifier &  --  1
-                      DB.Organization.Json &        --  2
-                      DB.Organization.Id &          --  3
-                      DB.Contact.Id &               --  4
-                      DB.Contact.Full_Name &        --  5
-                      DB.Contact.Is_Human &         --  6
-                      DB.Contact_Attributes.Json,   --  7
-                    From   => Org_Contacts_Attributes_Left_Join,
-                    Where  =>
-                      DB.Organization.Id = Integer_Param (1)
-                    and
-                      (DB.Contact_Attributes.Organization_Id =
-                                                       Integer_Param (1)
-                       or Is_Null
-                         (DB.Contact_Attributes.Organization_Id)));
-
-   Org_Contacts_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Org_Contacts_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "contacts");
 
 end SQL_Statements;

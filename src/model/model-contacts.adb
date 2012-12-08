@@ -28,16 +28,15 @@ package body Model.Contacts is
 
    package SQL renames SQL_Statements.Contact;
 
-   function Contact_Element
+   function Contact_List
      (Cursor : in out Database_Cursor'Class)
-      return Model.Contact.Object;
-   --  Transforms the low level index based Cursor into ONE contact Object
-   --  record.
+      return List;
+   --  Transforms the low level index based Cursor into a List object.
 
-   procedure Fetch_Contact_Objects is new Storage.Process_Select_Query
+   procedure Process_Select_Query is new Storage.Process_Select_Query
      (Database_Cursor   => Database_Cursor,
-      Element           => Model.Contact.Object,
-      Cursor_To_Element => Contact_Element);
+      Element           => List,
+      Cursor_To_Element => Contact_List);
 
    -------------------
    --  Add_Contact  --
@@ -57,36 +56,45 @@ package body Model.Contacts is
    end Add_Contact;
 
    -----------------------
-   --  Contact_Element  --
+   --  Contact_List  --
    -----------------------
 
-   function Contact_Element
+   function Contact_List
      (Cursor : in out Database_Cursor'Class)
-      return Model.Contact.Object
+      return List
    is
       use Model.Contact;
 
       A_Id    : Attribute_Identifier;
+      A_List  : List;
       Contact : Object;
    begin
-      Contact := Create
-        (ID        => Contact_Identifier
-           (Cursor.Integer_Value (0, Default => 0)),
-         Full_Name => Cursor.Value (1),
-         Is_Human  => Cursor.Boolean_Value (2));
+      while Cursor.Has_Row loop
+         Contact := Create
+           (ID        => Contact_Identifier
+              (Cursor.Integer_Value (0)),
+            Full_Name => Cursor.Value (1),
+            Is_Human  => Cursor.Boolean_Value (2));
 
-      if not Cursor.Is_Null (3) then
-         A_Id := (Contact_Identifier (Cursor.Integer_Value (4, Default => 0)),
-                  Organization_Identifier
-                    (Cursor.Integer_Value (5, Default => 0)));
+         if not Cursor.Is_Null (3) then
+            A_Id := (Contact_Identifier (Cursor.Integer_Value (4)),
+                     Organization_Identifier
+                       (Cursor.Integer_Value (5)));
 
-         Contact.Add_Attribute
-           (Model.Attribute.Create (ID   => A_Id,
-                                    JSON => Cursor.Json_Object_Value (3)));
-      end if;
+            Contact.Add_Attribute
+              (Model.Attribute.Create (ID   => A_Id,
+                                       JSON => Cursor.Json_Object_Value (3)));
+         end if;
 
-      return Contact;
-   end Contact_Element;
+         A_List.Add_Contact
+           (Contact => Contact,
+            ID      => Organization_Identifier (Cursor.Integer_Value (6)));
+
+         Cursor.Next;
+      end loop;
+
+      return A_List;
+   end Contact_List;
 
    ----------------------
    --  Equal_Elements  --
@@ -127,22 +135,6 @@ package body Model.Contacts is
       end loop;
    end For_Each;
 
-   ----------------
-   --  For_Each  --
-   ----------------
-
-   procedure For_Each
-     (ID      : in Organization_Identifier;
-      Process : not null access procedure (Element : in Model.Contact.Object))
-   is
-      Parameters : constant SQL_Parameters := (1 => +Integer (ID));
-   begin
-      Fetch_Contact_Objects
-        (Process_Element    => Process,
-         Prepared_Statement => SQL.Contacts_Prepared,
-         Query_Parameters   => Parameters);
-   end For_Each;
-
    -----------
    --  Get  --
    -----------
@@ -152,26 +144,29 @@ package body Model.Contacts is
       return List
    is
       procedure Get_Element
-        (Contact : in Model.Contact.Object);
+        (Instance : in List);
 
-      O : List;
+      Contacts : List;
 
       -------------------
       --  Get_Element  --
       -------------------
 
       procedure Get_Element
-        (Contact : in Model.Contact.Object)
+        (Instance : in List)
       is
       begin
-         O.Contacts.Include
-           (Key      => Organization_Contact_Identifier'
-              (CID => Contact.ID, OID => ID),
-            New_Item => Contact);
+         Contacts := Instance;
       end Get_Element;
+
+      Parameters : constant SQL_Parameters := (1 => +Integer (ID));
    begin
-      For_Each (ID, Get_Element'Access);
-      return O;
+      Process_Select_Query
+        (Process_Element    => Get_Element'Access,
+         Prepared_Statement => SQL.Contacts_Prepared,
+         Query_Parameters   => Parameters);
+
+      return Contacts;
    end Get;
 
    ----------------

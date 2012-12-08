@@ -33,22 +33,13 @@ package Model.Contacts is
    function Get
      (ID : in Organization_Identifier)
       return List;
-   --  Get a list of contacts that belong to the ID organization. This call
-   --  is more expensive than just calling For_Each (ID....), so if you just
-   --  need to list the contacts some memory and CPU cycles can be saved by
-   --  using the For_Each (ID....) call instead.
+   --  Get a list of contacts that belong to the ID organization.
 
    procedure For_Each
      (Instance : in List;
       Process  : not null access procedure
         (Element : in Model.Contact.Object));
    --  Hands a contact object to process for every contact found in Instance.
-
-   procedure For_Each
-     (ID      : in Organization_Identifier;
-      Process : not null access procedure (Element : in Model.Contact.Object));
-   --  Hands a contact object to Process for every contact in the database that
-   --  belongs to ID.
 
    function To_JSON_Array
      (Instance : in List)

@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                        Handlers.Organization_List                         --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -25,7 +19,6 @@ with AWS.Status;
 with HTTP_Codes;
 with Model.Organizations;
 with System_Message.Error;
-with View;
 
 package body Handlers.Organization_List is
 
@@ -39,7 +32,7 @@ package body Handlers.Organization_List is
    is
       use System_Message;
    begin
-      Error.Bad_List_Kind (Message         => Message,
+      Error.Bad_Organization_List_View (Message         => Message,
                            Response_Object => Response_Object);
    end Bad_List_View_Parameter;
 
@@ -69,11 +62,13 @@ package body Handlers.Organization_List is
       OL : Organization_List_Object;
    begin
       case Get_List_View (Response_Object) is
-         when Basic =>
-            JS := OL.To_JSON_String (View.Basic);
-         when Full =>
-            JS := OL.To_JSON_String (View.Full);
+         when Mini =>
+            OL := Get (Mini);
+         when Midi =>
+            OL := Get (Midi);
       end case;
+
+      JS := OL.To_JSON_String;
 
       if JS /= Null_JSON_String then
          Response_Object.Content (JS);
@@ -95,7 +90,7 @@ package body Handlers.Organization_List is
       use AWS.Status;
    begin
       if Parameters (Response_Object.Status_Data).Count = 0 then
-         return Basic;
+         return Mini;
       end if;
 
       return View_Type'Value

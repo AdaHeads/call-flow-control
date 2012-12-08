@@ -15,7 +15,12 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with GNATCOLL.SQL.Exec;
+
 package SQL_Statements.Attribute is
+
+   use GNATCOLL.SQL;
+   use GNATCOLL.SQL.Exec;
 
    --------------------------------------------------------------------
    --  Prepared statement for fetching the attributes of a contact.  --

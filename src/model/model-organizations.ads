@@ -15,127 +15,64 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded;
+with Ada.Containers.Hashed_Maps;
 with Common;
-with GNATCOLL.JSON;
---  with Model.Contact;
-with Model.Contacts;
-with View;
+with Model.Organization;
 
 package Model.Organizations is
 
-   type Organization_Object is tagged private;
-   Null_Organization : constant Organization_Object;
-
    type Organization_List_Object is tagged private;
+   Null_List : constant Organization_List_Object;
 
-   function Contact_List
-     (Self : in Organization_Object)
-      return Model.Contacts.List;
-   --  Return all the contacts associated with the Self organization.
-
-   procedure For_Each
-     (Self    : in Organization_List_Object;
-      Process : not null access
-        procedure (Element : in Organization_Object));
-   --  For every organization in the database, an Organization_Object is handed
-   --  to process. These objects do NOT contain any contacts.
+   type Data_Mode is (Mini, Midi);
+   --  Mini: As plain as possible. No JSON document, no contacts.
+   --  Midi: The organization JSON document is also fetched.
 
    procedure For_Each
-     (O_ID    : in Organization_Identifier;
-      Process : not null access
-        procedure (Element : in Organization_Object));
-   --  For every organization with O_ID in the database, an Organization_Object
-   --  is handed to Process. These organization objects do NOT contain any
-   --  contacts.
-
-   function Full_Name
-     (Self : in Organization_Object)
-      return String;
-   --  Return the full name of the Self organization.
+     (Instance : in Organization_List_Object;
+      Process  : not null access procedure
+        (Element : in Model.Organization.Organization_Object));
+   --  Hands a contact object to process for every contact found in Instance.
 
    function Get
-     (ID : in Organization_Identifier)
-      return Organization_Object;
-   --  Get the organization that match ID. This does NOT fetch the contacts
-   --  that belong to the O_ID organization.
-
-   function Get_Full
-     (ID : in Organization_Identifier)
-      return Organization_Object;
-   --  Get the organization that match ID. This object contains ALL the
-   --  contacts that are associated with the O_ID organization.
-
-   function ID
-     (Self : in Organization_Object)
-      return Organization_Identifier;
-   --  Return the Organization_ID for the Self organization.
-
-   function Identifier
-     (Self : in Organization_Object)
-      return String;
-   --  Return the unique string identifier for the Self organization.
-
-   function JSON
-     (Self : in Organization_Object)
-      return GNATCOLL.JSON.JSON_Value;
-   --  Return the JSON document for the Self organization.
+     (Mode : in Data_Mode := Mini)
+      return Organization_List_Object;
+   --  Get a list of all organizations found in the database. The organization
+   --  objects in the list does not contain any contacts.
 
    function To_JSON_String
-     (Self      : in out Organization_List_Object;
-      View_Mode : in     View.Mode)
+     (Self : in out Organization_List_Object)
       return Common.JSON_String;
    --  Convert Self into a JSON string. This call is convenient wrapper
    --  for the View.Organization.To_JSON function.
-   --
-   --  If View_Mode is View.Basic then the organization JSON documents are NOT
-   --  added to the final JSON_String. This is handy in cases where only the
-   --  id, identifier and full name of the organization is needed.
-   --
-   --  If View_Mode is View.Full, then the organization id, identifier and full
-   --  name are added to the organization JSON document.
-   --
-   --  No matter the View_Mode, the organization contacts are NEVER added to
-   --  the final JSON_String.
-
-   function To_JSON_String
-     (Self      : in Organization_Object;
-      View_Mode : in View.Mode)
-      return Common.JSON_String;
-   --  Convert Organization to a JSON string. This call is convenient wrapper
-   --  for the View.Organization.To_JSON function.
-   --
-   --  If View_Mode is View.Basic then the organization JSON document is NOT
-   --  added to the final JSON_String. This is handy in cases where only the
-   --  id, identifier and full name of the organization is needed.
-   --
-   --  If View_Mode is View.Full, then the organization id, identifier, full
-   --  name and all the organization contacts are added to the organization
-   --  JSON document.
-   --
-   --  Note that contacts only exist in Self if Get_Full has been called on the
-   --  object.
 
 private
 
-   use Ada.Strings.Unbounded;
+   function Equal_Elements
+     (Left, Right : in Model.Organization.Organization_Object)
+      return Boolean;
 
-   type Organization_Object is tagged
+   function Equivalent_Keys
+     (Left, Right : in Organization_Identifier)
+      return Boolean;
+
+   function Key_Hash
+     (Key : in Organization_Identifier)
+      return Ada.Containers.Hash_Type;
+
+   package Organization_Map is new Ada.Containers.Hashed_Maps
+     (Key_Type        => Organization_Identifier,
+      Element_Type    => Model.Organization.Organization_Object,
+      Hash            => Key_Hash,
+      Equivalent_Keys => Equivalent_Keys,
+      "="             => Equal_Elements);
+
+   type Organization_List_Object is tagged
       record
-         C_List     : Contacts.List;
-         Full_Name  : Unbounded_String := Null_Unbounded_String;
-         Identifier : Unbounded_String := Null_Unbounded_String;
-         JSON       : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.JSON_Null;
-         O_ID       : Organization_Identifier := 0;
+         Organizations : Organization_Map.Map := Organization_Map.Empty_Map;
       end record;
 
-   Null_Organization : constant Organization_Object
-     := (C_List     => Contacts.Null_List,
-         Full_Name  => Null_Unbounded_String,
-         Identifier => Null_Unbounded_String,
-         JSON       => GNATCOLL.JSON.JSON_Null,
-         O_ID       => 0);
-
-   type Organization_List_Object is tagged null record;
+   Null_List : constant Organization_List_Object :=
+                 (Organizations => Organization_Map.Empty_Map);
 
 end Model.Organizations;

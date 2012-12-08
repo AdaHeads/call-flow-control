@@ -37,19 +37,6 @@ package body Model.Contact is
       Element           => Object,
       Cursor_To_Element => Contact_Element);
 
-   procedure For_Each
-     (ID      : in Contact_Identifier;
-      Process : not null access procedure (Element : in Object));
-   --  For every contact with ID in the database, a contact Object is handed to
-   --  Process.
-
-   procedure For_Each
-     (CID     : in Contact_Identifier;
-      OID     : in Organization_Identifier;
-      Process : not null access procedure (Element : in Object));
-   --  Hands a contact Object to Process for every contact in the database that
-   --  match CID and belongs to OID.
-
    ---------------------
    --  Add_Attribute  --
    ---------------------
@@ -132,40 +119,6 @@ package body Model.Contact is
               Is_Human   => Is_Human);
    end Create;
 
-   ----------------
-   --  For_Each  --
-   ----------------
-
-   procedure For_Each
-     (ID      : in Contact_Identifier;
-      Process : not null access procedure (Element : in Object))
-   is
-      Parameters : constant SQL_Parameters := (1 => +Integer (ID));
-   begin
-      Process_Select_Query
-        (Process_Element    => Process,
-         Prepared_Statement => SQL.Contact_Full_Prepared,
-         Query_Parameters   => Parameters);
-   end For_Each;
-
-   ----------------
-   --  For_Each  --
-   ----------------
-
-   procedure For_Each
-     (CID     : in Contact_Identifier;
-      OID     : in Organization_Identifier;
-      Process : not null access procedure (Element : in Object))
-   is
-      Parameters : constant SQL_Parameters := (1 => +Integer (CID),
-                                               2 => +Integer (OID));
-   begin
-      Process_Select_Query
-        (Process_Element    => Process,
-         Prepared_Statement => SQL.Contact_Org_Specified_Prepared,
-         Query_Parameters   => Parameters);
-   end For_Each;
-
    -----------------
    --  Full_Name  --
    -----------------
@@ -187,23 +140,29 @@ package body Model.Contact is
       return Object
    is
       procedure Get_Element
-        (Contact : in Object);
+        (Instance : in Object);
 
-      C : Object := Null_Object;
+      Contact : Object := Null_Object;
 
       -------------------
       --  Get_Element  --
       -------------------
 
       procedure Get_Element
-        (Contact : in Object)
+        (Instance : in Object)
       is
       begin
-         C := Contact;
+         Contact := Instance;
       end Get_Element;
+
+      Parameters : constant SQL_Parameters := (1 => +Integer (ID));
    begin
-      For_Each (ID, Get_Element'Access);
-      return C;
+      Process_Select_Query
+        (Process_Element    => Get_Element'Access,
+         Prepared_Statement => SQL.Contact_Full_Prepared,
+         Query_Parameters   => Parameters);
+
+      return Contact;
    end Get;
 
    -----------
@@ -215,23 +174,30 @@ package body Model.Contact is
       return Object
    is
       procedure Get_Element
-        (Contact : in Object);
+        (Instance : in Object);
 
-      C : Object := Null_Object;
+      Contact : Object := Null_Object;
 
       -------------------
       --  Get_Element  --
       -------------------
 
       procedure Get_Element
-        (Contact : in Object)
+        (Instance : in Object)
       is
       begin
-         C := Contact;
+         Contact := Instance;
       end Get_Element;
+
+      Parameters : constant SQL_Parameters := (1 => +Integer (ID.CID),
+                                               2 => +Integer (ID.OID));
    begin
-      For_Each (ID.CID, ID.OID, Get_Element'Access);
-      return C;
+      Process_Select_Query
+        (Process_Element    => Get_Element'Access,
+         Prepared_Statement => SQL.Contact_Org_Specified_Prepared,
+         Query_Parameters   => Parameters);
+
+      return Contact;
    end Get;
 
    ----------
