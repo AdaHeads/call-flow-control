@@ -472,4 +472,43 @@ package body My_Callbacks is
                                 " original position" & Original_Position'Img);
    end Queue_Abandon;
 
+   ---------------------------------------------------------------------------
+   --  AGI:
+
+   --  Event: AsyncAGI
+   --  Privilege: agi,all
+   --  SubEvent: Start
+   --  Channel: SIP/0000FFFF0001-00000000
+   --  Env: agi_request%3A%20async%0A \
+   --       agi_channel%3A%20SIP%2F0000FFFF0001-00000000%0A \
+   --       agi_language%3A%20en%0A \
+   --       agi_type%3A%20SIP%0Aagi_uniqueid%3A%201285219743.0%0A \
+   --       agi_version%3A%201.8.0-beta5%0Aagi_callerid%3A%2012565551111%0A \
+   --       agi_calleridname%3A%20Julie%20Bryant%0Aagi_callingpres%3A%200%0A \
+   --       agi_callingani2%3A%200%0Aagi_callington%3A%200%0A \
+   --       agi_callingtns%3A%200%0A \
+   --       agi_dnid%3A%20111%0Aagi_rdnis%3A%20unknown%0A \
+   --       agi_context%3A%20LocalSets%0A \
+   --       agi_extension%3A%20111%0Aagi_priority%3A%201%0A \
+   --       agi_enhanced%3A%200.0%0A \
+   --       agi_accountcode%3A%20%0Aagi_threadid%3A%20-1339524208%0A%0A
+
+   procedure Initiate_AGI_Session (Packet : in Packet_Type) is
+   begin
+      System_Messages.Notify (Debug, "Initiate_AGI_Session: ");
+
+      if To_String (Packet.Fields.Element (AMI.Parser.SubEvent)) = "Start" then
+         System_Messages.Notify
+           (Debug,
+            "Initiate_AGI_Session: New AGI channel: " &
+              To_String (Packet.Fields.Element (AMI.Parser.Channel)));
+      else
+         System_Messages.Notify
+           (Debug,
+            "Initiate_AGI_Session: Not a start event.");
+      end if;
+   end Initiate_AGI_Session;
+
+   ---------------------------------------------------------------------------
+
 end My_Callbacks;
