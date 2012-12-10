@@ -98,4 +98,32 @@ package body AMI.Packet.Action is
       return AMI_Packet (To_String (Buffer) & Line_Termination_String);
    end To_AMI_Packet;
 
+   ---------------
+   -- To_String --
+   ---------------
+
+   function To_String (Mask : in Event_Mask) return String is
+      Buffer : Unbounded_String := To_Unbounded_String ("");
+   begin
+      if not Mask.On then
+         Append (Buffer, "off");
+      else
+         for I in Event_Masks'Range loop
+            Append (Buffer, Mask.Masks (I)'Img);
+            if I /= Event_Masks'Last then
+               Append (Buffer, ", ");
+            end if;
+         end loop;
+
+         --  At this point, if the buffer is still empty, we acknowledge that
+         --  this is merely a "on" request.
+         if To_String (Buffer) = "" then
+            Append (Buffer, "on");
+         end if;
+      end if;
+
+      pragma Assert (To_String (Buffer) /= "");
+      return To_String (Buffer);
+   end To_String;
+
 end AMI.Packet.Action;

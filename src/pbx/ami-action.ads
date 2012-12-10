@@ -31,41 +31,7 @@ package AMI.Action is
    use Model.Channel_ID;
    use Model.Peer_ID;
 
-   procedure Absolute_Timeout (Client           : access Client_Type;
-                               Channel_ID       : in     Channel_ID_Type;
-                               Timeout          : in     Duration := 20.0;
-                               Response_Handler : in     Callback_Type
-                               := AMI.Callback.Null_Callback'Access) is null;
-   --  Set Absolute Timeout (Priv : system, call, all)
-   --  This will hangup a specified channel after a certain number of seconds,
-   --  thereby actively ending the call.
-   --  Asterisk will acknowledge the timeout setting with a
-   --  Timeout Set message.
-
    --  TOOD: Convert to function returning Action_Request
-   procedure Agent_Callback_Login
-     (Agent     : in String;
-      --  Agent ID of the agent to log in to the system,
-      --  as specified in agents.conf.
-      Extension : String;
-      --  Extension to use for callback.
-      Context   : String := "";
-      Acknlowledgde_Call : Boolean := False;
-      --  Set to true to require an acknowledgement (the agent pressing the
-      --  # key) to accept the call when agent is called back.
-      WrapupTime         : Duration := 0.0)
-   is null;
-   --  Sets an agent as logged in to the queue system in callback mode
-   --  Logs the specified agent in to the Asterisk queue system in callback
-   --  mode. When a call is distributed to this agent,
-   --  it will ring the specified extension.
-
-   procedure Agent_Logoff (Agent : in String;
-                           --  Agent ID of the agent to log off
-                           Soft  : in Boolean := False
-                           --  Set to true to not hangup existing calls.
-                          ) is null;
-   --  Logs off the specified agent for the queue system.
 
    procedure Bridge (Client   : access Client_Type;
                      ChannelA : in     String;

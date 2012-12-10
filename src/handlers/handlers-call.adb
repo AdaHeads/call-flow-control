@@ -74,8 +74,8 @@ package body Handlers.Call is
                               AMI.Packet.Action.Hangup
                                 (Channel => Requested_Call_ID.To_String);
          begin
-            --  AMI.Action.Hangup (PBX.Client_Access, Requested_Call_ID.To_String);
-            System_Messages.Notify (Debug, String (Hangup_Action.To_AMI_Packet));
+            --  AMI.Action.Hangup
+            --  (PBX.Client_Access, Requested_Call_ID.To_String);
             PBX.Client.Send (Hangup_Action.To_AMI_Packet);
          end;
             Response_Object.HTTP_Status_Code (OK);
