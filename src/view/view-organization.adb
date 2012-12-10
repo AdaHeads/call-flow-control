@@ -18,34 +18,43 @@
 package body View.Organization is
 
    function To_Midi_JSON
-     (O : in Model.Organization.Organization_Object)
+     (Instance : in Model.Organization.Object)
       return JSON_Value;
+   --  Convert Instance to a "midi" JSON object.
+   --  See Model.Organization.Data_Mode for an explanation of the different
+   --  "views".
 
    function To_Mini_JSON
-     (O : in Model.Organization.Organization_Object)
+     (Instance : in Model.Organization.Object)
       return JSON_Value;
+   --  Convert Instance to a "mini" JSON object.
+   --  See Model.Organization.Data_Mode for an explanation of the different
+   --  "views".
 
    function To_Maxi_JSON
-     (O : in Model.Organization.Organization_Object)
+     (Instance : in Model.Organization.Object)
       return JSON_Value;
+   --  Convert Instance to a "maxi" JSON object.
+   --  See Model.Organization.Data_Mode for an explanation of the different
+   --  "views".
 
    ---------------
    --  To_JSON  --
    ---------------
 
    function To_JSON
-     (O : in Model.Organization.Organization_Object)
+     (Instance : in Model.Organization.Object)
       return JSON_Value
    is
       use Model.Organization;
    begin
-      case O.Mode is
+      case Instance.Mode is
          when Mini =>
-            return To_Mini_JSON (O);
+            return To_Mini_JSON (Instance);
          when Midi =>
-            return To_Midi_JSON (O);
+            return To_Midi_JSON (Instance);
          when Maxi =>
-            return To_Maxi_JSON (O);
+            return To_Maxi_JSON (Instance);
       end case;
    end To_JSON;
 
@@ -54,11 +63,11 @@ package body View.Organization is
    ---------------
 
    function To_JSON
-     (Instance : in Model.Organizations.Organization_List_Object)
+     (Instance : in Model.Organizations.List)
       return JSON_Value
    is
       procedure Process
-        (O : in Model.Organization.Organization_Object);
+        (O : in Model.Organization.Object);
       --  Add each Organization_Object to O_Array.
 
       O_Array : JSON_Array;
@@ -69,7 +78,7 @@ package body View.Organization is
       ---------------
 
       procedure Process
-        (O : in Model.Organization.Organization_Object)
+        (O : in Model.Organization.Object)
       is
       begin
          Append (O_Array, To_JSON (O));
@@ -90,7 +99,7 @@ package body View.Organization is
    ----------------------
 
    function To_JSON_String
-     (Instance  : in Model.Organizations.Organization_List_Object)
+     (Instance  : in Model.Organizations.List)
       return JSON_String
    is
    begin
@@ -102,7 +111,7 @@ package body View.Organization is
    ----------------------
 
    function To_JSON_String
-     (Instance  : in Model.Organization.Organization_Object)
+     (Instance  : in Model.Organization.Object)
       return JSON_String
    is
       use Model.Organization;
@@ -122,7 +131,7 @@ package body View.Organization is
    --------------------
 
    function To_Maxi_JSON
-     (O : in Model.Organization.Organization_Object)
+     (Instance : in Model.Organization.Object)
       return JSON_Value
    is
       use Model.Organization;
@@ -130,20 +139,20 @@ package body View.Organization is
       C_Array : JSON_Array;
       J       : JSON_Value := JSON_Null;
    begin
-      if O /= Null_Organization then
-         if O.JSON /= JSON_Null then
-            J := O.JSON;
+      if Instance /= Null_Organization then
+         if Instance.JSON /= JSON_Null then
+            J := Instance.JSON;
          else
             J := Create_Object;
          end if;
 
-         J.Set_Field (Organization_Id, Integer (O.ID));
+         J.Set_Field (Organization_Id, Integer (Instance.ID));
 
-         J.Set_Field (Full_Name, O.Full_Name);
+         J.Set_Field (Full_Name, Instance.Full_Name);
 
-         J.Set_Field (Identifier, O.Identifier);
+         J.Set_Field (Identifier, Instance.Identifier);
 
-         C_Array := O.Contact_List.To_JSON_Array;
+         C_Array := Instance.Contact_List.To_JSON_Array;
 
          if Length (C_Array) > 0 then
             J.Set_Field (Contacts, C_Array);
@@ -158,25 +167,25 @@ package body View.Organization is
    --------------------
 
    function To_Midi_JSON
-     (O : in Model.Organization.Organization_Object)
+     (Instance : in Model.Organization.Object)
       return JSON_Value
    is
       use Model.Organization;
 
       J : JSON_Value := JSON_Null;
    begin
-      if O /= Null_Organization then
-         if O.JSON /= JSON_Null then
-            J := O.JSON;
+      if Instance /= Null_Organization then
+         if Instance.JSON /= JSON_Null then
+            J := Instance.JSON;
          else
             J := Create_Object;
          end if;
 
-         J.Set_Field (Organization_Id, Integer (O.ID));
+         J.Set_Field (Organization_Id, Integer (Instance.ID));
 
-         J.Set_Field (Full_Name, O.Full_Name);
+         J.Set_Field (Full_Name, Instance.Full_Name);
 
-         J.Set_Field (Identifier, O.Identifier);
+         J.Set_Field (Identifier, Instance.Identifier);
       end if;
 
       return J;
@@ -187,21 +196,21 @@ package body View.Organization is
    --------------------
 
    function To_Mini_JSON
-     (O : in Model.Organization.Organization_Object)
+     (Instance : in Model.Organization.Object)
       return JSON_Value
    is
       use Model.Organization;
 
       J : JSON_Value := JSON_Null;
    begin
-      if O /= Null_Organization then
+      if Instance /= Null_Organization then
          J := Create_Object;
 
-         J.Set_Field (Organization_Id, Integer (O.ID));
+         J.Set_Field (Organization_Id, Integer (Instance.ID));
 
-         J.Set_Field (Full_Name, O.Full_Name);
+         J.Set_Field (Full_Name, Instance.Full_Name);
 
-         J.Set_Field (Identifier, O.Identifier);
+         J.Set_Field (Identifier, Instance.Identifier);
       end if;
 
       return J;

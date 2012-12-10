@@ -224,16 +224,16 @@ package body Model.Contact is
       return Instance.Is_Human;
    end Is_Human;
 
-   ---------------
-   --  To_JSON  --
-   ---------------
+   ----------------------
+   --  To_JSON_String  --
+   ----------------------
 
-   function To_JSON
+   function To_JSON_String
      (Instance : in Object)
       return Common.JSON_String
    is
    begin
       return View.Contact.To_JSON_String (Instance);
-   end To_JSON;
+   end To_JSON_String;
 
 end Model.Contact;

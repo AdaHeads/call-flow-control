@@ -26,21 +26,23 @@ package body Model.Organizations is
    package SQL renames SQL_Statements.Organization;
 
    function Organization_Midi
-     (C : in out Database_Cursor'Class)
-      return Organization_List_Object;
+     (Cursor : in out Database_Cursor'Class)
+      return List;
+   --  Transforms the low level index based Cursor into a List object.
 
    function Organization_Mini
-     (C : in out Database_Cursor'Class)
-      return Organization_List_Object;
+     (Cursor : in out Database_Cursor'Class)
+      return List;
+   --  Transforms the low level index based Cursor into a List object.
 
    procedure Process_Select_Query_Midi is new Storage.Process_Select_Query
      (Database_Cursor   => Database_Cursor,
-      Element           => Organization_List_Object,
+      Element           => List,
       Cursor_To_Element => Organization_Midi);
 
    procedure Process_Select_Query_Mini is new Storage.Process_Select_Query
      (Database_Cursor   => Database_Cursor,
-      Element           => Organization_List_Object,
+      Element           => List,
       Cursor_To_Element => Organization_Mini);
 
    ----------------------
@@ -48,10 +50,10 @@ package body Model.Organizations is
    ----------------------
 
    function Equal_Elements
-     (Left, Right : in Model.Organization.Organization_Object)
+     (Left, Right : in Model.Organization.Object)
       return Boolean
    is
-      use type Model.Organization.Organization_Object;
+      use type Model.Organization.Object;
    begin
       return Left = Right;
    end Equal_Elements;
@@ -73,9 +75,9 @@ package body Model.Organizations is
    ----------------
 
    procedure For_Each
-     (Instance : in Organization_List_Object;
+     (Instance : in List;
       Process  : not null access procedure
-        (Element : in Model.Organization.Organization_Object))
+        (Element : in Model.Organization.Object))
    is
    begin
       for Elem of Instance.Organizations loop
@@ -89,25 +91,24 @@ package body Model.Organizations is
 
    function Get
      (Mode : in Data_Mode := Mini)
-      return Organization_List_Object
+      return List
    is
       use GNATCOLL.SQL.Exec;
-      use Model.Organization;
 
       procedure Get_Element
-        (Instance : in Organization_List_Object);
+        (Instance : in List);
 
-      O : Organization_List_Object;
+      Organizations : List;
 
       -------------------
       --  Get_Element  --
       -------------------
 
       procedure Get_Element
-        (Instance : in Organization_List_Object)
+        (Instance : in List)
       is
       begin
-         O := Instance;
+         Organizations := Instance;
       end Get_Element;
    begin
       case Mode is
@@ -123,7 +124,7 @@ package body Model.Organizations is
                Query_Parameters   => No_Parameters);
       end case;
 
-      return O;
+      return Organizations;
    end Get;
 
    ----------------
@@ -143,27 +144,27 @@ package body Model.Organizations is
    -------------------------
 
    function Organization_Midi
-     (C : in out Database_Cursor'Class)
-      return Organization_List_Object
+     (Cursor : in out Database_Cursor'Class)
+      return List
    is
       use Model.Organization;
 
-      A_List : Organization_List_Object;
-      O : Model.Organization.Organization_Object;
+      A_List       : List;
+      Organization : Object;
    begin
-      while C.Has_Row loop
-         O := Model.Organization.Create
-           (ID         => Organization_Identifier (C.Integer_Value (3)),
-            Full_Name  => C.Value (0),
-            Identifier => C.Value (1),
-            JSON       => C.Json_Object_Value (2),
+      while Cursor.Has_Row loop
+         Organization := Create
+           (ID         => Organization_Identifier (Cursor.Integer_Value (3)),
+            Full_Name  => Cursor.Value (0),
+            Identifier => Cursor.Value (1),
+            JSON       => Cursor.Json_Object_Value (2),
             Mode       => Maxi);
 
          A_List.Organizations.Include
-           (Key      => O.ID,
-            New_Item => O);
+           (Key      => Organization.ID,
+            New_Item => Organization);
 
-         C.Next;
+         Cursor.Next;
       end loop;
 
       return A_List;
@@ -174,27 +175,27 @@ package body Model.Organizations is
    ------------------------
 
    function Organization_Mini
-     (C : in out Database_Cursor'Class)
-      return Organization_List_Object
+     (Cursor : in out Database_Cursor'Class)
+      return List
    is
       use Model.Organization;
 
-      A_List : Organization_List_Object;
-      O : Model.Organization.Organization_Object;
+      A_List       : List;
+      Organization : Object;
    begin
-      while C.Has_Row loop
-         O := Model.Organization.Create
-           (ID         => Organization_Identifier (C.Integer_Value (2)),
-            Full_Name  => C.Value (0),
-            Identifier => C.Value (1),
+      while Cursor.Has_Row loop
+         Organization := Create
+           (ID         => Organization_Identifier (Cursor.Integer_Value (2)),
+            Full_Name  => Cursor.Value (0),
+            Identifier => Cursor.Value (1),
             JSON       => GNATCOLL.JSON.JSON_Null,
             Mode       => Mini);
 
          A_List.Organizations.Include
-           (Key      => O.ID,
-            New_Item => O);
+           (Key      => Organization.ID,
+            New_Item => Organization);
 
-         C.Next;
+         Cursor.Next;
       end loop;
 
       return A_List;
@@ -205,11 +206,11 @@ package body Model.Organizations is
    ----------------------
 
    function To_JSON_String
-     (Self : in out Organization_List_Object)
+     (Instance : in List)
       return Common.JSON_String
    is
    begin
-      return View.Organization.To_JSON_String (Self);
+      return View.Organization.To_JSON_String (Instance);
    end To_JSON_String;
 
 end Model.Organizations;

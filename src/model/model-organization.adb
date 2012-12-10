@@ -25,31 +25,33 @@ package body Model.Organization is
    package SQL renames SQL_Statements.Organization;
 
    function Organization_Maxi_Element
-     (C : in out Database_Cursor'Class)
-      return Organization_Object;
+     (Cursor : in out Database_Cursor'Class)
+      return Object;
+   --  Transforms the low level index based Cursor into an organization object.
 
    function Organization_Midi_Element
      (C : in out Database_Cursor'Class)
-      return Organization_Object;
+      return Object;
+   --  Transforms the low level index based Cursor into an organization object.
 
    function Organization_Mini_Element
      (C : in out Database_Cursor'Class)
-      return Organization_Object;
+      return Object;
+   --  Transforms the low level index based Cursor into an organization object.
 
    procedure Process_Select_Query_Midi is new Storage.Process_Select_Query
      (Database_Cursor   => Database_Cursor,
-      Element           => Organization_Object,
+      Element           => Object,
       Cursor_To_Element => Organization_Midi_Element);
 
    procedure Process_Select_Query_Mini is new Storage.Process_Select_Query
      (Database_Cursor   => Database_Cursor,
-      Element           => Organization_Object,
+      Element           => Object,
       Cursor_To_Element => Organization_Mini_Element);
-   --  TODO: Fix SQL so we don't fetch the unnecessary JSON column.
 
    procedure Process_Select_Query_Maxi is new Storage.Process_Select_Query
      (Database_Cursor   => Database_Cursor,
-      Element           => Organization_Object,
+      Element           => Object,
       Cursor_To_Element => Organization_Maxi_Element);
 
    -------------------
@@ -57,11 +59,11 @@ package body Model.Organization is
    -------------------
 
    procedure Add_Contact
-     (Instance : in out Organization_Object;
+     (Instance : in out Object;
       Contact  : in     Model.Contact.Object)
    is
    begin
-      Instance.C_List.Add_Contact (Contact, Instance.O_ID);
+      Instance.Contact_List.Add_Contact (Contact, Instance.ID);
    end Add_Contact;
 
    --------------------
@@ -69,11 +71,11 @@ package body Model.Organization is
    --------------------
 
    function Contact_List
-     (Self : in Organization_Object)
+     (Instance : in Object)
       return Model.Contacts.List
    is
    begin
-      return Self.C_List;
+      return Instance.Contact_List;
    end Contact_List;
 
    ---------------
@@ -86,17 +88,16 @@ package body Model.Organization is
       Identifier : in String;
       JSON       : in GNATCOLL.JSON.JSON_Value;
       Mode       : in Data_Mode := Mini)
-      return Organization_Object
+      return Object
    is
       use Common;
-
    begin
-      return (C_List     => Model.Contacts.Null_List,
-              Full_Name  => U (Full_Name),
-              Identifier => U (Identifier),
-              JSON       => JSON,
-              Mode       => Mode,
-              O_ID       => ID);
+      return (Contact_List => Model.Contacts.Null_List,
+              Full_Name    => U (Full_Name),
+              Identifier   => U (Identifier),
+              JSON         => JSON,
+              Mode         => Mode,
+              ID           => ID);
    end Create;
 
    -----------------
@@ -104,11 +105,11 @@ package body Model.Organization is
    -----------------
 
    function Full_Name
-     (Self : in Organization_Object)
+     (Instance : in Object)
       return String
    is
    begin
-      return To_String (Self.Full_Name);
+      return To_String (Instance.Full_Name);
    end Full_Name;
 
    -----------
@@ -118,24 +119,24 @@ package body Model.Organization is
    function Get
      (ID   : in Organization_Identifier;
       Mode : in Data_Mode := Mini)
-      return Organization_Object
+      return Object
    is
       use GNATCOLL.SQL.Exec;
 
       procedure Get_Element
-        (Organization : in Organization_Object);
+        (Instance : in Object);
 
-      O : Organization_Object;
+      Organization : Object;
 
       -------------------
       --  Get_Element  --
       -------------------
 
       procedure Get_Element
-        (Organization : in Organization_Object)
+        (Instance : in Object)
       is
       begin
-         O := Organization;
+         Organization := Instance;
       end Get_Element;
 
       Parameters : constant SQL_Parameters := (1 => +Integer (ID));
@@ -158,7 +159,7 @@ package body Model.Organization is
                Query_Parameters   => Parameters);
       end case;
 
-      return O;
+      return Organization;
    end Get;
 
    ----------
@@ -166,11 +167,11 @@ package body Model.Organization is
    ----------
 
    function ID
-     (Self : in Organization_Object)
+     (Instance : in Object)
       return Organization_Identifier
    is
    begin
-      return Self.O_ID;
+      return Instance.ID;
    end ID;
 
    ------------------
@@ -178,11 +179,11 @@ package body Model.Organization is
    ------------------
 
    function Identifier
-     (Self : in Organization_Object)
+     (Instance : in Object)
       return String
    is
    begin
-      return To_String (Self.Identifier);
+      return To_String (Instance.Identifier);
    end Identifier;
 
    ------------
@@ -190,11 +191,11 @@ package body Model.Organization is
    ------------
 
    function JSON
-     (Self : in Organization_Object)
+     (Instance : in Object)
       return GNATCOLL.JSON.JSON_Value
    is
    begin
-      return Self.JSON;
+      return Instance.JSON;
    end JSON;
 
    ------------
@@ -202,7 +203,7 @@ package body Model.Organization is
    ------------
 
    function Mode
-     (Instance : in Organization_Object)
+     (Instance : in Object)
       return Data_Mode
    is
    begin
@@ -214,50 +215,45 @@ package body Model.Organization is
    ---------------------------------
 
    function Organization_Maxi_Element
-     (C : in out Database_Cursor'Class)
-      return Organization_Object
+     (Cursor : in out Database_Cursor'Class)
+      return Object
    is
       use Common;
-      use Model.Contact;
-      --  use Model.Attributes;
-      use type GNATCOLL.SQL.Exec.Field_Index;
 
-      Contact : Model.Contact.Object;
-
-      O : Organization_Object;
+      Contact      : Model.Contact.Object;
+      Organization : Object;
    begin
-      O := (C_List     => Contacts.Null_List,
-            Full_Name  => U (C.Value (0)),
-            Identifier => U (C.Value (1)),
-            JSON       => C.Json_Object_Value (2),
-            Mode       => Maxi,
-            O_ID       => Organization_Identifier (C.Integer_Value (3)));
+      Organization :=
+        (Contact_List => Contacts.Null_List,
+         Full_Name    => U (Cursor.Value (0)),
+         ID           => Organization_Identifier (Cursor.Integer_Value (3)),
+         Identifier   => U (Cursor.Value (1)),
+         JSON         => Cursor.Json_Object_Value (2),
+         Mode         => Maxi);
 
-      if C.Field_Count > 4 then
-         --  This is a full organization, complete with contacts.
-         while C.Has_Row loop
-            if not C.Is_Null (4) then
-               Contact := Create
-                 (ID      => Contact_Identifier
-                    (C.Integer_Value (4, Default => 0)),
-                  Full_Name => C.Value (5),
-                  Is_Human  => C.Boolean_Value (6));
+      while Cursor.Has_Row loop
+         if not Cursor.Is_Null (4) then
+            Contact := Model.Contact.Create
+              (ID        => Contact_Identifier
+                 (Cursor.Integer_Value (4, Default => 0)),
+               Full_Name => Cursor.Value (5),
+               Is_Human  => Cursor.Boolean_Value (6));
 
-               Contact.Add_Attribute
-                 (Model.Attribute.Create (ID   => Attribute_Identifier'
-                            (CID => Contact.ID, OID => O.O_ID),
-                          JSON => C.Json_Object_Value (7)));
+            Contact.Add_Attribute
+              (Model.Attribute.Create
+                 (ID   => Attribute_Identifier'
+                    (CID => Contact.ID, OID => Organization.ID),
+                  JSON => Cursor.Json_Object_Value (7)));
 
-               O.C_List.Add_Contact (Contact => Contact,
-                                     ID      => O.O_ID);
+            Organization.Contact_List.Add_Contact (Contact => Contact,
+                                                   ID      => Organization.ID);
 
-            end if;
+         end if;
 
-            C.Next;
-         end loop;
-      end if;
+         Cursor.Next;
+      end loop;
 
-      return O;
+      return Organization;
    end Organization_Maxi_Element;
 
    ---------------------------------
@@ -266,16 +262,16 @@ package body Model.Organization is
 
    function Organization_Midi_Element
      (C : in out Database_Cursor'Class)
-      return Organization_Object
+      return Object
    is
       use Common;
    begin
-      return (C_List     => Contacts.Null_List,
-              Full_Name  => U (C.Value (0)),
-              Identifier => U (C.Value (1)),
-              JSON       => C.Json_Object_Value (2),
-              Mode       => Midi,
-              O_ID       => Organization_Identifier (C.Integer_Value (3)));
+      return (Contact_List => Contacts.Null_List,
+              Full_Name    => U (C.Value (0)),
+              ID           => Organization_Identifier (C.Integer_Value (3)),
+              Identifier   => U (C.Value (1)),
+              JSON         => C.Json_Object_Value (2),
+              Mode         => Midi);
    end Organization_Midi_Element;
 
    ---------------------------------
@@ -284,16 +280,16 @@ package body Model.Organization is
 
    function Organization_Mini_Element
      (C : in out Database_Cursor'Class)
-      return Organization_Object
+      return Object
    is
       use Common;
    begin
-      return (C_List     => Contacts.Null_List,
-              Full_Name  => U (C.Value (0)),
-              Identifier => U (C.Value (1)),
-              JSON       => GNATCOLL.JSON.JSON_Null,
-              Mode       => Mini,
-              O_ID       => Organization_Identifier (C.Integer_Value (2)));
+      return (Contact_List => Contacts.Null_List,
+              Full_Name    => U (C.Value (0)),
+              ID           => Organization_Identifier (C.Integer_Value (2)),
+              Identifier   => U (C.Value (1)),
+              JSON         => GNATCOLL.JSON.JSON_Null,
+              Mode         => Mini);
    end Organization_Mini_Element;
 
    ----------------------
@@ -301,11 +297,11 @@ package body Model.Organization is
    ----------------------
 
    function To_JSON_String
-     (Self : in Organization_Object)
+     (Instance : in Object)
       return Common.JSON_String
    is
    begin
-      return View.Organization.To_JSON_String (Self);
+      return View.Organization.To_JSON_String (Instance);
    end To_JSON_String;
 
 end Model.Organization;

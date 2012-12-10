@@ -59,18 +59,18 @@ package body Handlers.Contact is
       use HTTP_Codes;
       use Model.Contact;
 
-      C : Object;
+      Contact : Object;
    begin
-      C := Get (Get_Contact_Id (Response_Object));
+      Contact := Get (Get_Contact_Id (Response_Object));
 
-      if C /= Null_Object then
+      if Contact /= Null_Object then
          Response_Object.Cacheable (True);
          Response_Object.HTTP_Status_Code (OK);
       else
          Response_Object.HTTP_Status_Code (Not_Found);
       end if;
 
-      Response_Object.Content (C.To_JSON);
+      Response_Object.Content (Contact.To_JSON_String);
    end Generate_Document;
 
    ----------------------

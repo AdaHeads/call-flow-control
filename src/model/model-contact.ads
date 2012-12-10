@@ -69,7 +69,7 @@ package Model.Contact is
       return Boolean;
    --  Return whether or not Instance is human.
 
-   function To_JSON
+   function To_JSON_String
      (Instance : in Object)
       return Common.JSON_String;
    --  Convert Instance to a JSON string. This call is convenient wrapper for

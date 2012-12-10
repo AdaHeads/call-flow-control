@@ -58,25 +58,23 @@ package body Handlers.Organization_List is
       use HTTP_Codes;
       use Model.Organizations;
 
-      JS : JSON_String := Null_JSON_String;
-      OL : Organization_List_Object;
+      Organization_List : List;
    begin
       case Get_List_View (Response_Object) is
          when Mini =>
-            OL := Get (Mini);
+            Organization_List := Get (Mini);
          when Midi =>
-            OL := Get (Midi);
+            Organization_List := Get (Midi);
       end case;
 
-      JS := OL.To_JSON_String;
-
-      if JS /= Null_JSON_String then
-         Response_Object.Content (JS);
+      if Organization_List /= Null_List then
          Response_Object.Cacheable (True);
          Response_Object.HTTP_Status_Code (OK);
       else
          Response_Object.HTTP_Status_Code (Not_Found);
       end if;
+
+      Response_Object.Content (Organization_List.To_JSON_String);
    end Generate_Document;
 
    ---------------------
