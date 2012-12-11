@@ -159,6 +159,7 @@ package body PBX is
                                    On_Disconnect => Connect'Access);
       Connect; --  Initial connect.
       Reader.Start;
+      System_Messages.Notify (Debug, "PBX Subsystem started");
    end Start;
 
    function Status return PBX_Status_Type is

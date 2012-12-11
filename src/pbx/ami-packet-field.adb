@@ -19,15 +19,22 @@ package body AMI.Packet.Field is
    function Create (Key :   in AMI.Parser.AMI_Key_Type;
                     Value : in String) return Field is
    begin
-      return (Key   => Key,
-              Value => To_Bounded_String (Value));
+      return (Key   => Key_String.To_Bounded_String (Key'Img),
+              Value => Value_String.To_Bounded_String (Value));
+   end Create;
+
+   function Create (Key :   in String;
+                    Value : in String) return Field is
+   begin
+      return (Key   => Key_String.To_Bounded_String (Key),
+              Value => Value_String.To_Bounded_String (Value));
    end Create;
 
    function To_AMI_Line (F : in Field) return AMI_Line is
    begin
       return
-        AMI_Line (F.Key'Img & Separator &
-                    To_String (F.Value) &
+        AMI_Line (Key_String.To_String (F.Key) & Separator &
+                    Value_String.To_String (F.Value) &
                     Line_Termination_String);
    end To_AMI_Line;
 end AMI.Packet.Field;

@@ -21,19 +21,24 @@ with Ada.Containers.Doubly_Linked_Lists;
 with AMI.Parser;
 
 package AMI.Packet.Field is
-   package BString is new
+   package Key_String is new
+     Ada.Strings.Bounded.Generic_Bounded_Length (Max => 64);
+
+   package Value_String is new
      Ada.Strings.Bounded.Generic_Bounded_Length (Max => 256);
-   use BString;
 
    --  TODO: Make private
    type Field is tagged record
-      Key   : AMI.Parser.AMI_Key_Type;
-      Value : Bounded_String;
+      Key   : Key_String.Bounded_String;
+      Value : Value_String.Bounded_String;
    end record;
 
    function Create (Key :   in AMI.Parser.AMI_Key_Type;
                     Value : in String) return Field;
-   --  Constructor
+
+   function Create (Key :   in String;
+                    Value : in String) return Field;
+   --  Constructors.
 
    function To_AMI_Line (F : in Field) return AMI_Line;
 

@@ -29,10 +29,10 @@ clean:
 	gnatclean -P alice
 	BUILDTYPE=Debug gnatclean -P alice
 
-tests: asterisk_tests
+tests: ami_packet_action
 
-asterisk_tests:
-	gnatmake -P src/tests/asterisk_tests.gpr
+ami_packet_action:
+	gnatmake -P src/tests/ami_packet_action.gpr
 
 asterisk_tests_clean:
 	gnatclean -P src/tests/asterisk_tests.gpr

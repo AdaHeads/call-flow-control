@@ -23,9 +23,12 @@ package AMI.Parser is
 
    type AMI_Key_Type is
      (Async,
+      Agent,
+      WrapupTime, -- Probably deprecated.
       ApplicationData,
       ReloadReason,
-      CommandId,
+      Channel,
+      CommandID,
       Command,
       ResultCode,
       Result,
@@ -53,7 +56,6 @@ package AMI.Parser is
       Message,
       Ping,
       Cause_Txt,
-      Channel,
       Channel1,
       Channel2,
       CallerID,
@@ -63,6 +65,7 @@ package AMI.Parser is
       Position,
       Count,
       Uniqueid,
+      Timeout,
       Uniqueid1,
       Uniqueid2,
       SSRC,

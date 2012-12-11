@@ -29,7 +29,8 @@ package AMI.Packet.Action is
 
    Not_Implemented : exception;
 
-   type Valid_Action is (Undefined, Login, Logoff, Ping, Hangup);
+   type Valid_Action is (Undefined, AGI, AgentCallbackLogin,
+                         Atxfer, Login, Logoff, Ping, Hangup);
 
    type Config_Action is (NewCat, RenameCat, DelCat, Update, Delete, Append);
 
@@ -65,22 +66,22 @@ package AMI.Packet.Action is
 
    Null_Request : constant Request;
 
-   procedure Absolute_Timeout
+   function Absolute_Timeout
      (Channel     : in  String;
       --  The Name of The Channel On Which To Set The Absolute Timeout.
-      Timeout     : in     Duration := 15.0;
+      Timeout     : in     Duration := Duration'First;
       --  The maximum duration of the call, in seconds.
       On_Response : in     Response_Handler_Type
       := Null_Reponse_Handler'Access
       --  The reponse handler
-     ) is null;
+     ) return Request;
    --  Set Absolute Timeout (Priv : system, call, all)
    --  This will hangup a specified channel after a certain number of seconds,
    --  thereby actively ending the call.
    --  Asterisk will acknowledge the timeout setting with a
    --  Timeout Set message.
 
-   procedure Agent_Callback_Login
+   function Agent_Callback_Login
      (Agent     : in String;
       --  Agent ID of the agent to log in to the system,
       --  as specified in agents.conf.
@@ -90,11 +91,12 @@ package AMI.Packet.Action is
       Acknlowledgde_Call : Boolean := False;
       --  Set to true to require an acknowledgement (the agent pressing the
       --  # key) to accept the call when agent is called back.
-      WrapupTime         : Duration := 0.0;
+      WrapupTime         : Duration := Duration'First;
       On_Response        : in     Response_Handler_Type
       := Null_Reponse_Handler'Access
       --  The reponse handler
-     ) is null;
+     ) return Request;
+   --  DEPRECATED as of 1.6, and removed in 1.8.
    --  Sets an agent as logged in to the queue system in callback mode
    --  Logs the specified agent in to the Asterisk queue system in callback
    --  mode. When a call is distributed to this agent,
@@ -118,17 +120,53 @@ package AMI.Packet.Action is
      ) is null;
    --  This action lists information about all configured agents.
 
---     function AGI
---       (Channel     : in String;
---        --  Channel that is currently in Async AGI.
---        Command     : in String;
---        --  Application to execute.
---        CommandID   : in String;
---        --  This will be sent back in CommandID header of AsyncAGI
---        --  exec event notification.
---        On_Response : in Response_Handler_Type := Null_Reponse_Handler'Access
---        --  The response handler.
---       ) return Request;
+   function AGI
+     (Channel     : in String;
+      --  Channel that is currently in Async AGI.
+      Command     : in String;
+      --  Application to execute.
+      CommandID   : in String;
+      --  This will be sent back in CommandID header of AsyncAGI
+      --  exec event notification.
+      On_Response : in Response_Handler_Type := Null_Reponse_Handler'Access
+      --  The response handler.
+     ) return Request;
+
+   procedure AOCMessage
+     (Channel         : in String;
+      --  Channel name to generate the AOC message on.
+      Channel_Prefix  : in String;
+      --  Partial channel prefix.
+      Message_Type    : in Character;
+      --  Defines what type of AOC message to create, AOC-D or AOC-E (D,E).
+      Charge_Type     : in String;
+      --  Defines what kind of charge this message represents.
+      --  (NA, FREE, Currency, Unit).
+      Unit_Amount     : in Natural;
+      --  This represents the amount of units charged
+      Unit_Type       : in Positive;
+      --  integer value between 1 and 16.
+      Currency_Name   : in String;
+      --  This value is truncated after 10 characters.
+      Currency_Amount : in Positive
+     ) is null;
+   --  TODO add internal multiplier, and a Variant record type for the
+   --  Arguments.
+
+   function Atxfer
+     (Channel   : in String;
+      --  Transferer's channel.
+      Extension : in String;
+      --  Extension to transfer to.
+      Context   : in String;
+      --  Context to transfer to.
+      Priority  : in Natural;
+      --  Priority To Transfer To.
+      On_Response : in     Response_Handler_Type
+      := Null_Reponse_Handler'Access
+      --  The response handler.
+     ) return Request;
+   --  Attended transfer.
 
    procedure Change_Monitor
      (Channel    : in String;

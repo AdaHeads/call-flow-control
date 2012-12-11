@@ -16,11 +16,23 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
+
+with Ada.Strings;
+with Ada.Strings.Fixed;
+
 with AMI.Parser;
 
 package body AMI.Packet.Action is
+   use Ada.Strings;
+   use Ada.Strings.Fixed;
    use Ada.Strings.Unbounded;
+
    use AMI.Parser;
+
+   procedure Add_Field (List  : in out AMI.Packet.Field.Field_List.List;
+                        Key   : in     AMI.Parser.AMI_Key_Type;
+                        Value : in     String);
+   --  Small wrapper function that cuts down on implementation code.
 
    function Create (Action : in Valid_Action;
                     Fields : in Field_List.List :=
@@ -29,11 +41,180 @@ package body AMI.Packet.Action is
                       Null_Reponse_Handler'Access) return Request;
    --  Private constructor for intializing an basic object
 
+   ----------------------
+   -- Absolute_Timeout --
+   ----------------------
+
+   function Absolute_Timeout
+     (Channel     : in  String;
+      Timeout     : in     Duration := Duration'First;
+      On_Response : in     Response_Handler_Type
+      := Null_Reponse_Handler'Access
+     ) return Request
+   is
+
+      Fields : AMI.Packet.Field.Field_List.List :=
+       AMI.Packet.Field.Field_List.Empty_List;
+      Timeout_Milli_Seconds : constant Natural := Natural (Timeout * 1_000);
+   begin
+      Add_Field (List  => Fields,
+                 Key   => AMI.Parser.Channel,
+                 Value => Channel);
+
+      if Timeout > Duration'First then
+         Add_Field (List  => Fields,
+                    Key   => AMI.Parser.Timeout,
+                    Value => Trim (Natural'Image (Timeout_Milli_Seconds),
+                      Both));
+      end if;
+
+      return Action.Create (Action      => AgentCallbackLogin,
+                            Fields      => Fields,
+                            On_Response => On_Response);
+   end Absolute_Timeout;
+
+   ---------------
+   -- Add_Field --
+   ---------------
+
    procedure Add_Field (R : in out Request;
                         F : in     AMI.Packet.Field.Field) is
    begin
       R.Fields.Append (New_Item => F);
    end Add_Field;
+
+   ---------------
+   -- Add_Field --
+   ---------------
+
+   procedure Add_Field (List  : in out AMI.Packet.Field.Field_List.List;
+                        Key   : in     AMI.Parser.AMI_Key_Type;
+                        Value : in     String) is
+   begin
+      List.Append (AMI.Packet.Field.Create (Key   => Key,
+                                            Value => Value));
+   end Add_Field;
+
+   --------------------------
+   -- Agent_Callback_Login --
+   --------------------------
+
+   function Agent_Callback_Login
+     (Agent              : in String;
+      Extension          : in String;
+      Context            : in String := "";
+      Acknlowledgde_Call : in Boolean := False;
+      WrapupTime         : in Duration := Duration'First;
+      On_Response        : in Response_Handler_Type :=
+        Null_Reponse_Handler'Access
+     ) return Request
+   is
+      Fields : AMI.Packet.Field.Field_List.List :=
+                 AMI.Packet.Field.Field_List.Empty_List;
+      WrapupTime_Milli_Seconds : constant Natural :=
+       Natural (WrapupTime * 1_000);
+   begin
+      Add_Field (List  => Fields,
+                 Key   => AMI.Parser.Agent,
+                 Value => Agent);
+
+      Add_Field (List  => Fields,
+                 Key   => AMI.Parser.Extension,
+                 Value => Extension);
+      if Context /= "" then
+         Add_Field (List  => Fields,
+                    Key   => AMI.Parser.Context,
+                    Value => Context);
+      end if;
+
+      if Acknlowledgde_Call then
+         Add_Field (List  => Fields,
+                    Key   => AMI.Parser.Extension,
+                    Value => Trim (WrapupTime_Milli_Seconds'Img, Both));
+      end if;
+
+      if WrapupTime > Duration'First then
+         Add_Field (List  => Fields,
+                    Key   => AMI.Parser.WrapupTime,
+                    Value => Trim
+                      (Natural'Image (WrapupTime_Milli_Seconds), Both));
+      end if;
+
+      return Action.Create (Action      => AgentCallbackLogin,
+                            Fields      => Fields,
+                            On_Response => On_Response);
+   end Agent_Callback_Login;
+
+   ---------
+   -- AGI --
+   ---------
+
+   function AGI
+     (Channel     : in String;
+      Command     : in String;
+      CommandID   : in String;
+      On_Response : in Response_Handler_Type := Null_Reponse_Handler'Access
+     ) return Request
+   is
+      Fields : AMI.Packet.Field.Field_List.List :=
+                 AMI.Packet.Field.Field_List.Empty_List;
+   begin
+      Add_Field (List  => Fields,
+                 Key   => AMI.Parser.Channel,
+                 Value => Channel);
+
+      Add_Field (List  => Fields,
+                 Key   => AMI.Parser.Command,
+                 Value => Command);
+
+      Add_Field (List  => Fields,
+                 Key   => AMI.Parser.CommandID,
+                 Value => CommandID);
+
+      return Action.Create (Action      => AGI,
+                            Fields      => Fields,
+                            On_Response => On_Response);
+   end AGI;
+
+   ------------
+   -- Atxfer --
+   ------------
+
+   function Atxfer
+     (Channel     : in String;
+      Extension   : in String;
+      Context     : in String;
+      Priority    : in Natural;
+      On_Response : in Response_Handler_Type
+      := Null_Reponse_Handler'Access
+     ) return Request
+   is
+      Fields : AMI.Packet.Field.Field_List.List :=
+                 AMI.Packet.Field.Field_List.Empty_List;
+   begin
+      Add_Field (List  => Fields,
+                 Key   => AMI.Parser.Channel,
+                 Value => Channel);
+
+      Add_Field (List  => Fields,
+                 Key   => AMI.Parser.Extension,
+                 Value => Extension);
+
+      Add_Field (List  => Fields,
+                 Key   => AMI.Parser.Context,
+                 Value => Context);
+
+      Add_Field (List  => Fields,
+                 Key   => AMI.Parser.Priority,
+                 Value => Priority'Img);
+
+      return Action.Create (Action      => Atxfer,
+                            Fields      => Fields,
+                            On_Response => On_Response);
+   end Atxfer;
+   ------------
+   -- Create --
+   ------------
 
    function Create (Action : in Valid_Action;
                     Fields : in Field_List.List :=
@@ -48,6 +229,10 @@ package body AMI.Packet.Action is
               Response_Handler => On_Response);
    end Create;
 
+   ------------
+   -- Hangup --
+   ------------
+
    function Hangup (Channel     : in String;
                     On_Response : in Response_Handler_Type :=
                       Null_Reponse_Handler'Access) return Request is
@@ -61,6 +246,10 @@ package body AMI.Packet.Action is
                             Fields      => Fields,
                             On_Response => On_Response);
    end Hangup;
+
+   ----------
+   -- Ping --
+   ----------
 
    function Ping (On_Response : in Response_Handler_Type :=
                     Null_Reponse_Handler'Access) return Request is
