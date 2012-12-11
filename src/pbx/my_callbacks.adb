@@ -15,6 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Common;
 with System_Messages;
@@ -502,10 +503,45 @@ package body My_Callbacks is
            (Debug,
             "Initiate_AGI_Session: New AGI channel: " &
               To_String (Packet.Fields.Element (AMI.Parser.Channel)));
+
+         declare
+            Raw_Environment : constant String := To_String (Packet.Fields.Element (AMI.Parser.Env));
+            From            : Positive := Raw_Environment'First;
+            Through         : Natural;
+         begin
+            loop
+               exit when From > Raw_Environment'Last;
+
+               Through := Ada.Strings.Fixed.Index (Source  => Raw_Environment (From .. Raw_Environment'Last),
+                                                   Pattern => "%0a");
+               if Through = 0 then
+                  Through := Raw_Environment'Last + 1;
+               end if;
+
+               exit when Through = From;
+
+               declare
+                  Part      : String renames Raw_Environment (From .. Through - 1);
+                  Separator : constant Positive := Ada.Strings.Fixed.Index (Source  => Part,
+                                                                            Pattern => "%3a%20");
+                  Field     : constant String := Part (Part'First .. Separator - 1);
+                  Value     : constant String := Part (Separator + 6 .. Part'Last);
+               begin
+                  System_Messages.Notify
+                    (Debug,
+                     "Initiate_AGI_Session: Field: " & Field & " = " & Value);
+               end;
+
+               exit when Through > Raw_Environment'Last;
+               From := Through + 3;
+            end loop;
+         end;
       else
          System_Messages.Notify
            (Debug,
-            "Initiate_AGI_Session: Not a start event.");
+            "Initiate_AGI_Session: '" &
+              To_String (Packet.Fields.Element (AMI.Parser.SubEvent)) &
+              "' event");
       end if;
    end Initiate_AGI_Session;
 

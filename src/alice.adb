@@ -19,7 +19,6 @@ with My_Handlers;
 with PBX;
 with System_Message.Critical;
 with System_Message.Info;
-with Yolk.Configuration;
 with Yolk.Process_Control;
 with Yolk.Process_Owner;
 with Yolk.Server;
@@ -27,7 +26,6 @@ with Unexpected_Exception;
 
 procedure Alice is
    use System_Message;
-   use Yolk.Configuration;
    use Yolk.Process_Control;
    use Yolk.Process_Owner;
    use Yolk.Server;
@@ -37,8 +35,6 @@ procedure Alice is
    Web_Server : HTTP := Create
      (Unexpected => Unexpected_Exception.Callback);
 begin
-   Set_User (Config.Get (Yolk_User));
-
    PBX.Start;
    Web_Server.Start (Dispatchers => My_Handlers.Get);
 
