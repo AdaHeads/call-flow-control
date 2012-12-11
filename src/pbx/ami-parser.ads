@@ -140,7 +140,8 @@ package AMI.Parser is
       RTCPSent,
       ReportBlock,
       SubEvent,
-      Dialstring
+      Dialstring,
+      Env
      );
 
    subtype AMI_Header_Key_Type is AMI_Key_Type range Event .. Response;
