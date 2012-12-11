@@ -24,7 +24,6 @@ with Handlers.Debug;
 with Handlers.Notifications;
 with Handlers.Organization;
 with Handlers.Organization_List;
-with My_Configuration;
 with Not_Found;
 
 package body My_Handlers is
@@ -80,7 +79,6 @@ package body My_Handlers is
      return AWS.Services.Dispatchers.URI.Handler
    is
       use AWS.Dispatchers.Callback;
-      use My_Configuration;
 
       RH : AWS.Services.Dispatchers.URI.Handler;
    begin
@@ -100,64 +98,64 @@ package body My_Handlers is
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => Config.Get (Handler_Call_Hangup),
+         URI        => "/call/hangup",
          Action     => Create
            (Callback => Call.Hangup'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => Config.Get (Handler_Call_Park),
+         URI        => "/call/park",
          Action     => Create
            (Callback => Call.Park'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => Config.Get (Handler_Call_Pickup),
+         URI        => "/call/pickup",
          Action     => Create
            (Callback => Call.Pickup'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => Config.Get (Handler_Contact),
+         URI        => "/contact",
          Action     => Contact.Callback);
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => Config.Get (Handler_Organization),
+         URI        => "/organization",
          Action     => Organization.Callback);
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => Config.Get (Handler_Organization_List),
+         URI        => "/organization/list",
          Action     => Organization_List.Callback);
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => Config.Get (Handler_Call_Queue),
+         URI        => "/call/queue",
          Action     => Create
            (Callback => Call.Queue'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => Config.Get (Handler_Call_List),
+         URI        => "/call/list",
          Action     => Create
            (Callback => Call.List'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => Config.Get (Handler_Agent_List),
+         URI        => "/agent/list",
          Action     => Create
            (Callback => Agent.Agent_List'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => Config.Get (Handler_Agent),
+         URI        => "/agent",
          Action     => Create
            (Callback => Agent.Agent'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => Config.Get (Handler_Call_Originate),
+         URI        => "/call/originate",
          Action     => Create
            (Callback => Handlers.Call.Originate'Access));
 
@@ -167,13 +165,13 @@ package body My_Handlers is
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => Config.Get (Handler_Debug_Peer_List),
+         URI        => "/debug/peer/list",
          Action     => Create
            (Callback => Handlers.Debug.Peer_List'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => Config.Get (Handler_Debug_Channnel_List),
+         URI        => "/debug/channel/list",
          Action     => Create
            (Callback => Handlers.Debug.Channel_List'Access));
 
@@ -182,7 +180,7 @@ package body My_Handlers is
       --------------------------
 
       AWS.Net.WebSocket.Registry.Register
-        (URI     => Config.Get (Handler_Notifications),
+        (URI     => "/notifications",
          Factory => Notifications.Create'Access);
 
       return RH;
