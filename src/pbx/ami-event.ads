@@ -39,6 +39,7 @@ package AMI.Event is
       AgentDump,
       Agentlogin,
       AGIExec,
+      AsyncAGI,
       Agentlogoff,
       CoreShowChannel,
       CoreShowChannelsComplete,
