@@ -17,8 +17,6 @@
 
 with Ada.Strings.Fixed;
 
-with Common;
-
 package body Model.Call_ID is
 
    function "<" (Left  : in Call_ID_Type;
@@ -39,7 +37,7 @@ package body Model.Call_ID is
    end  "=";
 
    function Create (Item : String) return Call_ID_Type is
-      Offset : constant Natural := Common.Index ('.', Item);
+      Offset : constant Natural := Ada.Strings.Fixed.Index (Source => Item, Pattern => ".");
    begin
       return
         (Timestamp => Integer'Value

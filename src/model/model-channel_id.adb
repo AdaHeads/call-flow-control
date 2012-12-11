@@ -1,4 +1,4 @@
-with Common;
+with Ada.Strings.Fixed;
 
 package body Model.Channel_ID is
 
@@ -18,8 +18,11 @@ package body Model.Channel_ID is
    end  "=";
 
    function Create (Item : String) return Channel_ID_Type is
-      Class_Offset    : constant Natural := Common.Index ('/', Item);
-      Peername_Offset : constant Natural := Common.Index ('-', Item);
+      Class_Offset    : constant Natural := Ada.Strings.Fixed.Index (Pattern => "/",
+                                                                     Source  => Item);
+      Peername_Offset : constant Natural := Ada.Strings.Fixed.Index (Pattern => "-",
+                                                                     Source  => Item,
+                                                                     Going   => Ada.Strings.Backward);
    begin
       if Class_Offset < 3 then
          return Null_Channel_ID;

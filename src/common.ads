@@ -51,8 +51,4 @@ package Common is
    --  Convert and trim an Ada.Calendar.Time type to a Unix timestamp
    --  String.
 
-   function Index (Char : Character;
-                   Item : String) return Natural;
-   --  Utility function for locating the index of a character in a string.
-   --  Similar to the corresponding Ada.Strings function, only simpler.
 end Common;
