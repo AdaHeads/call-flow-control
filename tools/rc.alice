@@ -39,11 +39,15 @@ NAME=alice
 # Path to the NAME executable.
 LOCATION=/opt/alice
 
-# Path to the config.ini file.
-CONFIG=configuration/config.ini
+# Paths to the configuration files.
+ALICE_CONFIG=configuration/alice_config.ini
+YOLK_CONFIG=configuration/config.ini
 
 # Path to the PID file.
 PID=`realpath ${LOCATION}`/${NAME}.pid
+
+# User to run Alice as:
+USER=alice
 
 ##############################################################
 # Do not edit below here, unless you know what you're doing. #
@@ -88,9 +92,9 @@ yolk_start() {
     #   output on STDOUT.
     cd ${LOCATION};
 
-    if [ -f ${CONFIG} ]
+    if [ -f ${ALICE_CONFIG} -a -f ${YOLK_CONFIG} ]
     then
-	./${NAME} --yolk-config-file ${CONFIG} > /dev/null &
+	su -c "./${NAME} --alice-config-file ${ALICE_CONFIG} --yolk-config-file ${YOLK_CONFIG} > /dev/null &" ${USER}
 
         # Create the PID file
 	YOLK_PID=$!
@@ -114,7 +118,7 @@ yolk_start() {
 
 	exit 1
     else
-	echo "Cannot open ${CONFIG}."
+	echo "Cannot open ${ALICE_CONFIG} or ${YOLK_CONFIG}."
 	exit 1;
     fi
 
