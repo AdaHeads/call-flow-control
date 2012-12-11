@@ -41,7 +41,7 @@ package body View.Contact is
 
          Attr_Array := Instance.Attributes.To_JSON_Array;
 
-         if Length (Attr_Array) > 0 then
+         if GNATCOLL.JSON.Length (Attr_Array) > 0 then
             J.Set_Field (Attributes, Attr_Array);
          end if;
       end if;

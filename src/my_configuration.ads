@@ -1,12 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                             My_Configuration                              --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
---                     Copyright (C) 2012-, AdaHeads K/S                      --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -46,7 +40,7 @@ package My_Configuration is
                  Handler_Call_Hangup,
                  Handler_Call_Originate,
                  Handler_Call_Pickup,
-                 Handler_Call_Hold,
+                 Handler_Call_Park,
                  Handler_Call_List,
                  Handler_Call_Queue,
                  Handler_Contact,
@@ -94,8 +88,8 @@ package My_Configuration is
                        => U ("/call/originate"),
                        Handler_Call_Hangup
                        => U ("/call/hangup"),
-                       Handler_Call_Hold
-                       => U ("/call/hold"),
+                       Handler_Call_Park
+                       => U ("/call/park"),
                        Handler_Call_Queue
                        => U ("/call/queue"),
                        Handler_Call_List

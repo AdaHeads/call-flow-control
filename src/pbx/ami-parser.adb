@@ -1,12 +1,6 @@
 
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                               Event_Parser                                --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -26,7 +20,6 @@ with Ada.Strings.Maps;
 with Ada.Strings.Fixed; use Ada.Strings.Fixed; -- For Index
 with Ada.Characters.Latin_1;
 
-with Ada.Exceptions;
 with System_Messages;   use System_Messages;
 
 package body AMI.Parser is
@@ -107,12 +100,10 @@ package body AMI.Parser is
               Value => To_Unbounded_String
                 (Line (Line'First + Seperator_Index + 1 .. Line'Last)));
    exception
-      when E : Constraint_Error =>
+      when Constraint_Error =>
          System_Messages.Notify
            (System_Messages.Error, "AMI.Parser.Parse_Line: Unknown line """ &
               Line & """");
-         System_Messages.Notify
-           (System_Messages.Error, Ada.Exceptions.Exception_Information (E));
          return Bad_Line;
 
       when BAD_LINE_FORMAT =>
@@ -145,6 +136,8 @@ package body AMI.Parser is
             Current_Packet.Fields.Insert
               (Key      => Current_Pair.Key,
                New_Item => Current_Pair.Value);
+         else
+            System_Messages.Notify (Debug, "Read_Packet: Skipping bad line");
          end if;
       end loop;
    end Read_Packet;

@@ -25,7 +25,7 @@ package body Model.Channel_ID is
          return Null_Channel_ID;
       else
          return
-           (Class => Channel_Class_Type'Value
+           (Kind => Technology'Value
               (Item (Item'First .. Item'First + Class_Offset - 2)),
             Peername =>
               To_Unbounded_String
@@ -42,7 +42,7 @@ package body Model.Channel_ID is
          return "<Null>";
       else
          return
-           Channel_Class_Type'Image (Channel_ID.Class) &
+           Technology'Image (Channel_ID.Kind) &
            "/" &
            To_String (Channel_ID.Peername) &
            "-" &

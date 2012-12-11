@@ -38,6 +38,7 @@ package AMI.Event is
       AgentConnect,
       AgentDump,
       Agentlogin,
+      AGIExec,
       Agentlogoff,
       CoreShowChannel,
       CoreShowChannelsComplete,
@@ -45,6 +46,8 @@ package AMI.Event is
       QueueMemberPaused,
       QueueMemberStatus,
       --  Command Status Events
+      ChannelReload,
+      ModuleLoadReport,
       Cdr,
       Dial,
       ExtensionStatus,
@@ -73,6 +76,8 @@ package AMI.Event is
       DNDState,
       LogChannel,
       PeerStatus,
+      PeerEntry,
+      PeerlistComplete,
       Registry,
       Reload,
       RTCPReceived,
@@ -92,7 +97,9 @@ package AMI.Event is
       StatusComplete,
       VarSet,
       ZapShowChannels,
-      ZapShowChannelsComplete
+      ZapShowChannelsComplete,
+      NewAccountCode,
+      Bridge
      );
 
    type Event_Callback is access procedure (Packet : in Packet_Type);

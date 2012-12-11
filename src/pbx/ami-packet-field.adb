@@ -15,48 +15,19 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
+package body AMI.Packet.Field is
+   function Create (Key :   in AMI.Parser.AMI_Key_Type;
+                    Value : in String) return Field is
+   begin
+      return (Key   => Key,
+              Value => To_Bounded_String (Value));
+   end Create;
 
-package Handlers.Call is
-
-   Package_Name : constant String := "Handlers.Call";
-
---     function Bridge
---       (Request : in AWS.Status.Data)
---        return AWS.Response.Data;
---     --  Bridges two calls in the PBX
-
-   function Originate
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Places a new call from the agent to a given extension.
-
-   function Hangup
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  End a call in progress, regardless of state
-
-   function Park
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Put current call on hold. Return No Content if there is no call
-   --  to be put on hold.
-
-   function Pickup
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Pickup either the oldest call in the queue, or the call identified by
-   --  the call_id GET parameter.
-
-   function List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Returns the full call list, regardless of state.
-
-   function Queue
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Return the current list of calls queued.
-
-end Handlers.Call;
+   function To_AMI_Line (F : in Field) return AMI_Line is
+   begin
+      return
+        AMI_Line (F.Key'Img & Separator &
+                    To_String (F.Value) &
+                    Line_Termination_String);
+   end To_AMI_Line;
+end AMI.Packet.Field;

@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                               My_Handlers                                 --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -112,9 +106,9 @@ package body My_Handlers is
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => Config.Get (Handler_Call_Hold),
+         URI        => Config.Get (Handler_Call_Park),
          Action     => Create
-           (Callback => Call.Hold'Access));
+           (Callback => Call.Park'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,

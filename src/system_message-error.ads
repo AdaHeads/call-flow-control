@@ -37,6 +37,12 @@ package System_Message.Error is
       Status      => "bad request",
       Status_Code => HTTP_Codes.Bad_Request);
 
+   procedure Bad_Call_ID_Key is new Log_And_Respond
+     (Description => "call_id must be a valid natural integer",
+      Log_Trace   => Yolk.Log.Error,
+      Status      => "bad request",
+      Status_Code => HTTP_Codes.Bad_Request);
+
    procedure Generic_Constraint_Error is new Log_And_Respond
      (Description => "a constraint was violated",
       Log_Trace   => Yolk.Log.Error,

@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                                  Peers                                    --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -20,39 +14,44 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-
-with Ada.Characters.Handling;
 with Ada.Calendar.Formatting;
 
+with View.Peer;
+
 package body Model.Peers is
+
+   --  TODO: Add a time limit for when we timeout a peer
+   function Available (Peer : in Peer_Type) return Boolean is
+   begin
+      return Peer /= Null_Peer and Peer.State not in Unknown .. Unregistered;
+   end Available;
 
    function Hash (Peer_ID : in Peer_ID_Type) return Hash_Type is
    begin
       return Ada.Strings.Hash (Peer_ID.To_String);
    end Hash;
 
+   procedure Seen (Peer : out Peer_Type) is
+   begin
+      Peer.Last_Seen := (Never => False,
+                         Time  => Current_Time);
+   end Seen;
+
    function To_JSON (Peer : in Peers.Peer_Type)
                      return GNATCOLL.JSON.JSON_Value is
-      use GNATCOLL.JSON;
-      use Ada.Characters.Handling;
-
-      JSON      : constant JSON_Value := Create_Object;
-      Peer_JSON : constant JSON_Value := Create_Object;
    begin
-      Peer_JSON.Set_Field ("ID", To_String (Peer.ID));
-      Peer_JSON.Set_Field ("Agent_ID", Peer.Agent_ID.To_String);
-      Peer_JSON.Set_Field ("State", To_Lower (Peer.State'Img));
-      Peer_JSON.Set_Field ("Last_State", To_Lower (Peer.Last_State'Img));
-      Peer_JSON.Set_Field ("Port", To_String (Peer.Port));
-      Peer_JSON.Set_Field ("Address", To_String (Peer.Address));
-      Peer_JSON.Set_Field ("Paused", Peer.Paused);
-      Peer_JSON.Set_Field ("Last_Seen",
-                           Ada.Calendar.Formatting.Image (Peer.Last_Seen));
-      JSON.Set_Field ("peer", Peer_JSON);
-      JSON.Set_Field ("timestamp", Unix_Timestamp (Current_Time));
 
-      return JSON;
+      return View.Peer.To_JSON (Peer => Peer);
    end To_JSON;
+
+   function To_String (Item : in Conditional_Time) return String is
+   begin
+      if not Item.Never then
+         return Ada.Calendar.Formatting.Image (Item.Time);
+      else
+         return "Never";
+      end if;
+   end To_String;
 
    function To_String (Peer : in Peer_Type) return String is
    begin
@@ -71,12 +70,17 @@ package body Model.Peers is
          return List.Contains (Key => Peer_ID);
       end Contains;
 
+      function Count return Natural is
+      begin
+         return Natural (List.Length);
+      end Count;
+
       function Get (Peer_ID : in Peer_ID_Type) return Peer_Type is
       begin
          return List.Element (Key => Peer_ID);
       end Get;
 
-      procedure Insert (Peer : in Peer_Type) is
+      procedure Put (Peer : in Peer_Type) is
       begin
          if List.Contains (Peer.ID) then
             List.Replace (Key      => Peer.ID,
@@ -85,7 +89,7 @@ package body Model.Peers is
             List.Insert (Key      => Peer.ID,
                          New_Item => Peer);
          end if;
-      end Insert;
+      end Put;
 
       function To_JSON return GNATCOLL.JSON.JSON_Value is
          use GNATCOLL.JSON;
