@@ -39,7 +39,7 @@ package body Response.Cached is
       function Found_Cache_Key
         return Boolean;
 
-      Cache_Key       : Cache_Key_Type;
+      Key             : Cache_Key_Type;
       Response_Object : Object := Factory (Request);
       Valid_Cache     : Boolean;
 
@@ -47,7 +47,7 @@ package body Response.Cached is
         return Boolean
       is
       begin
-         Cache_Key := Get_Cache_Key (Response_Object);
+         Key := Cache_Key (Response_Object);
          return True;
       exception
          when others =>
@@ -57,16 +57,16 @@ package body Response.Cached is
       end Found_Cache_Key;
    begin
       if Found_Cache_Key then
-         Read_From_Cache (Key      => Cache_Key,
-                          Is_Valid => Valid_Cache,
-                          Value    => Response_Object.Content);
+         Cache.Read (Key      => Key,
+                     Is_Valid => Valid_Cache,
+                     Value    => Response_Object.Content);
 
          if not Valid_Cache then
             Generate_Document (Response_Object);
 
             if Response_Object.Is_Cacheable then
-               Write_To_Cache (Key   => Cache_Key,
-                               Value => Response_Object.Content);
+               Cache.Write (Key   => Key,
+                            Value => Response_Object.Content);
             end if;
          end if;
       end if;
