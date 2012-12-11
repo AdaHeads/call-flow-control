@@ -39,4 +39,7 @@ package AMI.Callback is
 
    procedure Ping_Callback (Client : access Client_Type;
                             Packet : in     Packet_Type);
+
+--     procedure ExtensionState (Client : access Client_Type;
+--                               Packet : in     Packet_Type);
 end AMI.Callback;

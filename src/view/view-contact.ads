@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                               View.Contact                                --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -23,27 +17,27 @@
 
 with Common;
 with GNATCOLL.JSON;
+with Model.Contact;
 with Model.Contacts;
 
 package View.Contact is
 
    use Common;
    use GNATCOLL.JSON;
-   use Model.Contacts;
 
    function To_JSON
-     (O : in Contact_List_Object)
-      return JSON_Array;
-   --  Convert O to a JSON array.
-
-   function To_JSON
-     (O : in Contact_Object)
+     (Instance : in Model.Contact.Object)
       return JSON_Value;
-   --  Convert O to a JSON object.
+   --  Convert Instance to a JSON object.
 
-   function To_JSON
-     (O : in Contact_Object)
+   function To_JSON_Array
+     (Instance : in Model.Contacts.List)
+      return JSON_Array;
+   --  Convert Instance to a JSON array.
+
+   function To_JSON_String
+     (Instance : in Model.Contact.Object)
       return JSON_String;
-   --  Convert O to a JSON string.
+   --  Convert Instance to a JSON string.
 
 end View.Contact;

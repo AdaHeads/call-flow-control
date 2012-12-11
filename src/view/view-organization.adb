@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                            View.Organization                              --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -21,94 +15,37 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with View.Contact;
-
 package body View.Organization is
 
-   function To_Basic_JSON
-     (O : in Organization_Object)
+   function To_Midi_JSON
+     (O : in Model.Organization.Organization_Object)
       return JSON_Value;
-   --  Create and return a basic organization JSON document. This only contains
-   --  id, full name and string identifier. No contacts.
 
-   function To_Full_JSON
-     (O : in Organization_Object)
+   function To_Mini_JSON
+     (O : in Model.Organization.Organization_Object)
       return JSON_Value;
-   --  Create and return a full organization JSON document. This contains all
-   --  organization related data and contacts, if there are any.
 
-   ---------------------
-   --  To_Basic_JSON  --
-   ---------------------
-
-   function To_Basic_JSON
-     (O : in Organization_Object)
-      return JSON_Value
-   is
-      J : JSON_Value := JSON_Null;
-   begin
-      if O /= Null_Organization then
-         J := Create_Object;
-
-         J.Set_Field (Organization_Id, Integer (O.Organization_Id));
-
-         J.Set_Field (Full_Name, O.Full_Name);
-
-         J.Set_Field (Identifier, O.Identifier);
-      end if;
-
-      return J;
-   end To_Basic_JSON;
-
-   --------------------
-   --  To_Full_JSON  --
-   --------------------
-
-   function To_Full_JSON
-     (O : in Organization_Object)
-      return JSON_Value
-   is
-      C_Array : JSON_Array;
-      J       : JSON_Value := JSON_Null;
-   begin
-      if O /= Null_Organization then
-         if O.JSON /= JSON_Null then
-            J := O.JSON;
-         else
-            J := Create_Object;
-         end if;
-
-         J.Set_Field (Organization_Id, Integer (O.Organization_Id));
-
-         J.Set_Field (Full_Name, O.Full_Name);
-
-         J.Set_Field (Identifier, O.Identifier);
-
-         C_Array := View.Contact.To_JSON (O.Contact_List);
-
-         if Length (C_Array) > 0 then
-            J.Set_Field (Contacts, C_Array);
-         end if;
-      end if;
-
-      return J;
-   end To_Full_JSON;
+   function To_Maxi_JSON
+     (O : in Model.Organization.Organization_Object)
+      return JSON_Value;
 
    ---------------
    --  To_JSON  --
    ---------------
 
    function To_JSON
-     (O    : in Organization_Object;
-      View : in Mode)
+     (O : in Model.Organization.Organization_Object)
       return JSON_Value
    is
+      use Model.Organization;
    begin
-      case View is
-         when Basic =>
-            return To_Basic_JSON (O);
-         when Full =>
-            return To_Full_JSON (O);
+      case O.Mode is
+         when Mini =>
+            return To_Mini_JSON (O);
+         when Midi =>
+            return To_Midi_JSON (O);
+         when Maxi =>
+            return To_Maxi_JSON (O);
       end case;
    end To_JSON;
 
@@ -117,30 +54,11 @@ package body View.Organization is
    ---------------
 
    function To_JSON
-     (O    : in Organization_Object;
-      View : in Mode)
-      return JSON_String
-   is
-   begin
-      case View is
-         when Basic =>
-            return To_JSON_String (To_Basic_JSON (O).Write);
-         when Full =>
-            return To_JSON_String (To_Full_JSON (O).Write);
-      end case;
-   end To_JSON;
-
-   ---------------
-   --  To_JSON  --
-   ---------------
-
-   function To_JSON
-     (O    : in Organization_List_Object;
-      View : in Mode)
+     (Instance : in Model.Organizations.Organization_List_Object)
       return JSON_Value
    is
       procedure Process
-        (O : in Organization_Object'Class);
+        (O : in Model.Organization.Organization_Object);
       --  Add each Organization_Object to O_Array.
 
       O_Array : JSON_Array;
@@ -151,15 +69,15 @@ package body View.Organization is
       ---------------
 
       procedure Process
-        (O : in Organization_Object'Class)
+        (O : in Model.Organization.Organization_Object)
       is
       begin
-         Append (O_Array, To_JSON (Organization_Object (O), View));
+         Append (O_Array, To_JSON (O));
       end Process;
    begin
-      O.For_Each (Process'Access);
+      Instance.For_Each (Process'Access);
 
-      if Length (O_Array) > 0 then
+      if GNATCOLL.JSON.Length (O_Array) > 0 then
          J := Create_Object;
          J.Set_Field (Organization_List, O_Array);
       end if;
@@ -167,17 +85,126 @@ package body View.Organization is
       return J;
    end To_JSON;
 
-   ---------------
-   --  To_JSON  --
-   ---------------
+   ----------------------
+   --  To_JSON_String  --
+   ----------------------
 
-   function To_JSON
-     (O    : in Organization_List_Object;
-      View : in Mode)
+   function To_JSON_String
+     (Instance  : in Model.Organizations.Organization_List_Object)
       return JSON_String
    is
    begin
-      return To_JSON_String (To_JSON (O, View).Write);
-   end To_JSON;
+      return To_JSON_String (To_JSON (Instance).Write);
+   end To_JSON_String;
+
+   ----------------------
+   --  To_JSON_String  --
+   ----------------------
+
+   function To_JSON_String
+     (Instance  : in Model.Organization.Organization_Object)
+      return JSON_String
+   is
+      use Model.Organization;
+   begin
+      case Instance.Mode is
+         when Mini =>
+            return To_JSON_String (To_Mini_JSON (Instance).Write);
+         when Midi =>
+            return To_JSON_String (To_Midi_JSON (Instance).Write);
+         when Maxi =>
+            return To_JSON_String (To_Maxi_JSON (Instance).Write);
+      end case;
+   end To_JSON_String;
+
+   --------------------
+   --  To_Maxi_JSON  --
+   --------------------
+
+   function To_Maxi_JSON
+     (O : in Model.Organization.Organization_Object)
+      return JSON_Value
+   is
+      use Model.Organization;
+
+      C_Array : JSON_Array;
+      J       : JSON_Value := JSON_Null;
+   begin
+      if O /= Null_Organization then
+         if O.JSON /= JSON_Null then
+            J := O.JSON;
+         else
+            J := Create_Object;
+         end if;
+
+         J.Set_Field (Organization_Id, Integer (O.ID));
+
+         J.Set_Field (Full_Name, O.Full_Name);
+
+         J.Set_Field (Identifier, O.Identifier);
+
+         C_Array := O.Contact_List.To_JSON_Array;
+
+         if GNATCOLL.JSON.Length (C_Array) > 0 then
+            J.Set_Field (Contacts, C_Array);
+         end if;
+      end if;
+
+      return J;
+   end To_Maxi_JSON;
+
+   --------------------
+   --  To_Midi_JSON  --
+   --------------------
+
+   function To_Midi_JSON
+     (O : in Model.Organization.Organization_Object)
+      return JSON_Value
+   is
+      use Model.Organization;
+
+      J : JSON_Value := JSON_Null;
+   begin
+      if O /= Null_Organization then
+         if O.JSON /= JSON_Null then
+            J := O.JSON;
+         else
+            J := Create_Object;
+         end if;
+
+         J.Set_Field (Organization_Id, Integer (O.ID));
+
+         J.Set_Field (Full_Name, O.Full_Name);
+
+         J.Set_Field (Identifier, O.Identifier);
+      end if;
+
+      return J;
+   end To_Midi_JSON;
+
+   --------------------
+   --  To_Mini_JSON  --
+   --------------------
+
+   function To_Mini_JSON
+     (O : in Model.Organization.Organization_Object)
+      return JSON_Value
+   is
+      use Model.Organization;
+
+      J : JSON_Value := JSON_Null;
+   begin
+      if O /= Null_Organization then
+         J := Create_Object;
+
+         J.Set_Field (Organization_Id, Integer (O.ID));
+
+         J.Set_Field (Full_Name, O.Full_Name);
+
+         J.Set_Field (Identifier, O.Identifier);
+      end if;
+
+      return J;
+   end To_Mini_JSON;
 
 end View.Organization;

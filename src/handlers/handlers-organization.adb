@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                          Handlers.Organization                            --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -23,9 +17,8 @@
 
 with AWS.Status;
 with HTTP_Codes;
-with Model.Organizations;
+with Model.Organization;
 with System_Message.Error;
-with View;
 
 package body Handlers.Organization is
 
@@ -63,11 +56,11 @@ package body Handlers.Organization is
    is
       use Common;
       use HTTP_Codes;
-      use Model.Organizations;
+      use Model.Organization;
 
       O : Organization_Object;
    begin
-      O.Get_Full (O_Id => Get_Org_Id (Response_Object));
+      O := Get (Get_Org_Id (Response_Object), Mode => Maxi);
 
       if O /= Null_Organization then
          Response_Object.Cacheable (True);
@@ -76,7 +69,7 @@ package body Handlers.Organization is
          Response_Object.HTTP_Status_Code (Not_Found);
       end if;
 
-      Response_Object.Content (O.To_JSON_String (View.Full));
+      Response_Object.Content (O.To_JSON_String);
    end Generate_Document;
 
    ------------------

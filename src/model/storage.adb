@@ -192,12 +192,12 @@ package body Storage is
       return Connection_Pool;
    end Get_DB_Connections;
 
-   ---------------------
-   --  Process_Query  --
-   ---------------------
+   ----------------------------
+   --  Process_Select_Query  --
+   ----------------------------
 
-   procedure Process_Query
-     (Process_Element    : not null access procedure (E : in Element'Class);
+   procedure Process_Select_Query
+     (Process_Element    : not null access procedure (E : in Element);
       Prepared_Statement : in GNATCOLL.SQL.Exec.Prepared_Statement;
       Query_Parameters   : in GNATCOLL.SQL.Exec.SQL_Parameters)
    is
@@ -232,7 +232,7 @@ package body Storage is
          Critical.Lost_Database_Connection
            (Message => Exception_Message (Event) & " SECONDARY");
          raise Database_Error;
-   end Process_Query;
+   end Process_Select_Query;
 
    ------------------------------------
    --  Register_Failed_DB_Connection --

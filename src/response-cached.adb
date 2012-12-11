@@ -21,7 +21,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.URL;
 with System_Message.Critical;
 
 package body Response.Cached is
@@ -35,7 +34,6 @@ package body Response.Cached is
          return AWS.Response.Data
    is
       use AWS.Status;
-      use AWS.URL;
       use System_Message;
 
       function Found_Cache_Key
@@ -54,7 +52,7 @@ package body Response.Cached is
       exception
          when others =>
             Bad_Request_Parameters (Response_Object,
-                                    URL (URI (Response_Object.Status_Data)));
+                                    Response_Object.Request_URL);
             return False;
       end Found_Cache_Key;
    begin
@@ -80,7 +78,7 @@ package body Response.Cached is
          --  enough to warrant a critical level log entry and response.
          Critical.Response_Exception
            (Event           => Event,
-            Message         => Response_Object.Request_URL,
+            Message         => Response_Object.To_Debug_String,
             Response_Object => Response_Object);
          return Response_Object.Build;
    end Generate_Response;

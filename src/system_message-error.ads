@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                           System_Message.Error                            --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -31,14 +25,20 @@ package System_Message.Error is
       Status      => "bad request",
       Status_Code => HTTP_Codes.Bad_Request);
 
-   procedure Bad_List_Kind is new Log_And_Respond
-     (Description => "view must be either basic or full",
+   procedure Bad_Organization_List_View is new Log_And_Respond
+     (Description => "view must be either mini or midi",
       Log_Trace   => Yolk.Log.Error,
       Status      => "bad request",
       Status_Code => HTTP_Codes.Bad_Request);
 
    procedure Bad_Org_Id_Key is new Log_And_Respond
      (Description => "org_id must be a valid natural integer",
+      Log_Trace   => Yolk.Log.Error,
+      Status      => "bad request",
+      Status_Code => HTTP_Codes.Bad_Request);
+
+   procedure Bad_Call_ID_Key is new Log_And_Respond
+     (Description => "call_id must be a valid natural integer",
       Log_Trace   => Yolk.Log.Error,
       Status      => "bad request",
       Status_Code => HTTP_Codes.Bad_Request);

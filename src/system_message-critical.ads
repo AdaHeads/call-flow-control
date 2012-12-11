@@ -39,6 +39,13 @@ package System_Message.Critical is
       Status      => "server error",
       Status_Code => HTTP_Codes.Server_Error);
 
+   procedure Unhandled_Exception is new Log_And_Respond
+     (Description =>
+      "This is probably a disaster and should be fixed by someone soon",
+      Log_Trace   => Yolk.Log.Critical,
+      Status      => "unhandled exception",
+      Status_Code => HTTP_Codes.Server_Error);
+
    procedure Unknown_User is new Logger
      (Log_Trace => Yolk.Log.Critical,
       Status    => "Cannot change user for process");

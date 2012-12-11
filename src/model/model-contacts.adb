@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                              Model.Contacts                                --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -22,7 +16,8 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Hash;
-with SQL_Statements;
+with Model.Attribute;
+with SQL_Statements.Contact;
 with Storage;
 with View.Contact;
 
@@ -31,166 +26,85 @@ package body Model.Contacts is
    use GNATCOLL.SQL;
    use GNATCOLL.SQL.Exec;
 
-   package SQL renames SQL_Statements;
+   package SQL renames SQL_Statements.Contact;
 
-   procedure Fetch_Contact_Object is new Storage.Process_Query
-     (Database_Cursor   => Cursor,
-      Element           => Contact_Object,
-      Cursor_To_Element => Contact_Element);
+   function Contact_List
+     (Cursor : in out Database_Cursor'Class)
+      return List;
+   --  Transforms the low level index based Cursor into a List object.
 
-   procedure Fetch_Contact_Objects is new Storage.Process_Query
-     (Database_Cursor   => Cursor,
-      Element           => Contact_Object,
-      Cursor_To_Element => Contact_Elements);
-
-   ---------------------
-   --  Add_Attribute  --
-   ---------------------
-
-   procedure Add_Attribute
-     (Self      : in out Contact_Object;
-      Attribute : in     Model.Contact_Attributes.Contact_Attributes_Object)
-   is
-   begin
-      Self.Attr_List.Add_Attributes (Attribute);
-   end Add_Attribute;
+   procedure Process_Select_Query is new Storage.Process_Select_Query
+     (Database_Cursor   => Database_Cursor,
+      Element           => List,
+      Cursor_To_Element => Contact_List);
 
    -------------------
    --  Add_Contact  --
    -------------------
 
    procedure Add_Contact
-     (Self    : in out Contact_List_Object;
-      Contact : in     Contact_Object'Class;
-      O_Id    : in     Organization_Identifier)
+     (Instance : in out List;
+      Contact  : in     Model.Contact.Object;
+      ID       : in     Organization_Identifier)
    is
    begin
-      Self.Contacts.Include
-        (Key      => Organization_Contact_Identifier'(C_Id => Contact.C_Id,
-                                                      O_Id => O_Id),
-         New_Item => Contact_Object (Contact));
+      Instance.Contacts.Include
+        (Key      => Organization_Contact_Identifier'
+           (CID => Contact.ID,
+            OID => ID),
+         New_Item => Contact);
    end Add_Contact;
 
-   ------------------
-   --  Attributes  --
-   ------------------
-
-   function Attributes
-     (Self : in Contact_Object)
-      return Model.Contact_Attributes.Contact_Attributes_List_Object
-   is
-   begin
-      return Self.Attr_List;
-   end Attributes;
-
    -----------------------
-   --  Contact_Element  --
+   --  Contact_List  --
    -----------------------
 
-   function Contact_Element
-     (C : in out Cursor)
-      return Contact_Object'Class
+   function Contact_List
+     (Cursor : in out Database_Cursor'Class)
+      return List
    is
-      use Common;
+      use Model.Contact;
 
-      CO : Contact_Object;
+      A_Id    : Attribute_Identifier;
+      A_List  : List;
+      Contact : Object;
    begin
-      CO := Contact_Object'
-        (Attr_List => Model.Contact_Attributes.Null_Contact_Attributes_List,
-         C_Id      => Contact_Identifier (C.Integer_Value (0, Default => 0)),
-         Full_Name => U (C.Value (1)),
-         Is_Human  => C.Boolean_Value (2));
+      while Cursor.Has_Row loop
+         Contact := Create
+           (ID        => Contact_Identifier
+              (Cursor.Integer_Value (0)),
+            Full_Name => Cursor.Value (1),
+            Is_Human  => Cursor.Boolean_Value (2));
 
-      while C.Has_Row loop
-         if not C.Is_Null (3) then
-            CO.Attr_List.Add_Attributes
-              (Model.Contact_Attributes.Create
-                 (Id   => Attributes_Identifier'
-                    (C_Id => Contact_Identifier
-                       (C.Integer_Value (4, Default => 0)),
-                     O_Id => Organization_Identifier
-                       (C.Integer_Value (5, Default => 0))),
-                  JSON => C.Json_Object_Value (3)));
+         if not Cursor.Is_Null (3) then
+            A_Id := (Contact_Identifier (Cursor.Integer_Value (4)),
+                     Organization_Identifier
+                       (Cursor.Integer_Value (5)));
+
+            Contact.Add_Attribute
+              (Model.Attribute.Create (ID   => A_Id,
+                                       JSON => Cursor.Json_Object_Value (3)));
          end if;
 
-         C.Next;
+         A_List.Add_Contact
+           (Contact => Contact,
+            ID      => Organization_Identifier (Cursor.Integer_Value (6)));
+
+         Cursor.Next;
       end loop;
 
-      return CO;
-   end Contact_Element;
-
-   ------------------------
-   --  Contact_Elements  --
-   ------------------------
-
-   function Contact_Elements
-     (C : in out Cursor)
-      return Contact_Object'Class
-   is
-      use Common;
-
-      A_Id : Attributes_Identifier;
-      CO   : Contact_Object;
-   begin
-      CO := Contact_Object'
-        (Attr_List => Model.Contact_Attributes.Null_Contact_Attributes_List,
-         C_Id      => Contact_Identifier (C.Integer_Value (0, Default => 0)),
-         Full_Name => U (C.Value (1)),
-         Is_Human  => C.Boolean_Value (2));
-
-      if not C.Is_Null (3) then
-         A_Id := (Contact_Identifier (C.Integer_Value (4, Default => 0)),
-                  Organization_Identifier (C.Integer_Value (5, Default => 0)));
-
-         CO.Attr_List.Add_Attributes
-           (Model.Contact_Attributes.Create
-              (Id   => A_Id,
-               JSON => C.Json_Object_Value (3)));
-      end if;
-
-      return CO;
-   end Contact_Elements;
-
-   ------------------
-   --  Contact_Id  --
-   ------------------
-
-   function Contact_Id
-     (Self : in Contact_Object)
-      return Contact_Identifier
-   is
-   begin
-      return Self.C_Id;
-   end Contact_Id;
-
-   --------------
-   --  Create  --
-   --------------
-
-   function Create
-     (C_Id      : in Contact_Identifier;
-      Full_Name : in String;
-      Is_Human  : in Boolean)
-      return Contact_Object
-   is
-      use Common;
-   begin
-      return Contact_Object'
-        (Attr_List => Model.Contact_Attributes.Null_Contact_Attributes_List,
-         C_Id      => C_Id,
-         Full_Name => U (Full_Name),
-         Is_Human  => Is_Human);
-   end Create;
+      return A_List;
+   end Contact_List;
 
    ----------------------
    --  Equal_Elements  --
    ----------------------
 
    function Equal_Elements
-     (Left, Right : in Contact_Object)
+     (Left, Right : in Model.Contact.Object)
       return Boolean
    is
-      use type Model.Contacts.Contact_Object;
+      use type Model.Contact.Object;
    begin
       return Left = Right;
    end Equal_Elements;
@@ -212,174 +126,48 @@ package body Model.Contacts is
    ----------------
 
    procedure For_Each
-     (C_Id    : in Contact_Identifier;
-      Process : not null access
-        procedure (Element : in Contact_Object'Class))
-   is
-      Parameters : constant SQL_Parameters := (1 => +Integer (C_Id));
-   begin
-      Fetch_Contact_Object
-        (Process_Element    => Process,
-         Prepared_Statement => SQL.Contact_Full_Prepared,
-         Query_Parameters   => Parameters);
-   end For_Each;
-
-   ----------------
-   --  For_Each  --
-   ----------------
-
-   procedure For_Each
-     (O_Id    : in Organization_Identifier;
-      Process : not null access
-        procedure (Element : in Contact_Object'Class))
-   is
-      Parameters : constant SQL_Parameters := (1 => +Integer (O_Id));
-   begin
-      Fetch_Contact_Objects
-        (Process_Element    => Process,
-         Prepared_Statement => SQL.Contacts_Prepared,
-         Query_Parameters   => Parameters);
-   end For_Each;
-
-   ----------------
-   --  For_Each  --
-   ----------------
-
-   procedure For_Each
-     (C_Id    : in Contact_Identifier;
-      O_Id    : in Organization_Identifier;
-      Process : not null access
-        procedure (Element : in Contact_Object'Class))
-   is
-      Parameters : constant SQL_Parameters := (1 => +Integer (C_Id),
-                                               2 => +Integer (O_Id));
-   begin
-      Fetch_Contact_Object
-        (Process_Element    => Process,
-         Prepared_Statement => SQL.Contact_Org_Specified_Prepared,
-         Query_Parameters   => Parameters);
-   end For_Each;
-
-   ----------------
-   --  For_Each  --
-   ----------------
-
-   procedure For_Each
-     (Self    : in Contact_List_Object;
-      Process : not null access
-        procedure (Element : in Contact_Object))
+     (Instance : in List;
+      Process  : not null access procedure (Element : in Model.Contact.Object))
    is
    begin
-      for Elem of Self.Contacts loop
+      for Elem of Instance.Contacts loop
          Process (Elem);
       end loop;
    end For_Each;
-
-   -----------------
-   --  Full_Name  --
-   -----------------
-
-   function Full_Name
-     (Self : in Contact_Object)
-      return String
-   is
-   begin
-      return To_String (Self.Full_Name);
-   end Full_Name;
-
-   -----------
-   --  Get  --
-   -----------
-
-   procedure Get
-     (Self : in out Contact_Object;
-      C_Id : in     Contact_Identifier)
-   is
-      procedure Get_Element
-        (Contact : in Contact_Object'Class);
-
-      -------------------
-      --  Get_Element  --
-      -------------------
-
-      procedure Get_Element
-        (Contact : in Contact_Object'Class)
-      is
-      begin
-         Self := Contact_Object (Contact);
-      end Get_Element;
-   begin
-      For_Each (C_Id, Get_Element'Access);
-   end Get;
-
-   -----------
-   --  Get  --
-   -----------
-
-   procedure Get
-     (Self : in out Contact_List_Object;
-      O_Id : in     Organization_Identifier)
-   is
-      procedure Get_Element
-        (Contact : in Contact_Object'Class);
-
-      -------------------
-      --  Get_Element  --
-      -------------------
-
-      procedure Get_Element
-        (Contact : in Contact_Object'Class)
-      is
-      begin
-         Self.Contacts.Include
-           (Key      => Organization_Contact_Identifier'
-              (C_Id => Contact.C_Id, O_Id => O_Id),
-            New_Item => Contact_Object (Contact));
-      end Get_Element;
-   begin
-      For_Each (O_Id, Get_Element'Access);
-   end Get;
 
    -----------
    --  Get  --
    -----------
 
    function Get
-     (C_Id : in Contact_Identifier;
-      O_Id : in Organization_Identifier)
-      return Contact_Object
+     (ID : in Organization_Identifier)
+      return List
    is
       procedure Get_Element
-        (Contact : in Contact_Object'Class);
+        (Instance : in List);
 
-      C : Contact_Object := Null_Contact;
+      Contacts : List;
 
       -------------------
       --  Get_Element  --
       -------------------
 
       procedure Get_Element
-        (Contact : in Contact_Object'Class)
+        (Instance : in List)
       is
       begin
-         C := Contact_Object (Contact);
+         Contacts := Instance;
       end Get_Element;
+
+      Parameters : constant SQL_Parameters := (1 => +Integer (ID));
    begin
-      For_Each (C_Id, O_Id, Get_Element'Access);
-      return C;
+      Process_Select_Query
+        (Process_Element    => Get_Element'Access,
+         Prepared_Statement => SQL.Contacts_Prepared,
+         Query_Parameters   => Parameters);
+
+      return Contacts;
    end Get;
-
-   ----------------
-   --  Is_Human  --
-   ----------------
-
-   function Is_Human
-     (Self : in Contact_Object)
-      return Boolean
-   is
-   begin
-      return Self.Is_Human;
-   end Is_Human;
 
    ----------------
    --  Key_Hash  --
@@ -391,20 +179,20 @@ package body Model.Contacts is
    is
    begin
       return Ada.Strings.Hash
-        (Contact_Identifier'Image (Key.C_Id) &
-           Organization_Identifier'Image (Key.O_Id));
+        (Contact_Identifier'Image (Key.CID) &
+           Organization_Identifier'Image (Key.OID));
    end Key_Hash;
 
-   ---------------
-   --  To_JSON  --
-   ---------------
+   ---------------------
+   --  To_JSON_Array  --
+   ---------------------
 
-   function To_JSON
-     (Self : in Contact_Object)
-      return Common.JSON_String
+   function To_JSON_Array
+     (Instance : in List)
+      return GNATCOLL.JSON.JSON_Array
    is
    begin
-      return View.Contact.To_JSON (Self);
-   end To_JSON;
+      return View.Contact.To_JSON_Array (Instance);
+   end To_JSON_Array;
 
 end Model.Contacts;

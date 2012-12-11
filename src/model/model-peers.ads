@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                                  Peers                                    --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -21,78 +15,93 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Calendar;
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Hash;
 with Ada.Strings.Unbounded;
+with Model.Agent_ID;
+with Model.Peer_ID;
+with GNATCOLL.JSON;
 
+with Common;
 package Model.Peers is
    use Ada.Containers;
    use Ada.Strings.Unbounded;
+   use Model.Agent_ID;
+   use Model.Peer_ID;
+   use Common;
 
-   PEER_NOT_FOUND : exception;
+   Peer_Not_Found : exception;
+   --  When a peer is not found in the list, something is terribly wrong.
+   --  It means we have an inconsistant state between Agent and Peer, and
+   --  thus, we raise an exception.
 
    type SIP_Peer_Status_Type is (Unknown, Unregistered, Idle, Busy, Paused);
 
-   --  package Call_List is new
-   --    Ada.Containers.Vectors (Index_Type   => Positive,
-   --                            Element_Type => Model.Call.Call_Type,
-   --                            "="          => Model.Call."=");
+   type Conditional_Time (Never : Boolean := True) is record
+      case Never is
+         when True =>
+            null;
+         when False =>
+            Time : Common.Time := Current_Time;
+      end case;
+   end record;
+
+   function To_String (Item : in Conditional_Time) return String;
 
    type Peer_Type is tagged
       record
-         Agent_ID     : Unbounded_String;
-         Defined      : Boolean := False;
+         ID           : Peer_ID_Type; --  Was 'peer'
+         Agent_ID     : Agent_ID_Type;
          State        : SIP_Peer_Status_Type := Unregistered;
          Last_State   : SIP_Peer_Status_Type := Unknown;
-         ChannelType  : Unbounded_String;
-         Peer         : Unbounded_String;
          Port         : Unbounded_String;
          Address      : Unbounded_String;
-         Paused       : Boolean := False;
-         Last_Seen    : Ada.Calendar.Time := Ada.Calendar.Clock;
-         Exten        : Unbounded_String;
-
-         Computer_ID : Unbounded_String;
-         --  Dete skal kun symbolere de informationen, der måtte komme senere
+         Last_Seen    : Conditional_Time;
       end record;
 
-   type Peer_Type_Access is access Peer_Type;
-   function Image (Item : in Peer_Type) return String;
-   --     procedure Print_Peer (Peer : in Peer_Type);
-   procedure Insert_Peer (New_Item : in Peer_Type);
-   --  Inserts a new peer in the peer list, and overwrites existing peers with
-   --  the same key.
+   function Available (Peer : in Peer_Type) return Boolean;
 
-   --  Debug
-   function List_As_String return String;
---   function Image return String;
-   function Get_Peer_By_ID (Agent_ID : in Unbounded_String) return Peer_Type;
-   function Get_Peer_By_PhoneName (PhoneName : in String)
-                                   return Peer_Type;
+   procedure Seen (Peer : out Peer_Type);
+   --  Bump the timestamp for the peer to the current_time.
 
-   function Hash (Peer_Address : in Unbounded_String) return Hash_Type;
+   function To_JSON (Peer : in Peers.Peer_Type)
+                     return GNATCOLL.JSON.JSON_Value;
+   function To_String (Peer : in Peer_Type) return String;
 
-   package Peer_List_Type is new Ada.Containers.Hashed_Maps
-     (Key_Type        => Unbounded_String,
+   function Hash (Peer_ID : Peer_ID_Type) return Hash_Type;
+
+   package Peer_List_Storage is new Ada.Containers.Hashed_Maps
+     (Key_Type        => Peer_ID_Type,
       Element_Type    => Peer_Type,
       Hash            => Hash,
       Equivalent_Keys => "=");
 
-   function Get_Peers_List return Peer_List_Type.Map;
-   function Get_Exten (Peer : in Unbounded_String) return Unbounded_String;
-   Null_Peer : Peer_Type :=
-                 (Agent_ID     => Null_Unbounded_String,
-                  Defined      => False,
-                  State        => Unregistered,
-                  Last_State   => Unknown,
-                  ChannelType  => Null_Unbounded_String,
-                  Peer         => Null_Unbounded_String,
-                  Port         => Null_Unbounded_String,
-                  Address      => Null_Unbounded_String,
-                  Paused       => False,
-                  Last_Seen    => Ada.Calendar.Clock,
-                  Exten        => Null_Unbounded_String,
-                  Computer_ID  => Null_Unbounded_String);
+   --  function Get_Peers_List return Peer_List_Storage.Map;
+   --  function Get_Exten (Peer : in Unbounded_String) return Unbounded_String;
 
+   protected type Peer_List_Type is
+      function Contains (Peer_ID : in Peer_ID_Type) return Boolean;
+      function Count return Natural;
+      function Get (Peer_ID : in Peer_ID_Type) return Peer_Type;
+      procedure Put (Peer : in Peer_Type);
+      function To_String return String;
+      function To_JSON return GNATCOLL.JSON.JSON_Value;
+   private
+      List : Peer_List_Storage.Map;
+   end Peer_List_Type;
+
+   Null_Peer : constant Peer_Type;
+
+   List : Peer_List_Type;
+   --  Package-visisble singleton.
+
+private
+      Null_Peer : constant Peer_Type :=
+     (ID           => Null_Peer_ID,
+      Agent_ID     => Null_Agent_ID,
+      State        => Unregistered,
+      Last_State   => Unknown,
+      Port         => Null_Unbounded_String,
+      Address      => Null_Unbounded_String,
+      Last_Seen    => (Never => True));
 end Model.Peers;

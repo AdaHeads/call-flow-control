@@ -1,11 +1,4 @@
-
 -------------------------------------------------------------------------------
---                                                                           --
---                                  Alice                                    --
---                                                                           --
---                              My_Callbacks                                 --
---                                                                           --
---                                  BODY                                     --
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
@@ -23,12 +16,17 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
-
 with Common;
 with System_Messages;
 
+with Model.Agents;
 with Model.Call;
+with Model.Calls;
+with Model.Channel;
+with Model.Channels;
+with Model.Channel_ID;
 with Model.Peers;
+with Model.Peer_ID;
 with Handlers.Notifications;
 with Model.Call_ID;
 with JSON.Event;
@@ -38,8 +36,11 @@ package body My_Callbacks is
    use System_Messages;
    use Ada.Strings.Unbounded;
    use Model.Call;
-   use Model.Peers;
    use Model.Call_ID;
+   use Model.Channel;
+   use Model.Channel_ID;
+   use Model.Peers;
+   use Model.Peer_ID;
 
    package Notifications renames Handlers.Notifications;
 
@@ -68,161 +69,208 @@ package body My_Callbacks is
       System_Messages.Notify (Debug, "Bridge not implemented");
    end Bridge;
 
-   --  Event: Dial
-   --  Privilege: call,all
-   --  SubEvent: Begin
-   --  Channel: SIP/softphone2-0000000a
-   --  Destination: SIP/softphone1-0000000b
-   --  CallerIDNum: softphone2
-   --  CallerIDName: <unknown>
-   --  UniqueID: 1340097427.10
-   --  DestUniqueID: 1340097427.11
-   --  Dialstring: softphone1
-   procedure Dial (Packet : in Packet_Type) is
-      --  use Ada.Strings.Unbonded;
-   --  Temp_Value : Unbounded_String;
-   pragma Unreferenced (Packet);
+   --  Event: CoreShowChannel
+   --  Channel: SIP/softphone1-0000003f
+   --  UniqueID: 1354109368.63
+   --  Context: LocalSets
+   --  Extension: 7001
+   --  Priority: 5
+   --  ChannelState: 6
+   --  ChannelStateDesc: Up
+   --  Application: Queue
+   --  ApplicationData: org_id1
+   --  CallerIDnum: softphone1
+   --  Duration: 54:08:10
+   --  AccountCode:
+   --  BridgedChannel:
+   --  BridgedUniqueID:
+   procedure Core_Show_Channel (Packet : in Packet_Type) is
+      Channel : Model.Channel.Channel_Type := Null_Channel;
    begin
-      System_Messages.Notify (Debug, "Dial not implemented");
+      System_Messages.Notify (Debug, "Core_Show_Channel: ");
+
+      if not Model.Channels.List.Contains (Channel_ID => Channel.ID) then
+         Channel.ID        :=
+           Create (To_String (Packet.Fields.Element (AMI.Parser.Channel)));
+         Channel.State     :=
+           Model.Channel.To_Channel_State
+             (To_String (Packet.Fields.Element (AMI.Parser.ChannelState)));
+         Channel.Description :=
+           Packet.Fields.Element (AMI.Parser.ChannelStateDesc);
+         Channel.CallerIDNum :=
+           Packet.Fields.Element (AMI.Parser.CallerIDNum);
+         Channel.Call_ID := Create
+           (To_String (Packet.Fields.Element (AMI.Parser.Uniqueid)));
+         Model.Channels.List.Insert (Channel);
+      end if;
+   end Core_Show_Channel;
+
+   --  Occurs at the end of a set of CoreShowChannel events.
+   procedure Core_Show_Channels_Complete (Packet : in Packet_Type) is
+      Context          : constant String :=
+                           "Core_Show_Channels_Complete";
+      Number_Of_Events : constant Natural :=
+        Natural'Value (To_String (Packet.Fields.Element (ListItems)));
+   begin
+      System_Messages.Notify (Debug, "Core_Show_Channel_Complete");
+      if Number_Of_Events /= Model.Channels.List.Length then
+         System_Messages.Notify (Error, Package_Name & "." & Context & ": " &
+                                "Channel list inconsistent!");
+      end if;
+   end Core_Show_Channels_Complete;
+
+   procedure Default_Callback (Packet : in Packet_Type) is
+      --  Context : constant String := "Default_Callback";
+   begin
+      null;
+      --  System_Messages.Notify (Debug, Package_Name & "." & Context & ": " &
+      --                          To_String (Packet.Header.Value));
+   end Default_Callback;
+
+   --  A dial event occurs when a peer actively dials an extension.
+   procedure Dial (Packet : in Packet_Type) is
+      Context : constant String := "Dial";
+      Call    : Call_Type       := Null_Call;
+   begin
+      --  There is a sequence to a Dial event represented by a SubEvent.
+      --  It consists of "Begin" or "End"
+      if To_String (Packet.Fields.Element (SubEvent)) = "Begin" then
+         System_Messages.Notify (Debug, Package_Name & "." & Context & ": " &
+                                   "Dial Begin");
+         Call.ID := Model.Call_ID.Create
+           (To_String (Packet.Fields.Element (Uniqueid)));
+         Call.Channel_ID := Model.Channel_ID.Create
+           (To_String (Packet.Fields.Element (Channel)));
+         Call.Inbound := False; --  A dial event implies outbound.
+         Call.Arrived := Current_Time;
+
+         Model.Calls.List.Insert (Call => Call);
+
+      --  When a Dial event ends, the call is over, and must thus be removed
+      --  From the call list.
+      elsif To_String (Packet.Fields.Element (SubEvent)) = "End" then
+         System_Messages.Notify (Debug, Package_Name & "." & Context & ": " &
+                                   "Dial End");
+         Call.ID := Model.Call_ID.Create
+           (To_String (Packet.Fields.Element (Uniqueid)));
+         Model.Calls.List.Remove (Call_ID => Call.ID);
+      else
+         System_Messages.Notify
+           (Error, Package_Name & "." & Context & ": " &
+              "unknown SubEvent: " &
+              To_String (Packet.Fields.Element (SubEvent)));
+      end if;
    end Dial;
 
-   --  Event: Hangup
-   --  Privilege: call,all
-   --  Channel: SIP/softphone1-0000000b
-   --  Uniqueid: 1340097427.11
-   --  CallerIDNum: 100
-   --  CallerIDName: <unknown>
-   --  Cause: 16
-   --  Cause-txt: Normal Clearing
+   --  Clear out channels
    procedure Hangup (Packet : in Packet_Type)
    is
-      Call    : Call_Type;
-      Call_ID : Unbounded_String;
-      --  Temp_Value : Unbounded_String;
+      Context    : constant String :=  Package_Name & ".Hangup";
+      Channel_ID : constant Channel_ID_Type :=
+                     Create (To_String (Packet.Fields.Element (Channel)));
    begin
-      if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Call_ID) then
-         Call := Dequeue
-           (Call_ID => Create (To_String (Call_ID)));
-
-         if Call = Null_Call then
-            System_Messages.Notify
-              (Information,
-               Package_Name & ".Hangup: Not in the Calls list: " &
-                 " Call_ID: " & To_String (Call_ID));
-         else
-            System_Messages.Notify
-              (Debug, Package_Name & ".Hangup: Hung up " & To_String (Call));
-
-         end if;
+      if Model.Channels.List.Contains (Channel_ID => Channel_ID) then
+         Model.Channels.List.Remove (Channel_ID => Channel_ID);
+         System_Messages.Notify
+           (Debug, Package_Name & ".Hangup: Removed channel " &
+              Channel_ID.To_String);
       else
-         --  At the very least, we require an identifier for the call.
-         raise BAD_PACKET_FORMAT;
+         System_Messages.Notify
+           (Error, Package_Name & ".Hangup: Channel not found" &
+              Channel_ID.To_String);
       end if;
-      Notifications.Broadcast (JSON.Event.Hangup_JSON_String (Call));
+   exception
+         when others =>
+         System_Messages.Notify (Error, Context &
+                                   ": Hangup failed on channel " &
+                                   Channel_ID.To_String);
    end Hangup;
 
-   --  Event: Join
-   --  Privilege: call,all
-   --  Channel: SIP/TP-Softphone-00000036
-   --  CallerIDNum: TP-Softphone
-   --  CallerIDName: unknown
-   --  Queue: org_id1
-   --  Position: 1
-   --  Count: 1
-   --  Uniqueid: 1347875403.105
    procedure Join (Packet : in Packet_Type) is
       Call       : Call_Type := Null_Call;
       Temp_Value : Unbounded_String;
    begin
-      if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Temp_Value) then
-         --  The call should exsists at this point.
-         Call := Get (Create (To_String (Temp_Value)));
-      end if;
+      Call.ID := Create (To_String (Packet.Fields.Element (Uniqueid)));
+      Call.Inbound := True;  --  Join implies an inbound call.
 
-      --  There are no call with that ID, something is wrong.
-      if Call = Null_Call then
-         if Try_Get (Packet.Fields, AMI.Parser.Channel, Temp_Value) then
-            System_Messages.Notify
-              (Error,
-               "My_Callbacks.Join: Got a Join event, " &
-                 "on a call there is not in the call list. " &
-                 "Channel: " &
-                 To_String (Temp_Value));
-         else
-            System_Messages.Notify
-              (Error,
-               "My_Callbacks.Join: Got a Join Event, on a call that " &
-                 "don't exsist and do not have a Channel");
-         end if;
-
-         return;
-      end if;
-
-      if Call.State = Unknown then
-         System_Messages.Notify
-           (Debug, "My_Callbacks.Join: Call unknown state");
-         Call.State := Newly_Arrived;
-
-         if Try_Get (Packet.Fields, AMI.Parser.Queue, Temp_Value) then
-            Call.Queue := Temp_Value;
-         end if;
-
-      elsif Call.State = OnHold then
-         null;
+      --  See if the call already exists
+      if Model.Calls.List.Contains (Call_ID => Call.ID) then
+         Call := Model.Calls.List.Get (Call.ID);
+         Call.State := Requeued;
       else
-         System_Messages.Notify
-           (Error, "My_Callbacks.Join: Call with bad state: " &
-              Call.State'Img);
+         Call.State := Newly_Arrived;
+         Call.Arrived := Current_Time;
       end if;
+
+      Call.Queue := Packet.Fields.Element (Queue);
+      Call.Channel_ID := Create (To_String (Packet.Fields.Element (Channel)));
+
       System_Messages.Notify
-        (Debug, "My_Callbacks.Join: Call Updated: " & To_String (Call));
-      Update (Call);
+        (Debug, "My_Callbacks.Join: Inserting call: " & Call.To_String);
+
+      Model.Calls.List.Insert (Call);
+
       Notifications.Broadcast (JSON.Event.New_Call_JSON_String (Call));
+   exception
+         when others =>
+         System_Messages.Notify
+           (Error,
+            "My_Callbacks.Join: Got a Join event, " &
+              "on a channel there is not in the channel list. " &
+              "Channel: " &
+                 To_String (Temp_Value));
    end Join;
 
-   --  Event: Newchannel
-   --  Privilege: call,all
-   --  Channel: SIP/TP-Softphone-00000036
-   --  ChannelState: 0
-   --  ChannelStateDesc: Down
-   --  CallerIDNum: TP-Softphone
-   --  CallerIDName:
-   --  AccountCode:
-   --  Exten: 7001
-   --  Context: LocalSets
-   --  Uniqueid: 1347875403.105
-   procedure New_Channel
-     (Packet : in Packet_Type)
-   is
-      Call       : Call_Type;
-      Temp_Value : Unbounded_String := Null_Unbounded_String;
+   --  A Leave event occurs when a channel leaves a Queue for any reason.
+   --  E.g. hangup or pickup. This is responsible cleaning up pending calls,
+   --  but does not touch the channel - as is can still be acive.
+   --  Channel: SIP/softphone1-00000046
+   --  Queue: org_id1
+   --  Count: 1
+   --  Uniqueid: 1354278576.70
+   procedure Leave (Packet : in Packet_Type) is
+      Context : constant String       := "My_Callbacks.Leave";
+      Call_ID : constant Call_ID_Type := Create
+        (To_String (Packet.Fields.Element (AMI.Parser.Uniqueid)));
+      Call    : constant Call_Type :=
+                  Model.Calls.List.Get (Call_ID => Call_ID);
    begin
+      System_Messages.Notify
+        (Debug, Context & ": Removing call " & Call_ID.To_String);
+      Model.Calls.List.Remove (Call_ID => Call_ID);
+      Notifications.Broadcast (JSON.Event.Hangup_JSON_String (Call));
+   end Leave;
 
-      if Try_Get (Packet.Fields, AMI.Parser.Channel, Temp_Value) then
-         Call.Channel := Temp_Value;
-      end if;
+   --  A Newchannel event represents any channel created within asterisk.
+   --  We collect every channel into a channel list and distribute them
+   --  from there to either a call list or a peer channel list.
+   procedure New_Channel (Packet : in Packet_Type) is
+      Channel : Model.Channel.Channel_Type := Null_Channel;
+   begin
+      Channel.ID        :=
+        Create (To_String (Packet.Fields.Element (AMI.Parser.Channel)));
+      Channel.State     :=
+        Model.Channel.To_Channel_State
+          (To_String (Packet.Fields.Element (AMI.Parser.ChannelState)));
+      Channel.Description :=
+        Packet.Fields.Element (AMI.Parser.ChannelStateDesc);
+      Channel.CallerIDNum :=
+        Packet.Fields.Element (AMI.Parser.CallerIDNum);
+      Channel.CallerIDName :=
+        Packet.Fields.Element (AMI.Parser.CallerIDName);
+      Channel.Extension := Packet.Fields.Element (AMI.Parser.Exten);
+      Channel.AccountCode :=
+        Packet.Fields.Element (AMI.Parser.AccountCode);
+      Channel.Context :=
+        Packet.Fields.Element (AMI.Parser.Context);
+      Channel.Call_ID := Create
+        (To_String (Packet.Fields.Element (AMI.Parser.Uniqueid)));
 
-      if Try_Get (Packet.Fields, AMI.Parser.Uniqueid, Temp_Value) then
-         Call.ID := Create (To_String (Temp_Value));
-      end if;
-
-      if Try_Get (Packet.Fields, AMI.Parser.Exten, Temp_Value) then
-         Call.Extension := Temp_Value;
-      end if;
-
-      --  Save the time when the call came in.
-      Call.Arrived := Current_Time;
-      Call.State := Unknown;
-      Insert (Call);
+      Model.Channels.List.Insert (Channel => Channel);
+      System_Messages.Notify
+        (Debug, "My_Callbacks.New_Channel: Channel_List: " &
+           Model.Channels.List.To_String);
    end New_Channel;
-
-   procedure New_State
-     (Packet : in Packet_Type)
-   is
-      pragma Unreferenced (Packet);
-   begin
-      System_Messages.Notify (Debug, "My.Callbacks.New_State not implemented");
-   end New_State;
 
    --  Event: Newstate
    --  Privilege: call,all
@@ -232,108 +280,140 @@ package body My_Callbacks is
    --  CallerIDNum: 100
    --  CallerIDName:
    --  Uniqueid: 1340097427.11
-   procedure NewState is
+   procedure New_State (Packet : in Packet_Type) is
+      use Model;
+      Context : constant String            := "New_State";
+      Channel : Model.Channel.Channel_Type := Null_Channel;
    begin
-      System_Messages.Notify (Debug, "NewState_Callback not implemented");
-   end NewState;
+      --  Fetch the previous channel image
+      Channel := Channels.List.Get
+        (Create (To_String (Packet.Fields.Element (AMI.Parser.Channel))));
 
-   --  Event: PeerStatus
-   --  Privilege: system,all
-   --  ChannelType: SIP
-   --  Peer: SIP/softphone1
-   --  PeerStatus: Registered
-   --  Address: 192.168.2.142
-   --  Port: 5060
+      --  Update the fields
+      Channel.State := To_Channel_State
+        (To_String (Packet.Fields.Element (ChannelState)));
 
-   --  Event: PeerStatus
-   --  Privilege: system,all
-   --  ChannelType: SIP
-   --  Peer: SIP/softphone1
-   --  PeerStatus: Unregistered
+      Channel.Description  := Packet.Fields.Element (ChannelStateDesc);
+      Channel.CallerIDNum  := Packet.Fields.Element (CallerIDNum);
+      Channel.CallerIDName := Packet.Fields.Element (CallerIDName);
+
+      Channels.List.Update (Channel);
+   exception
+      when others =>
+         System_Messages.Notify (Error, Package_Name & "." & Context & ": " &
+                                   "failed to update channel " &
+                                   Channel.To_String);
+
+   end New_State;
+
+   ----------------
+   -- Peer_Entry --
+   ----------------
+
+   procedure Peer_Entry (Packet : in Packet_Type) is
+      --  Context : constant String := "Peer_Entry";
+      Peer    : Peer_Type := Null_Peer;
+   begin
+      --  Fetch the peer's ID.
+      Peer.ID := Create
+        (Channel_Kind =>
+           To_String (Packet.Fields.Element (AMI.Parser.ChannelType)),
+         Peername     =>
+           To_String (Packet.Fields.Element (AMI.Parser.ObjectName)));
+
+      --  Set the agent field
+      Model.Agents.Get (Peer_ID => Peer.ID).Assign (Peer => Peer);
+
+      if To_String (Packet.Fields.Element (IPaddress)) /= "-none-" then
+         Peer.Address := Packet.Fields.Element (IPaddress);
+         Peer.Port := Packet.Fields.Element (IPport);
+
+         Peer.State := Unknown;
+      else
+         Peer.State := Unregistered;
+      end if;
+
+      --  Update the peer
+      Model.Peers.List.Put (Peer => Peer);
+
+      --  Let the clients know about the change. But only on "real" changes.
+      if Peer.Last_State /= Peer.State then
+         Notifications.Broadcast (JSON.Event.Agent_State_JSON_String (Peer));
+      end if;
+
+   end Peer_Entry;
+
+   procedure Peer_List_Complete (Packet : in Packet_Type) is
+      Context          : constant String :=
+                           "Peer_List_Complete";
+      Number_Of_Events : constant Natural :=
+        Natural'Value (To_String (Packet.Fields.Element (ListItems)));
+   begin
+      if Number_Of_Events /= Model.Peers.List.Count then
+         System_Messages.Notify (Error, Package_Name & "." & Context & ": " &
+                                   "peer list inconsistent! Got" &
+                                   Number_Of_Events'Img &
+                                " - expected" & Model.Peers.List.Count'Img);
+      end if;
+   end Peer_List_Complete;
+
+   -----------------
+   -- Peer_Status --
+   -----------------
+
    procedure Peer_Status (Packet : in Packet_Type) is
-      use Peer_List_Type;
 
-      procedure Set_PhoneInfo
-        (Peer : in out Peer_Type;
-         Text : in     Unbounded_String);
-      --  Extracts the channel type, and the phonename,
-      --    and saves them in the peer. Format: ChannelType/phonename
+      Context : constant String := "Peer_Status";
+      Peer    : Peer_Type := Null_Peer;
 
-      ---------------------
-      --  Set_PhoneInfo  --
-      ---------------------
-
-      procedure Set_PhoneInfo
-        (Peer : in out Peer_Type;
-         Text : in     Unbounded_String)
-      is
-         Seperator_Index : Integer;
-      begin
-         if Ada.Strings.Unbounded.Count (Text, "/") > 0 then
-            Seperator_Index := Index (Text, "/");
-            Peer.Peer := Tail (Source => Text,
-                               Count  => Length (Text) - Seperator_Index);
-            Peer.ChannelType := Head (Text, Seperator_Index - 1);
-            if To_String (Peer.ChannelType) /= "SIP" then
-               System_Messages.Notify
-                 (Information, To_String (Peer.ChannelType));
-            end if;
-         else
-            System_Messages.Notify
-              (Debug,
-               "Set_PhoneInfo:" &
-                 "This peer does not have a Channeltype: "
-               & To_String (Text));
-         end if;
-      end Set_PhoneInfo;
-
-      Peer    : Peer_Type;
-      --  Map_Key : Unbounded_String;
       Buffer  : Unbounded_String;
    begin
 
-      System_Messages.Notify (Debug, "My_Callbacks.Peer_Status");
-
-      if Try_Get (Packet.Fields, AMI.Parser.Peer, Buffer) then
-         Set_PhoneInfo (Peer, Buffer);
-         --  Map_Key := Peer.Peer;
+      Peer.ID := Create (To_String (Packet.Fields.Element (AMI.Parser.Peer)));
+      --  Check if the peer is known
+      if Model.Peers.List.Contains (Peer.ID) then
+         Peer := Model.Peers.List.Get (Peer.ID);
+      else
+         System_Messages.Notify (Critical,
+                                 Package_Name & "." & Context &
+                                 ": got unknown peer " & Peer.ID.To_String);
       end if;
 
+      --  Set the agent field
+      Model.Agents.Get (Peer_ID => Peer.ID).Assign (Peer => Peer);
+
       --  Update fields
-      Peer.Last_Seen := Current_Time;
-      if Try_Get (Packet.Fields, AMI.Parser.Address, Buffer) then
+      Peer.Seen; --  Bump timstamp.
+      if Packet.Fields.Contains (AMI.Parser.Address) then
          Peer.Address := Packet.Fields.Element (Address);
       end if;
 
-      if Try_Get (Packet.Fields, AMI.Parser.Port, Buffer) then
+      if Packet.Fields.Contains (AMI.Parser.Port) then
          Peer.Port := Packet.Fields.Element (Port);
       end if;
 
-      --  Setting the State - Registrated or not.
-      if Try_Get (Packet.Fields, AMI.Parser.PeerStatus, Buffer) then
+      --  Setting the State - registered or not.
+      if Packet.Fields.Contains (AMI.Parser.PeerStatus) then
+         Buffer := Packet.Fields.Element (PeerStatus);
          --  Save the previous state.
          Peer.Last_State := Peer.State;
-         if To_String (Buffer) = "Unregistered"  then
+         if To_String (Buffer) = AMI.Peer_State_Unregistered then
             Peer.State := Unregistered;
 
-            System_Messages.Notify
-              (Debug,
-               "Got peer: " & To_String (Peer.Peer) &
-                 " with unregistrered status");
-
-         elsif To_String (Buffer) = "Registered" then
+         elsif To_String (Buffer) = AMI.Peer_State_Registered then
             Peer.State := Idle;
+
          else
             Peer.State := Unknown;
             System_Messages.Notify
-              (Error, "My_Callbacks.Peer_Status: Peer in unknown state " &
-                 Image (Peer));
+              (Critical, "My_Callbacks.Peer_Status: " &
+                 "Peer changed state into an unknown state: " &
+                 To_String (Buffer));
          end if;
 
          System_Messages.Notify
-           (Debug, "My_Callbacks.Peer_Status: Inserted " & Image (Peer));
-
-         Insert_Peer (New_Item => Peer);
+           (Debug, "My_Callbacks.Peer_Status: " &
+              Peer.To_String);
       else
          System_Messages.Notify
            (Error, "My_Callbacks.Peer_Status: No state information supplied " &
@@ -341,8 +421,13 @@ package body My_Callbacks is
          raise BAD_PACKET_FORMAT;
       end if;
 
-      --  Let the clients know about the change
-      Notifications.Broadcast (JSON.Event.Agent_State_JSON_String (Peer));
+      --  Update the peer
+      Model.Peers.List.Put (Peer => Peer);
+
+      --  Let the clients know about the change. But only on "real" changes.
+      if Peer.Last_State /= Peer.State then
+         Notifications.Broadcast (JSON.Event.Agent_State_JSON_String (Peer));
+      end if;
    end Peer_Status;
 
    --  Event: QueueCallerAbandon
@@ -387,28 +472,43 @@ package body My_Callbacks is
                                 " original position" & Original_Position'Img);
    end Queue_Abandon;
 
-   --  Lists the SIP peers. Returns a PeerEntry event for each
-   --  SIP peer, and a PeerlistComplete event upon completetion
-   --  Event: PeerEntry
-   --  Channeltype: SIP
-   --  ObjectName: softphone2
-   --  ChanObjectType: peer
-   --  IPaddress: 90.184.227.68
-   --  IPport: 59028
-   --  Dynamic: yes
-   --  Natsupport: yes
-   --  VideoSupport: no
-   --  TextSupport: no
-   --  ACL: no
-   --  Status: Unmonitored
-   --  RealtimeDevice: no
-   --
-   --  Event: PeerlistComplete
-   --  EventList: Complete
-   --  ListItems: 2
-   procedure SIPPeers is
+   ---------------------------------------------------------------------------
+   --  AGI:
+
+   --  Event: AsyncAGI
+   --  Privilege: agi,all
+   --  SubEvent: Start
+   --  Channel: SIP/0000FFFF0001-00000000
+   --  Env: agi_request%3A%20async%0A \
+   --       agi_channel%3A%20SIP%2F0000FFFF0001-00000000%0A \
+   --       agi_language%3A%20en%0A \
+   --       agi_type%3A%20SIP%0Aagi_uniqueid%3A%201285219743.0%0A \
+   --       agi_version%3A%201.8.0-beta5%0Aagi_callerid%3A%2012565551111%0A \
+   --       agi_calleridname%3A%20Julie%20Bryant%0Aagi_callingpres%3A%200%0A \
+   --       agi_callingani2%3A%200%0Aagi_callington%3A%200%0A \
+   --       agi_callingtns%3A%200%0A \
+   --       agi_dnid%3A%20111%0Aagi_rdnis%3A%20unknown%0A \
+   --       agi_context%3A%20LocalSets%0A \
+   --       agi_extension%3A%20111%0Aagi_priority%3A%201%0A \
+   --       agi_enhanced%3A%200.0%0A \
+   --       agi_accountcode%3A%20%0Aagi_threadid%3A%20-1339524208%0A%0A
+
+   procedure Initiate_AGI_Session (Packet : in Packet_Type) is
    begin
-      System_Messages.Notify (Debug, "SipPeers_Callback not implemented");
-   end SIPPeers;
+      System_Messages.Notify (Debug, "Initiate_AGI_Session: ");
+
+      if To_String (Packet.Fields.Element (AMI.Parser.SubEvent)) = "Start" then
+         System_Messages.Notify
+           (Debug,
+            "Initiate_AGI_Session: New AGI channel: " &
+              To_String (Packet.Fields.Element (AMI.Parser.Channel)));
+      else
+         System_Messages.Notify
+           (Debug,
+            "Initiate_AGI_Session: Not a start event.");
+      end if;
+   end Initiate_AGI_Session;
+
+   ---------------------------------------------------------------------------
 
 end My_Callbacks;

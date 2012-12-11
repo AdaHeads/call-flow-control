@@ -1,18 +1,16 @@
 with Ada.Strings.Unbounded;
 with Ada.Exceptions;
 
-with AWS.Net;
-
 with AMI.Action;
 with AMI.Response;
 with AMI.Parser;
 with AMI.Event;
 
-with Connection_Management;
 with My_Configuration;
 with System_Messages;
 with My_Callbacks;
 
+--  TODO: Cover all branches on status.
 package body PBX is
    use Ada.Strings.Unbounded;
    use AMI.Action;
@@ -24,42 +22,77 @@ package body PBX is
    task type Reader_Task is
       entry Start;
    end Reader_Task;
-
-   Reader    : Reader_Task;
-
-   Callbacks : constant AMI.Event.Event_Callback_Table :=
-     (PeerStatus         => My_Callbacks.Peer_Status'Access,
-      Hangup             => My_Callbacks.Hangup'Access,
-      Join               => My_Callbacks.Join'Access,
-      Newchannel         => My_Callbacks.New_Channel'Access,
-      Newstate           => My_Callbacks.New_State'Access,
-      Dial               => My_Callbacks.Dial'Access,
-      QueueCallerAbandon => My_Callbacks.Queue_Abandon'Access,
-      others             => AMI.Event.Null_Callback'Access);
+   --  Continous reader loop that is reponsible for reading and dispatching
+   --  packets. Does not die unless the stop primitive is called.
 
    procedure Authenticate;
+   --  Wraps the entire authentication mechanism and provides a neat callback
+   --  for the On_Connect event in the AMI.Client.
+
    procedure Dispatch (Client : access AMI.Client.Client_Type;
                        Packet : in     AMI.Parser.Packet_Type);
-   procedure Parser_Loop;
-   procedure Reconnect;
+   --  Dispatches to the appropriate handlers (response or event)
 
-   package My_Connection_Manager is new Connection_Management
-     (Client   => Client_Access,
-      Hostname => Config.Get (PBX_Host),
-      Port     => Config.Get (PBX_Port));
+   procedure Connect;
+   --  Wraps the connection and wait mechanism and provides a neat callback
+   --  for the On_Disconnect event in the AMI.Client.
+
+   Reader    : Reader_Task;
+   Callbacks : constant AMI.Event.Event_Callback_Table :=
+                 (CoreShowChannel
+                  => My_Callbacks.Core_Show_Channel'Access,
+                  CoreShowChannelsComplete
+                  => My_Callbacks.Core_Show_Channels_Complete'Access,
+                  PeerStatus         => My_Callbacks.Peer_Status'Access,
+                  PeerEntry          => My_Callbacks.Peer_Entry'Access,
+                  PeerlistComplete   => My_Callbacks.Peer_List_Complete'Access,
+                  Hangup             => My_Callbacks.Hangup'Access,
+                  Join               => My_Callbacks.Join'Access,
+                  Leave              => My_Callbacks.Leave'Access,
+                  Newchannel         => My_Callbacks.New_Channel'Access,
+                  Newstate           => My_Callbacks.New_State'Access,
+                  Dial               => My_Callbacks.Dial'Access,
+                  QueueCallerAbandon => My_Callbacks.Queue_Abandon'Access,
+                  AsyncAGI           => My_Callbacks.Initiate_AGI_Session'Access,
+                  others             => My_Callbacks.Default_Callback'Access);
+   --  Event dispatch table.
 
    procedure Authenticate is
    begin
-      My_Connection_Manager.Wait_For_Connection;
-
       Login (Client   => Client_Access,
              Username => Config.Get (PBX_User),
              Secret   => Config.Get (PBX_Secret));
+      --  TODO: Replace this with a real wait for reply, and turn the
+      --  Action into a synchronous call
+      delay 0.2;
+
+      --  Reload the state;
+      AMI.Action.Core_Show_Channels (Client => Client_Access);
+      AMI.Action.SIP_Peers (Client => Client_Access);
+
    end Authenticate;
+
+   procedure Connect is
+   begin
+
+      --  TODO: Add cooldown to prevent hammering the Asterisk server.
+      if PBX_Status /= Shutdown then
+         PBX_Status := Connecting;
+         System_Messages.Notify
+           (Information, "PBX.Connect: Connecting");
+         Client.Connect (Config.Get (PBX_Host), Config.Get (PBX_Port));
+
+         if Client.Connected then
+            PBX_Status := Running;
+         end if;
+      end if;
+
+   end Connect;
 
    procedure Dispatch (Client : access AMI.Client.Client_Type;
                        Packet : in     AMI.Parser.Packet_Type) is
    begin
+      --  System_Messages.Notify (Debug, Image (Packet => Packet));
       if Packet.Header.Key = AMI.Parser.Response then
          AMI.Response.Notify (Client => Client,
                               Packet => Packet);
@@ -74,56 +107,45 @@ package body PBX is
    exception
       when E : others =>
          System_Messages.Notify
-           (Error, "PBX.Dispatch: Unexpected exception: ");
-         System_Messages.Notify
-           (Error, Ada.Exceptions.Exception_Information (E));
-         System_Messages.Notify
-           (Error, "");
-         System_Messages.Notify
-           (Error, "------------ Packet dump start ------");
-         System_Messages.Notify
-           (Error, Image (Packet));
-         System_Messages.Notify
-           (Error, "------------ Packet dump end ------");
-         System_Messages.Notify
-           (Error, "");
+           (Error, "PBX.Dispatch: Unexpected exception: " &
+              Ada.Exceptions.Exception_Information (E) &
+              "" &
+              "------------ Packet dump start ------" &
+              Image (Packet) &
+              "------------ Packet dump end ------" &
+              "");
    end Dispatch;
 
-   procedure Parser_Loop is
-   begin
-      loop
-         exit when Shutdown;
-         Dispatch (Client_Access, Read_Packet (Client_Access));
-      end loop;
-   exception
-      when E : AWS.Net.Socket_Error =>
-         if not Shutdown then
-            System_Messages.Notify
-              (Error, "PBX.Reader_Loop: Socket disconnected! ");
-            System_Messages.Notify
-              (Error, Ada.Exceptions.Exception_Information (E));
-            Reconnect;
-         end if;
-   end Parser_Loop;
-
-   procedure Reconnect is
-   begin
-      Client.Connected := False;
-      if not Shutdown then
-         System_Messages.Notify
-           (Information, "PBX.Reader_Loop: Signalling disconnect: ");
-         My_Connection_Manager.Signal_Disconnect;
-         Authenticate;
-      end if;
-   end Reconnect;
-
    task body Reader_Task is
+      procedure Parser_Loop;
+      --  Wraps the continous Read_Packet, Dispatch calls and catches
+      --  exceptions.
+
+      procedure Parser_Loop is
+      begin
+         loop
+            exit when PBX_Status = Shutdown;
+            Client.Wait_For_Connection;
+            Dispatch (Client_Access, Read_Packet (Client_Access));
+         end loop;
+      exception
+         when E : others =>
+            if PBX_Status /= Shutdown then
+               System_Messages.Notify
+                 (Error, "PBX.Reader_Loop: Socket disconnected! ");
+               System_Messages.Notify
+                 (Error, Ada.Exceptions.Exception_Information (E));
+            end if;
+      end Parser_Loop;
+
    begin
       accept Start;
       loop
-         exit when Shutdown;
+         exit when PBX_Status = Shutdown;
          Parser_Loop;
       end loop;
+      System_Messages.Notify
+        (Information, "PBX.Reader_Task: Shutting down.");
    exception
       when E : others =>
          System_Messages.Notify
@@ -134,21 +156,23 @@ package body PBX is
 
    procedure Start is
    begin
-      My_Connection_Manager.Start;
-
-      --  Initial authentication
-      Authenticate;
+      Client := AMI.Client.Create (On_Connect    => Authenticate'Access,
+                                   On_Disconnect => Connect'Access);
+      Connect; --  Initial connect.
       Reader.Start;
+      System_Messages.Notify (Debug, "PBX Subsystem started");
    end Start;
 
-   procedure Status is
+   function Status return PBX_Status_Type is
    begin
-      null;
+      return PBX_Status;
    end Status;
 
    procedure Stop is
    begin
-      Shutdown := True;
-      My_Connection_Manager.Shutdown;
+      System_Messages.Notify (Debug, "PBX.Shutdown");
+      PBX_Status := Shutting_Down;
+      Client.Disconnect;
+      PBX_Status := Shutdown;
    end Stop;
 end PBX;

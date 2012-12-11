@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                               My_Handlers                                 --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -26,6 +20,7 @@ with AWS.Net.WebSocket.Registry;
 with Handlers.Contact;
 with Handlers.Agent;
 with Handlers.Call;
+with Handlers.Debug;
 with Handlers.Notifications;
 with Handlers.Organization;
 with Handlers.Organization_List;
@@ -111,9 +106,9 @@ package body My_Handlers is
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
-         URI        => Config.Get (Handler_Call_Hold),
+         URI        => Config.Get (Handler_Call_Park),
          Action     => Create
-           (Callback => Call.Hold'Access));
+           (Callback => Call.Park'Access));
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
@@ -159,6 +154,28 @@ package body My_Handlers is
          URI        => Config.Get (Handler_Agent),
          Action     => Create
            (Callback => Agent.Agent'Access));
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => Config.Get (Handler_Call_Originate),
+         Action     => Create
+           (Callback => Handlers.Call.Originate'Access));
+
+      ----------------------
+      --  Debug handlers  --
+      ----------------------
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => Config.Get (Handler_Debug_Peer_List),
+         Action     => Create
+           (Callback => Handlers.Debug.Peer_List'Access));
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => Config.Get (Handler_Debug_Channnel_List),
+         Action     => Create
+           (Callback => Handlers.Debug.Channel_List'Access));
 
       --------------------------
       --  WebSocket handlers  --

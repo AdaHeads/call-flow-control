@@ -28,14 +28,14 @@ package Not_Found is
 
    function Callback
      return AWS.Dispatchers.Callback.Handler;
-   --  Return a callback for the "contact" interface.
+   --  Return a callback for the Not_Found (404) response.
 
 private
 
    procedure Generate_Document
      (Response_Object : in out Response.Object);
    --  Add a generated JSON_String to Response_Object and set HTTP status code
-   --  and whether the JSON_String is cacheable.
+   --  to 404.
 
    function JSON_Response is new Response.Not_Cached.Generate_Response
      (Generate_Document => Generate_Document);

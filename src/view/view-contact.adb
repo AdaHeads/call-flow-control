@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                               View.Contact                                --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -21,8 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with View.Contact_Attributes;
-
 package body View.Contact is
 
    ---------------
@@ -30,11 +22,45 @@ package body View.Contact is
    ---------------
 
    function To_JSON
-     (O : in Contact_List_Object)
+     (Instance : in Model.Contact.Object)
+      return JSON_Value
+   is
+      use Model.Contact;
+
+      Attr_Array : JSON_Array;
+      J          : JSON_Value := JSON_Null;
+   begin
+      if Instance /= Null_Object then
+         J := Create_Object;
+
+         J.Set_Field (Contact_Id, Integer (Instance.ID));
+
+         J.Set_Field (Full_Name, Instance.Full_Name);
+
+         J.Set_Field (Is_Human, Instance.Is_Human);
+
+         Attr_Array := Instance.Attributes.To_JSON_Array;
+
+         if GNATCOLL.JSON.Length (Attr_Array) > 0 then
+            J.Set_Field (Attributes, Attr_Array);
+         end if;
+      end if;
+
+      return J;
+   end To_JSON;
+
+   ---------------------
+   --  To_JSON_Array  --
+   ---------------------
+
+   function To_JSON_Array
+     (Instance : in Model.Contacts.List)
       return JSON_Array
    is
+      use Model.Contacts;
+
       procedure Add_Contact_To_Array
-        (Elem : in Model.Contacts.Contact_Object);
+        (Elem : in Model.Contact.Object);
 
       C_Array : JSON_Array := Empty_Array;
 
@@ -43,59 +69,29 @@ package body View.Contact is
       ----------------------------
 
       procedure Add_Contact_To_Array
-        (Elem : in Model.Contacts.Contact_Object)
+        (Elem : in Model.Contact.Object)
       is
       begin
          Append (C_Array, To_JSON (Elem));
       end Add_Contact_To_Array;
    begin
-      if O /= Null_Contact_List then
-         O.For_Each (Add_Contact_To_Array'Access);
+      if Instance /= Null_List then
+         Instance.For_Each (Add_Contact_To_Array'Access);
       end if;
 
       return C_Array;
-   end To_JSON;
+   end To_JSON_Array;
 
-   ---------------
-   --  To_JSON  --
-   ---------------
+   ----------------------
+   --  To_JSON_String  --
+   ----------------------
 
-   function To_JSON
-     (O : in Contact_Object)
-      return JSON_Value
-   is
-      Attr_Array : JSON_Array;
-      J          : JSON_Value := JSON_Null;
-   begin
-      if O /= Null_Contact then
-         J := Create_Object;
-
-         J.Set_Field (Contact_Id, Integer (O.Contact_Id));
-
-         J.Set_Field (Full_Name, O.Full_Name);
-
-         J.Set_Field (Is_Human, O.Is_Human);
-
-         Attr_Array := View.Contact_Attributes.To_JSON (O.Attributes);
-
-         if Length (Attr_Array) > 0 then
-            J.Set_Field (Attributes, Attr_Array);
-         end if;
-      end if;
-
-      return J;
-   end To_JSON;
-
-   ---------------
-   --  To_JSON  --
-   ---------------
-
-   function To_JSON
-     (O : in Contact_Object)
+   function To_JSON_String
+     (Instance : in Model.Contact.Object)
       return JSON_String
    is
    begin
-      return To_JSON_String (To_JSON (O).Write);
-   end To_JSON;
+      return To_JSON_String (To_JSON (Instance).Write);
+   end To_JSON_String;
 
 end View.Contact;

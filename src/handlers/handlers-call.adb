@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                              Handlers.Call                                --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -22,123 +16,90 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
-with AWS.Messages;
+with Ada.Exceptions;
 with Common;
 with HTTP_Codes;
 with Response;
 
 with AMI.Action;
-
+with AMI.Packet.Action;
+with Model.Agent;
+with Model.Agents;
+with Model.Agent_ID;
 with Model.Call;
+with Model.Calls;
 with Model.Peers;
-with JSON.Call;
+with View.Call;
 
 with PBX;
 with Model.Call_ID;
 with System_Messages;
+with System_Message.Critical;
+with System_Message.Error;
 
 package body Handlers.Call is
+   use AWS.Status;
+   use HTTP_Codes;
    use System_Messages;
    use AMI.Action;
-   use JSON.Call;
-
-   package Routines renames AMI.Action;
+   use View.Call;
+   use Model;
 
    --------------
    --  Hangup  --
    --------------
 
+   --  TODO: Add check for valid agent.
    function Hangup
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
       use Common;
-      use HTTP_Codes;
-      use AWS.Status;
-      use Model.Call_ID;
-      use Model.Call;
 
-      Call_ID         : constant Call_ID_Type :=
-        Create (Item => Parameters (Request).Get ("Call_ID"));
-      Response_Object : Response.Object := Response.Factory (Request);
+      Requested_Call_ID : Call_ID.Call_ID_Type := Call_ID.Null_Call_ID;
+      Response_Object   : Response.Object := Response.Factory (Request);
    begin
-      System_Messages.Notify
-        (Debug, "Hangup handle: call_id=" & Call_ID.To_String);
-      AMI.Action.Hangup (PBX.Client_Access, Call_ID);
+      Requested_Call_ID :=
+        Call_ID.Create (Item => Parameters (Request).Get ("call_id"));
+      --  Will raise exception, if ID is not valid.
 
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content (Status_Message
-              ("Success", "Hangup completed"));
-
-      if not Call_List.Contains (Call_ID => Call_ID) then
+      if not Calls.List.Contains (Call_ID => Requested_Call_ID) then
          Response_Object.HTTP_Status_Code (Not_Found);
          Response_Object.Content
               (Status_Message
                  ("status", "not found"));
-         return Response_Object.Build;
+      else
+         declare
+            Hangup_Action : AMI.Packet.Action.Request :=
+                              AMI.Packet.Action.Hangup
+                                (Channel => Requested_Call_ID.To_String);
+         begin
+            --  AMI.Action.Hangup
+            --  (PBX.Client_Access, Requested_Call_ID.To_String);
+            PBX.Client.Send (Hangup_Action.To_AMI_Packet);
+         end;
+            Response_Object.HTTP_Status_Code (OK);
+            Response_Object.Content (Status_Message
+                                     ("Success", "Hangup completed"));
       end if;
 
       return Response_Object.Build;
 
    exception
-      when others =>
-         --  ???? What exceptions are we expecting, and why do we not catch
-         --  exceptions in any of the other methods in this package?
-         System_Messages.Notify (Debug, "Exception in Hangup");
-         Response_Object.HTTP_Status_Code (Server_Error);
-         Response_Object.Content
-           (Status_Message
-              ("Exception", "Something went wrong"));
+      when E : Call_ID.Invalid_ID =>
+         System_Message.Error.Bad_Call_ID_Key
+           (Event           => E,
+            Message         => "Could not lookup call",
+            Response_Object => Response_Object);
+         return Response_Object.Build;
 
+      when E : others =>
+         System_Message.Critical.Response_Exception
+           (Event           => E,
+            Message         => "Hangup failed",
+            Response_Object => Response_Object);
          return Response_Object.Build;
    end Hangup;
-
-   ------------
-   --  Hold  --
-   ------------
-
-   function Hold
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data
-   is
-      use Common;
-      use HTTP_Codes;
-      use AWS.Status;
-      use Model.Call;
-      use Model.Call_ID;
-
-      Context         : constant String := "Handlers.Call.Hold";
-      Response_Object : Response.Object := Response.Factory (Request);
-      Call_ID         : constant Call_ID_Type :=
-        Create (Item => Parameters (Request).Get ("Call_ID"));
-      Call            : constant Call_Type := Get (Call_ID);
-   begin
-      System_Messages.Notify
-        (Debug, "Park: Action send, Call_ID => " & Call_ID.To_String);
-
-      Routines.Park (PBX.Client_Access, Call);
-
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content
-        (Status_Message ("Success", "Request received"));
-
-      return Response_Object.Build;
-   exception
-      when CALL_NOT_FOUND =>
-         System_Messages.Notify
-           (Debug, Context & ": Call not found, ID: " & Call_ID.To_String);
-         Response_Object.HTTP_Status_Code (Bad_Request);
-         Response_Object.Content
-           (Status_Message
-              ("bad request", "No call available to put on hold"));
-         return Response_Object.Build;
-      when others =>
-         Response_Object.HTTP_Status_Code (Server_Error);
-         Response_Object.Content
-           (Status_Message
-              ("oops", "Stuff went wrong :-("));
-         return Response_Object.Build;
-   end Hold;
 
    ------------
    --  List  --
@@ -149,17 +110,116 @@ package body Handlers.Call is
       return AWS.Response.Data
    is
       use Common;
-      use HTTP_Codes;
 
       Response_Object : Response.Object := Response.Factory (Request);
-      --  ???? Odd naming. See ???? comment for Call_List.Call_List_Type.
    begin
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content
-        (To_JSON_String (Model.Call.Call_List.To_JSON.Write));
+      --  Only return a call list when there actual calls in it.
+      if not Calls.List.Is_Empty then
+         Response_Object.HTTP_Status_Code (OK);
+         Response_Object.Content
+           (To_JSON_String (Calls.List.To_JSON.Write));
+      else
+         Response_Object.HTTP_Status_Code (No_Content);
+      end if;
 
       return Response_Object.Build;
+   exception
+      when E : others =>
+         System_Message.Critical.Response_Exception
+           (Event           => E,
+            Message         => "List failed",
+            Response_Object => Response_Object);
+         return Response_Object.Build;
+
    end List;
+
+   -----------------
+   --  Originate  --
+   -----------------
+
+   --  /call/originate?[agent_id=<agent_id>|cm_id=<cm_id>|pstn_number=
+   --  <Pstn_NumbEr >  | sip =  < sip_uri > ]
+   function Originate
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data is
+      use Common;
+
+      Agent_ID_String   : constant String :=
+                            Parameters (Request).Get ("agent_id");
+      Extension_String  : constant String :=
+                            Parameters (Request).Get ("extension");
+      Originating_Agent : Model.Agent.Agent_Type := Agent.Null_Agent;
+      Response_Object   : Response.Object := Response.Factory (Request);
+
+   begin
+      Originating_Agent :=
+        Model.Agents.Get (Model.Agent_ID.Create (Agent_ID_String));
+
+      AMI.Action.Originate (Client    => PBX.Client_Access,
+                            Peer_ID   => Originating_Agent.Peer_ID,
+                            Context   => Originating_Agent.Context,
+                            Extension => Extension_String,
+                            Priority  => 1);
+
+      Response_Object.HTTP_Status_Code (OK);
+      Response_Object.Content (Status_Message
+                        ("status", "ok"));
+      return Response_Object.Build;
+   exception
+      when E : others =>
+         System_Message.Critical.Response_Exception
+           (Event           => E,
+            Message         => "Originate failed",
+            Response_Object => Response_Object);
+         return Response_Object.Build;
+
+   end Originate;
+
+   ------------
+   --  Park  --
+   ------------
+
+   function Park (Request : in AWS.Status.Data)
+                  return AWS.Response.Data is
+
+      Response_Object   : Response.Object      := Response.Factory (Request);
+      Requested_Call    : Model.Call.Call_Type       := Model.Call.Null_Call;
+      Call_ID_Parameter : constant String :=
+                            Parameters (Request).Get ("call_id");
+   begin
+      --  Fetch the call from the call list.
+      if not Calls.List.Contains (Call_ID.Create (Call_ID_Parameter)) then
+         Response_Object.HTTP_Status_Code (Not_Found);
+         Response_Object.Content (Status_Message ("status", "not found"));
+      else
+         --  Fetch the call
+         Requested_Call := Calls.List.Get
+           (Call_ID.Create (Call_ID_Parameter));
+
+         --  Park it
+         AMI.Action.Park (Client      => PBX.Client_Access,
+                          Channel  => Requested_Call.Channel_ID.To_String,
+                          Fallback_Channel => "");
+
+         --  And let the user know that everything went according to plan.
+         Response_Object.HTTP_Status_Code (OK);
+         Response_Object.Content (Status_Message ("status", "ok"));
+      end if;
+
+      return Response_Object.Build;
+   exception
+      when Call_ID.Invalid_ID =>
+         Response_Object.HTTP_Status_Code (Bad_Request);
+         Response_Object.Content (Status_Message
+                                  ("status", "bad parameter ""Call_ID"""));
+         return Response_Object.Build;
+      when E : others =>
+         System_Message.Critical.Response_Exception
+           (Event           => E,
+            Message         => "Park failed",
+            Response_Object => Response_Object);
+         return Response_Object.Build;
+   end Park;
 
    --------------
    --  Pickup  --
@@ -169,81 +229,119 @@ package body Handlers.Call is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
-      use AWS.Status;
-      use Model.Call;
-      use Model.Peers;
-      use Common;
-      use HTTP_Codes;
       use Ada.Strings.Unbounded;
+      use Common;
+
+      use Model.Agent_ID;
+      use Model.Agent;
+      use Model.Call;
       use Model.Call_ID;
+      use Model.Peers;
 
-      Agent   : constant String := Parameters (Request).Get ("agent_id");
-      Call_ID : constant String := Parameters (Request).Get ("call_id");
-
-      Content         : JSON_String;
-      Response_Object : Response.Object := Response.Factory (Request);
-      Status_Code     : AWS.Messages.Status_Code;
-      Call            : Call_Type := Null_Call;
-      Peer            : Peer_Type;
+      Call_ID_String    : constant String :=
+                            Parameters (Request).Get (Name => "call_id");
+      Agent_ID_String   : constant String :=
+                            Parameters (Request).Get (Name => "agent_id");
+      Response_Object   : Response.Object := Response.Factory (Request);
+      Agent_ID          : Agent_ID_Type   := Null_Agent_ID;
+      Agent             : Agent_Type      := Null_Agent;
+      Requested_Call    : Call_Type       := Null_Call;
+      Requested_Call_ID : Call_ID_Type    := Null_Call_ID;
+      Peer              : Peer_Type       := Null_Peer;
    begin
+      --  We want a valid agent ID, so we let the exception propogate.
+      Agent_ID := Create (Agent_ID => Agent_ID_String);
 
-      --  Retrieve the peer from the agent_id.
-      Peer := Get_Peer_By_PhoneName (Agent);
+      --  No call id is supplied, just give the client the next call.
+      if Parameters (Request).Exist ("call_id") then
+         if not Model.Call_ID.Validate (Call_ID_String) then
+            Response_Object.HTTP_Status_Code (Bad_Request);
+            Response_Object.Content
+              (Status_Message
+                 ("bad request", "invalid call id"));
 
-      --  Determine which call to pickup
-      if Call_ID'Length = 0 then
-         System_Messages.Notify (Debug, "Get_Call - Agent_ID: " & Agent &
-                                   " asks for unspecifed call");
-         Call := Call_List.Next;
-         System_Messages.Notify (Debug, " Sending: " & To_String (Call));
-      else
-         System_Messages.Notify (Debug, "Get_Call - Agent_ID: " & Agent &
-                                   " ask for Call_ID: " & Call_ID);
-         --  Lookup the call
-         Call := Dequeue (Create (Call_ID));
+            return Response_Object.Build;
+         end if;
+
+         --  Turn the string into a call ID
+         Requested_Call_ID := Create (Parameters (Request).Get ("call_id"));
       end if;
 
-      if Call = Null_Call then
-         System_Messages.Notify
-           (Debug, "Get_Call: No Call to take with ID: " & Call_ID);
-         Status_Code := No_Content;
-         Content := Status_Message
-           ("Bad request", "No call found");
-      elsif Peer.State = Unregistered then
+      --  Retrieve the call
+      Calls.List.Dequeue (Requested_Call_ID, Requested_Call);
+
+      --  If we did not claim a call at this point, return HTTP 204.
+      if Requested_Call = Null_Call then
+         Response_Object.HTTP_Status_Code (No_Content);
+         return Response_Object.Build;
+      end if;
+
+      --  Lookup the peer from the agent_id.
+      Peer := Model.Peers.List.Get
+        (Model.Agents.Get (Agent_ID => Agent_ID).Peer_ID);
+
+      if not Peer.Available then
          System_Messages.Notify
            (Critical, "Get_Call: " &
-              "The following agent is unregistred: " & Agent);
-         Status_Code := Bad_Request;
-         Content := Status_Message
-           ("Bad request", "The agents phone is not registered");
-      else
-         --  Send the command to AMI
-         AMI.Action.Redirect (Client    => PBX.Client_Access,
-                              Channel   => To_String (Call.Channel),
-                              Extension => "101"); --  To_String (Peer.Exten)
-         Status_Code := OK;
-         Content := To_JSON_String (Call);
-         --  (Status_Message ("Success", "The request is being processed"));
-      end if;
+              "The following agent is unavailable: " &
+              Agent_ID.To_String);
+         Response_Object.HTTP_Status_Code (Bad_Request);
+         Response_Object.Content
+           (Status_Message
+              ("Bad request", "Agent peer unavailable"));
 
-      Response_Object.HTTP_Status_Code (Status_Code);
-      Response_Object.Content (Content);
+         return Response_Object.Build;
+      else
+         --  We're good - transfer the call.
+         Agent := Model.Agents.Get (Agent_ID => Agent_ID);
+         Calls.List.Assign (Agent, Requested_Call);
+
+         --  Set the call state.
+         Requested_Call.State := Speaking;
+
+         --  Put back the call into the call list
+         Model.Calls.List.Insert (Call =>  Requested_Call);
+
+         --  Send the command to AMI
+         AMI.Action.Redirect
+           (Client    => PBX.Client_Access,
+            Channel   => Requested_Call.Channel_ID,
+            Extension => Agent.Extension);
+         Response_Object.HTTP_Status_Code (OK);
+         Response_Object.Content
+           ((To_JSON_String (Requested_Call.To_JSON.Write)));
+      end if;
 
       return Response_Object.Build;
 
    exception
-      when PEER_NOT_FOUND =>
+      when E : Model.Agent_ID.Invalid_ID =>
+         System_Messages.Notify
+           (Error, Ada.Exceptions.Exception_Information (E));
+         Response_Object.HTTP_Status_Code (Server_Error);
+         Response_Object.Content
+           (Status_Message
+              ("Uh-oh", "You don't seem to have a valid agent ID"));
+         return Response_Object.Build;
+
+      when Calls.Already_Assigned =>
+         Response_Object.HTTP_Status_Code (Bad_Request);
+         Response_Object.Content
+           (Status_Message
+              ("Already assigned",
+               "Agent tried to claim call that is already assigned"));
+         return Response_Object.Build;
+
+      when Peer_Not_Found =>
          Response_Object.HTTP_Status_Code (Bad_Request);
          Response_Object.Content
            (Status_Message
               ("No Parameter", "There exsist no agent by that name"));
          return Response_Object.Build;
 
-      when CALL_NOT_FOUND =>
-         Response_Object.HTTP_Status_Code (No_Content);
-         return Response_Object.Build;
-
-      when others =>
+      when E : others =>
+         System_Messages.Notify
+           (Error, Ada.Exceptions.Exception_Information (E));
          Response_Object.HTTP_Status_Code (Server_Error);
          Response_Object.Content
            (Status_Message
@@ -255,26 +353,19 @@ package body Handlers.Call is
    -------------
    --  Queue  --
    -------------
+   --  TODO, extend the call list so that it will be able to return only
+   --  inbound calls on this interface.
 
    function Queue
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
       use Common;
-      use HTTP_Codes;
 
-      Response_Object : Response.Object := Response.Factory (Request);
+      --  Response_Object : Response.Object := Response.Factory (Request);
    begin
-      --  ???? If we're ultimately just interested in getting a queue JSON
-      --  document, be it empty or filled with calls, why go through all the
-      --  hassle of getting a Call_List_Type.Vector? Do we need this here?
-      --  Why not just have a function in the Call_List package that return
-      --  the final JSON and use that directly in the Build_JSON_Response call?
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content
-        (Common.To_JSON_String (Model.Call.Call_List.To_JSON.Write));
 
-      return Response_Object.Build;
+      return List (Request);
    end Queue;
 
 end Handlers.Call;

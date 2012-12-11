@@ -1,7 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
 --                      Copyright (C) 2012-, AdaHeads K/S                    --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -18,14 +16,14 @@
 -------------------------------------------------------------------------------
 
 with My_Handlers;
+with PBX;
+with System_Message.Critical;
+with System_Message.Info;
 with Yolk.Configuration;
 with Yolk.Process_Control;
 with Yolk.Process_Owner;
 with Yolk.Server;
-with Yolk.Whoops;
-with System_Message.Critical;
-with System_Message.Info;
-with PBX;
+with Unexpected_Exception;
 
 procedure Alice is
    use System_Message;
@@ -37,7 +35,7 @@ procedure Alice is
    Alice_Version : constant String := "0.40";
 
    Web_Server : HTTP := Create
-     (Unexpected => Yolk.Whoops.Unexpected_Exception_Handler'Access);
+     (Unexpected => Unexpected_Exception.Callback);
 begin
    Set_User (Config.Get (Yolk_User));
 
