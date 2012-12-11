@@ -15,48 +15,28 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
+with Ada.Strings.Bounded;
+with Ada.Containers.Doubly_Linked_Lists;
 
-package Handlers.Call is
+with AMI.Parser;
 
-   Package_Name : constant String := "Handlers.Call";
+package AMI.Packet.Field is
+   package BString is new
+     Ada.Strings.Bounded.Generic_Bounded_Length (Max => 256);
+   use BString;
 
---     function Bridge
---       (Request : in AWS.Status.Data)
---        return AWS.Response.Data;
---     --  Bridges two calls in the PBX
+   --  TODO: Make private
+   type Field is tagged record
+      Key   : AMI.Parser.AMI_Key_Type;
+      Value : Bounded_String;
+   end record;
 
-   function Originate
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Places a new call from the agent to a given extension.
+   function Create (Key :   in AMI.Parser.AMI_Key_Type;
+                    Value : in String) return Field;
+   --  Constructor
 
-   function Hangup
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  End a call in progress, regardless of state
+   function To_AMI_Line (F : in Field) return AMI_Line;
 
-   function Park
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Put current call on hold. Return No Content if there is no call
-   --  to be put on hold.
+   package Field_List is new Ada.Containers.Doubly_Linked_Lists (Field);
 
-   function Pickup
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Pickup either the oldest call in the queue, or the call identified by
-   --  the call_id GET parameter.
-
-   function List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Returns the full call list, regardless of state.
-
-   function Queue
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Return the current list of calls queued.
-
-end Handlers.Call;
+end AMI.Packet.Field;

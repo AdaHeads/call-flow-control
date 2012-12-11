@@ -2,7 +2,7 @@
 --                                                                           --
 --                                  Alice                                    --
 --                                                                           --
---                              Call_Queue_JSON                              --
+--                                View.Call                                  --
 --                                                                           --
 --                                  BODY                                     --
 --                                                                           --
@@ -21,34 +21,32 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Fixed;
-with Ada.Strings.Unbounded;
-
-with System_Messages;
 with Model.Call_ID;
-package body JSON.Call is
-   use GNATCOLL.JSON;
-   use System_Messages;
-   use Model.Call_ID;
+with Ada.Strings.Unbounded;
+with Ada.Characters.Handling;
 
-   Length_String : constant String := "length";
+package body View.Call is
+   use GNATCOLL.JSON;
+   use Model.Call_ID;
 
    function Status_Message (Title   : in String;
                             Message : in String) return JSON_String is
       JSON : constant JSON_Value := Create_Object;
    begin
-      JSON.Set_Field ("status", Title);
+      JSON.Set_Field (View.Status, Title);
       JSON.Set_Field ("description", Message);
       return To_JSON_String (JSON.Write);
    end Status_Message;
 
-   function To_JSON_Object (Call : in Model.Call.Call_Type)
-                           return GNATCOLL.JSON.JSON_Value is
+   function To_JSON (Call : in Model.Call.Call_Type)
+                     return GNATCOLL.JSON.JSON_Value is
       use Model.Call;
+      use Ada.Strings.Unbounded;
+      use Ada.Characters.Handling;
 
       Root : constant JSON_Value := Create_Object;
       Value : constant JSON_Value := Create_Object;
-      Org_ID : Ada.Strings.Unbounded.Unbounded_String;
+      --  Org_ID : Ada.Strings.Unbounded.Unbounded_String;
       --  Org_Prefix : constant String := "org_id";
    begin
       if Call /= Null_Call then
@@ -56,65 +54,16 @@ package body JSON.Call is
 --             (Call.Queue,
 --              Ada.Strings.Unbounded.Length (Call.Queue) - Org_Prefix'Length);
 
-         Value.Set_Field ("channel", Call.Channel_ID.To_String);
-         Value.Set_Field ("org_id", Org_ID);
-         Value.Set_Field ("call_id",  To_String (Call.ID));
-         Value.Set_Field ("arrival_time", Unix_Timestamp (Call.Arrived));
-         Root.Set_Field ("call", Value);
+         Value.Set_Field (View.State_S, To_Lower (Call.State'Img));
+         Value.Set_Field (View.Inbound, Call.Inbound);
+         Value.Set_Field (View.Assigned_To_S, Call.Assigned_To.To_String);
+         Value.Set_Field (View.Channel, Call.Channel_ID.To_String);
+         Value.Set_Field (View.Organization_Id, To_String (Call.Queue));
+         Value.Set_Field (View.Call_ID_S,  To_String (Call.ID));
+         Value.Set_Field (View.Arrival_Time_S, Unix_Timestamp (Call.Arrived));
+         Root.Set_Field (View.Call_S, Value);
 
       end if;
       return Root;
-   exception
-      when others =>
-         System_Messages.Notify
-           (Error, "Queue: [" &
-              Ada.Strings.Unbounded.To_String (Call.Queue) &
-              "]");
-      raise;
-   end To_JSON_Object;
-
-   function To_JSON_String (Length : in Natural)
-                            return JSON_String is
-
-      Text : constant String :=
-               Ada.Strings.Fixed.Trim (Integer (Length)'Img, Ada.Strings.Left);
-      --  ???? Count_Type is ultimately just an integer. Why this conversion to
-      --  String?
-      JSON : constant JSON_Value := Create_Object;
-   begin
-      JSON.Set_Field (Length_String, Text);
-
-      return To_JSON_String (JSON.Write);
-   end To_JSON_String;
-
-   function To_JSON_String (Queue : in Model.Calls.Call_List_Type.Map)
-                           return JSON_String is
-      use Model.Call;
-
-      JSON_List : JSON_Array;
-      Value     : JSON_Value;
-
-      Result : constant JSON_Value := Create_Object;
-   begin
-      JSON_List := Empty_Array;
-
-      for item of Queue loop
-         Value := To_JSON_Object (item);
-         Append (JSON_List, Value);
-      end loop;
-
-      Result.Set_Field ("calls", JSON_List);
-
-      return To_JSON_String (Result.Write);
-   end To_JSON_String;
-
-   function To_JSON_String (Call : in Model.Call.Call_Type)
-                                return JSON_String is
-      JSON : JSON_Value;
-   begin
-      JSON := To_JSON_Object (Call => Call);
-
-      return To_JSON_String (JSON.Write);
-   end To_JSON_String;
-
-end JSON.Call;
+   end To_JSON;
+end View.Call;

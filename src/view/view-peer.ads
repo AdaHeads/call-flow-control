@@ -15,48 +15,15 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
+with GNATCOLL.JSON;
 
-package Handlers.Call is
+with Model.Peers;
 
-   Package_Name : constant String := "Handlers.Call";
+--  Utility functions for converting a peer to viewable types
+package View.Peer is
+   use Model;
 
---     function Bridge
---       (Request : in AWS.Status.Data)
---        return AWS.Response.Data;
---     --  Bridges two calls in the PBX
+   function To_JSON (Peer : in Peers.Peer_Type)
+                        return GNATCOLL.JSON.JSON_Value;
 
-   function Originate
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Places a new call from the agent to a given extension.
-
-   function Hangup
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  End a call in progress, regardless of state
-
-   function Park
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Put current call on hold. Return No Content if there is no call
-   --  to be put on hold.
-
-   function Pickup
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Pickup either the oldest call in the queue, or the call identified by
-   --  the call_id GET parameter.
-
-   function List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Returns the full call list, regardless of state.
-
-   function Queue
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Return the current list of calls queued.
-
-end Handlers.Call;
+end View.Peer;

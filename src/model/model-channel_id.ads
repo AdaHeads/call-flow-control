@@ -3,11 +3,11 @@ with Ada.Strings.Unbounded;
 package Model.Channel_ID is
    use Ada.Strings.Unbounded;
 
-   type Channel_Class_Type is (Unknown, SIP);
+   type Technology is (Unknown, SIP);
 
    --  TODO: Make aggregate of Peer_ID and sequence
    type Channel_ID_Type is tagged record
-      Class     : Channel_Class_Type;
+      Kind     : Technology;
       Peername  : Unbounded_String;
       Sequence  : String (1 .. 8);
    end record;

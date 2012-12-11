@@ -23,6 +23,9 @@
 
 with Ada.Strings.Unbounded;
 with AWS.Net.Std;
+
+with AMI.Packet;
+
 package AMI.Client is
 
    TIMEOUT         : exception;
@@ -69,6 +72,9 @@ package AMI.Client is
    procedure Send (Client : in out Client_Type;
                    Item   : in     String);
    --  Send an abitrary string
+
+   procedure Send (Client : in out Client_Type;
+                   Item   : in     AMI.Packet.AMI_Packet);
 
    function Is_Connected (Client  : in out  Client_Type) return Boolean;
 

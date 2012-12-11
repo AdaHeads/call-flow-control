@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                              Handlers.Debug                               --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -29,10 +23,11 @@ package Handlers.Debug is
    function Peer_List
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
-   --
+   --  Sends the current peer list to the client
 
    function Channel_List
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
-   --  TODO: Write comment
+   --  Sends the current channel list to the client
+
 end Handlers.Debug;

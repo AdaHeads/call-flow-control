@@ -25,13 +25,22 @@ package View is
 
    type Mode is (Basic, Full);
 
+   Arrival_Time_S    : constant String := "arrival_time";
+   Assigned_To_S     : constant String := "assigned_to";
    Attributes        : constant String := "attributes";
+   Call_S            : constant String := "call";
+   Call_ID_S         : constant String := "call_Id";
+   Channel           : constant String := "channel";
    Contact_Id        : constant String := "contact_id";
    Contacts          : constant String := "contacts";
    Full_Name         : constant String := "full_name";
    Identifier        : constant String := "identifier";
+   Inbound           : constant String := "inbound";
    Is_Human          : constant String := "is_human";
    Organization_Id   : constant String := "organization_id";
    Organization_List : constant String := "organization_list";
+   Length            : constant String := "length";
+   State_S           : constant String := "state";
+   Status            : constant String := "status";
 
 end View;

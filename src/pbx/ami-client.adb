@@ -148,6 +148,12 @@ package body AMI.Client is
          Client.On_Disconnect_Handler.all;
    end Send;
 
+   procedure Send (Client : in out Client_Type;
+                   Item   : in     AMI.Packet.AMI_Packet) is
+   begin
+      Client.Send (String (Item));
+   end Send;
+
    procedure Set_Connection_State (Client    : in out Client_Type;
                                    New_State : in     Boolean) is
    begin

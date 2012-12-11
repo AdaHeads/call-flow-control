@@ -15,48 +15,20 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
+with Ada.Characters.Latin_1;
 
-package Handlers.Call is
+package AMI.Packet is
 
-   Package_Name : constant String := "Handlers.Call";
+   package Latin_1 renames Ada.Characters.Latin_1;
 
---     function Bridge
---       (Request : in AWS.Status.Data)
---        return AWS.Response.Data;
---     --  Bridges two calls in the PBX
+   type AMI_Packet is new String;
+   type AMI_Line is new String;
 
-   function Originate
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Places a new call from the agent to a given extension.
+   Line_Termination_String : constant String := Latin_1.CR & Latin_1.LF;
+   Separator               : constant String := ": ";
 
-   function Hangup
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  End a call in progress, regardless of state
+   function Next return Action_ID_Type;
 
-   function Park
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Put current call on hold. Return No Content if there is no call
-   --  to be put on hold.
-
-   function Pickup
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Pickup either the oldest call in the queue, or the call identified by
-   --  the call_id GET parameter.
-
-   function List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Returns the full call list, regardless of state.
-
-   function Queue
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Return the current list of calls queued.
-
-end Handlers.Call;
+private
+   Current_Action_ID : Action_ID_Type := Action_ID_Type'First;
+end AMI.Packet;

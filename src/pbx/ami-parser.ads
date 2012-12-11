@@ -1,12 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                               AMI.Parser
-----
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -29,7 +22,18 @@ package AMI.Parser is
    use Ada.Strings.Unbounded;
 
    type AMI_Key_Type is
-     (ApplicationData,
+     (Async,
+      ApplicationData,
+      ReloadReason,
+      CommandId,
+      Command,
+      ResultCode,
+      Result,
+      Registry_Count,
+      Peer_Count,
+      ModuleLoadStatus,
+      ModuleSelection,
+      ModuleCount,
       BridgedChannel,
       BridgedUniqueID,
       Duration,
@@ -74,6 +78,16 @@ package AMI.Parser is
       Application,
       AppData,
       Oldname,
+      ObjectName,
+      ChanObjectType,
+      IPaddress,
+      IPport,
+      Dynamic,
+      Natsupport,
+      VideoSupport,
+      TextSupport,
+      ACL,
+      RealtimeDevice,
       Newname,
       Shutdown,
       Restart,
@@ -110,6 +124,11 @@ package AMI.Parser is
       SentRTP,
       SentOctets,
       Status,
+      Reason,
+      Bridgetype,
+      CallerID1,
+      CallerID2,
+      DialStatus,
       FractionLost,
       CumulativeLoss,
       IAJitter,
@@ -118,7 +137,8 @@ package AMI.Parser is
       RTCPSent,
       ReportBlock,
       SubEvent,
-      Dialstring
+      Dialstring,
+      Env
      );
 
    subtype AMI_Header_Key_Type is AMI_Key_Type range Event .. Response;

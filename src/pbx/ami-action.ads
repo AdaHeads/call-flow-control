@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                   AMI                                     --
---                                                                           --
---                                 Action                                    --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -26,8 +20,7 @@ with Ada.Strings.Unbounded;
 with AMI.Callback;
 with AMI.Generic_Protocol_Strings;
 with AMI.Client;
-with Model.Call;
-with Model.Call_ID;
+
 with Model.Channel_ID;
 with Model.Peer_ID;
 
@@ -35,19 +28,10 @@ package AMI.Action is
    use Ada.Strings.Unbounded;
    use AMI.Client;
    use AMI.Callback;
-   use Model.Call_ID;
-   use Model.Call;
    use Model.Channel_ID;
    use Model.Peer_ID;
 
-   procedure Absolute_Timeout (Client           : access Client_Type;
-                               Channel_ID       : in     Channel_ID_Type;
-                               Timeout          : in     Duration := 20.0;
-                               Response_Handler : in     Callback_Type
-                               := AMI.Callback.Null_Callback'Access) is null;
-   --  Set Absolute Timeout (Priv : system, call, all)
-   --  This will hangup a specified channel after a certain number of seconds,
-   --  thereby actively ending the call.
+   --  TOOD: Convert to function returning Action_Request
 
    procedure Bridge (Client   : access Client_Type;
                      ChannelA : in     String;
@@ -75,7 +59,7 @@ package AMI.Action is
    --  8 : Ringing
 
    procedure Hangup (Client   : access Client_Type;
-                     Call_ID  : in     Call_ID_Type;
+                     Call_ID  : in     String;
                      Callback : in     AMI.Callback.Callback_Type
                      := AMI.Callback.Null_Callback'Access);
 
@@ -102,10 +86,16 @@ package AMI.Action is
                         := AMI.Callback.Null_Callback'Access);
    --  Originate Call (Priv: originate,all)
 
-   procedure Park (Client   : access Client_Type;
-                   Call     : in     Call_Type;
-                   Callback : in AMI.Callback.Callback_Type :=
-                     AMI.Callback.Null_Callback'Access);
+   procedure Park (Client           : access Client_Type;
+                   Channel          : in     String;
+                   --  Channel name to park
+                   Fallback_Channel : in     String;
+                   --  Channel to announce park info to
+                   --  (and return the call to if the parking times out).
+                   Timeout          : in Natural := 60000;
+                   --  Number of milliseconds to wait before callback.
+                   Callback         : in AMI.Callback.Callback_Type :=
+                     AMI.Callback.Login_Callback'Access);
    --  Park a channel (Priv: call,all).
 
    procedure Ping (Client   : access Client_Type;
@@ -140,7 +130,8 @@ package AMI.Action is
 
    procedure SIP_Peers (Client   : access Client_Type;
                         Callback : in     AMI.Callback.Callback_Type
-                        := AMI.Callback.Null_Callback'Access) is null;
+                        := AMI.Callback.Null_Callback'Access);
+   --  Lists the currently configured SIP peers along with their status.
 
    procedure Status (Client     : access Client_Type;
                      Channel_ID : in     Channel_ID_Type;
