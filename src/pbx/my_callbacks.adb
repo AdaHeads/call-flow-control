@@ -65,7 +65,7 @@ package body My_Callbacks is
    --  Uniqueid2: 1340097427.11
    --  CallerID1: softphone2
    --  CallerID2: 100
-   procedure Bridge is
+   procedure Bridge (Packet : in Packet_Type) is
    begin
       System_Messages.Notify (Debug, "Bridge not implemented");
    end Bridge;

@@ -138,6 +138,7 @@ package body AMI.Action is
    procedure Redirect (Client    : access Client_Type;
                        Channel   : in     Channel_ID_Type;
                        Extension : in     String;
+                       Context   : in     String;
                        Callback  : in     AMI.Callback.Callback_Type
                          := AMI.Callback.Null_Callback'Access) is
       Action_ID : constant Action_ID_Type :=
@@ -149,7 +150,7 @@ package body AMI.Action is
         (Item   => Protocol_Strings.Redirect
            (Channel   => Channel.To_String,
             Exten     => Extension,
-            Context   => "LocalSets",
+            Context   => Context,
             Action_ID => Action_ID));
    end Redirect;
 

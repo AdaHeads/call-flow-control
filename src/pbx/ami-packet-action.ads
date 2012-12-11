@@ -29,7 +29,10 @@ package AMI.Packet.Action is
 
    Not_Implemented : exception;
 
-   type Valid_Action is (Undefined, AGI, AgentCallbackLogin,
+   type Valid_Action is (Undefined, AGI,
+                         AgentCallbackLogin,
+                         AgentLogoff,
+                         AbsoluteTimeout,
                          Atxfer, Login, Logoff, Ping, Hangup);
 
    type Config_Action is (NewCat, RenameCat, DelCat, Update, Delete, Append);
@@ -81,28 +84,7 @@ package AMI.Packet.Action is
    --  Asterisk will acknowledge the timeout setting with a
    --  Timeout Set message.
 
-   function Agent_Callback_Login
-     (Agent     : in String;
-      --  Agent ID of the agent to log in to the system,
-      --  as specified in agents.conf.
-      Extension : String;
-      --  Extension to use for callback.
-      Context   : String := "";
-      Acknlowledgde_Call : Boolean := False;
-      --  Set to true to require an acknowledgement (the agent pressing the
-      --  # key) to accept the call when agent is called back.
-      WrapupTime         : Duration := Duration'First;
-      On_Response        : in     Response_Handler_Type
-      := Null_Reponse_Handler'Access
-      --  The reponse handler
-     ) return Request;
-   --  DEPRECATED as of 1.6, and removed in 1.8.
-   --  Sets an agent as logged in to the queue system in callback mode
-   --  Logs the specified agent in to the Asterisk queue system in callback
-   --  mode. When a call is distributed to this agent,
-   --  it will ring the specified extension.
-
-   procedure Agent_Logoff
+   function Agent_Logoff
      (Agent       : in String;
       --  Agent ID of the agent to log off
       Soft        : in Boolean := False;
@@ -110,7 +92,7 @@ package AMI.Packet.Action is
       On_Response : in     Response_Handler_Type
       := Null_Reponse_Handler'Access
       --  The response handler.
-     ) is null;
+     ) return Request;
    --  Logs off the specified agent for the queue system.
 
    procedure Agents

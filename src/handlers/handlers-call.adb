@@ -246,32 +246,19 @@ package body Handlers.Call is
       Agent_ID          : Agent_ID_Type   := Null_Agent_ID;
       Agent             : Agent_Type      := Null_Agent;
       Requested_Call    : Call_Type       := Null_Call;
-      Requested_Call_ID : Call_ID_Type    := Null_Call_ID;
       Peer              : Peer_Type       := Null_Peer;
    begin
       --  We want a valid agent ID, so we let the exception propogate.
       Agent_ID := Create (Agent_ID => Agent_ID_String);
 
-      --  No call id is supplied, just give the client the next call.
+      --  Check valitity of the call. (Will raise exception on invalid.
       if Parameters (Request).Exist ("call_id") then
-         if not Model.Call_ID.Validate (Call_ID_String) then
-            Response_Object.HTTP_Status_Code (Bad_Request);
-            Response_Object.Content
-              (Status_Message
-                 ("bad request", "invalid call id"));
-
-            return Response_Object.Build;
-         end if;
-
-         --  Turn the string into a call ID
-         Requested_Call_ID := Create (Parameters (Request).Get ("call_id"));
+         Requested_Call := Calls.List.Get
+           (Call_ID => Model.Call_ID.Create (Call_ID_String));
       end if;
 
-      --  Retrieve the call
-      Calls.List.Dequeue (Requested_Call_ID, Requested_Call);
-
-      --  If we did not claim a call at this point, return HTTP 204.
-      if Requested_Call = Null_Call then
+      --  If we do not have any calls at this point, return HTTP 204.
+      if Calls.List.Is_Empty then
          Response_Object.HTTP_Status_Code (No_Content);
          return Response_Object.Build;
       end if;
@@ -294,19 +281,16 @@ package body Handlers.Call is
       else
          --  We're good - transfer the call.
          Agent := Model.Agents.Get (Agent_ID => Agent_ID);
-         Calls.List.Assign (Agent, Requested_Call);
-
-         --  Set the call state.
-         Requested_Call.State := Speaking;
-
-         --  Put back the call into the call list
-         Model.Calls.List.Insert (Call =>  Requested_Call);
+         Calls.List.Assign
+           (Agent => Agent,
+            Call  => Requested_Call);
 
          --  Send the command to AMI
          AMI.Action.Redirect
            (Client    => PBX.Client_Access,
             Channel   => Requested_Call.Channel_ID,
-            Extension => Agent.Extension);
+            Extension => Agent.Extension,
+            Context   => "LocalSets");
          Response_Object.HTTP_Status_Code (OK);
          Response_Object.Content
            ((To_JSON_String (Requested_Call.To_JSON.Write)));

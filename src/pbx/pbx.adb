@@ -39,10 +39,11 @@ package body PBX is
 
    Reader    : Reader_Task;
    Callbacks : constant AMI.Event.Event_Callback_Table :=
-                 (CoreShowChannel
-                  => My_Callbacks.Core_Show_Channel'Access,
-                  CoreShowChannelsComplete
-                  => My_Callbacks.Core_Show_Channels_Complete'Access,
+                 (Bridge             => My_Callbacks.Bridge'Access,
+                  CoreShowChannel    =>
+                    My_Callbacks.Core_Show_Channel'Access,
+                  CoreShowChannelsComplete =>
+                    My_Callbacks.Core_Show_Channels_Complete'Access,
                   PeerStatus         => My_Callbacks.Peer_Status'Access,
                   PeerEntry          => My_Callbacks.Peer_Entry'Access,
                   PeerlistComplete   => My_Callbacks.Peer_List_Complete'Access,
@@ -53,7 +54,8 @@ package body PBX is
                   Newstate           => My_Callbacks.New_State'Access,
                   Dial               => My_Callbacks.Dial'Access,
                   QueueCallerAbandon => My_Callbacks.Queue_Abandon'Access,
-                  AsyncAGI           => My_Callbacks.Initiate_AGI_Session'Access,
+                  AsyncAGI           =>
+                    My_Callbacks.Initiate_AGI_Session'Access,
                   others             => My_Callbacks.Default_Callback'Access);
    --  Event dispatch table.
 

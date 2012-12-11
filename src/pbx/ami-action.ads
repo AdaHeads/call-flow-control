@@ -114,6 +114,7 @@ package AMI.Action is
    procedure Redirect (Client    : access Client_Type;
                        Channel   : in     Channel_ID_Type;
                        Extension : in     String;
+                       Context   : in     String;
                        Callback  : in     AMI.Callback.Callback_Type
                        := AMI.Callback.Null_Callback'Access);
    --  Redirect: Redirect (transfer) a call (Priv: call,all)

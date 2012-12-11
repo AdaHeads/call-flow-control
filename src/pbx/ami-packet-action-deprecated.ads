@@ -14,39 +14,31 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with AMI;
-with AMI.Parser;
 
-package My_Callbacks is
-   use AMI.Parser;
+-- Deprecated versions of AMI action packets.
 
-   Package_Name : constant String := "My_Callbacks";
+package AMI.Packet.Action.Deprecated is
 
-   Not_Implemented : exception;
+   function Agent_Callback_Login
+     (Agent     : in String;
+      --  Agent ID of the agent to log in to the system,
+      --  as specified in agents.conf.
+      Extension : String;
+      --  Extension to use for callback.
+      Context   : String := "";
+      Acknlowledgde_Call : Boolean := False;
+      --  Set to true to require an acknowledgement (the agent pressing the
+      --  # key) to accept the call when agent is called back.
+      WrapupTime         : Duration := Duration'First;
+      On_Response        : in     Response_Handler_Type
+      := Null_Reponse_Handler'Access
+      --  The reponse handler
+     ) return Request;
+   --  DEPRECATED as of 1.6, and removed in 1.8.
+   --  Sets an agent as logged in to the queue system in callback mode
+   --  Logs the specified agent in to the Asterisk queue system in callback
+   --  mode. When a call is distributed to this agent,
+   --  it will ring the specified extension.
 
-   --  Event handlers
-   procedure Peer_Status (Packet : in Packet_Type);
-   procedure Core_Show_Channel (Packet : in Packet_Type);
-   procedure Core_Show_Channels_Complete (Packet : in Packet_Type);
-   procedure Default_Callback (Packet : in Packet_Type);
 
-   procedure Dial          (Packet : in Packet_Type);
-   procedure Hangup        (Packet : in Packet_Type);
-   procedure Join          (Packet : in Packet_Type);
-   procedure Leave         (Packet : in Packet_Type);
-   procedure New_Channel   (Packet : in Packet_Type);
-   procedure Queue_Abandon (Packet : in Packet_Type);
-   --  procedure Unlink_Callback     (Event_List : in Event_List_Type.Map);
-
-   procedure Peer_Entry (Packet : in Packet_Type);
-
-   procedure Peer_List_Complete (Packet : in Packet_Type);
-   procedure New_State (Packet : in Packet_Type);
-   --  Update the state of a channel.
-
-   procedure Bridge (Packet : in Packet_Type);
-   procedure Agents;
-
-   procedure Initiate_AGI_Session (Packet : in Packet_Type);
-
-end My_Callbacks;
+end AMI.Packet.Action.Deprecated;

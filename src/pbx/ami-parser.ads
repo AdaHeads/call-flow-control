@@ -24,6 +24,14 @@ package AMI.Parser is
    type AMI_Key_Type is
      (Async,
       Agent,
+      Forcerport,
+      ConnectedLineNum,
+      Soft,
+      Class,
+      Domain,
+      ConnectedLineName,
+      Module,
+      Hint,
       WrapupTime, -- Probably deprecated.
       ApplicationData,
       ReloadReason,

@@ -68,7 +68,7 @@ package body AMI.Packet.Action is
                       Both));
       end if;
 
-      return Action.Create (Action      => AgentCallbackLogin,
+      return Action.Create (Action      => AbsoluteTimeout,
                             Fields      => Fields,
                             On_Response => On_Response);
    end Absolute_Timeout;
@@ -95,55 +95,32 @@ package body AMI.Packet.Action is
                                             Value => Value));
    end Add_Field;
 
-   --------------------------
-   -- Agent_Callback_Login --
-   --------------------------
+   -------------------
+   -- Agent_Logoff --
+   -------------------
 
-   function Agent_Callback_Login
-     (Agent              : in String;
-      Extension          : in String;
-      Context            : in String := "";
-      Acknlowledgde_Call : in Boolean := False;
-      WrapupTime         : in Duration := Duration'First;
-      On_Response        : in Response_Handler_Type :=
-        Null_Reponse_Handler'Access
+   function Agent_Logoff
+     (Agent       : in String;
+      Soft        : in Boolean := False;
+      On_Response : in     Response_Handler_Type := Null_Reponse_Handler'Access
      ) return Request
    is
       Fields : AMI.Packet.Field.Field_List.List :=
                  AMI.Packet.Field.Field_List.Empty_List;
-      WrapupTime_Milli_Seconds : constant Natural :=
-       Natural (WrapupTime * 1_000);
    begin
       Add_Field (List  => Fields,
                  Key   => AMI.Parser.Agent,
                  Value => Agent);
-
-      Add_Field (List  => Fields,
-                 Key   => AMI.Parser.Extension,
-                 Value => Extension);
-      if Context /= "" then
+      if Soft then
          Add_Field (List  => Fields,
-                    Key   => AMI.Parser.Context,
-                    Value => Context);
+                    Key   => AMI.Parser.Soft,
+                    Value => Trim (Soft'Img, Left));
       end if;
-
-      if Acknlowledgde_Call then
-         Add_Field (List  => Fields,
-                    Key   => AMI.Parser.Extension,
-                    Value => Trim (WrapupTime_Milli_Seconds'Img, Both));
-      end if;
-
-      if WrapupTime > Duration'First then
-         Add_Field (List  => Fields,
-                    Key   => AMI.Parser.WrapupTime,
-                    Value => Trim
-                      (Natural'Image (WrapupTime_Milli_Seconds), Both));
-      end if;
-
-      return Action.Create (Action      => AgentCallbackLogin,
+      return Action.Create (Action      => AgentLogoff,
                             Fields      => Fields,
                             On_Response => On_Response);
-   end Agent_Callback_Login;
+
+   end Agent_Logoff;
 
    ---------
    -- AGI --
@@ -275,8 +252,9 @@ package body AMI.Packet.Action is
       --  Append the Action_ID
       if R.Action_ID /= Null_Action_ID then
          Append
-           (Buffer, To_Unbounded_String (String (
-               To_AMI_Line (Create (ActionID, R.Action_ID'Img)))));
+           (Buffer, To_Unbounded_String (String
+            (To_AMI_Line
+               (Create (ActionID, Trim (R.Action_ID'Img, Both))))));
       end if;
 
       for Item of R.Fields loop
