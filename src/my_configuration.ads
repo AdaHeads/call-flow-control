@@ -17,6 +17,7 @@
 
 with Ada.Strings.Unbounded;
 with Common;
+with Yolk.Command_Line;
 with Yolk.Config_File_Parser;
 
 package My_Configuration is
@@ -78,6 +79,8 @@ package My_Configuration is
      (Key_Type            => Keys,
       Defaults_Array_Type => Defaults_Array,
       Defaults            => Default_Values,
-      Config_File         => "configuration/alice_config.ini");
+      Config_File         => Yolk.Command_Line.Get
+                               (Parameter => "--alice-config-file",
+                                Default   => "configuration/alice_config.ini"));
 
 end My_Configuration;
