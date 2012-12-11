@@ -58,18 +58,18 @@ package body Handlers.Organization is
       use HTTP_Codes;
       use Model.Organization;
 
-      O : Organization_Object;
+      Organization : Object;
    begin
-      O := Get (Get_Org_Id (Response_Object), Mode => Maxi);
+      Organization := Get (Get_Org_Id (Response_Object), Mode => Maxi);
 
-      if O /= Null_Organization then
+      if Organization /= Null_Organization then
          Response_Object.Cacheable (True);
          Response_Object.HTTP_Status_Code (OK);
       else
          Response_Object.HTTP_Status_Code (Not_Found);
       end if;
 
-      Response_Object.Content (O.To_JSON_String);
+      Response_Object.Content (Organization.To_JSON_String);
    end Generate_Document;
 
    ------------------

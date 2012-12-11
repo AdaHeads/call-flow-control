@@ -26,38 +26,22 @@ package View.Organization is
    use GNATCOLL.JSON;
 
    function To_JSON
-     (O         : in Model.Organization.Organization_Object)
+     (Instance : in Model.Organization.Object)
       return JSON_Value;
-   --  Convert O to a JSON object.
-   --
-   --  If View_Mode is View.Basic then the organization JSON document is NOT
-   --  added to the final JSON object. This is handy in cases where only the
-   --  id, identifier and full name of the organization is needed.
-   --
-   --  If View_Mode is View.Full, then the organization id, identifier, full
-   --  name and all the organization contacts are added to the organization
-   --  JSON document.
+   --  Convert Instance to a JSON object.
 
    function To_JSON_String
-     (Instance  : in Model.Organization.Organization_Object)
+     (Instance  : in Model.Organization.Object)
       return JSON_String;
-   --  Convert O to a JSON string.
-   --
-   --  If View_Mode is View.Basic then the organization JSON document is NOT
-   --  added to the final JSON string. This is handy in cases where only the
-   --  id, identifier and full name of the organization is needed.
-   --
-   --  If View_Mode is View.Full, then the organization id, identifier, full
-   --  name and all the organization contacts are added to the organization
-   --  JSON document.
+   --  Convert Instance to a JSON string.
 
    function To_JSON
-     (Instance : in Model.Organizations.Organization_List_Object)
+     (Instance : in Model.Organizations.List)
       return JSON_Value;
    --  Convert Instance into a JSON object.
 
    function To_JSON_String
-     (Instance : in Model.Organizations.Organization_List_Object)
+     (Instance : in Model.Organizations.List)
       return JSON_String;
    --  Convert Instance into a JSON string.
 

@@ -58,11 +58,10 @@ private
 
    function JSON_Response is new Response.Cached.Generate_Response
      (Cache_Key_Type         => View_Type,
+      Cache                  => Cache,
       Bad_Request_Parameters => Bad_List_View_Parameter,
-      Get_Cache_Key          => Get_List_View,
-      Read_From_Cache        => Cache.Read,
-      Generate_Document      => Generate_Document,
-      Write_To_Cache         => Cache.Write);
+      Cache_Key              => Get_List_View,
+      Generate_Document      => Generate_Document);
    --  Generate the AWS.Response.Data that ultimately is delivered to the user.
 
 end Handlers.Organization_List;

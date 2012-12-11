@@ -21,35 +21,36 @@ with Model.Organization;
 
 package Model.Organizations is
 
-   type Organization_List_Object is tagged private;
-   Null_List : constant Organization_List_Object;
+   type List is tagged private;
+   Null_List : constant List;
 
    type Data_Mode is (Mini, Midi);
    --  Mini: As plain as possible. No JSON document, no contacts.
    --  Midi: The organization JSON document is also fetched.
 
    procedure For_Each
-     (Instance : in Organization_List_Object;
+     (Instance : in List;
       Process  : not null access procedure
-        (Element : in Model.Organization.Organization_Object));
-   --  Hands a contact object to process for every contact found in Instance.
+        (Element : in Model.Organization.Object));
+   --  Hands an organization object to process for every organization found in
+   --  Instance.
 
    function Get
      (Mode : in Data_Mode := Mini)
-      return Organization_List_Object;
+      return List;
    --  Get a list of all organizations found in the database. The organization
    --  objects in the list does not contain any contacts.
 
    function To_JSON_String
-     (Self : in out Organization_List_Object)
+     (Instance : in List)
       return Common.JSON_String;
-   --  Convert Self into a JSON string. This call is convenient wrapper
-   --  for the View.Organization.To_JSON function.
+   --  Convert Instance into a JSON string. This call is convenient wrapper
+   --  for the View.Organization.To_JSON_String function.
 
 private
 
    function Equal_Elements
-     (Left, Right : in Model.Organization.Organization_Object)
+     (Left, Right : in Model.Organization.Object)
       return Boolean;
 
    function Equivalent_Keys
@@ -62,17 +63,16 @@ private
 
    package Organization_Map is new Ada.Containers.Hashed_Maps
      (Key_Type        => Organization_Identifier,
-      Element_Type    => Model.Organization.Organization_Object,
+      Element_Type    => Model.Organization.Object,
       Hash            => Key_Hash,
       Equivalent_Keys => Equivalent_Keys,
       "="             => Equal_Elements);
 
-   type Organization_List_Object is tagged
+   type List is tagged
       record
          Organizations : Organization_Map.Map := Organization_Map.Empty_Map;
       end record;
 
-   Null_List : constant Organization_List_Object :=
-                 (Organizations => Organization_Map.Empty_Map);
+   Null_List : constant List := (Organizations => Organization_Map.Empty_Map);
 
 end Model.Organizations;

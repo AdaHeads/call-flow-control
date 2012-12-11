@@ -57,11 +57,10 @@ private
 
    function JSON_Response is new Response.Cached.Generate_Response
      (Cache_Key_Type         => Model.Contact_Identifier,
+      Cache                  => Cache,
       Bad_Request_Parameters => Bad_Contact_Id,
-      Get_Cache_Key          => Get_Contact_Id,
-      Read_From_Cache        => Cache.Read,
-      Generate_Document      => Generate_Document,
-      Write_To_Cache         => Cache.Write);
+      Cache_Key              => Get_Contact_Id,
+      Generate_Document      => Generate_Document);
    --  Generate the AWS.Response.Data that ultimately is delivered to the user.
 
 end Handlers.Contact;
