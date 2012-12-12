@@ -495,52 +495,99 @@ package body My_Callbacks is
    --       agi_accountcode%3A%20%0Aagi_threadid%3A%20-1339524208%0A%0A
 
    procedure AGI (Packet : in Packet_Type) is
+      function Event return String is
+      begin
+         return To_String (Packet.Fields.Element (AMI.Parser.Event));
+      end Event;
+
+      type AGI_Events is (Start, Close, Unrecognised);
+
+      function AGI_Event return AGI_Events is
+         Descriptor : constant String := To_String (Packet.Fields.Element (AMI.Parser.Channel));
+      begin
+         if Descriptor = "End" then
+            return Close;
+         else
+            return AGI_Events'Value (Descriptor);
+         end if;
+      exception
+         when Constraint_Error =>
+            System_Messages.Notify
+              (Error, "AGI: Received an '" & Descriptor & "' subevent.  Tell Jacob to add it to type AGI_Events.");
+            return Unrecognised;
+      end AGI_Event;
+
+      function Channel return String is
+      begin
+         return To_String (Packet.Fields.Element (AMI.Parser.Channel));
+      end Channel;
    begin
-      System_Messages.Notify (Debug, "AGI: ");
+      System_Messages.Notify (Debug, "AGI:");
 
-      if To_String (Packet.Fields.Element (AMI.Parser.SubEvent)) = "Start" then
-         System_Messages.Notify
-           (Debug,
-            "AGI: New AGI channel: " &
-              To_String (Packet.Fields.Element (AMI.Parser.Channel)));
+  Check_Event:
+      begin
+         if Event = "AsyncAGI" then
+            System_Messages.Notify
+              (Debug, "AGI: Received an 'AsyncAGI' event.");
+         else
+            System_Messages.Notify
+              (Error, "AGI: Received an '" & Event & "' event, which should have been sent elsewhere.");
+            raise Program_Error;
+         end if;
+      end Check_Event;
 
-         declare
-            Raw_Environment : constant String := To_String (Packet.Fields.Element (AMI.Parser.Env));
-            From            : Positive := Raw_Environment'First;
-            Through         : Natural;
-         begin
-            loop
-               exit when From > Raw_Environment'Last;
+      System_Messages.Notify
+        (Debug, "AGI: Channel: " & Channel);
 
-               Through := Ada.Strings.Fixed.Index (Source  => Raw_Environment (From .. Raw_Environment'Last),
-                                                   Pattern => "%0a");
-               if Through = 0 then
-                  Through := Raw_Environment'Last + 1;
-               end if;
+      case AGI_Event is
+         when Start =>
+            System_Messages.Notify
+              (Debug, "AGI: Channel just opened.");
 
-               exit when Through = From;
+            declare
+               Raw_Environment : constant String := To_String (Packet.Fields.Element (AMI.Parser.Env));
+               From            : Positive := Raw_Environment'First;
+               Through         : Natural;
+            begin
+               loop
+                  exit when From > Raw_Environment'Last;
 
-               declare
-                  Part      : String renames Raw_Environment (From .. Through - 1);
-                  Separator : constant Positive := Ada.Strings.Fixed.Index (Source  => Part,
-                                                                            Pattern => "%3a%20");
-                  Field     : constant String := Part (Part'First .. Separator - 1);
-                  Value     : constant String := Part (Separator + 6 .. Part'Last);
-               begin
-                  System_Messages.Notify
-                    (Debug,
-                     "AGI: Field: " & Field & " = " & Value);
-               end;
+                  Through := Ada.Strings.Fixed.Index (Source  => Raw_Environment (From .. Raw_Environment'Last),
+                                                      Pattern => "%0a");
+                  if Through = 0 then
+                     Through := Raw_Environment'Last + 1;
+                  end if;
 
-               exit when Through > Raw_Environment'Last;
-               From := Through + 3;
-            end loop;
-         end;
-      else
-         System_Messages.Notify
-           (Debug,
-            "AGI: " & To_String (Packet.Fields.Element (AMI.Parser.SubEvent)));
-      end if;
+                  exit when Through = From;
+
+                  declare
+                     Part      : String renames Raw_Environment (From .. Through - 1);
+                     Separator : constant Positive := Ada.Strings.Fixed.Index (Source  => Part,
+                                                                               Pattern => "%3a%20");
+                     Field     : constant String := Part (Part'First .. Separator - 1);
+                     Value     : constant String := Part (Separator + 6 .. Part'Last);
+                  begin
+                     System_Messages.Notify
+                       (Debug,
+                        "AGI: Field: " & Field & " = " & Value);
+                  end;
+
+                  exit when Through > Raw_Environment'Last;
+                  From := Through + 3;
+               end loop;
+
+--              PBX.Client.Send (AMI.Packet.Action.AGI (Channel   => ,
+--                                                      Command   => ,
+--                                                      CommandID => ));
+            end;
+
+         when Unrecognised =>
+            System_Messages.Notify
+              (Debug, "AGI: Unrecognised (sub)event received.");
+         when Close =>
+            System_Messages.Notify
+              (Debug, "AGI: Channel closed.");
+      end case;
    end AGI;
 
    ---------------------------------------------------------------------------
