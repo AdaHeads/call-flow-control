@@ -15,11 +15,12 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Common;
 with System_Messages;
 
+with AMI.Event;
+with AMI.Observers;
 with Model.Agents;
 with Model.Call;
 with Model.Calls;
@@ -473,128 +474,29 @@ package body My_Callbacks is
                                 " original position" & Original_Position'Img);
    end Queue_Abandon;
 
-   ---------------------------------------------------------------------------
-   --  AGI:
-
-   --  Event: AsyncAGI
-   --  Privilege: agi,all
-   --  SubEvent: Start
-   --  Channel: SIP/0000FFFF0001-00000000
-   --  Env: agi_request%3A%20async%0A \
-   --       agi_channel%3A%20SIP%2F0000FFFF0001-00000000%0A \
-   --       agi_language%3A%20en%0A \
-   --       agi_type%3A%20SIP%0Aagi_uniqueid%3A%201285219743.0%0A \
-   --       agi_version%3A%201.8.0-beta5%0Aagi_callerid%3A%2012565551111%0A \
-   --       agi_calleridname%3A%20Julie%20Bryant%0Aagi_callingpres%3A%200%0A \
-   --       agi_callingani2%3A%200%0Aagi_callington%3A%200%0A \
-   --       agi_callingtns%3A%200%0A \
-   --       agi_dnid%3A%20111%0Aagi_rdnis%3A%20unknown%0A \
-   --       agi_context%3A%20LocalSets%0A \
-   --       agi_extension%3A%20111%0Aagi_priority%3A%201%0A \
-   --       agi_enhanced%3A%200.0%0A \
-   --       agi_accountcode%3A%20%0Aagi_threadid%3A%20-1339524208%0A%0A
-
-   procedure AGI (Packet : in Packet_Type) is
-      function Event return String is
-      begin
-         return To_String (Packet.Header.Value);
-      end Event;
-
-      type AGI_Events is (Start, Close, Unrecognised);
-
-      function AGI_Event return AGI_Events is
-         Descriptor : constant String := To_String (Packet.Fields.Element (AMI.Parser.SubEvent));
-      begin
-         if Descriptor = "End" then
-            return Close;
-         else
-            return AGI_Events'Value (Descriptor);
-         end if;
-      exception
-         when Constraint_Error =>
-            System_Messages.Notify
-              (Error, "AGI: Received an '" & Descriptor & "' subevent.  Tell Jacob to add it to type AGI_Events.");
-            return Unrecognised;
-      end AGI_Event;
-
-      function Channel return String is
-      begin
-         return To_String (Packet.Fields.Element (AMI.Parser.Channel));
-      end Channel;
-   begin
-      System_Messages.Notify (Debug, "AGI:");
-
-  Check_Event:
-      begin
-         if Event = "AsyncAGI" then
-            System_Messages.Notify
-              (Debug, "AGI: Received an 'AsyncAGI' event.");
-         else
-            System_Messages.Notify
-              (Error, "AGI: Received an '" & Event & "' event, which should have been sent elsewhere.");
-            raise Program_Error;
-         end if;
-      end Check_Event;
-
-      System_Messages.Notify
-        (Debug, "AGI: Channel: " & Channel);
-
-      case AGI_Event is
-         when Start =>
-            System_Messages.Notify
-              (Debug, "AGI: Channel just opened.");
-
-            declare
-               Raw_Environment : constant String := To_String (Packet.Fields.Element (AMI.Parser.Env));
-               From            : Positive := Raw_Environment'First;
-               Through         : Natural;
-            begin
-               loop
-                  exit when From > Raw_Environment'Last;
-
-                  Through := Ada.Strings.Fixed.Index (Source  => Raw_Environment (From .. Raw_Environment'Last),
-                                                      Pattern => "%0a");
-                  if Through = 0 then
-                     Through := Raw_Environment'Last + 1;
-                  end if;
-
-                  exit when Through = From;
-
-                  declare
-                     Part      : String renames Raw_Environment (From .. Through - 1);
-                     Separator : constant Positive := Ada.Strings.Fixed.Index (Source  => Part,
-                                                                               Pattern => "%3a%20");
-                     Field     : constant String := Part (Part'First .. Separator - 1);
-                     Value     : constant String := Part (Separator + 6 .. Part'Last);
-                  begin
-                     System_Messages.Notify
-                       (Debug,
-                        "AGI: Field: " & Field & " = " & Value);
-                  end;
-
-                  exit when Through > Raw_Environment'Last;
-                  From := Through + 3;
-               end loop;
-
---              PBX.Client.Send (AMI.Packet.Action.AGI (Channel   => ,
---                                                      Command   => ,
---                                                      CommandID => ));
-            end;
-
-         when Unrecognised =>
-            System_Messages.Notify
-              (Debug, "AGI: Unrecognised (sub)event received.");
-         when Close =>
-            System_Messages.Notify
-              (Debug, "AGI: Channel closed.");
-      end case;
-   exception
-      when others =>
-         System_Messages.Notify
-           (Error, "AGI: Raised an exception.  Tell Jacob to do something about it.");
-         raise;
-   end AGI;
-
-   ---------------------------------------------------------------------------
-
+begin
+   AMI.Observers.Register (Event   => AMI.Event.CoreShowChannel,
+                           Handler => Core_Show_Channel'Access);
+   AMI.Observers.Register (Event   => AMI.Event.CoreShowChannelsComplete,
+                           Handler => Core_Show_Channels_Complete'Access);
+   AMI.Observers.Register (Event   => AMI.Event.PeerStatus,
+                           Handler => Peer_Status'Access);
+   AMI.Observers.Register (Event   => AMI.Event.PeerEntry,
+                           Handler => Peer_Entry'Access);
+   AMI.Observers.Register (Event   => AMI.Event.PeerlistComplete,
+                           Handler => Peer_List_Complete'Access);
+   AMI.Observers.Register (Event   => AMI.Event.Hangup,
+                           Handler => Hangup'Access);
+   AMI.Observers.Register (Event   => AMI.Event.Join,
+                           Handler => Join'Access);
+   AMI.Observers.Register (Event   => AMI.Event.Leave,
+                           Handler => Leave'Access);
+   AMI.Observers.Register (Event   => AMI.Event.Newchannel,
+                           Handler => New_Channel'Access);
+   AMI.Observers.Register (Event   => AMI.Event.Newstate,
+                           Handler => New_State'Access);
+   AMI.Observers.Register (Event   => AMI.Event.Dial,
+                           Handler => Dial'Access);
+   AMI.Observers.Register (Event   => AMI.Event.QueueCallerAbandon,
+                           Handler => Queue_Abandon'Access);
 end My_Callbacks;

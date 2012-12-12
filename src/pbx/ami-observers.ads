@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2012-, AdaHeads K/S                    --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,50 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with My_Handlers;
-with PBX;
-with System_Message.Critical;
-with System_Message.Info;
-with Yolk.Process_Control;
-with Yolk.Process_Owner;
-with Yolk.Server;
-with Unexpected_Exception;
-
 with
-  AGI.Callbacks,
-  My_Callbacks;
+  AMI.Event,
+  AMI.Parser;
 
-pragma Unreferenced (AGI.Callbacks);
-pragma Unreferenced (My_Callbacks);
+package AMI.Observers is
+   procedure Register (Event   : in     AMI.Event.Event_Type;
+                       Handler : in     AMI.Event.Event_Callback);
 
-procedure Alice is
-   use System_Message;
-   use Yolk.Process_Control;
-   use Yolk.Process_Owner;
-   use Yolk.Server;
-
-   Alice_Version : constant String := "0.40";
-
-   Web_Server : HTTP := Create
-     (Unexpected => Unexpected_Exception.Callback);
-begin
-   PBX.Start;
-   Web_Server.Start (Dispatchers => My_Handlers.Get);
-
-   Info.Alice_Start (Message => "Server version " & Alice_Version);
-
-   Wait;
-   --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
-
-   Web_Server.Stop;
-   PBX.Stop;
-
-   Info.Alice_Stop;
-exception
-   when Event : Username_Does_Not_Exist =>
-      Critical.Unknown_User (Event);
-   when Event : others =>
-      Critical.Alice_Shutdown_With_Exception (Event);
-      Web_Server.Stop;
-      PBX.Stop;
-end Alice;
+   procedure Notify (Event  : in     AMI.Event.Event_Type;
+                     Packet : in     AMI.Parser.Packet_Type);
+end AMI.Observers;

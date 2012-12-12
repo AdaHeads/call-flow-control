@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2012-, AdaHeads K/S                    --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,50 +15,30 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with My_Handlers;
-with PBX;
-with System_Message.Critical;
-with System_Message.Info;
-with Yolk.Process_Control;
-with Yolk.Process_Owner;
-with Yolk.Server;
-with Unexpected_Exception;
-
 with
-  AGI.Callbacks,
-  My_Callbacks;
+  Ada.Containers.Vectors;
 
-pragma Unreferenced (AGI.Callbacks);
-pragma Unreferenced (My_Callbacks);
+package body AMI.Observers is
+   package Callback_Collections is
+     new Ada.Containers.Vectors (Index_Type   => Positive,
+                                 Element_Type => AMI.Event.Event_Callback,
+                                 "="          => AMI.Event."=");
 
-procedure Alice is
-   use System_Message;
-   use Yolk.Process_Control;
-   use Yolk.Process_Owner;
-   use Yolk.Server;
+   Callbacks : array (AMI.Event.Event_Type) of Callback_Collections.Vector;
 
-   Alice_Version : constant String := "0.40";
+   procedure Register (Event   : in     AMI.Event.Event_Type;
+                       Handler : in     AMI.Event.Event_Callback) is
+   begin
+      if not Callbacks (Event).Contains (Handler) then
+         Callbacks (Event).Append (Handler);
+      end if;
+   end Register;
 
-   Web_Server : HTTP := Create
-     (Unexpected => Unexpected_Exception.Callback);
-begin
-   PBX.Start;
-   Web_Server.Start (Dispatchers => My_Handlers.Get);
-
-   Info.Alice_Start (Message => "Server version " & Alice_Version);
-
-   Wait;
-   --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
-
-   Web_Server.Stop;
-   PBX.Stop;
-
-   Info.Alice_Stop;
-exception
-   when Event : Username_Does_Not_Exist =>
-      Critical.Unknown_User (Event);
-   when Event : others =>
-      Critical.Alice_Shutdown_With_Exception (Event);
-      Web_Server.Stop;
-      PBX.Stop;
-end Alice;
+   procedure Notify (Event  : in     AMI.Event.Event_Type;
+                     Packet : in     AMI.Parser.Packet_Type) is
+   begin
+      for Callback of Callbacks (Event) loop
+         Callback (Packet);
+      end loop;
+   end Notify;
+end AMI.Observers;
