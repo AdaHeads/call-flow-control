@@ -122,6 +122,16 @@ package body AMI.Packet.Action is
 
    end Agent_Logoff;
 
+   function Agents
+     (On_Response : in Response_Handler_Type
+      := Null_Reponse_Handler'Access
+     ) return Request
+   is
+   begin
+      return Action.Create (Action      => Agents,
+                            Fields      => Field_List.Empty_List,
+                            On_Response => On_Response);
+   end Agents;
    ---------
    -- AGI --
    ---------

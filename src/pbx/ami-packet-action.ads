@@ -32,6 +32,7 @@ package AMI.Packet.Action is
    type Valid_Action is (Undefined, AGI,
                          AgentCallbackLogin,
                          AgentLogoff,
+                         Agents,
                          AbsoluteTimeout,
                          Atxfer, Login, Logoff, Ping, Hangup);
 
@@ -95,11 +96,11 @@ package AMI.Packet.Action is
      ) return Request;
    --  Logs off the specified agent for the queue system.
 
-   procedure Agents
+   function Agents
      (On_Response : in Response_Handler_Type
       := Null_Reponse_Handler'Access
       --  The response handler.
-     ) is null;
+     ) return Request;
    --  This action lists information about all configured agents.
 
    function AGI

@@ -139,6 +139,13 @@ package AMI.Action is
                      Callback   : in     AMI.Callback.Callback_Type
                      := Null_Callback'Access) is null;
 
+   procedure Dialplan
+     (Client    : access Client_Type;
+      Channel   : in     String;
+      Context   : in     String;
+      Extension : in     String;
+      Callback  : in     AMI.Callback.Callback_Type := Null_Callback'Access);
+
 private
    package Protocol_Strings is
      new AMI.Generic_Protocol_Strings (Asynchronous => True);

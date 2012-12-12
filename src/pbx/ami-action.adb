@@ -396,4 +396,20 @@ package body AMI.Action is
 --        --  If the call, for some unknown reason, wasn't there.
 --        Status := No_Call_Found;
 --     end Unpark;
+
+   procedure Dialplan
+     (Client    : access Client_Type;
+      Channel   : in     String;
+      Context   : in     String;
+      Extension : in     String;
+      Callback  : in     AMI.Callback.Callback_Type := Null_Callback'Access) is
+      Action_ID : constant Action_ID_Type := Protocol_Strings.Next_Action_ID;
+   begin
+      Client.Send
+        (Item => Protocol_Strings.AGI (Channel    => Channel,
+                                       Command    => "VERBOSE """ & Context & "; " & Extension & """ 1",
+                                       Action_ID  => Action_ID,
+                                       Command_ID => Protocol_Strings.Next_Action_ID));
+   end Dialplan;
+
 end AMI.Action;

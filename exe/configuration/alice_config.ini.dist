@@ -93,7 +93,7 @@ PBX_User username
 # String.
 # Default: username
 #
-# The PBX usernamer
+# The PBX username
 
 PBX_Host Asterisk_Host
 # String

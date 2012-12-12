@@ -47,6 +47,6 @@ package My_Callbacks is
    procedure Bridge (Packet : in Packet_Type);
    procedure Agents;
 
-   procedure Initiate_AGI_Session (Packet : in Packet_Type);
+   procedure AGI (Packet : in Packet_Type);
 
 end My_Callbacks;
