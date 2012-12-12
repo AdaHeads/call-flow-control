@@ -494,14 +494,14 @@ package body My_Callbacks is
    --       agi_enhanced%3A%200.0%0A \
    --       agi_accountcode%3A%20%0Aagi_threadid%3A%20-1339524208%0A%0A
 
-   procedure Initiate_AGI_Session (Packet : in Packet_Type) is
+   procedure AGI (Packet : in Packet_Type) is
    begin
-      System_Messages.Notify (Debug, "Initiate_AGI_Session: ");
+      System_Messages.Notify (Debug, "AGI: ");
 
       if To_String (Packet.Fields.Element (AMI.Parser.SubEvent)) = "Start" then
          System_Messages.Notify
            (Debug,
-            "Initiate_AGI_Session: New AGI channel: " &
+            "AGI: New AGI channel: " &
               To_String (Packet.Fields.Element (AMI.Parser.Channel)));
 
          declare
@@ -529,7 +529,7 @@ package body My_Callbacks is
                begin
                   System_Messages.Notify
                     (Debug,
-                     "Initiate_AGI_Session: Field: " & Field & " = " & Value);
+                     "AGI: Field: " & Field & " = " & Value);
                end;
 
                exit when Through > Raw_Environment'Last;
@@ -539,11 +539,9 @@ package body My_Callbacks is
       else
          System_Messages.Notify
            (Debug,
-            "Initiate_AGI_Session: '" &
-              To_String (Packet.Fields.Element (AMI.Parser.SubEvent)) &
-              "' event");
+            "AGI: " & To_String (Packet.Fields.Element (AMI.Parser.SubEvent)));
       end if;
-   end Initiate_AGI_Session;
+   end AGI;
 
    ---------------------------------------------------------------------------
 

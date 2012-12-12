@@ -53,7 +53,7 @@ package body PBX is
                   Newstate           => My_Callbacks.New_State'Access,
                   Dial               => My_Callbacks.Dial'Access,
                   QueueCallerAbandon => My_Callbacks.Queue_Abandon'Access,
-                  AsyncAGI           => My_Callbacks.Initiate_AGI_Session'Access,
+                  AsyncAGI           => My_Callbacks.AGI'Access,
                   others             => My_Callbacks.Default_Callback'Access);
    --  Event dispatch table.
 
