@@ -497,13 +497,13 @@ package body My_Callbacks is
    procedure AGI (Packet : in Packet_Type) is
       function Event return String is
       begin
-         return To_String (Packet.Fields.Element (AMI.Parser.Event));
+         return To_String (Packet.Header.Value);
       end Event;
 
       type AGI_Events is (Start, Close, Unrecognised);
 
       function AGI_Event return AGI_Events is
-         Descriptor : constant String := To_String (Packet.Fields.Element (AMI.Parser.Channel));
+         Descriptor : constant String := To_String (Packet.Fields.Element (AMI.Parser.SubEvent));
       begin
          if Descriptor = "End" then
             return Close;
@@ -588,6 +588,11 @@ package body My_Callbacks is
             System_Messages.Notify
               (Debug, "AGI: Channel closed.");
       end case;
+   exception
+      when others =>
+         System_Messages.Notify
+           (Error, "AGI: Raised an exception.  Tell Jacob to do something about it.");
+         raise;
    end AGI;
 
    ---------------------------------------------------------------------------
