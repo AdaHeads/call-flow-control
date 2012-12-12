@@ -27,6 +27,7 @@ package body AMI.Generic_Protocol_Strings is
    type Action_Type is (Bridge, Ping, Login, Logoff);
 
    --  Value part of request string
+   AGI_String              : constant String := "AGI";
    Bridge_String           : constant String := "Bridge";
    CoreSettings_String     : constant String := "CoreSettings";
    CoreShowChannels_String : constant String := "CoreShowChannels";
@@ -48,6 +49,8 @@ package body AMI.Generic_Protocol_Strings is
    Channel_String          : constant String := "Channel";
    Channel1_String         : constant String := "Channel1";
    Channel2_String         : constant String := "Channel2";
+   CommandID_String        : constant String := "CommandID";
+   Command_String          : constant String := "Command";
    Context_String          : constant String := "Context";
    Exten_String            : constant String := "Exten";
    Interface_String        : constant String := "Interface";
@@ -77,6 +80,42 @@ package body AMI.Generic_Protocol_Strings is
          return "";
       end if;
    end Asynchronous_Line;
+
+   --  Action:
+   --  =======
+   --  Action: AGI
+   --  Channel: <value>
+   --  ActionID: <value>
+   --  CommandID: <value>
+   --  Command: <value>
+   --
+   --  Response:
+   --  =========
+   --  Response: Success
+   --  ActionID: <value>
+   --  Message: Added AGI command to queue
+   --
+   --  Later event:
+   --  ============
+   --  Event: AsyncAGI
+   --  Privilege: agi,all
+   --  SubEvent: <value> (for example "Exec")
+   --  Channel: <value>
+   --  CommandID: <value>
+   --  Result: 200%20result%3D1%0A
+   function AGI (Channel    : in     String;
+                 Command    : in     String;
+                 Action_ID  : in     Action_ID_Type;
+                 Command_ID : in     Action_ID_Type) return String is
+   begin
+      return
+        Action_String    & Separator & AGI_String                        & Line_Termination_String &
+        Channel_String   & Separator & Channel                           & Line_Termination_String &
+        ActionID_String  & Separator & Action_ID_Type'Image (Action_ID)  & Line_Termination_String &
+        CommandID_String & Separator & Action_ID_Type'Image (Command_ID) & Line_Termination_String &
+        Command_String   & Separator & Command                           & Line_Termination_String &
+        Line_Termination_String;
+   end AGI;
 
    --  Action: Bridge
    --  [ActionID:] <value>

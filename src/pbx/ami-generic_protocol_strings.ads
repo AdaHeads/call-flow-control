@@ -21,6 +21,11 @@ generic
 package AMI.Generic_Protocol_Strings is
    type Pause_States is (Pause, UnPause);
 
+   function AGI (Channel    : in     String;
+                 Command    : in     String;
+                 Action_ID  : in     Action_ID_Type;
+                 Command_ID : in     Action_ID_Type) return String;
+
    function Bridge (Channel1  : in String;
                     Channel2  : in String;
                     Action_ID : in Action_ID_Type) return String;
