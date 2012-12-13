@@ -30,8 +30,8 @@ clean:
 	BUILDTYPE=Debug gnatclean -P alice
 
 tests:
-	@for gpr in $$(find src/tests -type f -name \*.gpr); do gnatmake -P $$gpr 1>$$gpr.output 2>$$gpr.errors || echo $$(echo $$gpr | cut -d/ -f3) failed building.; done | uniq
-	@for exe in $$(find src/tests -type f -perm +100); do ./$$exe 1>$$exe.output 2>$$exe.errors || echo $$(echo $$exe | cut -d/ -f3) failed executing a test.; done | uniq
+	@./src/tests/build
+	@./src/tests/run
 
 cleanup_messy_temp_files:
 	rm *~ src/*~
