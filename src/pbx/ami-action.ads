@@ -39,12 +39,15 @@ package AMI.Action is
                      Callback : in     AMI.Callback.Callback_Type
                      := AMI.Callback.Null_Callback'Access);
    --  Bridge: Bridge two channels already in the PBX (Priv: call,all)
+   pragma Obsolescent (Bridge);
+
 
    procedure Core_Show_Channels (Client           : access Client_Type;
                                  Response_Handler : in     Callback_Type
                                  := AMI.Callback.Null_Callback'Access);
    --  Ask the AMI to reveal the the current channels. They will be spawned as
    --  events.
+   pragma Obsolescent (Core_Show_Channels);
 
    procedure Extension_State (Client           : access Client_Type;
                               Context          : in     String;
@@ -57,11 +60,13 @@ package AMI.Action is
    --  1 : In Use
    --  4 : Unavailable
    --  8 : Ringing
+   pragma Obsolescent (Extension_State);
 
    procedure Logoff (Client           : access Client_Type;
                      Response_Handler : in     AMI.Callback.Callback_Type
                      := AMI.Callback.Null_Callback'Access) is null;
    --  Logs off the current manager session.
+   pragma Obsolescent (Logoff);
 
    procedure Originate (Client           : access Client_Type;
                         Peer_ID          : in     Peer_ID_Type;
@@ -71,6 +76,7 @@ package AMI.Action is
                         Response_Handler : in     Callback_Type
                         := AMI.Callback.Null_Callback'Access);
    --  Originate Call (Priv: originate,all)
+   pragma Obsolescent (Originate);
 
    procedure Park (Client           : access Client_Type;
                    Channel          : in     String;
@@ -83,12 +89,14 @@ package AMI.Action is
                    Callback         : in AMI.Callback.Callback_Type :=
                      AMI.Callback.Login_Callback'Access);
    --  Park a channel (Priv: call,all).
+   pragma Obsolescent (Park);
 
    procedure Ping (Client   : access Client_Type;
                    Callback : in     AMI.Callback.Callback_Type
                    := AMI.Callback.Null_Callback'Access);
    --  Ping is a sort of dummy call that returns a pong response. It can be
    --  Used to provide a keep-alive refresh on a socket with a timeout.
+   pragma Obsolescent (Ping);
 
    procedure Queues (Client   : access Client_Type;
                      Callback : in     AMI.Callback.Callback_Type
@@ -96,6 +104,7 @@ package AMI.Action is
    --  Queue Status (Priv: <none>).
    --  Checks statistical information about calls delivered to the existing
    --  queues, as well as the corresponding service level.
+   pragma Obsolescent (Queues);
 
    procedure Redirect (Client    : access Client_Type;
                        Channel   : in     Channel_ID_Type;
@@ -114,16 +123,19 @@ package AMI.Action is
 
    --     procedure Register_Agent (Phone_Name  : in Unbounded_String;
    --                               Computer_Id : in Unbounded_String);
+   pragma Obsolescent (Redirect);
 
    procedure SIP_Peers (Client   : access Client_Type;
                         Callback : in     AMI.Callback.Callback_Type
                         := AMI.Callback.Null_Callback'Access);
    --  Lists the currently configured SIP peers along with their status.
+   pragma Obsolescent (SIP_Peers);
 
    procedure Status (Client     : access Client_Type;
                      Channel_ID : in     Channel_ID_Type;
                      Callback   : in     AMI.Callback.Callback_Type
                      := Null_Callback'Access) is null;
+   pragma Obsolescent (Status);
 
    procedure Dialplan
      (Client    : access Client_Type;
@@ -131,6 +143,7 @@ package AMI.Action is
       Context   : in     String;
       Extension : in     String;
       Callback  : in     AMI.Callback.Callback_Type := Null_Callback'Access);
+   pragma Obsolescent (Dialplan);
 
 private
    package Protocol_Strings is
