@@ -34,7 +34,13 @@ begin
    Image_Of_Value (Input  => "SIP/JSA-N900-00000037",
                    Output => "SIP/JSA-N900-00000037");
 
+   Image_Of_Value (Input  => "Parked/SIP/JSA-N900-0000003a",
+                   Output => "Parked/SIP/JSA-N900-0000003A");
+
    Image_Of_Value (Input  => "SIP/JSA-N900-00000035<zombie>",
+                   Output => "<temporary>");
+
+   Image_Of_Value (Input  => "Parked/SIP/JSA-N900-00000035<zombie>",
                    Output => "<temporary>");
 
    Image_Of_Value (Input  => "GSM/JSA-N900-00000033",

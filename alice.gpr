@@ -31,7 +31,7 @@ project Alice is
    Source_Options := ("src/**");
    for Source_Dirs use Source_Options;
 
-   for Main use ("alice.adb", "model-channel_id-test");
+   for Main use ("alice.adb");
 
    for Exec_Dir use "exe";
 

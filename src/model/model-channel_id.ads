@@ -29,6 +29,7 @@ package Model.Channel_ID is
    type Instance (Temporary : Boolean) is tagged record
       case Temporary is
          when False =>
+            Parked     : Boolean;
             Technology : Technologies;
             Peer       : Peer_Name;
             Sequence   : Sequence_Number;
@@ -53,11 +54,12 @@ package Model.Channel_ID is
    function "=" (Left  : in Instance;
                  Right : in Instance) return Boolean;
 
-   Null_Channel_ID : constant Instance := (Temporary => False,
-                                           Technology => SIP,
-                                           Peer       =>
-                                             To_Unbounded_String (""),
-                                           Sequence   => 16#ffffffff#);
+   Null_Channel_ID : constant Instance :=
+                       (Temporary  => False,
+                        Parked     => True,
+                        Technology => SIP,
+                        Peer       => To_Unbounded_String (""),
+                        Sequence   => 16#ffffffff#);
 
    subtype Channel_ID_Type is Instance;
    pragma Obsolescent (Channel_ID_Type);

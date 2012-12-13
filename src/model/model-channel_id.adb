@@ -16,6 +16,7 @@
 -------------------------------------------------------------------------------
 
 with
+  Ada.Characters.Handling,
   Ada.Strings.Fixed,
   Ada.Text_IO;
 
@@ -67,29 +68,63 @@ package body Model.Channel_ID is
    end  "=";
 
    function Value (Item : in String) return Instance is
-      Separator_1 : constant Natural := Ada.Strings.Fixed.Index
-                                          (Pattern => "/",
-                                           Source  => Item);
-      Separator_2 : constant Natural := Ada.Strings.Fixed.Index
-                                          (Pattern => "-",
-                                           Source  => Item,
-                                           Going   => Ada.Strings.Backward);
+      use Ada.Characters.Handling, Ada.Strings.Fixed;
+
+      Null_Key     : constant String := "<null>";
+      Parked_Key   : constant String := "Parked/";
+      Peer_Key     : constant String := "/";
+      Sequence_Key : constant String := "-";
+
+      Technology_Index : Positive;
+      Peer_Index       : Natural;
+      Sequence_Index   : Natural;
+
+      Parked     : Boolean;
+      Technology : Technologies;
+      Peer       : Peer_Name;
+      Sequence   : Sequence_Number;
    begin
-      if Item = "<null>" then
+      if Item = Null_Key then
          return Null_Channel_ID;
-      elsif Item'Last = Separator_2 + 8 then
-         return (Temporary  => False,
-                 Technology => Technologies'Value
-                                 (Item (Item'First .. Separator_1 - 1)),
-                 Peer       => To_Unbounded_String
-                                 (Item (Separator_1 + 1 .. Separator_2 - 1)),
-                 Sequence   => Value (Item (Separator_2 + 1 .. Item'Last)));
-      else
-         return (Temporary  => True);
       end if;
+
+      Sequence_Index := Ada.Strings.Fixed.Index
+                          (Source  => Item,
+                           Pattern => Sequence_Key,
+                           Going   => Ada.Strings.Backward);
+
+      if Sequence_Index + 8 = Item'Last then
+         Sequence := Value (Item (Sequence_Index + 1 .. Item'Last));
+      else
+         return (Temporary => True);
+      end if;
+
+      Parked := To_Upper (Parked_Key) = To_Upper (Head (Item, Parked_Key'Length));
+
+      if Parked then
+         Technology_Index := Item'First + Parked_Key'Length;
+      else
+         Technology_Index := Item'First;
+      end if;
+
+      Peer_Index := Ada.Strings.Fixed.Index
+                      (Source  => Item (Technology_Index .. Sequence_Index),
+                       Pattern => Peer_Key);
+
+      Technology := Technologies'Value
+                      (Item (Technology_Index .. Peer_Index - 1));
+
+      Peer := To_Unbounded_String
+                (Item (Peer_Index + 1 .. Sequence_Index - 1));
+
+      return (Temporary  => False,
+              Parked     => Parked,
+              Technology => Technology,
+              Peer       => Peer,
+              Sequence   => Sequence);
    exception
       when Constraint_Error =>
-         return (Temporary  => True);
+         return (Temporary => True);
    end Value;
 
    function Image (Item : in Instance) return String is
@@ -99,11 +134,20 @@ package body Model.Channel_ID is
       else
          case Item.Temporary is
             when False =>
-               return Technologies'Image (Item.Technology) &
-                      "/" &
-                      To_String (Item.Peer) &
-                      "-" &
-                      Image (Item.Sequence);
+               if Item.Parked then
+                  return "Parked/" &
+                         Technologies'Image (Item.Technology) &
+                         "/" &
+                         To_String (Item.Peer) &
+                         "-" &
+                         Image (Item.Sequence);
+               else
+                  return Technologies'Image (Item.Technology) &
+                         "/" &
+                         To_String (Item.Peer) &
+                         "-" &
+                         Image (Item.Sequence);
+               end if;
             when True =>
                return "<temporary>";
          end case;

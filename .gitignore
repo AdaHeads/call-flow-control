@@ -9,9 +9,6 @@ exe/configuration/*.ini
 exe/alice
 exe/*.pid
 
-# Do not track test applications in exe/
-exe/*-test
-
 # Do not track alice session data
 exe/session/*
 !exe/session/.gitignore
