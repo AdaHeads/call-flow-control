@@ -18,29 +18,47 @@
 with Ada.Strings.Unbounded;
 
 package Model.Channel_ID is
-   use Ada.Strings.Unbounded;
+   type Technologies    is (SIP);
+   type Peer_Name       is new Ada.Strings.Unbounded.Unbounded_String;
+   type Sequence_Number is mod 16 ** 8;
 
-   type Technology is (Unknown, SIP);
+   function Image (Item : in Sequence_Number) return String;
 
-   --  TODO: Make aggregate of Peer_ID and sequence
-   type Channel_ID_Type is tagged record
-      Kind     : Technology;
-      Peername  : Unbounded_String;
-      Sequence  : String (1 .. 8);
+   function Value (Item : in String) return Sequence_Number;
+
+   type Instance (Temporary : Boolean) is tagged record
+      case Temporary is
+         when False =>
+            Technology : Technologies;
+            Peer       : Peer_Name;
+            Sequence   : Sequence_Number;
+         when True =>
+            null;
+      end case;
    end record;
 
-   function Create (Item : in String) return Channel_ID_Type;
-   --  Constructor.
+   function Value (Item : in String) return Instance;
 
-   function To_String (Channel_ID : in Channel_ID_Type) return String;
+   function Create (Item : in String) return Instance renames Value;
+   pragma Obsolescent (Create);
 
-   function "<" (Left  : in Channel_ID_Type;
-                 Right : in Channel_ID_Type) return Boolean;
+   function Image (Item : in Instance) return String;
 
-   function "=" (Left  : in Channel_ID_Type;
-                 Right : in Channel_ID_Type) return Boolean;
+   function To_String (Item : in Instance) return String renames Image;
+   pragma Obsolescent (To_String);
 
-   Null_Channel_ID : constant Channel_ID_Type := (Unknown,
-                                                  Null_Unbounded_String,
-                                                  "FFFFFFFF");
+   function "<" (Left  : in Instance;
+                 Right : in Instance) return Boolean;
+
+   function "=" (Left  : in Instance;
+                 Right : in Instance) return Boolean;
+
+   Null_Channel_ID : constant Instance := (Temporary => False,
+                                           Technology => SIP,
+                                           Peer       =>
+                                             To_Unbounded_String (""),
+                                           Sequence   => 16#ffffffff#);
+
+   subtype Channel_ID_Type is Instance;
+   pragma Obsolescent (Channel_ID_Type);
 end Model.Channel_ID;

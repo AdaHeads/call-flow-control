@@ -50,7 +50,7 @@ package Model.Call is
          State          : Call_State;
          Inbound        : Boolean;
          Queue_Priority : Priority_Level;
-         Channel_ID     : Channel_ID_Type;
+         Channel_ID     : Channel_ID_Type (Temporary => False);
          Queue          : Unbounded_String;
          Position       : Natural;
          Count          : Natural;

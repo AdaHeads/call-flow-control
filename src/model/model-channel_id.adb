@@ -15,58 +15,98 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Fixed;
+with
+  Ada.Strings.Fixed,
+  Ada.Text_IO;
 
 package body Model.Channel_ID is
+   package Sequence_Text_IO is
+     new Ada.Text_IO.Modular_IO (Sequence_Number);
 
-   function "<" (Left  : in Channel_ID_Type;
-                 Right : in Channel_ID_Type) return Boolean is
+   function Image (Item : in Sequence_Number) return String is
+      Buffer : String (1 .. 12);
    begin
-      --  if Left.Class = Right.Class then
+      Sequence_Text_IO.Put (To   => Buffer,
+                            Item => Item,
+                            Base => 16);
+      for Index in Buffer'Range loop
+         if Buffer (Index) = '#' then
+            Buffer (Index) := '0';
+            exit;
+         else
+            Buffer (Index) := '0';
+         end if;
+      end loop;
+
+      return Buffer (4 .. 11);
+   end Image;
+
+   function Value (Item : in String) return Sequence_Number is
+   begin
+      return Sequence_Number'Value ("16#" & Item & "#");
+   end Value;
+
+   function "<" (Left  : in Instance;
+                 Right : in Instance) return Boolean is
+   begin
+      if Left.Temporary or Right.Temporary then
+         return False;
+      else
          return Left.Sequence < Right.Sequence;
-      --  end if;
+      end if;
    end "<";
 
-   function "=" (Left  : in Channel_ID_Type;
-                 Right : in Channel_ID_Type) return Boolean is
+   function "=" (Left  : in Instance;
+                 Right : in Instance) return Boolean is
    begin
-      --  return (Left.Timestamp = Right.Timestamp) and
-      return  (Left.Sequence = Right.Sequence);
+      if Left.Temporary or Right.Temporary then
+         return False;
+      else
+         return Left.Sequence = Right.Sequence;
+      end if;
    end  "=";
 
-   function Create (Item : String) return Channel_ID_Type is
-      Class_Offset    : constant Natural := Ada.Strings.Fixed.Index (Pattern => "/",
-                                                                     Source  => Item);
-      Peername_Offset : constant Natural := Ada.Strings.Fixed.Index (Pattern => "-",
-                                                                     Source  => Item,
-                                                                     Going   => Ada.Strings.Backward);
+   function Value (Item : in String) return Instance is
+      Separator_1 : constant Natural := Ada.Strings.Fixed.Index
+                                          (Pattern => "/",
+                                           Source  => Item);
+      Separator_2 : constant Natural := Ada.Strings.Fixed.Index
+                                          (Pattern => "-",
+                                           Source  => Item,
+                                           Going   => Ada.Strings.Backward);
    begin
-      if Class_Offset < 3 then
+      if Item = "<null>" then
          return Null_Channel_ID;
+      elsif Item'Last = Separator_2 + 8 then
+         return (Temporary  => False,
+                 Technology => Technologies'Value
+                                 (Item (Item'First .. Separator_1 - 1)),
+                 Peer       => To_Unbounded_String
+                                 (Item (Separator_1 + 1 .. Separator_2 - 1)),
+                 Sequence   => Value (Item (Separator_2 + 1 .. Item'Last)));
       else
-         return
-           (Kind => Technology'Value
-              (Item (Item'First .. Item'First + Class_Offset - 2)),
-            Peername =>
-              To_Unbounded_String
-                (Item (Item'First + Class_Offset ..
-                   Item'First + Peername_Offset - 2)),
-            Sequence =>
-              (Item (Item'First + Peername_Offset .. Item'Last)));
+         return (Temporary  => True);
       end if;
-   end Create;
+   exception
+      when Constraint_Error =>
+         return (Temporary  => True);
+   end Value;
 
-   function To_String (Channel_ID : in Channel_ID_Type) return String is
+   function Image (Item : in Instance) return String is
    begin
-      if Channel_ID = Null_Channel_ID then
-         return "<Null>";
+      if Item = Null_Channel_ID then
+         return "<null>";
       else
-         return
-           Technology'Image (Channel_ID.Kind) &
-           "/" &
-           To_String (Channel_ID.Peername) &
-           "-" &
-           Channel_ID.Sequence;
+         case Item.Temporary is
+            when False =>
+               return Technologies'Image (Item.Technology) &
+                      "/" &
+                      To_String (Item.Peer) &
+                      "-" &
+                      Image (Item.Sequence);
+            when True =>
+               return "<temporary>";
+         end case;
       end if;
-   end To_String;
+   end Image;
 end Model.Channel_ID;
