@@ -25,8 +25,7 @@ package PBX.action is
 
    type Response_Handler is new AMI.Packet.Action.Response_Handler_Type;
 
-   Ignore : constant Response_Handler :=
-               AMI.Packet.Action.Null_Reponse_Handler'Access;
+   Ignore : constant Response_Handler;
 
    function Hangup (ID : in Call_ID.Call_ID_Type) return Reply_Ticket;
 
@@ -44,6 +43,27 @@ package PBX.action is
    function List_SIP_Peers (On_Response : in Response_Handler :=
                               Ignore) return Reply_Ticket;
 
+   function Originate (Peer        : in String;
+                       Context     : in String;
+                       Extension   : in String;
+                       On_Response : in Response_Handler := Ignore)
+                       return Reply_Ticket;
+
+   function Park (Channel          : in String;
+                  Fallback_Channel : in String;
+                  Parking_Lot      : in String := "";
+                  On_Response      : in Response_Handler := Ignore)
+                  return Reply_Ticket;
+
+   function Redirect
+     (Channel      : in String;
+      Extension    : in String;
+      Context      : in String;
+      On_Response  : in Response_Handler := Ignore) return Reply_Ticket;
+
    procedure Wait_For (Ticket : in Reply_Ticket);
+private
+   Ignore : constant Response_Handler :=
+               AMI.Packet.Action.Null_Reponse_Handler'Access;
 
 end PBX.action;

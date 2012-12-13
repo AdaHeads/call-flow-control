@@ -372,7 +372,7 @@ package AMI.Packet.Action is
      ) is null;
    --  Records the audio on a channel to the specified file.
 
-   procedure Originate
+   function Originate
      (Channel      : in String;
       --  Channel name to call. Once the called channel has answered, the
       --  control of the call will be passed to the specified
@@ -391,10 +391,12 @@ package AMI.Packet.Action is
       --  Channel variable to set. Multiple variable headers are allowed.
       Account      : in String := "";
       --  Account code.
+      Codecs       : in String := "";
+      --  Comma-separated list of codecs to use for this call.
       On_Response  : in Response_Handler_Type :=
         Null_Reponse_Handler'Access
       --  The reponse handler.
-     ) is null;
+     ) return Request;
    --  Generates an outbound call from Asterisk, and connect the channel to a
    --  context/extension/priority combination.
 
@@ -414,6 +416,8 @@ package AMI.Packet.Action is
       --  Channel variable to set. Multiple variable headers are allowed.
       Account      : in String := "";
       --  Account code.
+      Codecs       : in String := "";
+      --  Comma-separated list of codecs to use for this call.
       On_Response  : in Response_Handler_Type :=
         Null_Reponse_Handler'Access
       --  The reponse handler.
@@ -537,21 +541,27 @@ package AMI.Packet.Action is
       --  Shows the call queues along with the queue members, callers,
       --  and basic queue statistics.
 
-   procedure Redirect
-     (Channel      : in String;
+   function Redirect
+     (Channel         : in String;
       --  The channel to redirect.
-      Extension    : in String;
-      --  Extension in the dialplan to transfer to.
-      Context      : in String;
-      --  Context to transfer to.
-      Priority     : in Natural;
-      --  Priority to transfer to.
-      ExtraChannel : in String := "";
+      Extra_Channel   : in String := "";
       --  Channel identifier of the second call leg to transfer.
-      On_Response  : in Response_Handler_Type :=
+      Extension       : in String;
+      --  Extension in the dialplan to transfer to.
+      Extra_Extension : in String := "";
+      --  Extension to transfer extrachannel to.
+      Context         : in String;
+      --  Context to transfer to.
+      Extra_Context   : in String := "";
+      --  Context to transfer extrachannel to.
+      Priority        : in Natural := 1;
+      --  Priority to transfer to.
+      Extra_Priority  : in Natural := Natural'Last;
+      --  Priority to transfer extrachannel to.
+      On_Response     : in Response_Handler_Type :=
         Null_Reponse_Handler'Access
       --  The reponse handler.
-     ) is null;
+     ) return Request;
    --  Redirects a channel to a new context, extension, and
    --  priority in the dialplan.
 
@@ -761,8 +771,10 @@ private
                          Hangup,
                          Login,
                          Logoff,
+                         Originate,
                          Park,
                          Ping,
+                         Redirect,
                          SIPPeers);
 
    Digit_Value : constant array (Valid_Digit) of Character :=

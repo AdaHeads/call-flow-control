@@ -1,3 +1,20 @@
+-------------------------------------------------------------------------------
+--                                                                           --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
+--                                                                           --
+--  This is free software;  you can redistribute it and/or modify it         --
+--  under terms of the  GNU General Public License  as published by the      --
+--  Free Software  Foundation;  either version 3,  or (at your  option) any  --
+--  later version. This library is distributed in the hope that it will be   --
+--  useful, but WITHOUT ANY WARRANTY;  without even the implied warranty of  --
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                     --
+--  You should have received a copy of the GNU General Public License and    --
+--  a copy of the GCC Runtime Library Exception along with this program;     --
+--  see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+--  <http://www.gnu.org/licenses/>.                                          --
+--                                                                           --
+-------------------------------------------------------------------------------
+
 with AMI.Response;
 
 package body PBX.Action is
@@ -88,6 +105,69 @@ package body PBX.Action is
       return Cast (List_Peers_Action.Action_ID);
    end Logoff;
 
+   function Originate (Peer        : in String;
+                       Context     : in String;
+                       Extension   : in String;
+                       On_Response : in Response_Handler := Ignore)
+                       return Reply_Ticket
+   is
+      Originate_Action : AMI.Packet.Action.Request :=
+                            AMI.Packet.Action.Originate
+                             (Channel     => Peer,
+                              Extension   => Extension,
+                              Context     => Context,
+                              Priority    => 1,
+                              On_Response => Cast (On_Response));
+   begin
+      Client.Send (Originate_Action);
+
+      return Cast (Originate_Action.Action_ID);
+   end Originate;
+
+   ----------
+   -- Park --
+   ----------
+
+   function Park (Channel          : in String;
+                  Fallback_Channel : in String;
+                  Parking_Lot      : in String := "";
+                  On_Response      : in Response_Handler := Ignore)
+                  return Reply_Ticket
+   is
+      Park_Action : AMI.Packet.Action.Request :=
+                      AMI.Packet.Action.Park (Channel     => Channel,
+                                              Channel2    => Fallback_Channel,
+                                              Timeout     => Duration'Last,
+                                              Parkinglot  => Parking_Lot,
+                                              On_Response =>
+                                                Cast (On_Response));
+   begin
+      Client.Send (Park_Action);
+
+      return Cast (Park_Action.Action_ID);
+   end Park;
+
+   --------------
+   -- Redirect --
+   --------------
+
+   function Redirect
+     (Channel      : in String;
+      Extension    : in String;
+      Context      : in String;
+      On_Response  : in Response_Handler := Ignore) return Reply_Ticket
+   is
+      Redirect_Action : AMI.Packet.Action.Request :=
+                          AMI.Packet.Action.Redirect
+                            (Channel      => Channel,
+                             Extension    => Extension,
+                             Context      => Context,
+                             On_Response  => Cast (On_Response));
+   begin
+      Client.Send (Redirect_Action);
+
+      return Cast (Redirect_Action.Action_ID);
+   end Redirect;
 
    --------------
    -- Wait_For --

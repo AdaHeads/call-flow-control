@@ -30,7 +30,19 @@ package AMI.Parser is
       File,
       Agent,
       Forcerport,
+      Extension,
       ConnectedLineNum,
+      Priority,
+      -- Originate
+      Account,
+      Codecs,
+      -- End Originate
+      -- Redirect
+      ExtraExten,
+      ExtraChannel,
+      ExtraContext,
+      ExtraPriority,
+      -- END Redirect
       Tone,
       --  MASQ
       Clone,
@@ -96,8 +108,6 @@ package AMI.Parser is
       Destination,
       SrcUniqueID,
       DestUniqueID,
-      Extension,
-      Priority,
       Bridgestate,
       Application,
       AppData,

@@ -21,8 +21,6 @@ with Common;
 with HTTP_Codes;
 with Response;
 
-with AMI;
-with AMI.Action;
 with Model.Agent;
 with Model.Agents;
 with Model.Agent_ID;
@@ -42,7 +40,6 @@ package body Handlers.Call is
    use AWS.Status;
    use HTTP_Codes;
    use System_Messages;
-   use AMI.Action;
    use View.Call;
    use Model;
 
@@ -153,11 +150,12 @@ package body Handlers.Call is
       Originating_Agent :=
         Model.Agents.Get (Model.Agent_ID.Create (Agent_ID_String));
 
-      AMI.Action.Originate (Client    => PBX.Client_Access,
-                            Peer_ID   => Originating_Agent.Peer_ID,
-                            Context   => Originating_Agent.Context,
-                            Extension => Extension_String,
-                            Priority  => 1);
+      PBX.Action.Wait_For
+        (PBX.Action.Originate
+           (Peer        => Originating_Agent.Peer_ID.To_String,
+            Context     => Originating_Agent.Context,
+            Extension   => Extension_String));
+
 
       Response_Object.HTTP_Status_Code (OK);
       Response_Object.Content (Status_Message
@@ -194,10 +192,15 @@ package body Handlers.Call is
          Requested_Call := Calls.List.Get
            (Call_ID.Create (Call_ID_Parameter));
 
+         PBX.Action.Wait_For
+           (PBX.Action.Park
+              (Channel          => Requested_Call.Channel_ID.Image,
+               Fallback_Channel => ""));
+
          --  Park it
-         AMI.Action.Park (Client      => PBX.Client_Access,
-                          Channel  => Requested_Call.Channel_ID.Image,
-                          Fallback_Channel => "");
+--           AMI.Action.Park (Client   => PBX.Client_Access,
+--                            Channel  => Requested_Call.Channel_ID.Image,
+--                            Fallback_Channel => "");
 
          --  And let the user know that everything went according to plan.
          Response_Object.HTTP_Status_Code (OK);
@@ -283,12 +286,12 @@ package body Handlers.Call is
            (Agent => Agent,
             Call  => Requested_Call);
 
-         --  Send the command to AMI
-         AMI.Action.Redirect
-           (Client    => PBX.Client_Access,
-            Channel   => Requested_Call.Channel_ID,
-            Extension => Agent.Extension,
-            Context   => "LocalSets");
+         PBX.Action.Wait_For
+           (PBX.Action.Redirect
+              (Channel     => Requested_Call.Channel_ID.Image,
+               Extension   => Agent.Extension,
+               Context     => "LocalSets"));
+
          Response_Object.HTTP_Status_Code (OK);
          Response_Object.Content
            ((To_JSON_String (Requested_Call.To_JSON.Write)));
