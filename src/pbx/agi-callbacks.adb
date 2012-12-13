@@ -58,8 +58,7 @@ package body AGI.Callbacks is
       function Value (Key : in     AMI.Parser.AMI_Key_Type) return String is
          use Ada.Strings.Unbounded;
       begin
-         return AWS.URL.Decode
-                  (To_String (Packet.Fields.Element (AMI.Parser.Env)));
+         return AWS.URL.Decode (To_String (Packet.Fields.Element (Key)));
       exception
          when Constraint_Error =>
             System_Messages.Notify
