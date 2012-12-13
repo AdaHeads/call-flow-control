@@ -24,6 +24,10 @@ package body Model.Channel_ID is
    package Sequence_Text_IO is
      new Ada.Text_IO.Modular_IO (Sequence_Number);
 
+   ---------
+   -- "<" --
+   ---------
+
    function Image (Item : in Sequence_Number) return String is
       Buffer : String (1 .. 12);
    begin
@@ -57,6 +61,10 @@ package body Model.Channel_ID is
       end if;
    end "<";
 
+   ---------
+   -- "=" --
+   ---------
+
    function "=" (Left  : in Instance;
                  Right : in Instance) return Boolean is
    begin
@@ -66,6 +74,10 @@ package body Model.Channel_ID is
          return Left.Sequence = Right.Sequence;
       end if;
    end  "=";
+
+   -----------
+   -- Value --
+   -----------
 
    function Value (Item : in String) return Instance is
       use Ada.Characters.Handling, Ada.Strings.Fixed;
@@ -153,4 +165,24 @@ package body Model.Channel_ID is
          end case;
       end if;
    end Image;
+
+   --------------
+   -- Validate --
+   --------------
+
+   function Validate (Item : in String) return Boolean is
+      Dummy_Channel_ID : Channel_ID_Type := Null_Channel_ID;
+      pragma Unreferenced (Dummy_Channel_ID);
+   begin
+      if Item'Length < 3 then
+         return False;
+      end if;
+
+      Dummy_Channel_ID := Create (Item);
+      return True;
+   exception
+      when Invalid_ID =>
+         return False;
+   end Validate;
+
 end Model.Channel_ID;

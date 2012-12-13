@@ -18,33 +18,33 @@ with AMI;
 with AMI.Parser;
 
 package My_Callbacks is
-   use AMI.Parser;
+   use AMI;
 
    Package_Name : constant String := "My_Callbacks";
 
    Not_Implemented : exception;
 
    --  Event handlers
-   procedure Peer_Status (Packet : in Packet_Type);
-   procedure Core_Show_Channel (Packet : in Packet_Type);
-   procedure Core_Show_Channels_Complete (Packet : in Packet_Type);
-   procedure Default_Callback (Packet : in Packet_Type);
+   procedure Peer_Status (Packet : in Parser.Packet_Type);
+   procedure Core_Show_Channel (Packet : in Parser.Packet_Type);
+   procedure Core_Show_Channels_Complete (Packet : in Parser.Packet_Type);
+   procedure Default_Callback (Packet : in Parser.Packet_Type);
 
-   procedure Dial          (Packet : in Packet_Type);
-   procedure Hangup        (Packet : in Packet_Type);
-   procedure Join          (Packet : in Packet_Type);
-   procedure Leave         (Packet : in Packet_Type);
-   procedure New_Channel   (Packet : in Packet_Type);
-   procedure Queue_Abandon (Packet : in Packet_Type);
+   procedure Dial          (Packet : in Parser.Packet_Type);
+   procedure Hangup        (Packet : in Parser.Packet_Type);
+   procedure Join          (Packet : in Parser.Packet_Type);
+   procedure Leave         (Packet : in Parser.Packet_Type);
+   procedure New_Channel   (Packet : in Parser.Packet_Type);
+   procedure Queue_Abandon (Packet : in Parser.Packet_Type);
    --  procedure Unlink_Callback     (Event_List : in Event_List_Type.Map);
 
-   procedure Peer_Entry (Packet : in Packet_Type);
+   procedure Peer_Entry (Packet : in Parser.Packet_Type);
 
-   procedure Peer_List_Complete (Packet : in Packet_Type);
-   procedure New_State (Packet : in Packet_Type);
+   procedure Peer_List_Complete (Packet : in Parser.Packet_Type);
+   procedure New_State (Packet : in Parser.Packet_Type);
    --  Update the state of a channel.
 
-   procedure Bridge;
+   procedure Bridge (Packet : in Parser.Packet_Type);
    procedure Agents;
 
 end My_Callbacks;

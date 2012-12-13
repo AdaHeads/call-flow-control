@@ -24,7 +24,7 @@
 with Ada.Strings.Unbounded;
 with AWS.Net.Std;
 
-with AMI.Packet;
+with AMI.Packet.Action;
 
 package AMI.Client is
 
@@ -72,6 +72,9 @@ package AMI.Client is
    procedure Send (Client : in out Client_Type;
                    Item   : in     String);
    --  Send an abitrary string
+
+   procedure Send (Client : in out Client_Type;
+                   Item   : in     AMI.Packet.Action.Request);
 
    procedure Send (Client : in out Client_Type;
                    Item   : in     AMI.Packet.AMI_Packet);

@@ -15,36 +15,29 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AMI.Client;
-with Common;
+-- Deprecated versions of AMI action packets.
 
-package PBX is
-   use AMI;
+package AMI.Packet.Action.Deprecated is
 
-   type Reply_Ticket is new AMI.Action_ID_Type;
+   function Agent_Callback_Login
+     (Agent     : in String;
+      --  Agent ID of the agent to log in to the system,
+      --  as specified in agents.conf.
+      Extension : String;
+      --  Extension to use for callback.
+      Context   : String := "";
+      Acknlowledgde_Call : Boolean := False;
+      --  Set to true to require an acknowledgement (the agent pressing the
+      --  # key) to accept the call when agent is called back.
+      WrapupTime         : Duration := Duration'First;
+      On_Response        : in     Response_Handler_Type
+      := Null_Reponse_Handler'Access
+      --  The reponse handler
+     ) return Request;
+   --  DEPRECATED as of 1.6, and removed in 1.8.
+   --  Sets an agent as logged in to the queue system in callback mode
+   --  Logs the specified agent in to the Asterisk queue system in callback
+   --  mode. When a call is distributed to this agent,
+   --  it will ring the specified extension.
 
-   Null_Reply : constant Reply_Ticket;
-
-   type PBX_Status_Type is (Shutdown, Shutting_Down, Running, Connecting,
-                           Failure);
-
-   --  TODO: make this private and wrap every call to AMI
-   Client        : aliased AMI.Client.Client_Type;
-   Client_Access : constant access AMI.Client.Client_Type := Client'Access;
-
-   procedure Start;
-   --  Startup the PBX subsystem
-
-   procedure Stop;
-   --  Stop the PBX subsystem.
-
-   function Status return PBX_Status_Type;
-   --  Retrieve the current status of the
-
-private
-   Null_Reply : constant Reply_Ticket := Reply_Ticket (AMI.Null_Action_ID);
-
-   Last_Connection_Attempt : Common.Time;
-   Connection_Delay        : Duration        := 1.0;
-   PBX_Status              : PBX_Status_Type := Failure;
-end PBX;
+end AMI.Packet.Action.Deprecated;

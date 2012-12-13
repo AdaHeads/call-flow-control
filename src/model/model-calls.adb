@@ -29,9 +29,15 @@ package body Model.Calls is
          use Call_Storage;
          use Model.Agent_ID;
 
-         C : constant Cursor :=
-               Protected_List.Find (Call.ID);
+         C : Cursor := Call_Storage.No_Element;
+
       begin
+         if Call = Null_Call then
+            C := Protected_List.First;
+         else
+            C := Protected_List.Find (Call.ID);
+         end if;
+
          if C /= Call_Storage.No_Element then
             Call := Element (Position => C);
 
@@ -83,9 +89,12 @@ package body Model.Calls is
       end For_Each;
 
       function Get (Call_ID : in Call_ID_Type) return Call_Type is
-         Call : constant Call_Type :=
-           Protected_List.Element (Key => Call_ID);
+         Call : Call_Type := Null_Call;
       begin
+         if Call_ID /= Null_Call_ID then
+            Call := Protected_List.Element (Key => Call_ID);
+         end if;
+
          if Call = Null_Call then
             raise Call_Not_Found;
          end if;

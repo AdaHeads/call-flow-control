@@ -26,6 +26,8 @@ package Model.Channel_ID is
 
    function Value (Item : in String) return Sequence_Number;
 
+   Invalid_ID : exception;
+
    type Instance (Temporary : Boolean) is tagged record
       case Temporary is
          when False =>
@@ -54,13 +56,21 @@ package Model.Channel_ID is
    function "=" (Left  : in Instance;
                  Right : in Instance) return Boolean;
 
+   function Validate (Item : in String) return Boolean;
+   --  Non-exception-raising way of checking whether a string can be
+   --  converted into a Channel_ID
+
+   Null_Channel_ID : constant Instance;
+
+   subtype Channel_ID_Type is Instance;
+   pragma Obsolescent (Channel_ID_Type);
+
+private
+
    Null_Channel_ID : constant Instance :=
                        (Temporary  => False,
                         Parked     => True,
                         Technology => SIP,
                         Peer       => To_Unbounded_String (""),
                         Sequence   => 16#ffffffff#);
-
-   subtype Channel_ID_Type is Instance;
-   pragma Obsolescent (Channel_ID_Type);
 end Model.Channel_ID;

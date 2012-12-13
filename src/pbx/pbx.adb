@@ -18,11 +18,12 @@
 with Ada.Strings.Unbounded;
 with Ada.Exceptions;
 
-with AMI.Action;
 with AMI.Event;
 with AMI.Observers;
 with AMI.Response;
 with AMI.Parser;
+
+with PBX.Action;
 
 with My_Configuration;
 with System_Messages;
@@ -30,11 +31,14 @@ with System_Messages;
 --  TODO: Cover all branches on status.
 package body PBX is
    use Ada.Strings.Unbounded;
-   use AMI.Action;
    use AMI.Parser;
-   --use AMI.Event;
    use System_Messages;
    use My_Configuration;
+
+   function Get_Line return String is
+   begin
+      return Client.Get_Line;
+   end Get_Line;
 
    task type Reader_Task is
       entry Start;
@@ -46,28 +50,33 @@ package body PBX is
    --  Wraps the entire authentication mechanism and provides a neat callback
    --  for the On_Connect event in the AMI.Client.
 
-   procedure Dispatch (Client : access AMI.Client.Client_Type;
-                       Packet : in     AMI.Parser.Packet_Type);
+   procedure Dispatch (Packet : in     AMI.Parser.Packet_Type);
    --  Dispatches to the appropriate handlers (response or event)
 
    procedure Connect;
    --  Wraps the connection and wait mechanism and provides a neat callback
    --  for the On_Disconnect event in the AMI.Client.
 
+   procedure Check_Login (Packet : in AMI.Parser.Packet_Type);
+   --  Validates the login of the client.
+
    Reader    : Reader_Task;
 
    procedure Authenticate is
+      Ticket : PBX.Reply_Ticket := Null_Reply;
    begin
-      Login (Client   => Client_Access,
-             Username => Config.Get (PBX_User),
-             Secret   => Config.Get (PBX_Secret));
-      --  TODO: Replace this with a real wait for reply, and turn the
-      --  Action into a synchronous call
-      delay 0.2;
+      Ticket := PBX.Action.Login (Username    => Config.Get (PBX_User),
+                                  Secret      => Config.Get (PBX_Secret),
+                                  On_Response => Check_Login'Access);
+
+      System_Messages.Notify (Debug, "waiting for " & Ticket'Img);
+      PBX.Action.Wait_For (Ticket);
 
       --  Reload the state;
-      AMI.Action.Core_Show_Channels (Client => Client_Access);
-      AMI.Action.SIP_Peers (Client => Client_Access);
+      PBX.Action.Wait_For (PBX.Action.List_Channels);
+      --  AMI.Action.Core_Show_Channels (Client => Client_Access);
+      PBX.Action.Wait_For (PBX.Action.List_SIP_Peers);
+      --  AMI.Action.SIP_Peers (Client => Client_Access);
 
    end Authenticate;
 
@@ -88,15 +97,20 @@ package body PBX is
 
    end Connect;
 
-   procedure Dispatch (Client : access AMI.Client.Client_Type;
-                       Packet : in     AMI.Parser.Packet_Type) is
+   procedure Check_Login (Packet : in AMI.Parser.Packet_Type) is
+   begin
+      null;
+   end Check_Login;
+
+
+   procedure Dispatch (Packet : in AMI.Parser.Packet_Type) is
    begin
       --  System_Messages.Notify (Debug, Image (Packet => Packet));
       if Packet.Header.Key = AMI.Parser.Response then
-         AMI.Response.Notify (Client => Client,
-                              Packet => Packet);
+         AMI.Response.Notify (Packet => Packet);
       elsif Packet.Header.Key = AMI.Parser.Event then
-         AMI.Observers.Notify (Event  => AMI.Event.Event_Type'Value (To_String (Packet.Header.Value)),
+         AMI.Observers.Notify (Event  => AMI.Event.Event_Type'Value
+                               (To_String (Packet.Header.Value)),
                                Packet => Packet);
       else
          System_Messages.Notify (Error, "PBX.Dispatch: Bad header " &
@@ -105,7 +119,8 @@ package body PBX is
    exception
       when E : others =>
          System_Messages.Notify
-           (Error, "PBX.Dispatch: Unexpected exception: " &
+           (Error, "PBX.Dispatch: Failed to dispatch " &
+              To_String (Packet.Header.Value) & " failed, on packet " &
               Ada.Exceptions.Exception_Information (E) &
               "" &
               "------------ Packet dump start ------" &
@@ -124,7 +139,7 @@ package body PBX is
          loop
             exit when PBX_Status = Shutdown;
             Client.Wait_For_Connection;
-            Dispatch (Client_Access, Read_Packet (Client_Access));
+            Dispatch (Read_Packet (Get_Line'Access));
          end loop;
       exception
          when E : others =>
@@ -156,9 +171,9 @@ package body PBX is
    begin
       Client := AMI.Client.Create (On_Connect    => Authenticate'Access,
                                    On_Disconnect => Connect'Access);
+      Reader.Start; --  Order is important here!
       Connect; --  Initial connect.
-      Reader.Start;
-      System_Messages.Notify (Debug, "PBX Subsystem started");
+      System_Messages.Notify (Information, "PBX Subsystem started");
    end Start;
 
    function Status return PBX_Status_Type is
@@ -170,6 +185,9 @@ package body PBX is
    begin
       System_Messages.Notify (Debug, "PBX.Shutdown");
       PBX_Status := Shutting_Down;
+
+      PBX.Action.Wait_For (PBX.Action.Logoff);
+
       Client.Disconnect;
       PBX_Status := Shutdown;
    end Stop;
