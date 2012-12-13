@@ -196,7 +196,7 @@ package body Handlers.Call is
 
          --  Park it
          AMI.Action.Park (Client      => PBX.Client_Access,
-                          Channel  => Requested_Call.Channel_ID.To_String,
+                          Channel  => Requested_Call.Channel_ID.Image,
                           Fallback_Channel => "");
 
          --  And let the user know that everything went according to plan.

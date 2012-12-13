@@ -32,7 +32,7 @@ package Model.Channel is
                                Dialed, Ringing, Receiver_Ringing, Up, Busy);
 
    type Channel_Type is tagged record
-      ID           : Channel_ID_Type;
+      ID           : Channel_ID_Type (Temporary => False);
       Call_ID      : Call_ID_Type;
       State        : Channel_State_Type;
       Description  : Unbounded_String;

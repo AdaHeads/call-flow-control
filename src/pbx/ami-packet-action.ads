@@ -51,7 +51,7 @@ package AMI.Packet.Action is
 
    function To_String (Mask : in Event_Mask) return String;
 
-   type Response_Handler_Type is not null access
+   type Response_Handler_Type is access
      procedure (Packet : AMI.Parser.Packet_Type);
 
    procedure Null_Reponse_Handler (Packet : AMI.Parser.Packet_Type) is null;
@@ -194,6 +194,13 @@ package AMI.Packet.Action is
      ) return Request;
    --  Show PBX core settings (version etc).
 
+   function Core_Show_Channels
+     (On_Response : in Response_Handler_Type :=
+        Null_Reponse_Handler'Access
+      --  The reponse handler
+     ) return Request;
+   --  List currently defined channels and some information about them.
+
    procedure DB_Get
      (Family : in String;
       --  The AstDB key family from which to retrieve the value.
@@ -295,13 +302,15 @@ package AMI.Packet.Action is
         Null_Reponse_Handler'Access
       --  The reponse handler.
      ) return Request;
-   --  Login to the manager. Must preceed every other call.
+   --  Login to the AMI socket. This is mandatory, and the socket will
+   --  close after a timeout if login is not sent in time
+   --  after the socket connection is established.
 
-   procedure Logoff
+   function Logoff
      (On_Response : in Response_Handler_Type :=
         Null_Reponse_Handler'Access
       --  The reponse handler.
-     ) is null;
+     ) return Request;
    --  Logs off this manager session. This will effectuate a socket close at
    --  remote end.
 
@@ -546,11 +555,11 @@ package AMI.Packet.Action is
    --  Redirects a channel to a new context, extension, and
    --  priority in the dialplan.
 
-   procedure SIP_Peers
+   function SIP_Peers
      (On_Response  : in Response_Handler_Type :=
         Null_Reponse_Handler'Access
       --  The reponse handler.
-     ) is null;
+     ) return Request;
    --  Lists the currently configured SIP peers along with their status.
 
    procedure SIP_Show_Peer
@@ -749,11 +758,12 @@ private
                          CoreStatus,
                          CreateConfig,
                          DAHDIDialOffHook,
+                         Hangup,
                          Login,
                          Logoff,
                          Park,
                          Ping,
-                         Hangup);
+                         SIPPeers);
 
    Digit_Value : constant array (Valid_Digit) of Character :=
                    (Zero       => '0',

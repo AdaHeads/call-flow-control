@@ -332,6 +332,21 @@ package body AMI.Packet.Action is
                             On_Response => On_Response);
    end Core_Settings;
 
+   ------------------------
+   -- Core_Show_Channels --
+   ------------------------
+
+   function Core_Show_Channels
+     (On_Response : in Response_Handler_Type :=
+        Null_Reponse_Handler'Access
+     ) return Request
+   is
+   begin
+      return Action.Create (Action      => Valid_Action'(CoreShowChannels),
+                            Fields      => Field.Field_List.Empty_List,
+                            On_Response => On_Response);
+   end Core_Show_Channels;
+
    ------------
    -- Create --
    ------------
@@ -394,6 +409,19 @@ package body AMI.Packet.Action is
                             On_Response => On_Response);
    end Login;
 
+   -----------
+   -- Login --
+   -----------
+
+   function Logoff
+     (On_Response : in Response_Handler_Type := Null_Reponse_Handler'Access
+     ) return Request is
+   begin
+      return Action.Create (Action      => Login,
+                            Fields      => Field.Field_List.Empty_List,
+                            On_Response => On_Response);
+   end Logoff;
+
    ----------
    -- Park --
    ----------
@@ -452,6 +480,19 @@ package body AMI.Packet.Action is
    begin
       return R.Response_Handler;
    end Response_Handler;
+
+   ---------------
+   -- SIP_Peers --
+   ---------------
+
+   function SIP_Peers
+     (On_Response  : in Response_Handler_Type := Null_Reponse_Handler'Access
+     ) return Request is
+   begin
+      return Create (Action      => SIPPeers,
+                     Fields      => Field.Field_List.Empty_List,
+                     On_Response => On_Response);
+   end SIP_Peers;
 
    -------------------
    -- To_AMI_Packet --

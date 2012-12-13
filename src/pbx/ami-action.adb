@@ -15,7 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AMI.Response;
 with System_Messages;
 
 package body AMI.Action is

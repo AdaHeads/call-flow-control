@@ -1,0 +1,67 @@
+-------------------------------------------------------------------------------
+--                                                                           --
+--                      Copyright (C) 2012-, AdaHeads K/S                    --
+--                                                                           --
+--  This is free software;  you can redistribute it and/or modify it         --
+--  under terms of the  GNU General Public License  as published by the      --
+--  Free Software  Foundation;  either version 3,  or (at your  option) any  --
+--  later version. This library is distributed in the hope that it will be   --
+--  useful, but WITHOUT ANY WARRANTY;  without even the implied warranty of  --
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                     --
+--  You should have received a copy of the GNU General Public License and    --
+--  a copy of the GCC Runtime Library Exception along with this program;     --
+--  see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+--  <http://www.gnu.org/licenses/>.                                          --
+--                                                                           --
+-------------------------------------------------------------------------------
+
+with "aws";
+with "gnatcoll";
+with "gnatcoll_postgres";
+with "yolk";
+
+project Channel_ID is
+   type Build_Type is ("Debug", "Production");
+   Build : Build_Type := External ("BUILDTYPE", "Production");
+
+   Source_Options := ("../../../src/**");
+   for Source_Dirs use Source_Options;
+
+   for Main use ("model-channel_id-test");
+
+   for Exec_Dir use ".";
+
+   case Build is
+      when "Production" =>
+         for Object_Dir use "../../../build_production";
+      when "Debug" =>
+         for Object_Dir use "../../../build_debug";
+   end case;
+
+   package Ide is
+      for Compiler_Command ("ada") use "gnatmake";
+   end Ide;
+
+   package Compiler is
+      case Build is
+         when "Production" =>
+            for Default_Switches ("Ada")
+              use ("-gnatwa",
+                   "-gnaty3abcdefhiklmnoprstux",
+                   "-Wall",
+                   "-pipe",
+                   "-O2",
+                   "-gnat2012");
+         when "Debug" =>
+            for Default_Switches ("Ada")
+              use ("-gnatwa",
+                   "-gnata",
+                   "-gnatVa",
+                   "-Wall",
+                   "-O1",
+                   "-gnat2012",
+                   "-g");
+
+      end case;
+   end Compiler;
+end Channel_ID;

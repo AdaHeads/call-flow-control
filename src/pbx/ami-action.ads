@@ -58,20 +58,6 @@ package AMI.Action is
    --  4 : Unavailable
    --  8 : Ringing
 
-   procedure Hangup (Client   : access Client_Type;
-                     Call_ID  : in     String;
-                     Callback : in     AMI.Callback.Callback_Type
-                     := AMI.Callback.Null_Callback'Access);
-
-   procedure Login (Client   : access Client_Type;
-                    Username : in     String;
-                    Secret   : in     String;
-                    Callback : in     AMI.Callback.Callback_Type
-                    := AMI.Callback.Login_Callback'Access);
-   --  Login to the AMI socket. This is mandatory, and the socket will
-   --  close after a timeout if login is not sent immidiately
-   --  after the socket connection is established.
-
    procedure Logoff (Client           : access Client_Type;
                      Response_Handler : in     AMI.Callback.Callback_Type
                      := AMI.Callback.Null_Callback'Access) is null;

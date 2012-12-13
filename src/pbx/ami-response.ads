@@ -22,13 +22,9 @@
 -------------------------------------------------------------------------------
 with Ada.Containers.Hashed_Maps;
 
-with AMI.Callback;
 with AMI.Parser;
-with AMI.Client;
 with AMI.Packet.Action;
 package AMI.Response is
-   use AMI.Callback;
-   use AMI.Client;
    use AMI.Packet.Action;
 
    Timeout : exception;
@@ -40,8 +36,7 @@ package AMI.Response is
                       Timeout   : in Duration := 3.0);
    --  Provides an explicit synchonization mechanism
 
-   procedure Notify (Client : access Client_Type;
-                     Packet : in     AMI.Parser.Packet_Type);
+   procedure Notify (Packet : in AMI.Parser.Packet_Type);
    --  Notify subscribers about a reposense
 private
    function Hash_Function (Key : in Action_ID_Type)

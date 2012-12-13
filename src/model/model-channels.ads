@@ -21,7 +21,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Ordered_Maps;
+with Ada.Containers.Indefinite_Ordered_Maps;
 
 with GNATCOLL.JSON;
 
@@ -39,8 +39,8 @@ package Model.Channels is
      procedure (Channel : in Channel_Type);
 
    package Channel_List_Type is new
-     Ada.Containers.Ordered_Maps (Key_Type     => Channel_ID_Type,
-                                  Element_Type => Channel_Type);
+     Ada.Containers.Indefinite_Ordered_Maps (Key_Type     => Channel_ID_Type,
+                                             Element_Type => Channel_Type);
 
    protected type Protected_Channel_List_Type is
       function Contains (Channel_ID : in Channel_ID_Type) return Boolean;

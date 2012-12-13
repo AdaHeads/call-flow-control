@@ -37,8 +37,7 @@ package body AMI.Response is
    end Hash_Function;
 
 
-   procedure Notify (Client : access Client_Type;
-                     Packet : in     AMI.Parser.Packet_Type) is
+   procedure Notify (Packet : in     AMI.Parser.Packet_Type) is
       use Ada.Strings.Unbounded;
       Key      : Action_ID_Type := Null_Action_ID;
       Response : AMI.Packet.Action.Response_Handler_Type :=
@@ -49,7 +48,7 @@ package body AMI.Response is
         (Packet.Fields.Element
            (AMI.Parser.ActionID)));
       System_Messages.Notify
-        (Debug, "AMI.Response.Notify: Dispatching : " & Key'Img);
+        (Debug, "AMI.Response.Notify: Dispatching " & Key'Img);
 
       Response := Reponse_List.Element (Key);
 
@@ -69,6 +68,9 @@ package body AMI.Response is
 
    procedure Subscribe (Reply_For : in Request) is
    begin
+      System_Messages.Notify
+        (Information, "AMI.Response.Subscribe: subscribing" &
+           Reply_For.Action_ID'Img);
       Reponse_List.Insert (Key      => Reply_For.Action_ID,
                            New_Item => Reply_For.Response_Handler);
    end Subscribe;
@@ -83,13 +85,12 @@ package body AMI.Response is
    begin
       loop
          exit when Current_Time > Deadline;
-
          if not Reponse_List.Contains (Action_ID) then
             return;
          end if;
 
          delay 0.1;
       end loop;
-      raise AMI.Response.Timeout;
+      --  raise AMI.Response.Timeout;
    end Wait_For;
 end AMI.Response;
