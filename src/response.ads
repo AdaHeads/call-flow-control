@@ -54,7 +54,7 @@ package Response is
    function Factory
      (Request : in AWS.Status.Data)
       return Object;
-   --  Initialize a Response.Object object.
+   --  Initialize a Response.Object.
 
    procedure HTTP_Status_Code
      (O     :    out Object;
