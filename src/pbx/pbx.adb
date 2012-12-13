@@ -35,6 +35,11 @@ package body PBX is
    use System_Messages;
    use My_Configuration;
 
+   function Get_Line return String is
+   begin
+      return Client.Get_Line;
+   end Get_Line;
+
    task type Reader_Task is
       entry Start;
    end Reader_Task;
@@ -105,7 +110,8 @@ package body PBX is
    exception
       when E : others =>
          System_Messages.Notify
-           (Error, "PBX.Dispatch: Unexpected exception: " &
+           (Error, "PBX.Dispatch: Failed to dispatch " &
+              To_String (Packet.Header.Value) & " failed, on packet " &
               Ada.Exceptions.Exception_Information (E) &
               "" &
               "------------ Packet dump start ------" &
@@ -124,7 +130,7 @@ package body PBX is
          loop
             exit when PBX_Status = Shutdown;
             Client.Wait_For_Connection;
-            Dispatch (Client_Access, Read_Packet (Client_Access));
+            Dispatch (Client_Access, Read_Packet (Get_Line'Access));
          end loop;
       exception
          when E : others =>

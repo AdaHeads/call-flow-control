@@ -19,13 +19,13 @@ with Ada.Strings.Unbounded;
 
 with Ada.Strings;
 with Ada.Strings.Fixed;
-
-with AMI.Parser;
+with Ada.Characters.Handling;
 
 package body AMI.Packet.Action is
    use Ada.Strings;
    use Ada.Strings.Fixed;
    use Ada.Strings.Unbounded;
+   use Ada.Characters.Handling;
 
    use AMI.Parser;
 
@@ -72,6 +72,15 @@ package body AMI.Packet.Action is
                             Fields      => Fields,
                             On_Response => On_Response);
    end Absolute_Timeout;
+
+   ---------------
+   -- Action_ID --
+   ---------------
+
+   function Action_ID (R : in Request) return Action_ID_Type is
+   begin
+      return R.Action_ID;
+   end Action_ID;
 
    ---------------
    -- Add_Field --
@@ -123,8 +132,7 @@ package body AMI.Packet.Action is
    end Agent_Logoff;
 
    function Agents
-     (On_Response : in Response_Handler_Type
-      := Null_Reponse_Handler'Access
+     (On_Response : in Response_Handler_Type := Null_Reponse_Handler'Access
      ) return Request
    is
    begin
@@ -132,6 +140,7 @@ package body AMI.Packet.Action is
                             Fields      => Field_List.Empty_List,
                             On_Response => On_Response);
    end Agents;
+
    ---------
    -- AGI --
    ---------
@@ -199,6 +208,130 @@ package body AMI.Packet.Action is
                             Fields      => Fields,
                             On_Response => On_Response);
    end Atxfer;
+
+   ------------
+   -- Bridge --
+   ------------
+
+   function Bridge
+     (Channel1 : in String;
+      Channel2 : in String;
+      Tone     : in Boolean := False;
+      On_Response : in     Response_Handler_Type := Null_Reponse_Handler'Access
+     ) return Request
+   is
+      Fields : AMI.Packet.Field.Field_List.List :=
+                 AMI.Packet.Field.Field_List.Empty_List;
+   begin
+      Add_Field (List  => Fields,
+                 Key   => AMI.Parser.Channel1,
+                 Value => Channel1);
+
+      Add_Field (List  => Fields,
+                 Key   => AMI.Parser.Channel2,
+                 Value => Channel2);
+
+      if Tone then
+        Add_Field (List  => Fields,
+                   Key   => AMI.Parser.Tone,
+                   Value => "yes");
+      else
+        Add_Field (List  => Fields,
+                   Key   => AMI.Parser.Tone,
+                   Value => "no");
+      end if;
+
+      return Action.Create (Action      => Valid_Action'(Bridge),
+                            Fields      => Fields,
+                            On_Response => On_Response);
+   end Bridge;
+
+   ---------------
+   -- Challenge --
+   ---------------
+
+   function Challenge
+     (Authentication_Type : in Valid_Authentications := MD5;
+      On_Response         : in Response_Handler_Type :=
+        Null_Reponse_Handler'Access
+     ) return Request
+   is
+      Fields : AMI.Packet.Field.Field_List.List :=
+                 AMI.Packet.Field.Field_List.Empty_List;
+   begin
+      Add_Field (List  => Fields,
+                 Key   => AMI.Parser.AuthType,
+                 Value => To_Lower (Authentication_Type'Img));
+
+      return Action.Create (Action      => Valid_Action'(Challenge),
+                            Fields      => Fields,
+                            On_Response => On_Response);
+   end Challenge;
+
+   --------------------
+   -- Change_Monitor --
+   --------------------
+
+   function Change_Monitor
+     (Channel     : in String;
+      File        : in String;
+      On_Response : in Response_Handler_Type := Null_Reponse_Handler'Access
+     ) return Request
+   is
+      Fields : AMI.Packet.Field.Field_List.List :=
+                 AMI.Packet.Field.Field_List.Empty_List;
+   begin
+      Add_Field (List  => Fields,
+                 Key   => AMI.Parser.Channel,
+                 Value => Channel);
+
+      Add_Field (List  => Fields,
+                 Key   => AMI.Parser.File,
+                 Value => File);
+
+      return Action.Create (Action      => Valid_Action'(ChangeMonitor),
+                            Fields      => Fields,
+                            On_Response => On_Response);
+   end Change_Monitor;
+
+   -------------
+   -- Command --
+   -------------
+
+   function Command
+     (In_Command  : in String;
+      On_Response : in Response_Handler_Type :=
+        Null_Reponse_Handler'Access
+     ) return Request
+   is
+      Fields : AMI.Packet.Field.Field_List.List :=
+                 AMI.Packet.Field.Field_List.Empty_List;
+   begin
+      Add_Field (List  => Fields,
+                 Key   => AMI.Parser.Command,
+                 Value => In_Command);
+
+      return Action.Create (Action      => Valid_Action'(Command),
+                            Fields      => Fields,
+                            On_Response => On_Response);
+   end Command;
+
+   -------------------
+   -- Core_Settings --
+   -------------------
+
+   function Core_Settings
+     (On_Response : in Response_Handler_Type :=
+        Null_Reponse_Handler'Access
+     ) return Request
+   is
+   begin
+
+      return Action.Create (Action      => Valid_Action'(CoreSettings),
+                            Fields      => Field.Field_List.Empty_List,
+                            On_Response => On_Response);
+   end Core_Settings;
+
    ------------
    -- Create --
    ------------
@@ -234,6 +367,73 @@ package body AMI.Packet.Action is
                             On_Response => On_Response);
    end Hangup;
 
+   -----------
+   -- Login --
+   -----------
+
+   function Login
+     (Username    : in String;
+      Secret      : in String;
+      On_Response : in Response_Handler_Type :=
+        Null_Reponse_Handler'Access
+     ) return Request
+   is
+      Fields : AMI.Packet.Field.Field_List.List :=
+                 AMI.Packet.Field.Field_List.Empty_List;
+   begin
+      Fields.Append (AMI.Packet.Field.Create
+                     (Key   => AMI.Parser.Username,
+                      Value => Username));
+
+      Fields.Append (AMI.Packet.Field.Create
+                     (Key   => AMI.Parser.Secret,
+                      Value => Secret));
+
+      return Action.Create (Action      => Login,
+                            Fields      => Fields,
+                            On_Response => On_Response);
+   end Login;
+
+   ----------
+   -- Park --
+   ----------
+
+   function Park
+     (Channel      : in String;
+      Channel2     : in String;
+      Timeout      : in Duration := 45.0;
+      Parkinglot   : String := "";
+      On_Response  : in Response_Handler_Type := Null_Reponse_Handler'Access
+     ) return Request
+   is
+      Timeout_Milli_Seconds : constant Natural := Natural (Timeout * 1_000);
+      Fields                : AMI.Packet.Field.Field_List.List :=
+                                AMI.Packet.Field.Field_List.Empty_List;
+   begin
+      Fields.Append (AMI.Packet.Field.Create
+                     (Key   => AMI.Parser.Channel,
+                      Value => Channel));
+
+      Fields.Append (AMI.Packet.Field.Create
+                     (Key   => AMI.Parser.Channel2,
+                      Value => Channel2));
+
+      Fields.Append (AMI.Packet.Field.Create
+                     (Key   => AMI.Parser.Timeout,
+                      Value => Trim
+                        (Natural'Image (Timeout_Milli_Seconds),Left)));
+
+      if Parkinglot /= "" then
+         Fields.Append (AMI.Packet.Field.Create
+                        (Key   => AMI.Parser.ParkingLot,
+                         Value => Parkinglot));
+      end if;
+
+      return Action.Create (Action      => Park,
+                            Fields      => Fields,
+                            On_Response => On_Response);
+   end Park;
+
    ----------
    -- Ping --
    ----------
@@ -243,6 +443,19 @@ package body AMI.Packet.Action is
    begin
       return Create (Action => Ping, On_Response => On_Response);
    end Ping;
+
+   ----------------------
+   -- Response_Handler --
+   ----------------------
+
+   function Response_Handler (R : in Request) return Response_Handler_Type is
+   begin
+      return R.Response_Handler;
+   end Response_Handler;
+
+   -------------------
+   -- To_AMI_Packet --
+   -------------------
 
    function To_AMI_Packet
      (R : in Request) return AMI_Packet is

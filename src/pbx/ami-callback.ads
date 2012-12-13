@@ -22,6 +22,8 @@
 -------------------------------------------------------------------------------
 with AMI.Parser;
 with AMI.Client;
+with AMI.Packet.Action;
+
 package AMI.Callback is
    use AMI.Parser;
    use AMI.Client;

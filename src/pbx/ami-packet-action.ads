@@ -23,18 +23,14 @@
 --  [2] https://wiki.asterisk.org/wiki/display/AST/Asterisk+10+AMI+Actions
 
 with AMI.Packet.Field;
+with AMI.Parser;
 
 package AMI.Packet.Action is
    use AMI.Packet.Field;
 
    Not_Implemented : exception;
 
-   type Valid_Action is (Undefined, AGI,
-                         AgentCallbackLogin,
-                         AgentLogoff,
-                         Agents,
-                         AbsoluteTimeout,
-                         Atxfer, Login, Logoff, Ping, Hangup);
+   type Valid_Authentications is (MD5);
 
    type Config_Action is (NewCat, RenameCat, DelCat, Update, Delete, Append);
 
@@ -55,12 +51,18 @@ package AMI.Packet.Action is
 
    function To_String (Mask : in Event_Mask) return String;
 
-   type Response_Handler_Type is not null access procedure;
+   type Response_Handler_Type is not null access
+     procedure (Packet : AMI.Parser.Packet_Type);
 
-   procedure Null_Reponse_Handler is null;
+   procedure Null_Reponse_Handler (Packet : AMI.Parser.Packet_Type) is null;
 
    type Request (Asynchronous : Boolean)
      is tagged limited private;
+   --  A request and it's primities
+
+   function Action_ID (R : in Request) return Action_ID_Type;
+
+   function Response_Handler (R : in Request) return Response_Handler_Type;
 
    function To_AMI_Packet (R : in Request) return AMI_Packet;
 
@@ -75,8 +77,7 @@ package AMI.Packet.Action is
       --  The Name of The Channel On Which To Set The Absolute Timeout.
       Timeout     : in     Duration := Duration'First;
       --  The maximum duration of the call, in seconds.
-      On_Response : in     Response_Handler_Type
-      := Null_Reponse_Handler'Access
+      On_Response : in     Response_Handler_Type := Null_Reponse_Handler'Access
       --  The reponse handler
      ) return Request;
    --  Set Absolute Timeout (Priv : system, call, all)
@@ -90,8 +91,7 @@ package AMI.Packet.Action is
       --  Agent ID of the agent to log off
       Soft        : in Boolean := False;
       --  Set to true to not hangup existing calls.
-      On_Response : in     Response_Handler_Type
-      := Null_Reponse_Handler'Access
+      On_Response : in     Response_Handler_Type := Null_Reponse_Handler'Access
       --  The response handler.
      ) return Request;
    --  Logs off the specified agent for the queue system.
@@ -145,13 +145,28 @@ package AMI.Packet.Action is
       --  Context to transfer to.
       Priority  : in Natural;
       --  Priority To Transfer To.
-      On_Response : in     Response_Handler_Type
-      := Null_Reponse_Handler'Access
+      On_Response : in     Response_Handler_Type := Null_Reponse_Handler'Access
       --  The response handler.
      ) return Request;
    --  Attended transfer.
 
-   procedure Change_Monitor
+   function Bridge
+     (Channel1 : in String;
+      Channel2 : in String;
+      Tone     : in Boolean := False;
+      On_Response : in     Response_Handler_Type := Null_Reponse_Handler'Access
+      --  The response handler.
+     ) return Request;
+   --  Bridge together two channels already in the PBX.
+
+   function Challenge
+     (Authentication_Type : in Valid_Authentications := MD5;
+      On_Response : in     Response_Handler_Type := Null_Reponse_Handler'Access
+      --  The response handler.
+     ) return Request;
+   --  Generate a challenge for MD5 authentication.
+
+   function Change_Monitor
      (Channel    : in String;
       --  Used to specify the channel to record.
       File        : in String;
@@ -159,18 +174,25 @@ package AMI.Packet.Action is
       On_Response : in Response_Handler_Type
       := Null_Reponse_Handler'Access
       --  The response handler.
-     ) is null;
+     ) return Request;
    --  The ChangeMonitor action may be used to change the file started by
    --  a previous Monitor action.
 
-   procedure Command
-     (Command     : in String;
+   function Command
+     (In_Command     : in String;
       --  Asterisk CLI command to run.
       On_Response : in Response_Handler_Type :=
         Null_Reponse_Handler'Access
       --  The reponse handler
-     ) is null;
+     ) return Request;
    --  Runs an Asterisk CLI command as if it had been run from the CLI.
+
+   function Core_Settings
+     (On_Response : in Response_Handler_Type :=
+        Null_Reponse_Handler'Access
+      --  The reponse handler
+     ) return Request;
+   --  Show PBX core settings (version etc).
 
    procedure DB_Get
      (Family : in String;
@@ -263,6 +285,17 @@ package AMI.Packet.Action is
    procedure ListCommands is null;
    --  Lists the action name and synopsis for every Asterisk Manager
    --  Interface action.
+
+   function Login
+     (Username : in String;
+      --  Username to login with as specified in manager.conf.
+      Secret   : in String;
+      --  Secret to login with as specified in manager.conf.
+      On_Response : in Response_Handler_Type :=
+        Null_Reponse_Handler'Access
+      --  The reponse handler.
+     ) return Request;
+   --  Login to the manager. Must preceed every other call.
 
    procedure Logoff
      (On_Response : in Response_Handler_Type :=
@@ -379,19 +412,20 @@ package AMI.Packet.Action is
    --  Generates an outbound call from Asterisk, and connect the channel to a
    --  dialplan application
 
-   procedure Park
-     (Channel : in String;
+   function Park
+     (Channel      : in String;
       --  Channel name to park.
-      Channel2 : in String;
+      Channel2     : in String;
       --  Channel to announce park info to (and return the call to if the
       --  parking times out).
-      Timeout  : in Duration := 45.0;
+      Timeout      : in Duration := 45.0;
       --  Number of milliseconds to wait before callback.
+      Parkinglot   : String := "";
       On_Response  : in Response_Handler_Type :=
         Null_Reponse_Handler'Access
       --  The reponse handler.
-     ) is null;
-   --  Parks the specified channel in the parking lot.
+     ) return Request;
+   --  Parks the specified channel in a parking lot.
 
    procedure Parked_Calls
      (On_Response  : in Response_Handler_Type :=
@@ -699,6 +733,27 @@ package AMI.Packet.Action is
    --  Transfers a Zap channel.
 
 private
+   type Valid_Action is (Undefined,
+                         AGI,
+                         AgentCallbackLogin,
+                         AgentLogoff,
+                         Agents,
+                         AbsoluteTimeout,
+                         Atxfer,
+                         Bridge,
+                         Challenge,
+                         ChangeMonitor,
+                         Command,
+                         CoreSettings,
+                         CoreShowChannels,
+                         CoreStatus,
+                         CreateConfig,
+                         DAHDIDialOffHook,
+                         Login,
+                         Logoff,
+                         Park,
+                         Ping,
+                         Hangup);
 
    Digit_Value : constant array (Valid_Digit) of Character :=
                    (Zero       => '0',

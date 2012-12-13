@@ -40,5 +40,4 @@ package AMI.Packet.Action.Deprecated is
    --  mode. When a call is distributed to this agent,
    --  it will ring the specified extension.
 
-
 end AMI.Packet.Action.Deprecated;

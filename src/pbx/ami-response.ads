@@ -25,15 +25,19 @@ with Ada.Containers.Hashed_Maps;
 with AMI.Callback;
 with AMI.Parser;
 with AMI.Client;
+with AMI.Packet.Action;
 package AMI.Response is
    use AMI.Callback;
    use AMI.Client;
-   procedure Subscribe (Action_ID : in Action_ID_Type;
-                        Callback  : in Callback_Type);
-   --  Subscribe for a reply with the given action ID.
+   use AMI.Packet.Action;
 
-   function Wait_For (Action_ID : in Action_ID_Type;
-                      Timeout   : in Duration := 3.0) return Boolean;
+   Timeout : exception;
+
+   procedure Subscribe (Reply_For : in Request);
+   --  Subscribe for a reply on the given request.
+
+   procedure Wait_For (Action_ID : in Action_ID_Type;
+                      Timeout   : in Duration := 3.0);
    --  Provides an explicit synchonization mechanism
 
    procedure Notify (Client : access Client_Type;
@@ -48,7 +52,7 @@ private
 
    package Response_List_Type is new Ada.Containers.Hashed_Maps
      (Key_Type => Action_ID_Type,
-      Element_Type => Callback_Type,
+      Element_Type => AMI.Packet.Action.Response_Handler_Type,
       Hash => Hash_Function,
       Equivalent_Keys => Hash_Equivalent_Keys);
 

@@ -29,7 +29,7 @@ package body AMI.Action is
       Action_ID : constant Action_ID_Type :=
                     Protocol_Strings.Next_Action_ID;
    begin
-      AMI.Response.Subscribe (Action_ID, Callback);
+      --  AMI.Response.Subscribe (Action_ID, Callback);
       Client.Send
         (Item   => Protocol_Strings.Bridge
            (Channel1  => ChannelA,
@@ -43,7 +43,7 @@ package body AMI.Action is
       Action_ID : constant Action_ID_Type :=
                     Protocol_Strings.Next_Action_ID;
    begin
-      AMI.Response.Subscribe (Action_ID, Response_Handler);
+      --  AMI.Response.Subscribe (Action_ID, Response_Handler);
       Client.Send
         (Item   => Protocol_Strings.CoreShowChannels (Action_ID => Action_ID));
    end Core_Show_Channels;
@@ -55,7 +55,7 @@ package body AMI.Action is
       Action_ID : constant Action_ID_Type :=
                     Protocol_Strings.Next_Action_ID;
    begin
-      AMI.Response.Subscribe (Action_ID, Callback);
+      --  AMI.Response.Subscribe (Action_ID, Callback);
       Client.Send
         (Item   =>
            Protocol_Strings.Hangup
@@ -72,7 +72,7 @@ package body AMI.Action is
       Action_ID : constant Action_ID_Type :=
                     Protocol_Strings.Next_Action_ID;
    begin
-      AMI.Response.Subscribe (Action_ID, Callback);
+      --  AMI.Response.Subscribe (Action_ID, Callback);
       System_Messages.Notify (Debug, "AMI.Client.Login: Subscribed for " &
                                 "a reply with ActionID" & Action_ID'Img);
       Client.Send (Item   => Protocol_Strings.Login
@@ -91,7 +91,7 @@ package body AMI.Action is
       Action_ID : constant Action_ID_Type :=
                     Protocol_Strings.Next_Action_ID;
    begin
-      AMI.Response.Subscribe (Action_ID, Response_Handler);
+      --  AMI.Response.Subscribe (Action_ID, Response_Handler);
       Client.Send (Item   => Protocol_Strings.Originate
                    (Channel   => Peer_ID.To_String,
                     Context   => Context,
@@ -109,7 +109,7 @@ package body AMI.Action is
       Action_ID : constant Action_ID_Type :=
                     Protocol_Strings.Next_Action_ID;
    begin
-      AMI.Response.Subscribe (Action_ID, Callback);
+      --  AMI.Response.Subscribe (Action_ID, Callback);
 
       --  Move the call back to the queue
 
@@ -126,7 +126,7 @@ package body AMI.Action is
       Action_ID : constant Action_ID_Type :=
                     Protocol_Strings.Next_Action_ID;
    begin
-      AMI.Response.Subscribe (Action_ID, Callback);
+      --  AMI.Response.Subscribe (Action_ID, Callback);
       System_Messages.Notify (Debug, "AMI.Client.Ping: Subscribed for " &
                                 "a reply with ActionID" & Action_ID'Img);
       Client.Send (Item   => Protocol_Strings.Ping
@@ -144,7 +144,7 @@ package body AMI.Action is
       Action_ID : constant Action_ID_Type :=
         Protocol_Strings.Next_Action_ID;
    begin
-      AMI.Response.Subscribe (Action_ID, Callback);
+      --  AMI.Response.Subscribe (Action_ID, Callback);
       --  Send the call out to the phone
       Client.Send
         (Item   => Protocol_Strings.Redirect
@@ -160,7 +160,7 @@ package body AMI.Action is
       Action_ID : constant Action_ID_Type :=
         Protocol_Strings.Next_Action_ID;
    begin
-      AMI.Response.Subscribe (Action_ID, Callback);
+      --  AMI.Response.Subscribe (Action_ID, Callback);
       Client.Send
         (Item => Protocol_Strings.SIP_Peers (Action_ID => Action_ID));
    end SIP_Peers;

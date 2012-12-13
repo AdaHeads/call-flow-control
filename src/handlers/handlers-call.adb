@@ -21,8 +21,8 @@ with Common;
 with HTTP_Codes;
 with Response;
 
+with AMI;
 with AMI.Action;
-with AMI.Packet.Action;
 with Model.Agent;
 with Model.Agents;
 with Model.Agent_ID;
@@ -32,6 +32,7 @@ with Model.Peers;
 with View.Call;
 
 with PBX;
+with PBX.Action;
 with Model.Call_ID;
 with System_Messages;
 with System_Message.Critical;
@@ -58,6 +59,7 @@ package body Handlers.Call is
 
       Requested_Call_ID : Call_ID.Call_ID_Type := Call_ID.Null_Call_ID;
       Response_Object   : Response.Object := Response.Factory (Request);
+      Ticket            : PBX.Reply_Ticket := PBX.Null_Reply;
    begin
       Requested_Call_ID :=
         Call_ID.Create (Item => Parameters (Request).Get ("call_id"));
@@ -69,19 +71,15 @@ package body Handlers.Call is
               (Status_Message
                  ("status", "not found"));
       else
-         declare
-            Hangup_Action : AMI.Packet.Action.Request :=
-                              AMI.Packet.Action.Hangup
-                                (Channel => Requested_Call_ID.To_String);
-         begin
-            --  AMI.Action.Hangup
-            --  (PBX.Client_Access, Requested_Call_ID.To_String);
-            PBX.Client.Send (Hangup_Action.To_AMI_Packet);
-         end;
-            Response_Object.HTTP_Status_Code (OK);
-            Response_Object.Content (Status_Message
-                                     ("Success", "Hangup completed"));
+         Ticket := PBX.Action.Hangup (ID => Requested_Call_ID);
       end if;
+
+      PBX.Action.Wait_For (Ticket);
+
+      Response_Object.HTTP_Status_Code (OK);
+      Response_Object.Content (Status_Message
+                               ("Success", "Hangup completed"));
+
 
       return Response_Object.Build;
 

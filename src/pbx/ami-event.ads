@@ -58,6 +58,7 @@ package AMI.Event is
       Join,
       Leave,
       Link,
+      Masquerade,
       MeetmeJoin,
       MeetmeLeave,
       MeetmeStopTalking,
