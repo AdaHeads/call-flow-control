@@ -192,6 +192,21 @@ package body AGI.Callbacks is
                                   (Channel   => Channel,
                                    Command   => "SAY ALPHA ""Bye"" """"",
                                    CommandID => "fixed-2").To_AMI_Packet);
+            elsif Caller_ID = "softphone1" then
+               System_Messages.Notify
+                 (Debug, "AGI: Send Jacob to the IVR.");
+               PBX.Client.Send (AMI.Packet.Action.AGI
+                                  (Channel   => Channel,
+                                   Command   => "EXEC READ LifeTheUniverseAndEverything,""vm-press""&""digits/4""&""digits/2"",2",
+                                   CommandID => "IVR").To_AMI_Packet);
+               PBX.Client.Send (AMI.Packet.Action.AGI
+                                  (Channel   => Channel,
+                                   Command   => "GET VARIABLE LifeTheUniverseAndEverything",
+                                   CommandID => "get_variable").To_AMI_Packet);
+               PBX.Client.Send (AMI.Packet.Action.AGI
+                                  (Channel   => Channel,
+                                   Command   => "STREAM FILE ""demo-thanks"" """"",
+                                   CommandID => "fixed-2c").To_AMI_Packet);
             else
                System_Messages.Notify
                  (Debug, "AGI: Queue call.");
@@ -208,10 +223,16 @@ package body AGI.Callbacks is
                                 Command   => "HANGUP",
                                 CommandID => "fixed-3").To_AMI_Packet);
          when Exec =>
-            System_Messages.Notify
-              (Debug,
-               "AGI: Command " & Command_ID & " returned the result " &
-                 Result & ".");
+            if Command_ID = "get_variable" then
+               System_Messages.Notify (Level   => Debug,
+                                       Message => "AGI: Value request: " &
+                                                  Value (AMI.Parser.Result));
+            else
+               System_Messages.Notify
+                 (Level   => Debug,
+                  Message => "AGI: Command " & Command_ID &
+                             " returned the result " & Result & ".");
+            end if;
          when Unrecognised =>
             System_Messages.Notify
               (Debug, "AGI: Unrecognised (sub)event received.");
