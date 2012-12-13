@@ -1,21 +1,37 @@
+-------------------------------------------------------------------------------
+--                                                                           --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
+--                                                                           --
+--  This is free software;  you can redistribute it and/or modify it         --
+--  under terms of the  GNU General Public License  as published by the      --
+--  Free Software  Foundation;  either version 3,  or (at your  option) any  --
+--  later version. This library is distributed in the hope that it will be   --
+--  useful, but WITHOUT ANY WARRANTY;  without even the implied warranty of  --
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                     --
+--  You should have received a copy of the GNU General Public License and    --
+--  a copy of the GCC Runtime Library Exception along with this program;     --
+--  see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+--  <http://www.gnu.org/licenses/>.                                          --
+--                                                                           --
+-------------------------------------------------------------------------------
+
 with Ada.Strings.Unbounded;
 with Ada.Exceptions;
 
 with AMI.Action;
+with AMI.Event;
+with AMI.Observers;
 with AMI.Response;
 with AMI.Parser;
-with AMI.Event;
 
 with My_Configuration;
 with System_Messages;
-with My_Callbacks;
 
 --  TODO: Cover all branches on status.
 package body PBX is
    use Ada.Strings.Unbounded;
    use AMI.Action;
    use AMI.Parser;
-   use AMI.Event;
    use System_Messages;
    use My_Configuration;
 
@@ -38,25 +54,6 @@ package body PBX is
    --  for the On_Disconnect event in the AMI.Client.
 
    Reader    : Reader_Task;
-   Callbacks : constant AMI.Event.Event_Callback_Table :=
-                 (Bridge             => My_Callbacks.Bridge'Access,
-                  CoreShowChannel    =>
-                    My_Callbacks.Core_Show_Channel'Access,
-                  CoreShowChannelsComplete =>
-                    My_Callbacks.Core_Show_Channels_Complete'Access,
-                  PeerStatus         => My_Callbacks.Peer_Status'Access,
-                  PeerEntry          => My_Callbacks.Peer_Entry'Access,
-                  PeerlistComplete   => My_Callbacks.Peer_List_Complete'Access,
-                  Hangup             => My_Callbacks.Hangup'Access,
-                  Join               => My_Callbacks.Join'Access,
-                  Leave              => My_Callbacks.Leave'Access,
-                  Newchannel         => My_Callbacks.New_Channel'Access,
-                  Newstate           => My_Callbacks.New_State'Access,
-                  Dial               => My_Callbacks.Dial'Access,
-                  QueueCallerAbandon => My_Callbacks.Queue_Abandon'Access,
-                  AsyncAGI           => My_Callbacks.AGI'Access,
-                  others             => My_Callbacks.Default_Callback'Access);
-   --  Event dispatch table.
 
    procedure Authenticate is
    begin
@@ -98,9 +95,9 @@ package body PBX is
          AMI.Response.Notify (Client => Client,
                               Packet => Packet);
       elsif Packet.Header.Key = AMI.Parser.Event then
-
-         AMI.Event.Dispatch (Callback_Table => Callbacks,
-                             Packet         => Packet);
+         AMI.Observers.Notify (Event  => AMI.Event.Event_Type'Value
+                               (To_String (Packet.Header.Value)),
+                               Packet => Packet);
       else
          System_Messages.Notify (Error, "PBX.Dispatch: Bad header " &
                                    Packet.Header.Key'Img);

@@ -1,7 +1,26 @@
+-------------------------------------------------------------------------------
+--                                                                           --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
+--                                                                           --
+--  This is free software;  you can redistribute it and/or modify it         --
+--  under terms of the  GNU General Public License  as published by the      --
+--  Free Software  Foundation;  either version 3,  or (at your  option) any  --
+--  later version. This library is distributed in the hope that it will be   --
+--  useful, but WITHOUT ANY WARRANTY;  without even the implied warranty of  --
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                     --
+--  You should have received a copy of the GNU General Public License and    --
+--  a copy of the GCC Runtime Library Exception along with this program;     --
+--  see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+--  <http://www.gnu.org/licenses/>.                                          --
+--                                                                           --
+-------------------------------------------------------------------------------
+
 with Ada.Strings.Unbounded;
 
 package Model.Channel_ID is
    use Ada.Strings.Unbounded;
+
+   Invalid_ID : exception;
 
    type Technology is (Unknown, SIP);
 
@@ -22,6 +41,13 @@ package Model.Channel_ID is
 
    function "=" (Left  : in Channel_ID_Type;
                  Right : in Channel_ID_Type) return Boolean;
+
+   function Validate (Item : in String) return Boolean;
+   --  Non-exception-raising way of checking whether a string can be
+   --  converted into a Channel_ID
+
+   Null_Channel_ID : constant Channel_ID_Type;
+private
 
    Null_Channel_ID : constant Channel_ID_Type := (Unknown,
                                                   Null_Unbounded_String,

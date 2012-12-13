@@ -24,6 +24,13 @@ with Yolk.Process_Owner;
 with Yolk.Server;
 with Unexpected_Exception;
 
+with
+  AGI.Callbacks,
+  My_Callbacks;
+
+pragma Unreferenced (AGI.Callbacks);
+pragma Unreferenced (My_Callbacks);
+
 procedure Alice is
    use System_Message;
    use Yolk.Process_Control;

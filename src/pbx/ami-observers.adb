@@ -15,30 +15,30 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AMI.Client;
-with Common;
+with
+  Ada.Containers.Vectors;
 
-package PBX is
-   use AMI;
+package body AMI.Observers is
+   package Callback_Collections is
+     new Ada.Containers.Vectors (Index_Type   => Positive,
+                                 Element_Type => AMI.Event.Event_Callback,
+                                 "="          => AMI.Event."=");
 
-   type PBX_Status_Type is (Shutdown, Shutting_Down, Running, Connecting,
-                           Failure);
+   Callbacks : array (AMI.Event.Event_Type) of Callback_Collections.Vector;
 
-   --  TODO: make this private and wrap every call to AMI
-   Client        : aliased AMI.Client.Client_Type;
-   Client_Access : constant access AMI.Client.Client_Type := Client'Access;
+   procedure Register (Event   : in     AMI.Event.Event_Type;
+                       Handler : in     AMI.Event.Event_Callback) is
+   begin
+      if not Callbacks (Event).Contains (Handler) then
+         Callbacks (Event).Append (Handler);
+      end if;
+   end Register;
 
-   procedure Start;
-   --  Startup the PBX subsystem
-
-   procedure Stop;
-   --  Stop the PBX subsystem.
-
-   function Status return PBX_Status_Type;
-   --  Retrieve the current status of the
-
-private
-   Last_Connection_Attempt : Common.Time;
-   Connection_Delay        : Duration        := 1.0;
-   PBX_Status              : PBX_Status_Type := Failure;
-end PBX;
+   procedure Notify (Event  : in     AMI.Event.Event_Type;
+                     Packet : in     AMI.Parser.Packet_Type) is
+   begin
+      for Callback of Callbacks (Event) loop
+         Callback (Packet);
+      end loop;
+   end Notify;
+end AMI.Observers;
