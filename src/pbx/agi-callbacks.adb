@@ -185,15 +185,21 @@ package body AGI.Callbacks is
                                 Command   => "ANSWER",
                                 CommandID => "fixed-1").To_AMI_Packet);
 
-            System_Messages.Notify
-              (Debug, "AGI: Telling Asterisk to answer.");
-            PBX.Client.Send (AMI.Packet.Action.AGI
-                               (Channel   => Channel,
-                                Command   => "SAY ALPHA ""Hello " & Caller_ID &
-                                             """ """"",
-                                CommandID => "fixed-2").To_AMI_Packet);
-
-            delay 5.0;
+            if Caller_ID = "TL-Softphone" then
+               System_Messages.Notify
+                 (Debug, "AGI: Say 'bye' to Thomas. ;-)");
+               PBX.Client.Send (AMI.Packet.Action.AGI
+                                  (Channel   => Channel,
+                                   Command   => "SAY ALPHA ""Bye"" """"",
+                                   CommandID => "fixed-2").To_AMI_Packet);
+            else
+               System_Messages.Notify
+                 (Debug, "AGI: Queue call.");
+               PBX.Client.Send (AMI.Packet.Action.AGI
+                                  (Channel   => Channel,
+                                   Command   => "EXEC QUEUE org_id1",
+                                   CommandID => "fixed-2").To_AMI_Packet);
+            end if;
 
             System_Messages.Notify
               (Debug, "AGI: Telling Asterisk to hang up.");
