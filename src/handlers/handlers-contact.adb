@@ -15,27 +15,24 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Status;
 with HTTP_Codes;
 with Model.Contact;
-with System_Message.Error;
 
 package body Handlers.Contact is
 
-   ----------------------
-   --  Bad_Contact_Id  --
-   ----------------------
+   -----------------
+   --  Cache_Key  --
+   -----------------
 
-   procedure Bad_Contact_Id
-     (Response_Object :    out Response.Object;
-      Message         : in     String)
+   function Cache_Key
+     (Response_Object : in Response.Object)
+      return Model.Contact_Identifier
    is
-      use System_Message;
+      use Model;
    begin
-      Error.Bad_Contact_Id
-        (Message         => Message,
-         Response_Object => Response_Object);
-   end Bad_Contact_Id;
+      return Contact_Identifier'Value
+        (Response_Object.Parameter ("ce_id"));
+   end Cache_Key;
 
    ----------------
    --  Callback  --
@@ -61,10 +58,10 @@ package body Handlers.Contact is
 
       Contact : Object;
    begin
-      Contact := Get (Get_Contact_Id (Response_Object));
+      Contact := Get (Cache_Key (Response_Object));
 
       if Contact /= Null_Object then
-         Response_Object.Cacheable (True);
+         Response_Object.Is_Cacheable (True);
          Response_Object.HTTP_Status_Code (OK);
       else
          Response_Object.HTTP_Status_Code (Not_Found);
@@ -73,19 +70,19 @@ package body Handlers.Contact is
       Response_Object.Content (Contact.To_JSON_String);
    end Generate_Document;
 
-   ----------------------
-   --  Get_Contact_Id  --
-   ----------------------
+   ------------------------------
+   --  Set_Request_Parameters  --
+   ------------------------------
 
-   function Get_Contact_Id
-     (Response_Object : in Response.Object)
-      return Model.Contact_Identifier
+   procedure Set_Request_Parameters
+     (Instance : out Response.Object)
    is
-      use AWS.Status;
-      use Model;
+      use Response;
    begin
-      return Contact_Identifier'Value
-        (Parameters (Response_Object.Status_Data).Get ("ce_id"));
-   end Get_Contact_Id;
+      Instance.Register_Request_Parameter
+        (Mode           => Required,
+         Parameter_Name => "ce_id",
+         Validate_As    => Contact_Identifier);
+   end Set_Request_Parameters;
 
 end Handlers.Contact;

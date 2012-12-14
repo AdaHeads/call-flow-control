@@ -116,14 +116,19 @@ package body View.Organization is
    is
       use Model.Organization;
    begin
-      case Instance.Mode is
-         when Mini =>
-            return To_JSON_String (To_Mini_JSON (Instance).Write);
-         when Midi =>
-            return To_JSON_String (To_Midi_JSON (Instance).Write);
-         when Maxi =>
-            return To_JSON_String (To_Maxi_JSON (Instance).Write);
-      end case;
+      if Instance /= Null_Organization then
+         case Instance.Mode is
+            when Mini =>
+               return To_JSON_String (To_Mini_JSON (Instance).Write);
+            when Midi =>
+               return To_JSON_String (To_Midi_JSON (Instance).Write);
+            when Maxi =>
+               return To_JSON_String (To_Maxi_JSON (Instance).Write);
+         end case;
+      else
+         --  No organization found
+         return To_JSON_String (JSON_Null.Write);
+      end if;
    end To_JSON_String;
 
    --------------------

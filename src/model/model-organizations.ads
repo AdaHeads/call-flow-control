@@ -18,13 +18,16 @@
 with Ada.Containers.Hashed_Maps;
 with Common;
 with Model.Organization;
+with Request_Parameter_Types;
 
 package Model.Organizations is
+
+   use Request_Parameter_Types;
 
    type List is tagged private;
    Null_List : constant List;
 
-   type Data_Mode is (Mini, Midi);
+   subtype Data_Mode is Organization_List_View;
    --  Mini: As plain as possible. No JSON document, no contacts.
    --  Midi: The organization JSON document is also fetched.
 

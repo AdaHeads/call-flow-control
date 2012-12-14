@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                                Response                                   --
---                                                                           --
---                                  SPEC                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -21,70 +15,159 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Strings.Unbounded;
 with AWS.Messages;
 with AWS.Response;
 with AWS.Status;
 with Common;
-with HTTP_Codes;
 
 package Response is
 
    type Object is tagged limited private;
 
+   type Request_Parameter_Type  is (Contact_Identifier,
+                                    Organization_Identifier,
+                                    Organization_List_View);
+
+   type Request_Parameter_Mode is (Required, Optional);
+
    function Build
-     (O : in Object)
-      return AWS.Response.Data;
+     (Instance : in Object)
+      return AWS.Response.Data
+   with Pre => Instance.Has_Status_Data;
    --  Build the response and compress it if the client supports it. Also
    --  wraps JSON string in foo(JSON string) if the
    --      ?jsoncallback=foo
    --  GET parameter is present.
 
-   procedure Cacheable
-     (O     :    out Object;
-      Value : in     Boolean);
-   --  Set whether the contents of O is cacheable. This does not define whether
-   --  or not the content of O is actually cached - it merely states that is
-   --  is cacheable.
-
    procedure Content
-     (O     :    out Object;
-      Value : in     Common.JSON_String);
-   --  Add content to O.
+     (Instance :    out Object;
+      Value    : in     Common.JSON_String);
+   --  Add content to Instance.
+
+   function Factory
+     return Object;
+   --  At this point the response object is unaware of the request data,
+   --  meaning it knows nothing about GET/POST parameters, sessions or anything
+   --  else pertaining to the request made by the client. To make Object aware
+   --  of the client request data you should call the Status_Data procedure
+   --  at some point.
 
    function Factory
      (Request : in AWS.Status.Data)
       return Object;
-   --  Initialize a Response.Object.
+   --  Wraps a Factory and Status_Data call into one convenient package.
 
    procedure HTTP_Status_Code
-     (O     :    out Object;
-      Value : in     AWS.Messages.Status_Code);
-   --  Set the HTTP code that is returned to the client when O.Build is called.
+     (Instance :    out Object;
+      Value    : in     AWS.Messages.Status_Code);
+   --  Set the HTTP code that is returned to the client when Build is called.
+
+   function Has_Status_Data
+     (Instance : in Object)
+      return Boolean;
+   --  Return whether or not the AWS.Status.Data request object has been added
+   --  to Instance.
+
+   function Is_Cacheable
+     (Instance : in Object)
+      return Boolean;
+   --  Return whether or not the content of Instance can be cached.
+
+   procedure Is_Cacheable
+     (Instance :    out Object;
+      Value    : in     Boolean)
+   with Post => Value = Instance.Is_Cacheable;
+   --  Set whether the contents of Instance is cacheable. This does not define
+   --  whether or not the content of Instance is cached - it merely states that
+   --  it _can_ be cached.
+
+   function Parameter
+     (Instance : in Object;
+      Name     : in String)
+      return String
+   with Pre => Instance.Valid_Request_Parameters;
+   --  Return the Name request parameter. Return empty string if Name does not
+   --  exist.
+
+   function Parameter_Count
+     (Instance : in Object)
+      return Natural
+   with Pre => Instance.Has_Status_Data;
+   --  Return the amount of request parameters in the status data request
+   --  object.
+
+   procedure Register_Request_Parameter
+     (Instance       : in out Object;
+      Mode           : in     Request_Parameter_Mode;
+      Parameter_Name : in     String;
+      Validate_As    : in     Request_Parameter_Type)
+   with Post => not Instance.Valid_Request_Parameters;
+   --  TODO: Write comment.
 
    function Request_URL
-     (O : in Object)
-      return String;
-   --  Return the full URL string for the request.
+     (Instance : in Object)
+      return String
+   with Pre => Instance.Has_Status_Data;
+   --  Return the full request URL string for Instance. This is basically just
+   --  a wrapper for AWS.URL.URL (AWS.Status.URI (Instance.Status_Data))
 
    function Status_Data
-     (O : in Object)
-      return AWS.Status.Data;
-   --  Return the AWS.Status.Data object that O was initialized with.
+     (Instance : in Object)
+      return AWS.Status.Data
+   with Pre => Instance.Has_Status_Data;
+   --  Return the AWS.Status.Data object from Instance.
+
+   procedure Status_Data
+     (Instance : in out Object;
+      Request  : in     AWS.Status.Data)
+   with Post => Instance.Has_Status_Data;
+   --  Set the client request data. This makes the response object aware of
+   --  Cookies, Sessions, GET/POST request parameters and everything else that
+   --  the AWS.Status.Data object contains.
 
    function To_Debug_String
-     (O : in Object)
+     (Instance : in Object)
       return String;
    --  Generate a debug message containing as much information as we can force
    --  from the grubby hands of the original AWS.Status.Data object.
 
+   function Valid_Request_Parameters
+     (Instance : in Object)
+      return Boolean;
+   --  Return whether or not the registered request parameters are valid. Will
+   --  ALWAYS return False if called prior to Validate_Request_Parameters.
+
+   procedure Validate_Request_Parameters
+     (Instance : in out Object)
+   with Pre => Instance.Has_Status_Data;
+   --  Validate the registered request parameters.
+
 private
+
+   use Ada.Containers;
+   use Ada.Strings.Unbounded;
+
+   type Validation_Set is
+      record
+         Mode        : Request_Parameter_Mode;
+         Name        : Unbounded_String;
+         Validate_As : Request_Parameter_Type;
+      end record;
+
+   package Set_List is new Doubly_Linked_Lists
+     (Element_Type => Validation_Set);
 
    type Object is tagged limited
       record
-         Content          : Common.JSON_String := Common.Null_JSON_String;
-         HTTP_Status_Code : AWS.Messages.Status_Code := HTTP_Codes.OK;
-         Is_Cacheable     : Boolean := False;
-         Request          : AWS.Status.Data;
+         Content                  : Common.JSON_String;
+         HTTP_Status_Code         : AWS.Messages.Status_Code;
+         Is_Cacheable             : Boolean;
+         Status_Data              : AWS.Status.Data;
+         Status_Data_Set          : Boolean;
+         Valid_Request_Parameters : Boolean;
+         Validations              : Set_List.List;
       end record;
 
 end Response;

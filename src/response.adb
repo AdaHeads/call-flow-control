@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                                Response                                   --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -22,12 +16,18 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Fixed;
-with Ada.Strings.Unbounded;
+with AWS.Parameters;
 with AWS.Response.Set;
 with AWS.Session;
 with AWS.URL;
+with HTTP_Codes;
+with Model;
+with Request_Parameter_Types;
+with System_Message.Error;
 
 package body Response is
+
+   Missing_Required_Request_Parameter : exception;
 
    JSON_MIME_Type : constant String := "application/json; charset=utf-8";
 
@@ -50,6 +50,18 @@ package body Response is
    --  value of the jsoncallback parameter.
    --  NOTE:
    --  We do not support the callback parameter. It is too generic.
+
+   procedure Validate
+     (Value : in Model.Contact_Identifier)
+   is null;
+
+   procedure Validate
+     (Value : in Model.Organization_Identifier)
+   is null;
+
+   procedure Validate
+     (Value : in Request_Parameter_Types.Organization_List_View)
+   is null;
 
    ------------------------
    --  Add_CORS_Headers  --
@@ -107,7 +119,7 @@ package body Response is
    -------------
 
    function Build
-     (O : in Object)
+     (Instance : in Object)
       return AWS.Response.Data
    is
       use AWS.Messages;
@@ -116,43 +128,32 @@ package body Response is
       use Common;
 
       D        : AWS.Response.Data;
-      Encoding : constant Content_Encoding := Preferred_Coding (O.Request);
+      Encoding : constant Content_Encoding :=
+                   Preferred_Coding (Instance.Status_Data);
    begin
       D :=  Build (Content_Type  => JSON_MIME_Type,
                    Message_Body  =>
                      To_String (Add_JSONP_Callback
-                       (O.Content, O.Request)),
-                   Status_Code   => O.HTTP_Status_Code,
+                       (Instance.Content, Instance.Status_Data)),
+                   Status_Code   => Instance.HTTP_Status_Code,
                    Encoding      => Encoding,
                    Cache_Control => No_Cache);
 
-      Add_CORS_Headers (O.Request, D);
+      Add_CORS_Headers (Instance.Status_Data, D);
 
       return D;
    end Build;
-
-   -----------------
-   --  Cacheable  --
-   -----------------
-
-   procedure Cacheable
-     (O     :    out Object;
-      Value : in     Boolean)
-   is
-   begin
-      O.Is_Cacheable := Value;
-   end Cacheable;
 
    ---------------
    --  Content  --
    ---------------
 
    procedure Content
-     (O     :    out Object;
-      Value : in     Common.JSON_String)
+     (Instance :    out Object;
+      Value    : in     Common.JSON_String)
    is
    begin
-      O.Content := Value;
+      Instance.Content := Value;
    end Content;
 
    ---------------
@@ -164,35 +165,138 @@ package body Response is
       return Object
    is
    begin
-      return O : Object do
-         O.Request := Request;
+      return Instance : Object do
+         Instance.Content := Common.Null_JSON_String;
+         Instance.HTTP_Status_Code := HTTP_Codes.OK;
+         Instance.Is_Cacheable := False;
+         Instance.Status_Data := Request;
+         Instance.Status_Data_Set := True;
+         Instance.Valid_Request_Parameters := False;
+         Instance.Validations := Set_List.Empty_List;
       end return;
    end Factory;
+
+   ---------------
+   --  Factory  --
+   ---------------
+
+   function Factory
+     return Object
+   is
+   begin
+      return Instance : Object do
+         Instance.Content := Common.Null_JSON_String;
+         Instance.HTTP_Status_Code := HTTP_Codes.OK;
+         Instance.Is_Cacheable := False;
+         Instance.Status_Data_Set := False;
+         Instance.Valid_Request_Parameters := False;
+         Instance.Validations := Set_List.Empty_List;
+      end return;
+   end Factory;
+
+   -----------------------
+   --  Has_Status_Data  --
+   -----------------------
+
+   function Has_Status_Data
+     (Instance : in Object)
+      return Boolean
+   is
+   begin
+      return Instance.Status_Data_Set;
+   end Has_Status_Data;
 
    ------------------------
    --  HTTP_Status_Code  --
    ------------------------
 
    procedure HTTP_Status_Code
-     (O     :    out Object;
-      Value : in     AWS.Messages.Status_Code)
+     (Instance :    out Object;
+      Value    : in     AWS.Messages.Status_Code)
    is
    begin
-      O.HTTP_Status_Code := Value;
+      Instance.HTTP_Status_Code := Value;
    end HTTP_Status_Code;
+
+   --------------------
+   --  Is_Cacheable  --
+   --------------------
+
+   function Is_Cacheable
+     (Instance : in Object)
+      return Boolean
+   is
+   begin
+      return Instance.Is_Cacheable;
+   end Is_Cacheable;
+
+   --------------------
+   --  Is_Cacheable  --
+   --------------------
+
+   procedure Is_Cacheable
+     (Instance :    out Object;
+      Value    : in     Boolean)
+   is
+   begin
+      Instance.Is_Cacheable := Value;
+   end Is_Cacheable;
+
+   -----------------
+   --  Parameter  --
+   -----------------
+
+   function Parameter
+     (Instance : in Object;
+      Name     : in String)
+      return String
+   is
+      use AWS.Status;
+   begin
+      return Parameters (Instance.Status_Data).Get (Name);
+   end Parameter;
+
+   -----------------------
+   --  Parameter_Count  --
+   -----------------------
+
+   function Parameter_Count
+     (Instance : in Object)
+      return Natural
+   is
+      use AWS.Status;
+   begin
+      return Parameters (Instance.Status_Data).Count;
+   end Parameter_Count;
+
+   ----------------------------------
+   --  Register_Request_Parameter  --
+   ----------------------------------
+
+   procedure Register_Request_Parameter
+     (Instance       : in out Object;
+      Mode           : in     Request_Parameter_Mode;
+      Parameter_Name : in     String;
+      Validate_As    : in     Request_Parameter_Type)
+   is
+      use Common;
+   begin
+      Instance.Validations.Append ((Mode, U (Parameter_Name), Validate_As));
+      Instance.Valid_Request_Parameters := False;
+   end Register_Request_Parameter;
 
    -------------------
    --  Request_URL  --
    -------------------
 
    function Request_URL
-     (O : in Object)
+     (Instance : in Object)
       return String
    is
       use AWS.Status;
       use AWS.URL;
    begin
-      return URL (URI (O.Request));
+      return URL (URI (Instance.Status_Data));
    end Request_URL;
 
    -------------------
@@ -200,11 +304,24 @@ package body Response is
    -------------------
 
    function Status_Data
-     (O : in Object)
+     (Instance : in Object)
       return AWS.Status.Data
    is
    begin
-      return O.Request;
+      return Instance.Status_Data;
+   end Status_Data;
+
+   -------------------
+   --  Status_Data  --
+   -------------------
+
+   procedure Status_Data
+     (Instance : in out Object;
+      Request  : in     AWS.Status.Data)
+   is
+   begin
+      Instance.Status_Data := Request;
+      Instance.Status_Data_Set := True;
    end Status_Data;
 
    -----------------------
@@ -212,10 +329,9 @@ package body Response is
    -----------------------
 
    function To_Debug_String
-     (O : in Object)
+     (Instance : in Object)
       return String
    is
-      use Ada.Strings.Unbounded;
       use AWS.Session;
       use AWS.Status;
 
@@ -245,14 +361,14 @@ package body Response is
 
       Msg : Unbounded_String;
    begin
-      Append (Msg, O.Request_URL & " - ");
-      Append (Msg, "Peer " & Peername (O.Request) & " - ");
-      Append (Msg, "User-Agent " & User_Agent (O.Request));
+      Append (Msg, Instance.Request_URL & " - ");
+      Append (Msg, "Peer " & Peername (Instance.Status_Data) & " - ");
+      Append (Msg, "User-Agent " & User_Agent (Instance.Status_Data));
 
-      if Has_Session (O.Request) then
+      if Has_Session (Instance.Status_Data) then
          Append (Msg, " - ");
-         Session_Data_Reader (Session (O.Request));
-         Append (Msg, "Session ID " & Image (Session (O.Request)));
+         Session_Data_Reader (Session (Instance.Status_Data));
+         Append (Msg, "Session ID " & Image (Session (Instance.Status_Data)));
 
          if Length (Session_String) > 0 then
             Append (Msg,  " - " & "Session data " & Session_String);
@@ -263,5 +379,74 @@ package body Response is
 
       return To_String (Msg);
    end To_Debug_String;
+
+   --------------------------------
+   --  Valid_Request_Parameters  --
+   --------------------------------
+
+   function Valid_Request_Parameters
+     (Instance : in Object)
+      return Boolean
+   is
+   begin
+      return Instance.Valid_Request_Parameters;
+   end Valid_Request_Parameters;
+
+   -----------------------------------
+   --  Validate_Request_Parameters  --
+   -----------------------------------
+
+   procedure Validate_Request_Parameters
+     (Instance : in out Object)
+   is
+      use AWS.Parameters;
+      use AWS.Status;
+      use Common;
+      use System_Message;
+
+      Param_List : constant List := Parameters (Instance.Status_Data);
+      Set        : Validation_Set;
+   begin
+      for Elem of Instance.Validations loop
+         Set := Elem;
+
+         if Param_List.Exist (To_String (Set.Name)) then
+            case Elem.Validate_As is
+               when Contact_Identifier =>
+                  Validate
+                    (Model.Contact_Identifier'Value
+                       (Param_List.Get (To_String (Elem.Name))));
+               when Organization_Identifier =>
+                  Validate
+                    (Model.Organization_Identifier'Value
+                       (Param_List.Get (To_String (Elem.Name))));
+               when Organization_List_View =>
+                  Validate
+                    (Request_Parameter_Types.Organization_List_View'Value
+                       (Param_List.Get (To_String (Elem.Name))));
+            end case;
+         else
+            if Set.Mode = Required then
+               raise Missing_Required_Request_Parameter;
+            end if;
+         end if;
+      end loop;
+
+      Instance.Valid_Request_Parameters := True;
+      --  If we reach this point, the reqeust parameters are valid, even if
+      --  there aren't any at all.
+   exception
+      when Constraint_Error =>
+         Error.Bad_Request_Parameter
+           (Message         => To_String (Set.Name)
+            & " must be a valid "
+            & Request_Parameter_Type'Image (Set.Validate_As),
+            Response_Object => Instance);
+      when Missing_Required_Request_Parameter =>
+         Error.Missing_Request_Parameter
+           (Message         => To_String (Set.Name)
+            & " not found ",
+            Response_Object => Instance);
+   end Validate_Request_Parameters;
 
 end Response;

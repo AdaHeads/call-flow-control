@@ -15,43 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
-with Common;
-with Yolk.Cache.Discrete_Keys;
+package Request_Parameter_Types is
 
-package Response.Cached is
+   type Organization_List_View is (Mini, Midi);
 
-   -------------------------
-   --  Generate_Response  --
-   -------------------------
-
-   generic
-
-      type Cache_Key_Type is (<>);
-
-      with package Cache is new Yolk.Cache.Discrete_Keys
-        (Key_Type        => Cache_Key_Type,
-         Element_Type    => Common.JSON_String,
-         Max_Element_Age => <>);
-
-      with function Cache_Key
-        (Response_Object : in Object)
-         return Cache_Key_Type;
-      --  Return the key used to identify an object in a cache.
-
-      with procedure Generate_Document
-        (Response_Object : in out Object);
-      --  Generate the JSON document that is delivered to the client. If
-      --  Response_Object.Cacheable is set to True, then the JSON document is
-      --  cached.
-
-      with procedure Set_Request_Parameters
-        (Instance : out Object);
-
-   function Generate_Response
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --   Generate the data that is delivered to the user.
-
-end Response.Cached;
+end Request_Parameter_Types;

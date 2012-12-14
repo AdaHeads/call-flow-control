@@ -19,20 +19,8 @@ with HTTP_Codes;
 
 package System_Message.Error is
 
-   procedure Bad_Contact_Id is new Log_And_Respond
-     (Description => "ce_id must be a valid natural integer",
-      Log_Trace   => Yolk.Log.Error,
-      Status      => "bad request",
-      Status_Code => HTTP_Codes.Bad_Request);
-
-   procedure Bad_Organization_List_View is new Log_And_Respond
-     (Description => "view must be either mini or midi",
-      Log_Trace   => Yolk.Log.Error,
-      Status      => "bad request",
-      Status_Code => HTTP_Codes.Bad_Request);
-
-   procedure Bad_Org_Id_Key is new Log_And_Respond
-     (Description => "org_id must be a valid natural integer",
+   procedure Bad_Request_Parameter is new Log_And_Respond
+     (Description => "conversion failed",
       Log_Trace   => Yolk.Log.Error,
       Status      => "bad request",
       Status_Code => HTTP_Codes.Bad_Request);
@@ -45,6 +33,12 @@ package System_Message.Error is
 
    procedure Generic_Constraint_Error is new Log_And_Respond
      (Description => "a constraint was violated",
+      Log_Trace   => Yolk.Log.Error,
+      Status      => "bad request",
+      Status_Code => HTTP_Codes.Bad_Request);
+
+   procedure Missing_Request_Parameter is new Log_And_Respond
+     (Description => "required request parameter missing",
       Log_Trace   => Yolk.Log.Error,
       Status      => "bad request",
       Status_Code => HTTP_Codes.Bad_Request);

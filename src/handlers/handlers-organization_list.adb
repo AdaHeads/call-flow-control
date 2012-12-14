@@ -15,26 +15,28 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Status;
 with HTTP_Codes;
 with Model.Organizations;
-with System_Message.Error;
 
 package body Handlers.Organization_List is
 
-   -------------------------------
-   --  Bad_List_View_Parameter  --
-   -------------------------------
+   -----------------
+   --  Cache_Key  --
+   -----------------
 
-   procedure Bad_List_View_Parameter
-     (Response_Object :    out Response.Object;
-      Message         : in     String)
+   function Cache_Key
+     (Response_Object : in Response.Object)
+      return Request_Parameter_Types.Organization_List_View
    is
-      use System_Message;
+      use Request_Parameter_Types;
    begin
-      Error.Bad_Organization_List_View (Message         => Message,
-                           Response_Object => Response_Object);
-   end Bad_List_View_Parameter;
+      if Response_Object.Parameter_Count = 0 then
+         return Mini;
+      end if;
+
+      return Organization_List_View'Value
+        (Response_Object.Parameter ("view"));
+   end Cache_Key;
 
    ----------------
    --  Callback  --
@@ -57,10 +59,11 @@ package body Handlers.Organization_List is
       use Common;
       use HTTP_Codes;
       use Model.Organizations;
+      use Request_Parameter_Types;
 
       Organization_List : List;
    begin
-      case Get_List_View (Response_Object) is
+      case Cache_Key (Response_Object) is
          when Mini =>
             Organization_List := Get (Mini);
          when Midi =>
@@ -68,7 +71,7 @@ package body Handlers.Organization_List is
       end case;
 
       if Organization_List /= Null_List then
-         Response_Object.Cacheable (True);
+         Response_Object.Is_Cacheable (True);
          Response_Object.HTTP_Status_Code (OK);
       else
          Response_Object.HTTP_Status_Code (Not_Found);
@@ -77,22 +80,19 @@ package body Handlers.Organization_List is
       Response_Object.Content (Organization_List.To_JSON_String);
    end Generate_Document;
 
-   ---------------------
-   --  Get_List_Kind  --
-   ---------------------
+   ------------------------------
+   --  Set_Request_Parameters  --
+   ------------------------------
 
-   function Get_List_View
-     (Response_Object : in Response.Object)
-      return View_Type
+   procedure Set_Request_Parameters
+     (Instance : out Response.Object)
    is
-      use AWS.Status;
+      use Response;
    begin
-      if Parameters (Response_Object.Status_Data).Count = 0 then
-         return Mini;
-      end if;
-
-      return View_Type'Value
-        (Parameters (Response_Object.Status_Data).Get ("view"));
-   end Get_List_View;
+      Instance.Register_Request_Parameter
+        (Mode           => Required,
+         Parameter_Name => "view",
+         Validate_As    => Organization_List_View);
+   end Set_Request_Parameters;
 
 end Handlers.Organization_List;

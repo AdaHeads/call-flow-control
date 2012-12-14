@@ -15,26 +15,23 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Status;
 with HTTP_Codes;
 with Model.Organization;
-with System_Message.Error;
 
 package body Handlers.Organization is
 
-   ------------------
-   --  Bad_Org_Id  --
-   ------------------
+   -----------------
+   --  Cache_Key  --
+   -----------------
 
-   procedure Bad_Org_Id
-     (Response_Object :    out Response.Object;
-      Message         : in     String)
+   function Cache_Key
+     (Response_Object : in Response.Object)
+      return Model.Organization_Identifier
    is
-      use System_Message;
    begin
-      Error.Bad_Org_Id_Key (Message         => Message,
-                            Response_Object => Response_Object);
-   end Bad_Org_Id;
+      return Model.Organization_Identifier'Value
+        (Response_Object.Parameter ("org_id"));
+   end Cache_Key;
 
    ----------------
    --  Callback  --
@@ -60,10 +57,10 @@ package body Handlers.Organization is
 
       Organization : Object;
    begin
-      Organization := Get (Get_Org_Id (Response_Object), Mode => Maxi);
+      Organization := Get (Cache_Key (Response_Object), Mode => Maxi);
 
       if Organization /= Null_Organization then
-         Response_Object.Cacheable (True);
+         Response_Object.Is_Cacheable (True);
          Response_Object.HTTP_Status_Code (OK);
       else
          Response_Object.HTTP_Status_Code (Not_Found);
@@ -72,18 +69,19 @@ package body Handlers.Organization is
       Response_Object.Content (Organization.To_JSON_String);
    end Generate_Document;
 
-   ------------------
-   --  Get_Org_Id  --
-   ------------------
+   ------------------------------
+   --  Set_Request_Parameters  --
+   ------------------------------
 
-   function Get_Org_Id
-     (Response_Object : in Response.Object)
-      return Model.Organization_Identifier
+   procedure Set_Request_Parameters
+     (Instance : out Response.Object)
    is
-      use AWS.Status;
+      use Response;
    begin
-      return Model.Organization_Identifier'Value
-        (Parameters (Response_Object.Status_Data).Get ("org_id"));
-   end Get_Org_Id;
+      Instance.Register_Request_Parameter
+        (Mode           => Required,
+         Parameter_Name => "org_id",
+         Validate_As    => Organization_Identifier);
+   end Set_Request_Parameters;
 
 end Handlers.Organization;

@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                             Response.Cached                               --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -36,27 +30,16 @@ package body Response.Cached is
       use AWS.Status;
       use System_Message;
 
-      function Found_Cache_Key
-        return Boolean;
-
       Key             : Cache_Key_Type;
       Response_Object : Object := Factory (Request);
       Valid_Cache     : Boolean;
-
-      function Found_Cache_Key
-        return Boolean
-      is
-      begin
-         Key := Cache_Key (Response_Object);
-         return True;
-      exception
-         when others =>
-            Bad_Request_Parameters (Response_Object,
-                                    Response_Object.Request_URL);
-            return False;
-      end Found_Cache_Key;
    begin
-      if Found_Cache_Key then
+      Set_Request_Parameters (Response_Object);
+      Response_Object.Validate_Request_Parameters;
+
+      if Response_Object.Valid_Request_Parameters then
+         Key := Cache_Key (Response_Object);
+
          Cache.Read (Key      => Key,
                      Is_Valid => Valid_Cache,
                      Value    => Response_Object.Content);
@@ -80,6 +63,7 @@ package body Response.Cached is
            (Event           => Event,
             Message         => Response_Object.To_Debug_String,
             Response_Object => Response_Object);
+
          return Response_Object.Build;
    end Generate_Response;
 

@@ -21,40 +21,52 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Model;
+with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Strings.Unbounded;
+with Response;
 
 package Validator is
 
    type Object is tagged private;
 
-   type Value_Type  is (Contact_Identifier, Organization_Identifier);
+   type Value_Type  is (Contact_Identifier,
+                        Organization_Identifier);
 
    procedure Register
-     (Instance    : in out Object;
-      Parameter   : in String;
-      Validate_As : in Value_Type);
+     (Instance       : in out Object;
+      Parameter_Name : in     String;
+      Validate_As    : in     Value_Type);
    --  TODO: Write comment.
+
+   procedure Validate
+     (Instance        : in     Object;
+      Response_Object : in out Response.Object);
+   --  TODO: Write comment;
 
 private
 
-   type Values (Kind : Value_Type) is
+   use Ada.Containers;
+   use Ada.Strings.Unbounded;
+
+   type Validation_Set is
       record
-         case Kind is
-         when Contact_Identifier =>
-            CI_Value : Model.Contact_Identifier;
-         when Organization_Identifier =>
-            OI_Value : Model.Organization_Identifier;
-         end case;
+         Name        : Unbounded_String;
+         Validate_As : Value_Type;
+--           case Kind is
+--              when Contact_Identifier =>
+--                 CI_Value : Model.Contact_Identifier;
+--              when Organization_Identifier =>
+--                 OI_Value : Model.Organization_Identifier;
+--           end case;
       end record;
 
-   type Set is
-      record
-
-      end record;
+   package Set_List is new Doubly_Linked_Lists
+     (Element_Type => Validation_Set);
+   use Set_List;
 
    type Object is tagged
       record
-         null;
+         Validations : List;
       end record;
 
 end Validator;

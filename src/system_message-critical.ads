@@ -41,7 +41,7 @@ package System_Message.Critical is
 
    procedure Unhandled_Exception is new Log_And_Respond
      (Description =>
-      "This is probably a disaster and should be fixed by someone soon",
+      "This is a disaster and should be fixed by someone soon",
       Log_Trace   => Yolk.Log.Critical,
       Status      => "unhandled exception",
       Status_Code => HTTP_Codes.Server_Error);
