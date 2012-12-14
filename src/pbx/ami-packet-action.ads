@@ -674,83 +674,25 @@ package AMI.Packet.Action is
      ) is null;
    --  Sends an arbitrary event to the Asterisk Manager Interface.
 
-   procedure Wait_Event
+   function Voicemail_Users_List
+     (On_Response  : in Response_Handler_Type :=
+        Null_Reponse_Handler'Access
+      --  The reponse handler.
+     ) return Request;
+   --  List All Voicemail User Information.
+
+   function Wait_Event
      (Timeout : in Duration := 30.0;
       --  Maximum time to wait for events.
       On_Response  : in Response_Handler_Type :=
         Null_Reponse_Handler'Access
       --  The reponse handler.
-     ) is null;
+     ) return Request;
       --  Waits for an event to occur.
       --  After calling this action, Asterisk will send you a Success response
       --  as soon as another event is queued by the Asterisk Manager Interface.
       --  Once WaitEvent has been called on an HTTP manager session,
       --  events will be generated and queued.
-
-   procedure Zap_DND_Off
-     (Zap_Channel : in String;
-      --  The number of the Zap channel on which to turn off the do
-      --  not disturb status.
-      On_Response  : in Response_Handler_Type :=
-        Null_Reponse_Handler'Access
-      --  The reponse handler.
-     ) is null;
-   --  Toggles the do not disturb state on the specified Zap channel to off.
-
-   procedure Zap_DND_On
-     (Zap_Channel : in String;
-      --  The number of the Zap channel on which to turn on the
-      --  Do Not Disturb status.
-      On_Response  : in Response_Handler_Type :=
-        Null_Reponse_Handler'Access
-      --  The reponse handler.
-     ) is null;
-   --  Toggles the do not disturb state on the specified Zap channel to on.
-
-   procedure Zap_Dial_Off_Hook
-     (ZapChannel : in String;
-      --  The Zap channel on which to dial the number.
-      Number     : in String;
-      --  The number to dial.
-      On_Response  : in Response_Handler_Type :=
-        Null_Reponse_Handler'Access
-      --  The reponse handler.
-     ) is null;
-   --  Dials the specified number on the Zap channel while
-   --  the phone is off - hook.
-
-   procedure Zap_Hangup
-     (ZapChannel : in String;
-      --  The Zap channel to hang up.
-      On_Response  : in Response_Handler_Type :=
-        Null_Reponse_Handler'Access
-      --  The reponse handler.
-     ) is null;
-   --  Hangs up the specified Zap channel.
-
-   procedure Zap_Restart
-     (On_Response  : in Response_Handler_Type :=
-        Null_Reponse_Handler'Access
-      --  The reponse handler.
-     ) is null;
-   --  Completly restarts the Zaptel channels,
-   --  terminating any calls in progress.
-
-   procedure Zap_Show_Channels
-     (On_Response  : in Response_Handler_Type :=
-        Null_Reponse_Handler'Access
-      --  The reponse handler.
-     ) is null;
-   --  Shows the status of all the Zap channels.
-
-   procedure Zap_Transfer
-     (Zap_Channel : in String;
-      On_Response  : in Response_Handler_Type :=
-        Null_Reponse_Handler'Access
-      --  The reponse handler.
-     ) is null;
-   --  Transfers a Zap channel.
-
 private
    type Valid_Action is (Undefined,
                          AGI,
@@ -775,7 +717,9 @@ private
                          Park,
                          Ping,
                          Redirect,
-                         SIPPeers);
+                         SIPPeers,
+                         VoicemailUsersList,
+                         WaitEvent);
 
    Digit_Value : constant array (Valid_Digit) of Character :=
                    (Zero       => '0',

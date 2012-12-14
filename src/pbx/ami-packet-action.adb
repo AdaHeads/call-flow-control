@@ -696,4 +696,41 @@ package body AMI.Packet.Action is
       return To_String (Buffer);
    end To_String;
 
+   --------------------------
+   -- Voicemail_Users_List --
+   --------------------------
+
+   function Voicemail_Users_List
+     (On_Response  : in Response_Handler_Type := Null_Reponse_Handler'Access)
+      return Request
+   is
+   begin
+      return Create (Action      => VoicemailUsersList,
+                     Fields      => Field.Field_List.Empty_List,
+                     On_Response => On_Response);
+   end Voicemail_Users_List;
+
+   ----------------
+   -- Wait_Event --
+   ----------------
+
+   function Wait_Event
+     (Timeout      : in Duration := 30.0;
+      On_Response  : in Response_Handler_Type := Null_Reponse_Handler'Access
+     ) return Request
+   is
+      Fields                : AMI.Packet.Field.Field_List.List :=
+                                AMI.Packet.Field.Field_List.Empty_List;
+      Timeout_Milli_Seconds : constant Natural := Natural (Timeout * 1_000);
+   begin
+      Add_Field (List  => Fields,
+                 Key   => AMI.Parser.Timeout,
+                 Value => Trim (Natural'Image (Timeout_Milli_Seconds),
+                   Both));
+
+      return Action.Create (Action      => WaitEvent,
+                            Fields      => Fields,
+                            On_Response => On_Response);
+   end Wait_Event;
+
 end AMI.Packet.Action;
