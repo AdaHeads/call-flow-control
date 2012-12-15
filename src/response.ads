@@ -98,6 +98,13 @@ package Response is
    --  Return the amount of request parameters in the status data request
    --  object.
 
+   function Parameter_Exist
+     (Instance : in Object;
+      Name     : in String)
+      return Boolean
+   with Pre => Instance.Has_Status_Data;
+   --  Return True if the Name request parameter exists.
+
    procedure Register_Request_Parameter
      (Instance       : in out Object;
       Mode           : in     Request_Parameter_Mode;

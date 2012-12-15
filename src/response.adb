@@ -269,6 +269,20 @@ package body Response is
       return Parameters (Instance.Status_Data).Count;
    end Parameter_Count;
 
+   -----------------------
+   --  Parameter_Exist  --
+   -----------------------
+
+   function Parameter_Exist
+     (Instance : in Object;
+      Name     : in String)
+      return Boolean
+   is
+      use AWS.Status;
+   begin
+      return Parameters (Instance.Status_Data).Exist (Name);
+   end Parameter_Exist;
+
    ----------------------------------
    --  Register_Request_Parameter  --
    ----------------------------------

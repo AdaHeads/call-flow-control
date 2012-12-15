@@ -20,13 +20,16 @@ with Common;
 with GNATCOLL.JSON;
 with Model.Contact;
 with Model.Contacts;
+with Request_Parameter_Types;
 
 package Model.Organization is
+
+   use Request_Parameter_Types;
 
    type Object is tagged private;
    Null_Organization : constant Object;
 
-   type Data_Mode is (Mini, Midi, Maxi);
+   subtype Data_Mode is Organization_View;
    --  Mini: As plain as possible. No JSON document, no contacts.
    --  Midi: Mini + the organization JSON document is also fetched.
    --  Maxi: Midi + all contacts for the organization.
@@ -94,12 +97,12 @@ private
 
    type Object is tagged
       record
-         Contact_List : Contacts.List;
+         Contact_List : Contacts.List := Contacts.Null_List;
          Full_Name    : Unbounded_String := Null_Unbounded_String;
          ID           : Organization_Identifier := 0;
          Identifier   : Unbounded_String := Null_Unbounded_String;
          JSON         : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.JSON_Null;
-         Mode         : Data_Mode;
+         Mode         : Data_Mode := Mini;
       end record;
 
    Null_Organization : constant Object

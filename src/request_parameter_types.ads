@@ -17,6 +17,7 @@
 
 package Request_Parameter_Types is
 
-   type Organization_List_View is (Mini, Midi);
+   type Organization_View is (Mini, Midi, Maxi);
+   type Organization_List_View is new Organization_View range Mini .. Midi;
 
 end Request_Parameter_Types;

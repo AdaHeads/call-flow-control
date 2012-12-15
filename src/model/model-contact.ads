@@ -81,7 +81,7 @@ private
 
    type Object is tagged
       record
-         Attributes : Model.Attributes.List;
+         Attributes : Model.Attributes.List := Model.Attributes.Null_List;
          ID         : Contact_Identifier := 0;
          Full_Name  : Unbounded_String := Null_Unbounded_String;
          Is_Human   : Boolean := True;

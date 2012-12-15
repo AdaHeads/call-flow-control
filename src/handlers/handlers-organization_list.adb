@@ -30,12 +30,14 @@ package body Handlers.Organization_List is
    is
       use Request_Parameter_Types;
    begin
-      if Response_Object.Parameter_Count = 0 then
+      --  View isn't a required request parameter, so we have to check for it
+      --  before trying to cast it to an Organization_List_View;
+      if Response_Object.Parameter_Exist ("view") then
+         return Organization_List_View'Value
+           (Response_Object.Parameter ("view"));
+      else
          return Mini;
       end if;
-
-      return Organization_List_View'Value
-        (Response_Object.Parameter ("view"));
    end Cache_Key;
 
    ----------------
@@ -90,7 +92,7 @@ package body Handlers.Organization_List is
       use Response;
    begin
       Instance.Register_Request_Parameter
-        (Mode           => Required,
+        (Mode           => Optional,
          Parameter_Name => "view",
          Validate_As    => Organization_List_View);
    end Set_Request_Parameters;

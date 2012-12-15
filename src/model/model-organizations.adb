@@ -158,7 +158,7 @@ package body Model.Organizations is
             Full_Name  => Cursor.Value (0),
             Identifier => Cursor.Value (1),
             JSON       => Cursor.Json_Object_Value (2),
-            Mode       => Maxi);
+            Mode       => Midi);
 
          A_List.Organizations.Include
            (Key      => Organization.ID,

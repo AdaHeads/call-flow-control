@@ -17,6 +17,7 @@
 
 with HTTP_Codes;
 with Model.Organization;
+with Request_Parameter_Types;
 
 package body Handlers.Organization is
 
@@ -54,6 +55,7 @@ package body Handlers.Organization is
       use Common;
       use HTTP_Codes;
       use Model.Organization;
+      use Request_Parameter_Types;
 
       Organization : Object;
    begin

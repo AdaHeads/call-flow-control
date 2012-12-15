@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Request_Parameter_Types;
+
 package body View.Organization is
 
    function To_Midi_JSON
@@ -47,6 +49,7 @@ package body View.Organization is
       return JSON_Value
    is
       use Model.Organization;
+      use Request_Parameter_Types;
    begin
       case Instance.Mode is
          when Mini =>
@@ -115,20 +118,16 @@ package body View.Organization is
       return JSON_String
    is
       use Model.Organization;
+      use Request_Parameter_Types;
    begin
-      if Instance /= Null_Organization then
-         case Instance.Mode is
-            when Mini =>
-               return To_JSON_String (To_Mini_JSON (Instance).Write);
-            when Midi =>
-               return To_JSON_String (To_Midi_JSON (Instance).Write);
-            when Maxi =>
-               return To_JSON_String (To_Maxi_JSON (Instance).Write);
-         end case;
-      else
-         --  No organization found
-         return To_JSON_String (JSON_Null.Write);
-      end if;
+      case Instance.Mode is
+         when Mini =>
+            return To_JSON_String (To_Mini_JSON (Instance).Write);
+         when Midi =>
+            return To_JSON_String (To_Midi_JSON (Instance).Write);
+         when Maxi =>
+            return To_JSON_String (To_Maxi_JSON (Instance).Write);
+      end case;
    end To_JSON_String;
 
    --------------------
