@@ -35,11 +35,6 @@ package body PBX is
    use System_Messages;
    use My_Configuration;
 
-   function Get_Line return String is
-   begin
-      return Client.Get_Line;
-   end Get_Line;
-
    task type Reader_Task is
       entry Start;
    end Reader_Task;
@@ -59,6 +54,8 @@ package body PBX is
 
    procedure Check_Login (Packet : in AMI.Parser.Packet_Type);
    --  Validates the login of the client.
+
+   function Get_Line return String;
 
    Reader    : Reader_Task;
 
@@ -80,6 +77,11 @@ package body PBX is
 
    end Authenticate;
 
+   procedure Check_Login (Packet : in AMI.Parser.Packet_Type) is
+   begin
+      null;
+   end Check_Login;
+
    procedure Connect is
    begin
 
@@ -96,12 +98,6 @@ package body PBX is
       end if;
 
    end Connect;
-
-   procedure Check_Login (Packet : in AMI.Parser.Packet_Type) is
-   begin
-      null;
-   end Check_Login;
-
 
    procedure Dispatch (Packet : in AMI.Parser.Packet_Type) is
    begin
@@ -128,6 +124,12 @@ package body PBX is
               "------------ Packet dump end ------" &
               "");
    end Dispatch;
+
+   --  Package-level Get_Line.
+   function Get_Line return String is
+   begin
+      return Client.Get_Line;
+   end Get_Line;
 
    task body Reader_Task is
       procedure Parser_Loop;

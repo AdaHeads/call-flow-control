@@ -33,16 +33,16 @@ package AMI.Parser is
       Extension,
       ConnectedLineNum,
       Priority,
-      -- Originate
+      --  Originate
       Account,
       Codecs,
-      -- End Originate
-      -- Redirect
+      --  End Originate
+      --  Redirect
       ExtraExten,
       ExtraChannel,
       ExtraContext,
       ExtraPriority,
-      -- END Redirect
+      --  END Redirect
       Tone,
       --  MASQ
       Clone,

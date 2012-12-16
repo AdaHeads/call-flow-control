@@ -32,6 +32,7 @@ package Model.Call is
    use Ada.Strings.Unbounded;
    use GNATCOLL.JSON;
    use Common;
+   use Model;
    use Model.Agent_ID;
    use Model.Call_ID;
    use Model.Channel_ID;
@@ -41,7 +42,8 @@ package Model.Call is
 
    type Call_State is
      (Unknown, Newly_Arrived, Requeued,
-      Speaking, Ringing, OnHold, Delegated, Hung_Up);
+      Speaking, Ringing, OnHold, Delegated, Hung_Up,
+      Parked);
    type Priority_Level is (Invalid, Low, Normal, High);
 
    type Call_Type is tagged
@@ -50,7 +52,7 @@ package Model.Call is
          State          : Call_State;
          Inbound        : Boolean;
          Queue_Priority : Priority_Level;
-         Channel_ID     : Channel_ID_Type (Temporary => False);
+         Channel        : Channel_ID.Instance (Temporary => False);
          Queue          : Unbounded_String;
          Position       : Natural;
          Count          : Natural;
@@ -73,7 +75,7 @@ private
       State          => Unknown,
       Queue_Priority => Invalid,
       Inbound        => False,
-      Channel_ID     => Null_Channel_ID,
+      Channel        => Null_Channel_ID,
       Queue          => Null_Unbounded_String,
       Position       => 0,
       Count          => 0,

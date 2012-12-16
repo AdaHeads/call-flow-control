@@ -81,6 +81,7 @@ package My_Configuration is
       Defaults            => Default_Values,
       Config_File         => Yolk.Command_Line.Get
                                (Parameter => "--alice-config-file",
-                                Default   => "configuration/alice_config.ini"));
+                                Default   =>
+                                "configuration/alice_config.ini"));
 
 end My_Configuration;

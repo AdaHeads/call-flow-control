@@ -1,11 +1,5 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                  Alice                                    --
---                                                                           --
---                                JSON.Event                                 --
---                                                                           --
---                                  BODY                                     --
---                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
@@ -144,7 +138,7 @@ package body JSON.Event is
       Call_JSON.Set_Field ("call_id", To_String (Call.ID));
       --  Call_JSON.Set_Field ("caller_id", Call.CallerIDName);
       Call_JSON.Set_Field ("arrival_time", Unix_Timestamp (Call.Arrived));
-      Call_JSON.Set_Field ("channel", Call.Channel_ID.To_String);
+      Call_JSON.Set_Field ("channel", Call.Channel.Image);
       Call_JSON.Set_Field ("org_id", Call.Queue);
       Notification_JSON.Set_Field ("call", Call_JSON);
       Notification_JSON.Set_Field ("persistent", False);

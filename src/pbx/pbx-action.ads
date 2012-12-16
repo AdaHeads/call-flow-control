@@ -18,7 +18,7 @@
 with Model.Call_ID;
 with AMI.Packet.Action;
 
-package PBX.action is
+package PBX.Action is
    use Model;
 
    Timeout : exception;
@@ -66,4 +66,4 @@ private
    Ignore : constant Response_Handler :=
                AMI.Packet.Action.Null_Reponse_Handler'Access;
 
-end PBX.action;
+end PBX.Action;

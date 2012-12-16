@@ -33,7 +33,8 @@ package body Model.Peer_ID is
    end "=";
 
    function Create (Item : in String) return Peer_ID_Type is
-      Kind_Offset    : constant Natural := Ada.Strings.Fixed.Index (Source => Item, Pattern => "/");
+      Kind_Offset    : constant Natural := Ada.Strings.Fixed.Index
+        (Source => Item, Pattern => "/");
    begin
       if Kind_Offset > 2 then
          return

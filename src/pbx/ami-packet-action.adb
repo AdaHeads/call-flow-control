@@ -232,13 +232,13 @@ package body AMI.Packet.Action is
                  Value => Channel2);
 
       if Tone then
-        Add_Field (List  => Fields,
-                   Key   => AMI.Parser.Tone,
-                   Value => "yes");
+         Add_Field (List  => Fields,
+                    Key   => AMI.Parser.Tone,
+                    Value => "yes");
       else
-        Add_Field (List  => Fields,
-                   Key   => AMI.Parser.Tone,
-                   Value => "no");
+         Add_Field (List  => Fields,
+                    Key   => AMI.Parser.Tone,
+                    Value => "no");
       end if;
 
       return Action.Create (Action      => Valid_Action'(Bridge),
@@ -460,7 +460,7 @@ package body AMI.Packet.Action is
       Fields.Append (AMI.Packet.Field.Create
                      (Key   => AMI.Parser.Timeout,
                       Value => Trim
-                        (Natural'Image (Timeout_Milli_Seconds),Left)));
+                        (Natural'Image (Timeout_Milli_Seconds), Left)));
 
       if CallerID /= "" then
          Fields.Append (AMI.Packet.Field.Create
@@ -485,7 +485,6 @@ package body AMI.Packet.Action is
                         (Key   => AMI.Parser.Codecs,
                          Value => Codecs));
       end if;
-
 
       return Action.Create (Action      => Originate,
                             Fields      => Fields,
@@ -519,7 +518,7 @@ package body AMI.Packet.Action is
       Fields.Append (AMI.Packet.Field.Create
                      (Key   => AMI.Parser.Timeout,
                       Value => Trim
-                        (Natural'Image (Timeout_Milli_Seconds),Left)));
+                        (Natural'Image (Timeout_Milli_Seconds), Left)));
 
       if Parkinglot /= "" then
          Fields.Append (AMI.Packet.Field.Create
@@ -563,7 +562,7 @@ package body AMI.Packet.Action is
                                 AMI.Packet.Field.Field_List.Empty_List;
    begin
 
-      -- Required fields.
+      --  Required fields.
       Fields.Append (AMI.Packet.Field.Create
                      (Key   => AMI.Parser.Channel,
                       Value => Channel));
@@ -609,7 +608,6 @@ package body AMI.Packet.Action is
                             Fields      => Fields,
                             On_Response => On_Response);
    end Redirect;
-
 
    ----------------------
    -- Response_Handler --

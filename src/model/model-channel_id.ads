@@ -47,9 +47,6 @@ package Model.Channel_ID is
 
    function Image (Item : in Instance) return String;
 
-   function To_String (Item : in Instance) return String renames Image;
-   pragma Obsolescent (To_String);
-
    function "<" (Left  : in Instance;
                  Right : in Instance) return Boolean;
 

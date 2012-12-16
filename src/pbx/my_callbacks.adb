@@ -32,6 +32,7 @@ with Model.Peer_ID;
 with Handlers.Notifications;
 with Model.Call_ID;
 with JSON.Event;
+with Model.Event.Park;
 
 package body My_Callbacks is
    use Common;
@@ -91,9 +92,9 @@ package body My_Callbacks is
    begin
       System_Messages.Notify (Debug, "Core_Show_Channel: ");
 
-      if not Channels.List.Contains (Channel_ID => Requested_Channel.ID) then
+      if not Channels.List.Contains (Key => Requested_Channel.ID) then
          Requested_Channel.ID        :=
-           Channel_ID.Create
+           Channel_ID.Value
              (To_String (Packet.Fields.Element (AMI.Parser.Channel)));
          Requested_Channel.State     :=
            Channel.To_Channel_State
@@ -142,7 +143,7 @@ package body My_Callbacks is
                                    "Dial Begin");
          Call.ID := Model.Call_ID.Create
            (To_String (Packet.Fields.Element (Parser.Uniqueid)));
-         Call.Channel_ID := Model.Channel_ID.Create
+         Call.Channel := Model.Channel_ID.Value
            (To_String (Packet.Fields.Element (Parser.Channel)));
          Call.Inbound := False; --  A dial event implies outbound.
          Call.Arrived := Current_Time;
@@ -169,25 +170,25 @@ package body My_Callbacks is
    procedure Hangup (Packet : in Parser.Packet_Type)
    is
       Context      : constant String :=  Package_Name & ".Hangup";
-      Requested_ID : constant Channel_ID.Channel_ID_Type :=
-                     Channel_ID.Create
+      Requested_ID : constant Channel_ID.Instance :=
+                     Channel_ID.Value
                        (To_String (Packet.Fields.Element (Parser.Channel)));
    begin
-      if Model.Channels.List.Contains (Channel_ID => Requested_ID) then
-         Model.Channels.List.Remove (Channel_ID => Requested_ID);
+      if Model.Channels.List.Contains (Requested_ID) then
+         Model.Channels.List.Remove (Requested_ID);
          System_Messages.Notify
            (Debug, Package_Name & ".Hangup: Removed channel " &
-              Requested_ID.To_String);
+              Requested_ID.Image);
       else
          System_Messages.Notify
            (Error, Package_Name & ".Hangup: Channel not found" &
-              Requested_ID.To_String);
+              Requested_ID.Image);
       end if;
    exception
          when others =>
          System_Messages.Notify (Error, Context &
                                    ": Hangup failed on channel " &
-                                   Requested_ID.To_String);
+                                   Requested_ID.Image);
    end Hangup;
 
    procedure Join (Packet : in Parser.Packet_Type) is
@@ -208,7 +209,7 @@ package body My_Callbacks is
       end if;
 
       Call.Queue := Packet.Fields.Element (Parser.Queue);
-      Call.Channel_ID := Channel_ID.Create
+      Call.Channel := Channel_ID.Value
         (To_String (Packet.Fields.Element (Parser.Channel)));
 
       System_Messages.Notify
@@ -259,7 +260,7 @@ package body My_Callbacks is
       --  Ignore invalid channels for now.
       if Channel_ID.Validate (Channel_String) then
 
-         New_Channel.ID        := Channel_ID.Create (Channel_String);
+         New_Channel.ID        := Channel_ID.Value (Channel_String);
          New_Channel.State     :=
            Channel.To_Channel_State
              (To_String (Packet.Fields.Element (AMI.Parser.ChannelState)));
@@ -277,7 +278,7 @@ package body My_Callbacks is
          New_Channel.Call_ID := Create
            (To_String (Packet.Fields.Element (AMI.Parser.Uniqueid)));
 
-         Channels.List.Insert (Channel => New_Channel);
+         Channels.List.Insert (New_Channel);
          System_Messages.Notify
            (Debug, "My_Callbacks.New_Channel: Channel_List: " &
               Model.Channels.List.To_String);
@@ -298,7 +299,7 @@ package body My_Callbacks is
    begin
       --  Fetch the previous channel image
       Channel_To_Change := Channels.List.Get
-        (Channel_ID.Create
+        (Channel_ID.Value
            (To_String (Packet.Fields.Element (AMI.Parser.Channel))));
 
       --  Update the fields
@@ -320,6 +321,25 @@ package body My_Callbacks is
                                    Channel_To_Change.To_String);
 
    end New_State;
+
+   ------------------
+   -- Parked_Call --
+   ------------------
+
+   procedure Parked_Call (Packet : in Parser.Packet_Type) is
+      Call_To_Park : Call.Call_Type := Null_Call;
+      Park_Event   : Model.Event.Park.Instance;
+   begin
+      Call_To_Park := Calls.List.Get
+        (Call_ID.Create
+           (To_String (Packet.Fields.Element (Parser.Uniqueid))));
+      Call_To_Park.State := Parked;
+      Calls.List.Put (Call_To_Park);
+      Park_Event := Model.Event.Park.Create (Call_To_Park);
+      Notifications.Broadcast (To_JSON_String (Park_Event.To_JSON.Write));
+
+      --  TODO: Broadcast it.
+   end Parked_Call;
 
    ----------------
    -- Peer_Entry --
@@ -504,4 +524,6 @@ begin
                            Handler => Dial'Access);
    AMI.Observers.Register (Event   => AMI.Event.QueueCallerAbandon,
                            Handler => Queue_Abandon'Access);
+   AMI.Observers.Register (Event   => AMI.Event.ParkedCall,
+                           Handler => Parked_Call'Access);
 end My_Callbacks;

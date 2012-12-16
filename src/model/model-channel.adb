@@ -39,7 +39,7 @@ package body Model.Channel is
       JSON         : constant JSON_Value := Create_Object;
       Channel_JSON : constant JSON_Value := Create_Object;
    begin
-      Channel_JSON.Set_Field ("ID", To_String (Channel.ID));
+      Channel_JSON.Set_Field ("ID", Channel.ID.Image);
       Channel_JSON.Set_Field ("Call_ID", Channel.Call_ID.To_String);
       Channel_JSON.Set_Field ("State", To_Lower (Channel.State'Img));
 
@@ -59,7 +59,7 @@ package body Model.Channel is
    function To_String (Channel : in Channel_Type) return String is
    begin
       return
-        "ID => "           & Channel.ID.To_String & ", " &
+        "ID => "           & Channel.ID.Image & ", " &
         "Call_ID => "      & Channel.Call_ID.To_String & ", " &
         "State => "        & Channel.State'Img & ", " &
         "Description => "  & To_String (Channel.Description) & ", " &

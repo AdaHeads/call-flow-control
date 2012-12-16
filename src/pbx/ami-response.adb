@@ -36,7 +36,6 @@ package body AMI.Response is
       return Action_ID_Type'Pos (Key);
    end Hash_Function;
 
-
    procedure Notify (Packet : in     AMI.Parser.Packet_Type) is
       use Ada.Strings.Unbounded;
       Key      : Action_ID_Type := Null_Action_ID;
@@ -74,7 +73,6 @@ package body AMI.Response is
       Reponse_List.Insert (Key      => Reply_For.Action_ID,
                            New_Item => Reply_For.Response_Handler);
    end Subscribe;
-
 
    procedure Wait_For (Action_ID : in Action_ID_Type;
                        Timeout   : in Duration := 3.0) is

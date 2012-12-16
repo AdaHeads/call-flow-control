@@ -30,36 +30,39 @@ with System_Messages;
 
 package body Model.Channels is
    use System_Messages;
+   use type Channel.Channel_Type;
+   use type Channel_ID.Instance;
 
    protected body Protected_Channel_List_Type is
-      function Contains (Channel_ID : in Channel_ID_Type) return Boolean is
+      function Contains (Key : in Channel_ID.Instance) return Boolean is
       begin
-         return Protected_List.Contains (Channel_ID);
+         return Protected_List.Contains (Key);
       end Contains;
 
-      function Get (Channel_ID : in Channel_ID_Type) return Channel_Type is
-         Channel : constant Channel_Type :=
-           Protected_List.Element (Key => Channel_ID);
+      function Get (Key : in Channel_ID.Instance)
+                    return Channel.Channel_Type is
+         Item : constant Channel.Channel_Type :=
+           Protected_List.Element (Key => Key);
       begin
-         if Channel = Null_Channel then
+         if Item = Channel.Null_Channel then
             raise CHANNEL_NOT_FOUND;
          end if;
 
-         return Channel;
+         return Item;
       end Get;
 
       --  Places the Channel, in the queue.
-      procedure Insert (Channel : in Channel_Type) is
+      procedure Insert (Item : in Channel.Channel_Type) is
       begin
          Protected_List.Insert
-           (Key       => Channel.ID,
-            New_Item  => Channel);
+           (Key       => Item.ID,
+            New_Item  => Item);
          System_Messages.Notify
-           (Debug, "Inserted channel:" & Channel.To_String);
+           (Debug, "Inserted channel:" & Item.To_String);
       exception
          when Constraint_Error =>
-            if Protected_List.Element (Key => Channel.ID).ID = Channel.ID then
-               raise DUPLICATE_ID with "key " & To_String (Channel.ID) &
+            if Protected_List.Element (Key => Item.ID).ID = Item.ID then
+               raise DUPLICATE_ID with "key " & Item.ID.Image &
                  " already in map.";
             end if;
             raise;
@@ -73,9 +76,9 @@ package body Model.Channels is
       end Length;
 
       --  Removes the Channel with the specified UniqueID
-      procedure Remove (Channel_ID : Channel_ID_Type) is
+      procedure Remove (Key : Channel_ID.Instance) is
       begin
-         Protected_List.Delete (Channel_ID);
+         Protected_List.Delete (Key);
       end Remove;
 
       function To_JSON return GNATCOLL.JSON.JSON_Value is
@@ -84,9 +87,9 @@ package body Model.Channels is
          JSON_List : JSON_Array;
          Root      : constant JSON_Value := Create_Object;
       begin
-         for Channel of Protected_List loop
-            if Channel /= Null_Channel then
-               Value := Channel.To_JSON;
+         for Item of Protected_List loop
+            if Item /= Channel.Null_Channel then
+               Value := Item.To_JSON;
                Append (JSON_List, Value);
             end if;
          end loop;
@@ -104,11 +107,11 @@ package body Model.Channels is
          return To_String (Item);
       end To_String;
 
-      procedure Update (Channel : in Channel_Type) is
+      procedure Update (Item : in Channel.Channel_Type) is
       begin
-         if Protected_List.Contains (Channel.ID) then
-            Protected_List.Replace (Key      => Channel.ID,
-                                    New_Item => Channel);
+         if Protected_List.Contains (Item.ID) then
+            Protected_List.Replace (Key      => Item.ID,
+                                    New_Item => Item);
          else
             raise CHANNEL_NOT_FOUND;
          end if;

@@ -19,10 +19,26 @@ with AMI.Response;
 
 package body PBX.Action is
 
-   function Cast ( Handler : Response_Handler)
+   function Cast (Handler : Response_Handler)
                   return AMI.Packet.Action.Response_Handler_Type;
    function Cast (ID : AMI.Action_ID_Type)
                   return Reply_Ticket;
+
+   --------------------
+   -- Cast functions --
+   --------------------
+
+   function Cast (Handler : Response_Handler)
+                  return AMI.Packet.Action.Response_Handler_Type is
+   begin
+      return AMI.Packet.Action.Response_Handler_Type (Handler);
+   end Cast;
+
+   function Cast (ID : AMI.Action_ID_Type)
+                  return Reply_Ticket is
+   begin
+      return Reply_Ticket (ID);
+   end Cast;
 
    ------------
    -- Hangup --
@@ -61,20 +77,6 @@ package body PBX.Action is
       return Cast (List_Channels_Action.Action_ID);
    end List_Channels;
 
-   function Login (Username    : in String;
-                   Secret      : in String;
-                   On_Response : in Response_Handler :=
-                     Ignore) return Reply_Ticket is
-      Login_Action : AMI.Packet.Action.Request :=
-                       AMI.Packet.Action.Login
-                         (Username    => Username,
-                          Secret      => Secret,
-                          On_Response => Cast (On_Response));
-   begin
-      Client.Send (Login_Action);
-      return Cast (Login_Action.Action_ID);
-   end Login;
-
    ---------------------
    --  List_SIP_Peers --
    ---------------------
@@ -89,6 +91,24 @@ package body PBX.Action is
 
       return Cast (List_Peers_Action.Action_ID);
    end List_SIP_Peers;
+
+   -----------
+   -- Login --
+   -----------
+
+   function Login (Username    : in String;
+                   Secret      : in String;
+                   On_Response : in Response_Handler :=
+                     Ignore) return Reply_Ticket is
+      Login_Action : AMI.Packet.Action.Request :=
+                       AMI.Packet.Action.Login
+                         (Username    => Username,
+                          Secret      => Secret,
+                          On_Response => Cast (On_Response));
+   begin
+      Client.Send (Login_Action);
+      return Cast (Login_Action.Action_ID);
+   end Login;
 
    ------------
    -- Logoff --
@@ -177,21 +197,5 @@ package body PBX.Action is
    begin
       AMI.Response.Wait_For (Action_ID => Action_ID_Type (Ticket));
    end Wait_For;
-
-   --------------------
-   -- Cast functions --
-   --------------------
-
-   function Cast (Handler : Response_Handler)
-                  return AMI.Packet.Action.Response_Handler_Type is
-   begin
-      return AMI.Packet.Action.Response_Handler_Type (Handler);
-   end Cast;
-
-   function Cast (ID : AMI.Action_ID_Type)
-                  return Reply_Ticket is
-   begin
-      return Reply_Ticket (ID);
-   end Cast;
 
 end PBX.Action;

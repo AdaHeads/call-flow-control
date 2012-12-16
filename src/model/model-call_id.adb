@@ -37,7 +37,8 @@ package body Model.Call_ID is
    end  "=";
 
    function Create (Item : String) return Call_ID_Type is
-      Offset : constant Natural := Ada.Strings.Fixed.Index (Source => Item, Pattern => ".");
+      Offset : constant Natural := Ada.Strings.Fixed.Index
+        (Source => Item, Pattern => ".");
    begin
       return
         (Timestamp => Integer'Value

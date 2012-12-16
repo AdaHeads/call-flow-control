@@ -77,7 +77,6 @@ package body Handlers.Call is
       Response_Object.Content (Status_Message
                                ("Success", "Hangup completed"));
 
-
       return Response_Object.Build;
 
    exception
@@ -156,7 +155,6 @@ package body Handlers.Call is
             Context     => Originating_Agent.Context,
             Extension   => Extension_String));
 
-
       Response_Object.HTTP_Status_Code (OK);
       Response_Object.Content (Status_Message
                         ("status", "ok"));
@@ -194,7 +192,7 @@ package body Handlers.Call is
 
          PBX.Action.Wait_For
            (PBX.Action.Park
-              (Channel          => Requested_Call.Channel_ID.Image,
+              (Channel          => Requested_Call.Channel.Image,
                Fallback_Channel => ""));
 
          --  Park it
@@ -288,7 +286,7 @@ package body Handlers.Call is
 
          PBX.Action.Wait_For
            (PBX.Action.Redirect
-              (Channel     => Requested_Call.Channel_ID.Image,
+              (Channel     => Requested_Call.Channel.Image,
                Extension   => Agent.Extension,
                Context     => "LocalSets"));
 

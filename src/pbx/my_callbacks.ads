@@ -38,6 +38,7 @@ package My_Callbacks is
    procedure Queue_Abandon (Packet : in Parser.Packet_Type);
    --  procedure Unlink_Callback     (Event_List : in Event_List_Type.Map);
 
+   procedure Parked_Call (Packet : in Parser.Packet_Type);
    procedure Peer_Entry (Packet : in Parser.Packet_Type);
 
    procedure Peer_List_Complete (Packet : in Parser.Packet_Type);
