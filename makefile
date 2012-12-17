@@ -25,7 +25,7 @@ all:
 debug:
 	BUILDTYPE=Debug gnatmake -P alice
 
-clean:
+clean: cleanup_messy_temp_files
 	gnatclean -P alice
 	BUILDTYPE=Debug gnatclean -P alice
 
