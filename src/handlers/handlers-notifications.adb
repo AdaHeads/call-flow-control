@@ -57,6 +57,18 @@ package body Handlers.Notifications is
          Message => To_String (JSON));
    end Broadcast;
 
+   -----------------
+   --  Broadcast  --
+   -----------------
+
+   procedure Broadcast
+     (JSON : in GNATCOLL.JSON.JSON_Value)
+   is
+      use Common;
+   begin
+      Broadcast (To_JSON_String (JSON.Write));
+   end Broadcast;
+
    --------------
    --  Create  --
    --------------
