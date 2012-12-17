@@ -177,7 +177,8 @@ package body Handlers.Call is
                   return AWS.Response.Data is
 
       Response_Object   : Response.Object      := Response.Factory (Request);
-      Requested_Call    : Model.Call.Call_Type       := Model.Call.Null_Call;
+      Requested_Call    : Model.Call.Call_Type := Model.Call.Null_Call;
+      Fallback_Call     : Model.Call.Call_Type := Model.Call.Null_Call;
       Call_ID_Parameter : constant String :=
                             Parameters (Request).Get ("call_id");
    begin
@@ -190,10 +191,13 @@ package body Handlers.Call is
          Requested_Call := Calls.List.Get
            (Call_ID.Create (Call_ID_Parameter));
 
+         Fallback_Call := Calls.List.Get
+           (Requested_Call.Bridged_With);
+
          PBX.Action.Wait_For
            (PBX.Action.Park
               (Channel          => Requested_Call.Channel.Image,
-               Fallback_Channel => ""));
+               Fallback_Channel => Fallback_Call.Channel.Image));
 
          --  Park it
 --           AMI.Action.Park (Client   => PBX.Client_Access,

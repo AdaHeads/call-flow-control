@@ -27,6 +27,7 @@ package Model.Agent is
    use Model.Peer_ID;
 
    type Agent_Type is tagged private;
+   type State is (Signed_Out, Idle, Paused, Away);
 
    function Create (ID        : in Agent_ID_Type;
                     Peer_ID   : in Peer_ID_Type;
@@ -35,7 +36,12 @@ package Model.Agent is
    procedure Assign (Agent : in     Agent_Type;
                      Peer  :    out Peer_Type);
 
+   procedure Change_State (Agent     :    out Agent_Type;
+                           New_State : in     State);
+
    function Context (Agent : in Agent_Type) return String;
+
+   function Current_State (Agent : in Agent_Type) return State;
 
    function Extension (Agent : in Agent_Type) return String;
 
@@ -49,17 +55,19 @@ package Model.Agent is
 private
    type Agent_Type is tagged
       record
-         ID        : Agent_ID_Type;
-         Name      : Unbounded_String;
-         Context   : Unbounded_String;
-         Peer_ID   : Peer_ID_Type;
-         Extension : Unbounded_String;
+         ID            : Agent_ID_Type;
+         Current_State : State;
+         Name          : Unbounded_String;
+         Context       : Unbounded_String;
+         Peer_ID       : Peer_ID_Type;
+         Extension     : Unbounded_String;
       end record;
 
    Null_Agent : constant Agent_Type :=
-                  (ID        => Null_Agent_ID,
-                   Name      => Null_Unbounded_String,
-                   Context   => Null_Unbounded_String,
-                   Peer_ID   => Null_Peer_ID,
-                   Extension => Null_Unbounded_String);
+                  (ID            => Null_Agent_ID,
+                   Current_State => Signed_Out,
+                   Name          => Null_Unbounded_String,
+                   Context       => Null_Unbounded_String,
+                   Peer_ID       => Null_Peer_ID,
+                   Extension     => Null_Unbounded_String);
 end Model.Agent;

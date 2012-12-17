@@ -23,6 +23,12 @@ package body Model.Agent is
       Peer.Agent_ID := Agent.ID;
    end Assign;
 
+   procedure Change_State (Agent     :    out Agent_Type;
+                           New_State : in     State) is
+   begin
+      Agent.Current_State := New_State;
+   end Change_State;
+
    function Context (Agent : in Agent_Type) return String is
    begin
       return To_String (Agent.Context);
@@ -32,12 +38,18 @@ package body Model.Agent is
                     Peer_ID   : in Peer_ID_Type;
                     Extension : in String) return Agent_Type is
    begin
-      return (ID        => ID,
-              Name      => Null_Unbounded_String,
-              Context   => Null_Unbounded_String,
-              Peer_ID   => Peer_ID,
-              Extension => To_Unbounded_String (Extension));
+      return (ID            => ID,
+              Current_State => Signed_Out,
+              Name          => Null_Unbounded_String,
+              Context       => Null_Unbounded_String,
+              Peer_ID       => Peer_ID,
+              Extension     => To_Unbounded_String (Extension));
    end Create;
+
+   function Current_State (Agent : in Agent_Type) return State is
+   begin
+      return Agent.Current_State;
+   end Current_State;
 
    function Extension (Agent : in Agent_Type) return String is
    begin

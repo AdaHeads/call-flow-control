@@ -21,7 +21,7 @@ with System_Messages;
 
 with AMI.Event;
 with AMI.Observers;
-with Model.Agents;
+with Model.Agent;
 with Model.Call;
 with Model.Calls;
 with Model.Channel;
@@ -44,7 +44,6 @@ package body PBX.Event_Handlers is
    use Model.Call;
    use Model.Call_ID;
    use Model.Peers;
-   use Model.Peer_ID;
 
    package Notifications renames Handlers.Notifications;
 
@@ -130,9 +129,9 @@ package body PBX.Event_Handlers is
          System_Messages.Notify (Debug, Package_Name & "." & Context & ": " &
                                    "Dial Begin");
          Call.ID := Model.Call_ID.Create
-           (To_String (Packet.Fields.Element (Parser.Uniqueid)));
+           (To_String (Packet.Fields.Element (Parser.DestUniqueid)));
          Call.Channel := Model.Channel_ID.Value
-           (To_String (Packet.Fields.Element (Parser.Channel)));
+           (To_String (Packet.Fields.Element (Parser.Destination)));
          Call.Inbound := False; --  A dial event implies outbound.
          Call.Arrived := Current_Time;
 
@@ -210,8 +209,6 @@ package body PBX.Event_Handlers is
       Call.Channel := Channel_ID.Value
         (To_String (Packet.Fields.Element (Parser.Channel)));
       Model.Calls.List.Insert (Call);
-
-      System_Messages.Notify (Debug, Event.Join.Create (C => Call).To_JSON.Write);
 
       Notifications.Broadcast (Event.Join.Create (C => Call).To_JSON);
    exception
@@ -336,8 +333,9 @@ package body PBX.Event_Handlers is
    ----------------
 
    procedure Peer_Entry (Packet : in Parser.Packet_Type) is
-      --  Context : constant String := "Peer_Entry";
-      Peer    : Peer_Type := Null_Peer;
+      use type Agent.State;
+   --  Context : constant String := "Peer_Entry";
+      Peer        : Peer_Type := Null_Peer;
    begin
       --  Fetch the peer's ID.
       Peer.ID := Peer_ID.Create
@@ -347,8 +345,9 @@ package body PBX.Event_Handlers is
            To_String (Packet.Fields.Element (Parser.ObjectName)));
 
       --  Set the agent field
-      Model.Agents.Get (Peer_ID => Peer.ID).Assign (Peer => Peer);
+      --  TODO
 
+      --  TODO: Update this to the whatever format Asterisk 1.8 supports.
       if To_String (Packet.Fields.Element (Parser.IPaddress)) /= "-none-" then
          Peer.Address := Packet.Fields.Element (Parser.IPaddress);
          Peer.Port := Packet.Fields.Element (Parser.IPport);
@@ -360,11 +359,6 @@ package body PBX.Event_Handlers is
 
       --  Update the peer
       Peers.List.Put (Peer => Peer);
-
-      --  Let the clients know about the change. But only on "real" changes.
---        if Peer.Last_State /= Peer.State then
---           Notifications.Broadcast (JSON.Event.Agent_State_JSON_String (Peer));
---        end if;
 
    end Peer_Entry;
 
@@ -390,11 +384,10 @@ package body PBX.Event_Handlers is
 
       Context : constant String := "Peer_Status";
       Peer    : Peer_Type := Null_Peer;
-
-      Buffer  : Unbounded_String;
    begin
 
-      Peer.ID := Create (To_String (Packet.Fields.Element (AMI.Parser.Peer)));
+      Peer.ID := Peer_ID.Create
+        (To_String (Packet.Fields.Element (AMI.Parser.Peer)));
       --  Check if the peer is known
       if Model.Peers.List.Contains (Peer.ID) then
          Peer := Model.Peers.List.Get (Peer.ID);
@@ -404,8 +397,8 @@ package body PBX.Event_Handlers is
                                  ": got unknown peer " & Peer.ID.To_String);
       end if;
 
-      --  Set the agent field
-      Model.Agents.Get (Peer_ID => Peer.ID).Assign (Peer => Peer);
+      --  Find the agent, and assign the peer.
+      --  TODO
 
       --  Update fields
       Peer.Seen; --  Bump timstamp.
@@ -419,13 +412,14 @@ package body PBX.Event_Handlers is
 
       --  Setting the State - registered or not.
       if Packet.Fields.Contains (AMI.Parser.PeerStatus) then
-         Buffer := Packet.Fields.Element (Parser.PeerStatus);
          --  Save the previous state.
          Peer.Last_State := Peer.State;
-         if To_String (Buffer) = AMI.Peer_State_Unregistered then
+         if To_String (Packet.Fields.Element (Parser.PeerStatus)) =
+           AMI.Peer_State_Unregistered then
             Peer.State := Unregistered;
 
-         elsif To_String (Buffer) = AMI.Peer_State_Registered then
+         elsif To_String (Packet.Fields.Element (Parser.PeerStatus)) =
+           AMI.Peer_State_Registered then
             Peer.State := Idle;
 
          else
@@ -433,7 +427,7 @@ package body PBX.Event_Handlers is
             System_Messages.Notify
               (Critical, "My_Callbacks.Peer_Status: " &
                  "Peer changed state into an unknown state: " &
-                 To_String (Buffer));
+                 To_String (Packet.Fields.Element (Parser.PeerStatus)));
          end if;
 
          System_Messages.Notify
@@ -448,10 +442,6 @@ package body PBX.Event_Handlers is
       --  Update the peer
       Model.Peers.List.Put (Peer => Peer);
 
-      --  Let the clients know about the change. But only on "real" changes.
---        if Peer.Last_State /= Peer.State then
---           Notifications.Broadcast (JSON.Event.Agent_State_JSON_String (Peer));
---        end if;
    end Peer_Status;
 
    --  Event: QueueCallerAbandon
@@ -490,6 +480,9 @@ package body PBX.Event_Handlers is
    end Queue_Abandon;
 
 begin
+   AMI.Observers.Register (Event   => AMI.Event.Bridge,
+                           Handler => Bridge'Access);
+
    AMI.Observers.Register (Event   => AMI.Event.CoreShowChannel,
                            Handler => Core_Show_Channel'Access);
    AMI.Observers.Register (Event   => AMI.Event.CoreShowChannelsComplete,

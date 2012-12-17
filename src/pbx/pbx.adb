@@ -100,7 +100,7 @@ package body PBX is
 
    procedure Dispatch (Packet : in AMI.Parser.Packet_Type) is
    begin
-      System_Messages.Notify (Debug, Image (Packet => Packet));
+      --  System_Messages.Notify (Debug, Image (Packet => Packet));
       if Packet.Header.Key = AMI.Parser.Response then
          AMI.Response.Notify (Packet => Packet);
       elsif Packet.Header.Key = AMI.Parser.Event then
