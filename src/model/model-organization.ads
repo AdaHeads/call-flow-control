@@ -20,16 +20,14 @@ with Common;
 with GNATCOLL.JSON;
 with Model.Contact;
 with Model.Contacts;
-with Request_Parameter_Types;
+with Request_Parameters;
 
 package Model.Organization is
-
-   use Request_Parameter_Types;
 
    type Object is tagged private;
    Null_Organization : constant Object;
 
-   subtype Data_Mode is Organization_View;
+   subtype Data_Mode is Request_Parameters.View;
    --  Mini: As plain as possible. No JSON document, no contacts.
    --  Midi: Mini + the organization JSON document is also fetched.
    --  Maxi: Midi + all contacts for the organization.
@@ -49,7 +47,7 @@ package Model.Organization is
       Full_Name  : in String;
       Identifier : in String;
       JSON       : in GNATCOLL.JSON.JSON_Value;
-      Mode       : in Data_Mode := Mini)
+      Mode       : in Data_Mode := Request_Parameters.Mini)
       return Object;
    --  Create an organization object.
 
@@ -60,7 +58,7 @@ package Model.Organization is
 
    function Get
      (ID   : in Organization_Identifier;
-      Mode : in Data_Mode := Mini)
+      Mode : in Data_Mode := Request_Parameters.Mini)
       return Object;
    --  Get the organization that match ID. The amount of data fetched depends
    --  on the Mode parameter. See comment for the Data_Mode type.
@@ -102,7 +100,7 @@ private
          ID           : Organization_Identifier := 0;
          Identifier   : Unbounded_String := Null_Unbounded_String;
          JSON         : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.JSON_Null;
-         Mode         : Data_Mode := Mini;
+         Mode         : Data_Mode := Request_Parameters.Mini;
       end record;
 
    Null_Organization : constant Object
@@ -111,6 +109,6 @@ private
          ID           => 0,
          Identifier   => Null_Unbounded_String,
          JSON         => GNATCOLL.JSON.JSON_Null,
-         Mode         => Mini);
+         Mode         => Request_Parameters.Mini);
 
 end Model.Organization;

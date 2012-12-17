@@ -17,7 +17,7 @@
 
 with HTTP_Codes;
 with Model.Organization;
-with Request_Parameter_Types;
+with Request_Parameters;
 
 package body Handlers.Organization is
 
@@ -26,12 +26,12 @@ package body Handlers.Organization is
    -----------------
 
    function Cache_Key
-     (Response_Object : in Response.Object)
+     (Instance : in Response.Object)
       return Model.Organization_Identifier
    is
    begin
       return Model.Organization_Identifier'Value
-        (Response_Object.Parameter ("org_id"));
+        (Instance.Parameter ("org_id"));
    end Cache_Key;
 
    ----------------
@@ -50,25 +50,25 @@ package body Handlers.Organization is
    -------------------------
 
    procedure Generate_Document
-     (Response_Object : in out Response.Object)
+     (Instance : in out Response.Object)
    is
       use Common;
       use HTTP_Codes;
       use Model.Organization;
-      use Request_Parameter_Types;
 
       Organization : Object;
    begin
-      Organization := Get (Cache_Key (Response_Object), Mode => Maxi);
+      Organization :=
+        Get (Cache_Key (Instance), Mode => Request_Parameters.Maxi);
 
       if Organization /= Null_Organization then
-         Response_Object.Is_Cacheable (True);
-         Response_Object.HTTP_Status_Code (OK);
+         Instance.Is_Cacheable (True);
+         Instance.HTTP_Status_Code (OK);
       else
-         Response_Object.HTTP_Status_Code (Not_Found);
+         Instance.HTTP_Status_Code (Not_Found);
       end if;
 
-      Response_Object.Content (Organization.To_JSON_String);
+      Instance.Content (Organization.To_JSON_String);
    end Generate_Document;
 
    ------------------------------
@@ -81,9 +81,9 @@ package body Handlers.Organization is
       use Response;
    begin
       Instance.Register_Request_Parameter
-        (Mode           => Required,
+        (Mode           => Request_Parameters.Required,
          Parameter_Name => "org_id",
-         Validate_As    => Organization_Identifier);
+         Validate_As    => Request_Parameters.Organization_Identifier);
    end Set_Request_Parameters;
 
 end Handlers.Organization;

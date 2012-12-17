@@ -22,7 +22,6 @@ with AWS.Session;
 with AWS.URL;
 with HTTP_Codes;
 with Model;
-with Request_Parameter_Types;
 with System_Message.Error;
 
 package body Response is
@@ -51,6 +50,11 @@ package body Response is
    --  NOTE:
    --  We do not support the callback parameter. It is too generic.
 
+   --  Validate procedures
+   --  These are used to cast a string into one of the Value types. If the
+   --  cast fails with a constraint error, then we know the given value is
+   --  invalid.
+
    procedure Validate
      (Value : in Model.Contact_Identifier)
    is null;
@@ -60,7 +64,7 @@ package body Response is
    is null;
 
    procedure Validate
-     (Value : in Request_Parameter_Types.Organization_List_View)
+     (Value : in Request_Parameters.List_View)
    is null;
 
    ------------------------
@@ -289,9 +293,9 @@ package body Response is
 
    procedure Register_Request_Parameter
      (Instance       : in out Object;
-      Mode           : in     Request_Parameter_Mode;
+      Mode           : in     Request_Parameters.Mode;
       Parameter_Name : in     String;
-      Validate_As    : in     Request_Parameter_Type)
+      Validate_As    : in     Request_Parameters.Kind)
    is
       use Common;
    begin
@@ -417,6 +421,7 @@ package body Response is
       use AWS.Status;
       use Common;
       use System_Message;
+      use type Request_Parameters.Mode;
 
       Param_List : constant List := Parameters (Instance.Status_Data);
       Set        : Validation_Set;
@@ -426,21 +431,21 @@ package body Response is
 
          if Param_List.Exist (To_String (Set.Name)) then
             case Elem.Validate_As is
-               when Contact_Identifier =>
+               when Request_Parameters.Contact_Identifier =>
                   Validate
                     (Model.Contact_Identifier'Value
                        (Param_List.Get (To_String (Elem.Name))));
-               when Organization_Identifier =>
+               when Request_Parameters.Organization_Identifier =>
                   Validate
                     (Model.Organization_Identifier'Value
                        (Param_List.Get (To_String (Elem.Name))));
-               when Organization_List_View =>
+               when Request_Parameters.Organization_List_View =>
                   Validate
-                    (Request_Parameter_Types.Organization_List_View'Value
-                       (Param_List.Get (To_String (Elem.Name))));
+                    (Request_Parameters.List_View'
+                       Value (Param_List.Get (To_String (Elem.Name))));
             end case;
          else
-            if Set.Mode = Required then
+            if Set.Mode = Request_Parameters.Required then
                raise Missing_Required_Request_Parameter;
             end if;
          end if;
@@ -454,7 +459,7 @@ package body Response is
          Error.Bad_Request_Parameter
            (Message         => To_String (Set.Name)
             & " must be a valid "
-            & Request_Parameter_Type'Image (Set.Validate_As),
+            & Request_Parameters.Kind'Image (Set.Validate_As),
             Response_Object => Instance);
       when Missing_Required_Request_Parameter =>
          Error.Missing_Request_Parameter

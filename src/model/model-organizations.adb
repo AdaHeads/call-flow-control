@@ -90,7 +90,7 @@ package body Model.Organizations is
    -----------
 
    function Get
-     (Mode : in Data_Mode := Mini)
+     (Mode : in Data_Mode := Request_Parameters.Mini)
       return List
    is
       use GNATCOLL.SQL.Exec;
@@ -112,12 +112,12 @@ package body Model.Organizations is
       end Get_Element;
    begin
       case Mode is
-         when Mini =>
+         when Request_Parameters.Mini =>
             Process_Select_Query_Mini
               (Process_Element    => Get_Element'Access,
                Prepared_Statement => SQL.Organizations_Mini_Prepared,
                Query_Parameters   => No_Parameters);
-         when Midi =>
+         when Request_Parameters.Midi =>
             Process_Select_Query_Midi
               (Process_Element    => Get_Element'Access,
                Prepared_Statement => SQL.Organizations_Midi_Prepared,
@@ -158,7 +158,7 @@ package body Model.Organizations is
             Full_Name  => Cursor.Value (0),
             Identifier => Cursor.Value (1),
             JSON       => Cursor.Json_Object_Value (2),
-            Mode       => Midi);
+            Mode       => Request_Parameters.Midi);
 
          A_List.Organizations.Include
            (Key      => Organization.ID,
@@ -189,7 +189,7 @@ package body Model.Organizations is
             Full_Name  => Cursor.Value (0),
             Identifier => Cursor.Value (1),
             JSON       => GNATCOLL.JSON.JSON_Null,
-            Mode       => Mini);
+            Mode       => Request_Parameters.Mini);
 
          A_List.Organizations.Include
            (Key      => Organization.ID,

@@ -21,16 +21,11 @@ with AWS.Messages;
 with AWS.Response;
 with AWS.Status;
 with Common;
+with Request_Parameters;
 
 package Response is
 
    type Object is tagged limited private;
-
-   type Request_Parameter_Type  is (Contact_Identifier,
-                                    Organization_Identifier,
-                                    Organization_List_View);
-
-   type Request_Parameter_Mode is (Required, Optional);
 
    function Build
      (Instance : in Object)
@@ -107,11 +102,11 @@ package Response is
 
    procedure Register_Request_Parameter
      (Instance       : in out Object;
-      Mode           : in     Request_Parameter_Mode;
+      Mode           : in     Request_Parameters.Mode;
       Parameter_Name : in     String;
-      Validate_As    : in     Request_Parameter_Type)
+      Validate_As    : in     Request_Parameters.Kind)
    with Post => not Instance.Valid_Request_Parameters;
-   --  TODO: Write comment.
+   --  Register a request parameter for later validation.
 
    function Request_URL
      (Instance : in Object)
@@ -158,9 +153,9 @@ private
 
    type Validation_Set is
       record
-         Mode        : Request_Parameter_Mode;
+         Mode        : Request_Parameters.Mode;
          Name        : Unbounded_String;
-         Validate_As : Request_Parameter_Type;
+         Validate_As : Request_Parameters.Kind;
       end record;
 
    package Set_List is new Doubly_Linked_Lists

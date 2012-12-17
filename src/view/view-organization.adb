@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Request_Parameter_Types;
+with Request_Parameters;
 
 package body View.Organization is
 
@@ -49,14 +49,13 @@ package body View.Organization is
       return JSON_Value
    is
       use Model.Organization;
-      use Request_Parameter_Types;
    begin
       case Instance.Mode is
-         when Mini =>
+         when Request_Parameters.Mini =>
             return To_Mini_JSON (Instance);
-         when Midi =>
+         when Request_Parameters.Midi =>
             return To_Midi_JSON (Instance);
-         when Maxi =>
+         when Request_Parameters.Maxi =>
             return To_Maxi_JSON (Instance);
       end case;
    end To_JSON;
@@ -118,14 +117,13 @@ package body View.Organization is
       return JSON_String
    is
       use Model.Organization;
-      use Request_Parameter_Types;
    begin
       case Instance.Mode is
-         when Mini =>
+         when Request_Parameters.Mini =>
             return To_JSON_String (To_Mini_JSON (Instance).Write);
-         when Midi =>
+         when Request_Parameters.Midi =>
             return To_JSON_String (To_Midi_JSON (Instance).Write);
-         when Maxi =>
+         when Request_Parameters.Maxi =>
             return To_JSON_String (To_Maxi_JSON (Instance).Write);
       end case;
    end To_JSON_String;

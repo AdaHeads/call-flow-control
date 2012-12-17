@@ -18,16 +18,14 @@
 with Ada.Containers.Hashed_Maps;
 with Common;
 with Model.Organization;
-with Request_Parameter_Types;
+with Request_Parameters;
 
 package Model.Organizations is
-
-   use Request_Parameter_Types;
 
    type List is tagged private;
    Null_List : constant List;
 
-   subtype Data_Mode is Organization_List_View;
+   subtype Data_Mode is Request_Parameters.List_View;
    --  Mini: As plain as possible. No JSON document, no contacts.
    --  Midi: The organization JSON document is also fetched.
 
@@ -39,7 +37,7 @@ package Model.Organizations is
    --  Instance.
 
    function Get
-     (Mode : in Data_Mode := Mini)
+     (Mode : in Data_Mode := Request_Parameters.Mini)
       return List;
    --  Get a list of all organizations found in the database. The organization
    --  objects in the list does not contain any contacts.

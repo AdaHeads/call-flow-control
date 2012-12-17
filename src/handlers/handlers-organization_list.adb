@@ -25,16 +25,16 @@ package body Handlers.Organization_List is
    -----------------
 
    function Cache_Key
-     (Response_Object : in Response.Object)
-      return Request_Parameter_Types.Organization_List_View
+     (Instance : in Response.Object)
+      return Request_Parameters.List_View
    is
-      use Request_Parameter_Types;
+      use Request_Parameters;
    begin
       --  View isn't a required request parameter, so we have to check for it
       --  before trying to cast it to an Organization_List_View;
-      if Response_Object.Parameter_Exist ("view") then
-         return Organization_List_View'Value
-           (Response_Object.Parameter ("view"));
+      if Instance.Parameter_Exist ("view") then
+         return List_View'Value
+           (Instance.Parameter ("view"));
       else
          return Mini;
       end if;
@@ -56,30 +56,29 @@ package body Handlers.Organization_List is
    -------------------------
 
    procedure Generate_Document
-     (Response_Object : in out Response.Object)
+     (Instance : in out Response.Object)
    is
       use Common;
       use HTTP_Codes;
       use Model.Organizations;
-      use Request_Parameter_Types;
 
       Organization_List : List;
    begin
-      case Cache_Key (Response_Object) is
-         when Mini =>
-            Organization_List := Get (Mini);
-         when Midi =>
-            Organization_List := Get (Midi);
+      case Cache_Key (Instance) is
+         when Request_Parameters.Mini =>
+            Organization_List := Get (Request_Parameters.Mini);
+         when Request_Parameters.Midi =>
+            Organization_List := Get (Request_Parameters.Midi);
       end case;
 
       if Organization_List /= Null_List then
-         Response_Object.Is_Cacheable (True);
-         Response_Object.HTTP_Status_Code (OK);
+         Instance.Is_Cacheable (True);
+         Instance.HTTP_Status_Code (OK);
       else
-         Response_Object.HTTP_Status_Code (Not_Found);
+         Instance.HTTP_Status_Code (Not_Found);
       end if;
 
-      Response_Object.Content (Organization_List.To_JSON_String);
+      Instance.Content (Organization_List.To_JSON_String);
    end Generate_Document;
 
    ------------------------------
@@ -92,9 +91,9 @@ package body Handlers.Organization_List is
       use Response;
    begin
       Instance.Register_Request_Parameter
-        (Mode           => Optional,
+        (Mode           => Request_Parameters.Optional,
          Parameter_Name => "view",
-         Validate_As    => Organization_List_View);
+         Validate_As    => Request_Parameters.Organization_List_View);
    end Set_Request_Parameters;
 
 end Handlers.Organization_List;

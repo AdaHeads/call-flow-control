@@ -25,46 +25,46 @@ package body Response.Cached is
 
    function Generate_Response
      (Request : in AWS.Status.Data)
-         return AWS.Response.Data
+      return AWS.Response.Data
    is
       use AWS.Status;
       use System_Message;
 
-      Key             : Cache_Key_Type;
-      Response_Object : Object := Factory (Request);
-      Valid_Cache     : Boolean;
+      Key         : Cache_Key_Type;
+      Response    : Object := Factory (Request);
+      Valid_Cache : Boolean;
    begin
-      Set_Request_Parameters (Response_Object);
-      Response_Object.Validate_Request_Parameters;
+      Set_Request_Parameters (Response);
+      Response.Validate_Request_Parameters;
 
-      if Response_Object.Valid_Request_Parameters then
-         Key := Cache_Key (Response_Object);
+      if Response.Valid_Request_Parameters then
+         Key := Cache_Key (Response);
 
          Cache.Read (Key      => Key,
                      Is_Valid => Valid_Cache,
-                     Value    => Response_Object.Content);
+                     Value    => Response.Content);
 
          if not Valid_Cache then
-            Generate_Document (Response_Object);
+            Generate_Document (Response);
 
-            if Response_Object.Is_Cacheable then
+            if Response.Is_Cacheable then
                Cache.Write (Key   => Key,
-                            Value => Response_Object.Content);
+                            Value => Response.Content);
             end if;
          end if;
       end if;
 
-      return Response_Object.Build;
+      return Response.Build;
    exception
       when Event : others =>
          --  For now we assume that "other" exceptions caught here are bad
          --  enough to warrant a critical level log entry and response.
          Critical.Response_Exception
            (Event           => Event,
-            Message         => Response_Object.To_Debug_String,
-            Response_Object => Response_Object);
+            Message         => Response.To_Debug_String,
+            Response_Object => Response);
 
-         return Response_Object.Build;
+         return Response.Build;
    end Generate_Response;
 
 end Response.Cached;

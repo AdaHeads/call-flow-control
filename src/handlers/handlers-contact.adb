@@ -17,6 +17,7 @@
 
 with HTTP_Codes;
 with Model.Contact;
+with Request_Parameters;
 
 package body Handlers.Contact is
 
@@ -25,13 +26,13 @@ package body Handlers.Contact is
    -----------------
 
    function Cache_Key
-     (Response_Object : in Response.Object)
+     (Instance : in Response.Object)
       return Model.Contact_Identifier
    is
       use Model;
    begin
       return Contact_Identifier'Value
-        (Response_Object.Parameter ("ce_id"));
+        (Instance.Parameter ("ce_id"));
    end Cache_Key;
 
    ----------------
@@ -50,7 +51,7 @@ package body Handlers.Contact is
    -------------------------
 
    procedure Generate_Document
-     (Response_Object : in out Response.Object)
+     (Instance : in out Response.Object)
    is
       use Common;
       use HTTP_Codes;
@@ -58,16 +59,16 @@ package body Handlers.Contact is
 
       Contact : Object;
    begin
-      Contact := Get (Cache_Key (Response_Object));
+      Contact := Get (Cache_Key (Instance));
 
       if Contact /= Null_Object then
-         Response_Object.Is_Cacheable (True);
-         Response_Object.HTTP_Status_Code (OK);
+         Instance.Is_Cacheable (True);
+         Instance.HTTP_Status_Code (OK);
       else
-         Response_Object.HTTP_Status_Code (Not_Found);
+         Instance.HTTP_Status_Code (Not_Found);
       end if;
 
-      Response_Object.Content (Contact.To_JSON_String);
+      Instance.Content (Contact.To_JSON_String);
    end Generate_Document;
 
    ------------------------------
@@ -80,9 +81,9 @@ package body Handlers.Contact is
       use Response;
    begin
       Instance.Register_Request_Parameter
-        (Mode           => Required,
+        (Mode           => Request_Parameters.Required,
          Parameter_Name => "ce_id",
-         Validate_As    => Contact_Identifier);
+         Validate_As    => Request_Parameters.Contact_Identifier);
    end Set_Request_Parameters;
 
 end Handlers.Contact;

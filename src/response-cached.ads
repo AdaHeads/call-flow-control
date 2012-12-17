@@ -36,18 +36,20 @@ package Response.Cached is
          Max_Element_Age => <>);
 
       with function Cache_Key
-        (Response_Object : in Object)
+        (Instance : in Object)
          return Cache_Key_Type;
       --  Return the key used to identify an object in a cache.
 
       with procedure Generate_Document
-        (Response_Object : in out Object);
+        (Instance : in out Object);
       --  Generate the JSON document that is delivered to the client. If
-      --  Response_Object.Cacheable is set to True, then the JSON document is
-      --  cached.
+      --  Instance.Cacheable is set to True, then the JSON document is cached.
 
       with procedure Set_Request_Parameters
         (Instance : out Object);
+      --  Set the required/optional GET/POST request parameters. These are
+      --  validated before any content is generated, and if validation fails
+      --  then an error is returned to the client.
 
    function Generate_Response
      (Request : in AWS.Status.Data)

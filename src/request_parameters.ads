@@ -15,9 +15,15 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package Request_Parameter_Types is
+package Request_Parameters is
 
-   type Organization_View is (Mini, Midi, Maxi);
-   type Organization_List_View is new Organization_View range Mini .. Midi;
+   type Kind  is (Contact_Identifier,
+                  Organization_Identifier,
+                  Organization_List_View);
 
-end Request_Parameter_Types;
+   type Mode is (Required, Optional);
+
+   type View is (Mini, Midi, Maxi);
+   type List_View is new View range Mini .. Midi;
+
+end Request_Parameters;

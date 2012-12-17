@@ -87,7 +87,7 @@ package body Model.Organization is
       Full_Name  : in String;
       Identifier : in String;
       JSON       : in GNATCOLL.JSON.JSON_Value;
-      Mode       : in Data_Mode := Mini)
+      Mode       : in Data_Mode := Request_Parameters.Mini)
       return Object
    is
       use Common;
@@ -118,7 +118,7 @@ package body Model.Organization is
 
    function Get
      (ID   : in Organization_Identifier;
-      Mode : in Data_Mode := Mini)
+      Mode : in Data_Mode := Request_Parameters.Mini)
       return Object
    is
       use GNATCOLL.SQL.Exec;
@@ -142,17 +142,17 @@ package body Model.Organization is
       Parameters : constant SQL_Parameters := (1 => +Integer (ID));
    begin
       case Mode is
-         when Mini =>
+         when Request_Parameters.Mini =>
             Process_Select_Query_Mini
               (Process_Element    => Get_Element'Access,
                Prepared_Statement => SQL.Organization_Mini_Prepared,
                Query_Parameters   => Parameters);
-         when Midi =>
+         when Request_Parameters.Midi =>
             Process_Select_Query_Midi
               (Process_Element    => Get_Element'Access,
                Prepared_Statement => SQL.Organization_Midi_Prepared,
                Query_Parameters   => Parameters);
-         when Maxi =>
+         when Request_Parameters.Maxi =>
             Process_Select_Query_Maxi
               (Process_Element    => Get_Element'Access,
                Prepared_Statement => SQL.Organization_Maxi_Prepared,
@@ -229,7 +229,7 @@ package body Model.Organization is
          ID           => Organization_Identifier (Cursor.Integer_Value (3)),
          Identifier   => U (Cursor.Value (1)),
          JSON         => Cursor.Json_Object_Value (2),
-         Mode         => Maxi);
+         Mode         => Request_Parameters.Maxi);
 
       while Cursor.Has_Row loop
          if not Cursor.Is_Null (4) then
@@ -271,7 +271,7 @@ package body Model.Organization is
               ID           => Organization_Identifier (C.Integer_Value (3)),
               Identifier   => U (C.Value (1)),
               JSON         => C.Json_Object_Value (2),
-              Mode         => Midi);
+              Mode         => Request_Parameters.Midi);
    end Organization_Midi_Element;
 
    ---------------------------------
@@ -289,7 +289,7 @@ package body Model.Organization is
               ID           => Organization_Identifier (C.Integer_Value (2)),
               Identifier   => U (C.Value (1)),
               JSON         => GNATCOLL.JSON.JSON_Null,
-              Mode         => Mini);
+              Mode         => Request_Parameters.Mini);
    end Organization_Mini_Element;
 
    ----------------------
