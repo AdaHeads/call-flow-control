@@ -18,6 +18,7 @@
 with
   Ada.Containers.Vectors;
 
+with System_Messages; use System_Messages;
 package body AMI.Observers is
    package Callback_Collections is
      new Ada.Containers.Vectors (Index_Type   => Positive,
@@ -29,6 +30,7 @@ package body AMI.Observers is
    procedure Register (Event   : in     AMI.Event.Event_Type;
                        Handler : in     AMI.Event.Event_Callback) is
    begin
+      System_Messages.Notify (Debug, "registering handler for " & Event'Img);
       if not Callbacks (Event).Contains (Handler) then
          Callbacks (Event).Append (Handler);
       end if;

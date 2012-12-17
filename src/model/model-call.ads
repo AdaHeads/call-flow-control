@@ -43,7 +43,7 @@ package Model.Call is
    type Call_State is
      (Unknown, Newly_Arrived, Requeued,
       Speaking, Ringing, OnHold, Delegated, Hung_Up,
-      Parked);
+      Parked, Bridged);
    type Priority_Level is (Invalid, Low, Normal, High);
 
    type Call_Type is tagged
@@ -56,6 +56,7 @@ package Model.Call is
          Queue          : Unbounded_String;
          Position       : Natural;
          Count          : Natural;
+         Bridged_With   : Call_ID.Call_ID_Type;
          Arrived        : Time := Current_Time;
          Assigned_To    : Agent_ID_Type := Create ("");
       end record;
@@ -79,6 +80,7 @@ private
       Queue          => Null_Unbounded_String,
       Position       => 0,
       Count          => 0,
+      Bridged_With   => Call_ID.Null_Call_ID,
       Arrived        => Current_Time,
       Assigned_To    => Create ("0"));
 end Model.Call;

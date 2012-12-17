@@ -23,6 +23,7 @@ with GNATCOLL.JSON;
 
 package Model.Calls is
    use GNATCOLL.JSON;
+   use Model;
    use Model.Agent;
    use Model.Call_ID;
    use Model.Call;
@@ -46,6 +47,14 @@ package Model.Calls is
 
       function Contains (Call_ID : in Call_ID_Type) return Boolean;
       --  Detemine if a call is already represented in the call queue.
+
+      procedure Link (ID1 : Call_ID.Call_ID_Type;
+                      ID2 : Call_ID.Call_ID_Type);
+      --  Links two calls, marking them as interconnected.
+
+      procedure Unlink (ID1 : Call_ID.Call_ID_Type;
+                      ID2 : Call_ID.Call_ID_Type);
+      --  Unlinks two calls, marking them as disconnected.
 
       procedure Dequeue
         (Call_ID : in     Call_ID_Type := Null_Call_ID;

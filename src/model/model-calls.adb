@@ -24,6 +24,11 @@ with Model.Agent_ID;
 package body Model.Calls is
 
    protected body Protected_Call_List_Type is
+
+      ------------
+      -- Assign --
+      ------------
+
       procedure Assign (Agent : in     Agent_Type;
                         Call  : in out Call_Type) is
          use Call_Storage;
@@ -51,6 +56,10 @@ package body Model.Calls is
             Call := Null_Call;
          end if;
       end Assign;
+
+      --------------
+      -- Contains --
+      --------------
 
       function Contains (Call_ID : in Call_ID_Type) return Boolean is
       begin
@@ -80,13 +89,20 @@ package body Model.Calls is
          end if;
       end Dequeue;
 
-      --  Process the entire queue.
+      --------------
+      -- For_Each --
+      --------------
+
       procedure For_Each (Process : in Call_Process_Type) is
       begin
          for I of Protected_List loop
             Process (I);
          end loop;
       end For_Each;
+
+      ---------
+      -- Get --
+      ---------
 
       function Get (Call_ID : in Call_ID_Type) return Call_Type is
          Call : Call_Type := Null_Call;
@@ -102,7 +118,10 @@ package body Model.Calls is
          return Call;
       end Get;
 
-      --  Places the call, in the queue.
+      ------------
+      -- Insert --
+      ------------
+
       procedure Insert (Call : in Call_Type) is
       begin
          Protected_List.Insert
@@ -118,28 +137,79 @@ package body Model.Calls is
             raise;
       end Insert;
 
+      --------------
+      -- Is_Empty --
+      --------------
+
       function Is_Empty return Boolean is
       begin
          return Protected_List.Is_Empty;
       end Is_Empty;
 
-      --  Returns the total number of calls.
+      -------------
+      -- Length --
+      -------------
+
       function Length return Natural is
          use Ada.Containers;
       begin
          return Natural (Protected_List.Length);
       end Length;
 
+      ----------
+      -- Link --
+      ----------
+
+      procedure Link (ID1 : Call_ID.Call_ID_Type;
+                      ID2 : Call_ID.Call_ID_Type) is
+         Call1 : Call.Call_Type := Call.Null_Call;
+         Call2 : Call.Call_Type := Call.Null_Call;
+      begin
+         --  Sanity checks
+         if not Protected_List.Contains (ID1) then
+            raise Call_Not_Found with ID1.To_String;
+         elsif not Protected_List.Contains (ID2) then
+            raise Call_Not_Found with ID2.To_String;
+         end if;
+
+         Call1 := Protected_List.Element (ID1);
+         Call2 := Protected_List.Element (ID2);
+
+         Call1.State := Bridged;
+         Call2.State := Bridged;
+
+         Call1.Bridged_With := ID2;
+         Call2.Bridged_With := ID1;
+
+         Protected_List.Replace (ID1, Call1);
+         Protected_List.Replace (ID2, Call2);
+      end Link;
+
+      ---------
+      -- Put --
+      ---------
+
       procedure Put (Call : in Call_Type) is
       begin
-         raise Program_Error;
+         if not Protected_List.Contains (Call.ID) then
+            Protected_List.Insert (Call.ID, Call);
+         else
+            Protected_List.Replace (Call.ID, Call);
+         end if;
       end Put;
 
-      --  Removes the call with the specified UniqueID
+      ------------
+      -- Remove --
+      ------------
+
       procedure Remove (Call_ID : Call_ID_Type) is
       begin
          Protected_List.Delete (Call_ID);
       end Remove;
+
+      -------------
+      -- To_JSON --
+      -------------
 
       function To_JSON return JSON_Value is
          Value     : JSON_Value := Create_Object;
@@ -156,6 +226,10 @@ package body Model.Calls is
          return Root;
       end To_JSON;
 
+      ---------------
+      -- To_String --
+      ---------------
+
       function To_String return String is
          use Ada.Strings.Unbounded;
          Item : Unbounded_String;
@@ -165,6 +239,40 @@ package body Model.Calls is
          end loop;
          return To_String (Item);
       end To_String;
+
+      ------------
+      -- Unlink --
+      ------------
+
+      procedure Unlink (ID1 : Call_ID.Call_ID_Type;
+                        ID2 : Call_ID.Call_ID_Type) is
+         Call1 : Call.Call_Type := Call.Null_Call;
+         Call2 : Call.Call_Type := Call.Null_Call;
+      begin
+         --  Sanity checks
+         if not Protected_List.Contains (ID1) then
+            raise Call_Not_Found with ID1.To_String;
+         elsif not Protected_List.Contains (ID2) then
+            raise Call_Not_Found with ID2.To_String;
+         end if;
+
+         Call1 := Protected_List.Element (ID1);
+         Call2 := Protected_List.Element (ID2);
+
+         --  This should only be unknown for a very brief period.
+         Call1.State := Unknown;
+         Call2.State := Unknown;
+
+         Call1.Bridged_With := Null_Call_ID;
+         Call2.Bridged_With := Null_Call_ID;
+
+         Protected_List.Replace (ID1, Call1);
+         Protected_List.Replace (ID2, Call2);
+      end Unlink;
+
+      ------------
+      -- Update --
+      ------------
 
       procedure Update (Call : in Call_Type) is
       begin

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2012-, AdaHeads K/S                    --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -14,48 +14,28 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
+with Common;
 
-with My_Handlers;
-with PBX;
-with System_Message.Critical;
-with System_Message.Info;
-with Yolk.Process_Control;
-with Yolk.Process_Owner;
-with Yolk.Server;
-with Unexpected_Exception;
+package body PBX.Event.Leave is
+   use Common;
 
-with AGI.Callbacks;
+   function Create (C : in Call.Call_Type) return Instance is
+   begin
+      return (Call => C);
+   end Create;
 
-pragma Unreferenced (AGI.Callbacks);
+   function To_JSON (O : in Instance) return JSON_Value is
+      Content      : constant JSON_Value := Create_Object;
+      Notification : constant JSON_Value := Create_Object;
+   begin
+      Content.Set_Field ("call", O.Call.To_JSON);
+      Content.Set_Field ("persistent", False);
+      Content.Set_Field ("event", "queue_leave");
 
-procedure Alice is
-   use System_Message;
-   use Yolk.Process_Control;
-   use Yolk.Process_Owner;
-   use Yolk.Server;
+      Notification.Set_Field ("timestamp", Unix_Timestamp (Current_Time));
+      Notification.Set_Field ("notification", Content);
 
-   Alice_Version : constant String := "0.40";
+      return Notification;
+   end To_JSON;
 
-   Web_Server : HTTP := Create
-     (Unexpected => Unexpected_Exception.Callback);
-begin
-   PBX.Start;
-   Web_Server.Start (Dispatchers => My_Handlers.Get);
-
-   Info.Alice_Start (Message => "Server version " & Alice_Version);
-
-   Wait;
-   --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
-
-   Web_Server.Stop;
-   PBX.Stop;
-
-   Info.Alice_Stop;
-exception
-   when Event : Username_Does_Not_Exist =>
-      Critical.Unknown_User (Event);
-   when Event : others =>
-      Critical.Alice_Shutdown_With_Exception (Event);
-      Web_Server.Stop;
-      PBX.Stop;
-end Alice;
+end PBX.Event.Leave;

@@ -30,17 +30,20 @@ package View is
    Assigned_To_S     : constant String := "assigned_to";
    Attributes        : constant String := "attributes";
    Call_S            : constant String := "call";
+   Bridged_With      : constant String := "bridged_with";
    Call_ID_S         : constant String := "call_Id";
    Channel           : constant String := "channel";
    Contact_Id        : constant String := "contact_id";
    Contacts          : constant String := "contacts";
    Full_Name         : constant String := "full_name";
+   ID                : constant String := "id";
    Identifier        : constant String := "identifier";
    Inbound           : constant String := "inbound";
    Is_Human          : constant String := "is_human";
    Organization_Id   : constant String := "organization_id";
    Organization_List : constant String := "organization_list";
    Length            : constant String := "length";
+   Queue             : constant String := "queue";
    State_S           : constant String := "state";
    Status            : constant String := "status";
 

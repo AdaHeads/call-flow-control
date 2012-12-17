@@ -24,6 +24,7 @@ with AMI.Response;
 with AMI.Parser;
 
 with PBX.Action;
+with PBX.Event_Handlers;
 
 with My_Configuration;
 with System_Messages;
@@ -35,9 +36,7 @@ package body PBX is
    use System_Messages;
    use My_Configuration;
 
-   task type Reader_Task is
-      entry Start;
-   end Reader_Task;
+   task type Reader_Task;
    --  Continous reader loop that is reponsible for reading and dispatching
    --  packets. Does not die unless the stop primitive is called.
 
@@ -101,7 +100,7 @@ package body PBX is
 
    procedure Dispatch (Packet : in AMI.Parser.Packet_Type) is
    begin
-      --  System_Messages.Notify (Debug, Image (Packet => Packet));
+      System_Messages.Notify (Debug, Image (Packet => Packet));
       if Packet.Header.Key = AMI.Parser.Response then
          AMI.Response.Notify (Packet => Packet);
       elsif Packet.Header.Key = AMI.Parser.Event then
@@ -154,7 +153,7 @@ package body PBX is
       end Parser_Loop;
 
    begin
-      accept Start;
+      --  accept Start;
       loop
          exit when PBX_Status = Shutdown;
          Parser_Loop;
@@ -173,7 +172,7 @@ package body PBX is
    begin
       Client := AMI.Client.Create (On_Connect    => Authenticate'Access,
                                    On_Disconnect => Connect'Access);
-      Reader.Start; --  Order is important here!
+      --  Reader.Start; --  Order is important here!
       Connect; --  Initial connect.
       System_Messages.Notify (Information, "PBX Subsystem started");
    end Start;

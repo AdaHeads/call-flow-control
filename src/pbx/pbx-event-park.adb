@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2012-, AdaHeads K/S                    --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -14,48 +14,30 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
+with Common;
 
-with My_Handlers;
-with PBX;
-with System_Message.Critical;
-with System_Message.Info;
-with Yolk.Process_Control;
-with Yolk.Process_Owner;
-with Yolk.Server;
-with Unexpected_Exception;
+package body PBX.Event.Park is
+   use Common;
 
-with AGI.Callbacks;
+   function Create (C : in Call.Call_Type) return Instance is
+   begin
+      return (Call => C);
+   end Create;
 
-pragma Unreferenced (AGI.Callbacks);
+   function To_JSON (O : in Instance) return JSON_Value is
+      JSON              : constant JSON_Value := Create_Object;
+      Notification_JSON : constant JSON_Value := Create_Object;
+      Call_JSON         : constant JSON_Value := Create_Object;
+   begin
+      Call_JSON.Set_Field ("call_id", O.Call.ID.To_String);
+      Notification_JSON.Set_Field ("call", Call_JSON);
+      Notification_JSON.Set_Field ("persistent", False);
+      Notification_JSON.Set_Field ("event", "park_call");
 
-procedure Alice is
-   use System_Message;
-   use Yolk.Process_Control;
-   use Yolk.Process_Owner;
-   use Yolk.Server;
+      JSON.Set_Field ("timestamp", Unix_Timestamp (Current_Time));
+      JSON.Set_Field ("notification", Notification_JSON);
 
-   Alice_Version : constant String := "0.40";
+      return JSON;
+   end To_JSON;
 
-   Web_Server : HTTP := Create
-     (Unexpected => Unexpected_Exception.Callback);
-begin
-   PBX.Start;
-   Web_Server.Start (Dispatchers => My_Handlers.Get);
-
-   Info.Alice_Start (Message => "Server version " & Alice_Version);
-
-   Wait;
-   --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
-
-   Web_Server.Stop;
-   PBX.Stop;
-
-   Info.Alice_Stop;
-exception
-   when Event : Username_Does_Not_Exist =>
-      Critical.Unknown_User (Event);
-   when Event : others =>
-      Critical.Alice_Shutdown_With_Exception (Event);
-      Web_Server.Stop;
-      PBX.Stop;
-end Alice;
+end PBX.Event.Park;

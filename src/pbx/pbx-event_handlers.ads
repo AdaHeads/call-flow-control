@@ -14,11 +14,9 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with AMI;
 with AMI.Parser;
 
 package PBX.Event_Handlers is
-   use AMI;
 
    Package_Name : constant String := "My_Callbacks";
 
@@ -52,6 +50,5 @@ package PBX.Event_Handlers is
    --  Update the state of a channel.
 
    procedure Bridge (Packet : in Parser.Packet_Type);
-   procedure Agents;
 
 end PBX.Event_Handlers;

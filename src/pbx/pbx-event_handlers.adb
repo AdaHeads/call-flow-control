@@ -31,7 +31,6 @@ with Model.Peers;
 with Model.Peer_ID;
 with Handlers.Notifications;
 with Model.Call_ID;
-with JSON.Event;
 with PBX.Event.Park;
 with PBX.Event.Join;
 with PBX.Event.Leave;
@@ -210,13 +209,11 @@ package body PBX.Event_Handlers is
       Call.Queue := Packet.Fields.Element (Parser.Queue);
       Call.Channel := Channel_ID.Value
         (To_String (Packet.Fields.Element (Parser.Channel)));
-
-      System_Messages.Notify
-        (Debug, "My_Callbacks.Join: Inserting call: " & Call.To_String);
-
       Model.Calls.List.Insert (Call);
 
-      Notifications.Broadcast (JSON.Event.New_Call_JSON_String (Call));
+      System_Messages.Notify (Debug, Event.Join.Create (C => Call).To_JSON.Write);
+
+      Notifications.Broadcast (Event.Join.Create (C => Call).To_JSON);
    exception
          when others =>
          System_Messages.Notify
@@ -365,9 +362,9 @@ package body PBX.Event_Handlers is
       Peers.List.Put (Peer => Peer);
 
       --  Let the clients know about the change. But only on "real" changes.
-      if Peer.Last_State /= Peer.State then
-         Notifications.Broadcast (JSON.Event.Agent_State_JSON_String (Peer));
-      end if;
+--        if Peer.Last_State /= Peer.State then
+--           Notifications.Broadcast (JSON.Event.Agent_State_JSON_String (Peer));
+--        end if;
 
    end Peer_Entry;
 
@@ -452,9 +449,9 @@ package body PBX.Event_Handlers is
       Model.Peers.List.Put (Peer => Peer);
 
       --  Let the clients know about the change. But only on "real" changes.
-      if Peer.Last_State /= Peer.State then
-         Notifications.Broadcast (JSON.Event.Agent_State_JSON_String (Peer));
-      end if;
+--        if Peer.Last_State /= Peer.State then
+--           Notifications.Broadcast (JSON.Event.Agent_State_JSON_String (Peer));
+--        end if;
    end Peer_Status;
 
    --  Event: QueueCallerAbandon
