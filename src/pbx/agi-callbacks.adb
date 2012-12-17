@@ -15,62 +15,69 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Ada.Characters.Latin_1,
-  Ada.Strings.Fixed,
-  Ada.Strings.Unbounded;
-with
-  AWS.URL;
-with
-  AMI.Event,
-  AMI.Observers,
-  AMI.Packet.Action,
-  PBX,
-  System_Messages;
+with Ada.Characters.Latin_1;
+with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;
+
+with AWS.URL;
+
+with AMI.Event;
+with AMI.Observers;
+with AMI.Packet.Action;
+with PBX;
+with System_Messages;
 
 package body AGI.Callbacks is
 
-   --  Event: AsyncAGI
-   --  Privilege: agi,all
-   --  SubEvent: Start
-   --  Channel: SIP/0000FFFF0001-00000000
-   --  Env: agi_request%3A%20async%0A \
-   --       agi_channel%3A%20SIP%2F0000FFFF0001-00000000%0A \
-   --       agi_language%3A%20en%0A \
-   --       agi_type%3A%20SIP%0Aagi_uniqueid%3A%201285219743.0%0A \
-   --       agi_version%3A%201.8.0-beta5%0Aagi_callerid%3A%2012565551111%0A \
-   --       agi_calleridname%3A%20Julie%20Bryant%0Aagi_callingpres%3A%200%0A \
-   --       agi_callingani2%3A%200%0Aagi_callington%3A%200%0A \
-   --       agi_callingtns%3A%200%0A \
-   --       agi_dnid%3A%20111%0Aagi_rdnis%3A%20unknown%0A \
-   --       agi_context%3A%20LocalSets%0A \
-   --       agi_extension%3A%20111%0Aagi_priority%3A%201%0A \
-   --       agi_enhanced%3A%200.0%0A \
-   --       agi_accountcode%3A%20%0Aagi_threadid%3A%20-1339524208%0A%0A
-   procedure Event (Packet : in AMI.Parser.Packet_Type) is
+   -------------
+   --  Event  --
+   -------------
+
+   procedure Event
+     (Packet : in AMI.Parser.Packet_Type)
+   is
       use System_Messages;
-
-      function Event return String is
-      begin
-         return Ada.Strings.Unbounded.To_String (Packet.Header.Value);
-      end Event;
-
-      function Value (Key : in     AMI.Parser.AMI_Key_Type) return String is
-         use Ada.Strings.Unbounded;
-      begin
-         return AWS.URL.Decode (To_String (Packet.Fields.Element (Key)));
-      exception
-         when Constraint_Error =>
-            System_Messages.Notify
-              (Level   => Error,
-               Message => "AGI: No " & AMI.Parser.AMI_Key_Type'Image (Key) &
-                          " value in packet.");
-            return "";
-      end Value;
 
       type AGI_Events is (Start, Exec, Close, Unrecognised);
 
-      function AGI_Event return AGI_Events is
+      function AGI_Event
+        return AGI_Events;
+      --  TODO: Write comment
+
+      function Channel
+        return String;
+      --  TODO: Write comment
+
+      function Command_ID
+        return String;
+      --  TODO: Write comment
+
+      function Event
+        return String;
+      --  TODO: Write comment
+
+      generic
+         Field : String;
+      function From_Environment
+        return String;
+      --  TODO: Write comment
+
+      function Result
+        return String;
+      --  TODO: Write comment
+
+      function Value
+        (Key : in AMI.Parser.AMI_Key_Type)
+         return String;
+      --  TODO: Write comment
+
+      -----------------
+      --  AGI_Event  --
+      -----------------
+
+      function AGI_Event
+        return AGI_Events
+      is
          Descriptor : constant String := Value (AMI.Parser.SubEvent);
       begin
          if Descriptor = "End" then
@@ -81,24 +88,98 @@ package body AGI.Callbacks is
       exception
          when Constraint_Error =>
             System_Messages.Notify
-              (Level   => Error,
-               Message => "AGI: Received an '" & Descriptor & "' subevent.  " &
-                          "Tell Jacob to add it to type AGI_Events.");
+              (Error,
+               "AGI: Received an '" &
+                 Descriptor &
+                 "' subevent.  " &
+                 "Tell Jacob to add it to type AGI_Events.");
+
             return Unrecognised;
       end AGI_Event;
 
-      function Channel return String is
+      ---------------
+      --  Channel  --
+      ---------------
+
+      function Channel
+        return String
+      is
       begin
          return Value (AMI.Parser.Channel);
       end Channel;
 
-      function Command_ID return String is
+      ------------------
+      --  Command_ID  --
+      ------------------
+
+      function Command_ID
+        return String
+      is
       begin
          return Value (AMI.Parser.CommandID);
       end Command_ID;
 
-      function Result return String is
+      -------------
+      --  Event  --
+      -------------
+
+      function Event
+        return String
+      is
+         use Ada.Strings.Unbounded;
+      begin
+         return To_String (Packet.Header.Value);
+      end Event;
+
+      ------------------------
+      --  From_Environment  --
+      ------------------------
+
+      function From_Environment
+        return String
+      is
+         use Ada.Characters;
          use Ada.Strings.Fixed;
+
+         Key                 : constant String := "agi_" & Field & ": ";
+         Terminator          : constant String := (1 => Latin_1.LF);
+         Environment         : constant String := Value (AMI.Parser.Env);
+         Key_Position        : Positive;
+         Terminator_Position : Positive;
+      begin
+         Key_Position :=
+           Index (Source  => Environment,
+                  Pattern => Key);
+
+         Terminator_Position := Index
+           (Source  => Environment
+              (Key_Position + Key'Length .. Environment'Last),
+            Pattern => Terminator);
+
+         return Environment
+           (Key_Position + Key'Length ..  Terminator_Position - 1);
+      exception
+         when others =>
+            System_Messages.Notify
+              (Error,
+               "AGI: From_Environment: Can not extract " &
+                 Field &
+                 " from the environment: """ &
+                 Environment &
+                 """");
+
+            raise;
+      end From_Environment;
+
+      --------------
+      --  Result  --
+      --------------
+
+      function Result
+        return String
+      is
+         use Ada.Strings.Fixed;
+
          Raw                  : constant String := Value (AMI.Parser.Result);
          First, Second, Third : Positive;
       begin
@@ -110,49 +191,45 @@ package body AGI.Callbacks is
                           Pattern => (1 => Ada.Characters.Latin_1.LF));
 
          return Raw (Second + 1 .. Third - 1) & " (" &
-                Raw (Raw'First .. First - 1) & ")";
+           Raw (Raw'First .. First - 1) & ")";
       exception
          when others =>
             System_Messages.Notify
-              (Level   => Error,
-               Message => "AGI: Result field could not be parsed: """ & Raw &
-                          """.  Give Jacob a copy of the raw result string.");
+              (Error,
+               "AGI: Result field could not be parsed: """ &
+                 Raw &
+                 """.  Give Jacob a copy of the raw result string.");
+
             return Raw;
       end Result;
 
-      generic
-         Field : String;
-      function From_Environment return String;
+      -------------
+      --  Value  --
+      -------------
 
-      function From_Environment return String is
-         use Ada.Strings.Fixed;
-         Key         : constant String := "agi_" & Field & ": ";
-         Terminator  : constant String := (1 => Ada.Characters.Latin_1.LF);
-         Environment : constant String := Value (AMI.Parser.Env);
-         Key_Position        : Positive;
-         Terminator_Position : Positive;
+      function Value
+        (Key : in AMI.Parser.AMI_Key_Type)
+         return String
+      is
+         use Ada.Strings.Unbounded;
       begin
-         Key_Position :=
-           Index (Source  => Environment,
-                  Pattern => Key);
-         Terminator_Position :=
-           Index (Source  => Environment
-                               (Key_Position + Key'Length .. Environment'Last),
-                  Pattern => Terminator);
-         return
-           Environment (Key_Position + Key'Length ..  Terminator_Position - 1);
+         return AWS.URL.Decode (To_String (Packet.Fields.Element (Key)));
       exception
-         when others =>
+         when Constraint_Error =>
             System_Messages.Notify
-              (Level   => Error,
-               Message => "AGI: From_Environment: Can not extract " & Field &
-                          " from the environment: """ & Environment & """");
-            raise;
-      end From_Environment;
+              (Error,
+               "AGI: No " &
+                 AMI.Parser.AMI_Key_Type'Image (Key) &
+                 " value in packet.");
+
+            return "";
+      end Value;
 
       function Caller_ID is new From_Environment (Field => "callerid");
       function Context   is new From_Environment (Field => "context");
       function Extension is new From_Environment (Field => "extension");
+
+      pragma Unreferenced (Context, Extension);
    begin
       System_Messages.Notify (Debug, "AGI:");
 
@@ -164,81 +241,93 @@ package body AGI.Callbacks is
          else
             System_Messages.Notify
               (Error,
-               "AGI: Received an '" & Event & "' event, which should have " &
+               "AGI: Received an '" &
+                 Event &
+                 "' event, which should have " &
                  "been sent elsewhere.");
+
             raise Program_Error;
          end if;
       end Check_Event;
 
-      System_Messages.Notify (Level   => Debug,
-                              Message => "AGI: Channel: " & Channel);
+      System_Messages.Notify (Debug, "AGI: Channel: " & Channel);
 
       case AGI_Event is
          when Start =>
-            System_Messages.Notify
-              (Debug, "AGI: Channel just opened.");
+            System_Messages.Notify (Debug, "AGI: Channel just opened.");
+            System_Messages.Notify (Debug, "AGI: Telling Asterisk to answer.");
 
-            System_Messages.Notify
-              (Debug, "AGI: Telling Asterisk to answer.");
-            PBX.Client.Send (AMI.Packet.Action.AGI
-                               (Channel   => Channel,
-                                Command   => "ANSWER",
-                                CommandID => "fixed-1").To_AMI_Packet);
+            PBX.Client.Send
+              (AMI.Packet.Action.AGI
+                 (Channel   => Channel,
+                  Command   => "ANSWER",
+                  CommandID => "fixed-1").To_AMI_Packet);
 
             if Caller_ID = "TL-Softphone" then
-               System_Messages.Notify
-                 (Debug, "AGI: Say 'bye' to Thomas. ;-)");
-               PBX.Client.Send (AMI.Packet.Action.AGI
-                                  (Channel   => Channel,
-                                   Command   => "SAY ALPHA ""Bye"" """"",
-                                   CommandID => "fixed-2").To_AMI_Packet);
+               System_Messages.Notify (Debug, "AGI: Say 'bye' to Thomas. ;-)");
+
+               PBX.Client.Send
+                 (AMI.Packet.Action.AGI
+                    (Channel   => Channel,
+                     Command   => "SAY ALPHA ""Bye"" """"",
+                     CommandID => "fixed-2").To_AMI_Packet);
             elsif Caller_ID = "softphone1" then
-               System_Messages.Notify
-                 (Debug, "AGI: Send Jacob to the IVR.");
-               PBX.Client.Send (AMI.Packet.Action.AGI
-                                  (Channel   => Channel,
-                                   Command   => "EXEC READ LifeTheUniverseAndEverything,""vm-press""&""digits/4""&""digits/2"",2",
-                                   CommandID => "IVR").To_AMI_Packet);
-               PBX.Client.Send (AMI.Packet.Action.AGI
-                                  (Channel   => Channel,
-                                   Command   => "GET VARIABLE LifeTheUniverseAndEverything",
-                                   CommandID => "get_variable").To_AMI_Packet);
-               PBX.Client.Send (AMI.Packet.Action.AGI
-                                  (Channel   => Channel,
-                                   Command   => "STREAM FILE ""demo-thanks"" """"",
-                                   CommandID => "fixed-2c").To_AMI_Packet);
+               System_Messages.Notify (Debug, "AGI: Send Jacob to the IVR.");
+
+               PBX.Client.Send
+                 (AMI.Packet.Action.AGI
+                    (Channel   => Channel,
+                     Command   => "EXEC READ LifeTheUniverseAndEverything," &
+                       """vm-press""&""digits/4""&""digits/2"",2",
+                     CommandID => "IVR").To_AMI_Packet);
+
+               PBX.Client.Send
+                 (AMI.Packet.Action.AGI
+                    (Channel   => Channel,
+                     Command   => "GET VARIABLE LifeTheUniverseAndEverything",
+                     CommandID => "get_variable").To_AMI_Packet);
+
+               PBX.Client.Send
+                 (AMI.Packet.Action.AGI
+                    (Channel   => Channel,
+                     Command   => "STREAM FILE ""demo-thanks"" """"",
+                     CommandID => "fixed-2c").To_AMI_Packet);
             else
-               System_Messages.Notify
-                 (Debug, "AGI: Queue call.");
-               PBX.Client.Send (AMI.Packet.Action.AGI
-                                  (Channel   => Channel,
-                                   Command   => "EXEC QUEUE org_id1",
-                                   CommandID => "fixed-2").To_AMI_Packet);
+               System_Messages.Notify (Debug, "AGI: Queue call.");
+
+               PBX.Client.Send
+                 (AMI.Packet.Action.AGI
+                    (Channel   => Channel,
+                     Command   => "EXEC QUEUE org_id1",
+                     CommandID => "fixed-2").To_AMI_Packet);
             end if;
 
             System_Messages.Notify
               (Debug, "AGI: Telling Asterisk to hang up.");
-            PBX.Client.Send (AMI.Packet.Action.AGI
-                               (Channel   => Channel,
-                                Command   => "HANGUP",
-                                CommandID => "fixed-3").To_AMI_Packet);
+
+            PBX.Client.Send
+              (AMI.Packet.Action.AGI
+                 (Channel   => Channel,
+                  Command   => "HANGUP",
+                  CommandID => "fixed-3").To_AMI_Packet);
          when Exec =>
             if Command_ID = "get_variable" then
-               System_Messages.Notify (Level   => Debug,
-                                       Message => "AGI: Value request: " &
-                                                  Value (AMI.Parser.Result));
+               System_Messages.Notify
+                 (Debug, "AGI: Value request: " & Value (AMI.Parser.Result));
             else
                System_Messages.Notify
-                 (Level   => Debug,
-                  Message => "AGI: Command " & Command_ID &
-                             " returned the result " & Result & ".");
+                 (Debug,
+                  "AGI: Command " &
+                    Command_ID &
+                    " returned the result " &
+                    Result &
+                    ".");
             end if;
          when Unrecognised =>
             System_Messages.Notify
               (Debug, "AGI: Unrecognised (sub)event received.");
          when Close =>
-            System_Messages.Notify
-              (Debug, "AGI: Channel closed.");
+            System_Messages.Notify (Debug, "AGI: Channel closed.");
       end case;
    exception
       when others =>
