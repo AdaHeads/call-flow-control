@@ -29,7 +29,7 @@ clean:
 	gnatclean -P alice
 	BUILDTYPE=Debug gnatclean -P alice
 
-tests:
+tests: all
 	@./src/tests/build
 	@./src/tests/run
 
