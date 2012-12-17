@@ -29,13 +29,9 @@ clean:
 	gnatclean -P alice
 	BUILDTYPE=Debug gnatclean -P alice
 
-tests: ami_packet_action
-
-ami_packet_action:
-	gnatmake -P src/tests/ami_packet_action.gpr
-
-asterisk_tests_clean:
-	gnatclean -P src/tests/asterisk_tests.gpr
+tests:
+	@./src/tests/build
+	@./src/tests/run
 
 cleanup_messy_temp_files:
 	rm *~ src/*~

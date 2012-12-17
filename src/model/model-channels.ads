@@ -21,7 +21,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Ordered_Maps;
+with Ada.Containers.Indefinite_Ordered_Maps;
 
 with GNATCOLL.JSON;
 
@@ -29,28 +29,30 @@ with Model.Channel;
 with Model.Channel_ID;
 
 package Model.Channels is
-   use Model.Channel;
-   use Model.Channel_ID;
+   use Model;
 
    CHANNEL_NOT_FOUND : exception;
    DUPLICATE_ID      : exception;
 
    type Channel_Process_Type is not null access
-     procedure (Channel : in Channel_Type);
+     procedure (C : in Channel.Channel_Type);
 
    package Channel_List_Type is new
-     Ada.Containers.Ordered_Maps (Key_Type     => Channel_ID_Type,
-                                  Element_Type => Channel_Type);
+     Ada.Containers.Indefinite_Ordered_Maps
+       (Key_Type     => Channel_ID.Instance,
+        Element_Type => Channel.Channel_Type,
+        "<"          => Channel_ID."<",
+        "="          => Channel."=");
 
    protected type Protected_Channel_List_Type is
-      function Contains (Channel_ID : in Channel_ID_Type) return Boolean;
-      procedure Insert (Channel : in Channel_Type);
-      procedure Remove (Channel_ID : in Channel_ID_Type);
-      function Get (Channel_ID : in Channel_ID_Type) return Channel_Type;
+      function Contains (Key : in Channel_ID.Instance) return Boolean;
+      procedure Insert (Item : in Channel.Channel_Type);
+      procedure Remove (Key : in Channel_ID.Instance);
+      function Get (Key : in Channel_ID.Instance) return Channel.Channel_Type;
       function Length return Natural;
       function To_JSON return GNATCOLL.JSON.JSON_Value;
       function To_String return String;
-      procedure Update (Channel : in Channel_Type);
+      procedure Update (Item : in Channel.Channel_Type);
    private
       Protected_List : Channel_List_Type.Map;
    end Protected_Channel_List_Type;

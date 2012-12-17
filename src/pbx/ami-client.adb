@@ -24,6 +24,8 @@
 with AWS.Net;
 with AWS.Net.Buffered;
 
+with AMI.Response;
+
 with Common;
 with System_Messages;
 
@@ -146,6 +148,13 @@ package body AMI.Client is
    exception
       when others =>
          Client.On_Disconnect_Handler.all;
+   end Send;
+
+   procedure Send (Client : in out Client_Type;
+                   Item   : in     AMI.Packet.Action.Request) is
+   begin
+      AMI.Response.Subscribe (Item);
+      Client.Send (String (Item.To_AMI_Packet));
    end Send;
 
    procedure Send (Client : in out Client_Type;

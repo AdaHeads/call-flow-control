@@ -114,14 +114,14 @@ package body AMI.Parser is
          return Bad_Line;
    end Parse_Line;
 
-   function Read_Packet (Client : access AMI.Client.Client_Type)
+   function Read_Packet (Get_Line : Get_Line_Procedure)
                          return Packet_Type is
       Current_Pair   : Pair_Type   := Null_Pair;
       Current_Packet : Packet_Type := New_Packet;
    begin
       loop
          Current_Pair := AMI.Parser.Parse_Line
-           (Line => Client.Get_Line);
+           (Line => Get_Line.all);
 
          --  We return on an empty line, meaning the packet is complete
          if Current_Pair = Empty_Line then

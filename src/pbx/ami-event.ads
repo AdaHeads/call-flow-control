@@ -49,6 +49,7 @@ package AMI.Event is
       --  Command Status Events
       ChannelReload,
       ModuleLoadReport,
+      OriginateResponse,
       Cdr,
       Dial,
       ExtensionStatus,
@@ -58,6 +59,7 @@ package AMI.Event is
       Join,
       Leave,
       Link,
+      Masquerade,
       MeetmeJoin,
       MeetmeLeave,
       MeetmeStopTalking,

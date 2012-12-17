@@ -53,7 +53,7 @@ package body Model.Call is
       Response : Unbounded_String;
    begin
       Append (Response, "ID => " & Call.ID.To_String);
-      Append (Response, ", Channel => " & Call.Channel_ID.To_String);
+      Append (Response, ", Channel => " & Call.Channel.Image);
       Append (Response, ", Queue => "    & To_String (Call.Queue));
       Append (Response, ", State => "    & Call.State'Img);
       return To_String (Response);

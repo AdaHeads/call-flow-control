@@ -17,13 +17,46 @@
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded;
 
-with AMI.Client;
 package AMI.Parser is
    use Ada.Strings.Unbounded;
 
+   type Get_Line_Procedure is not null access function return String;
+
    type AMI_Key_Type is
      (Async,
+      AuthType,
+      Username,
+      Secret,
+      File,
       Agent,
+      Forcerport,
+      Extension,
+      ConnectedLineNum,
+      Priority,
+      --  Originate
+      Account,
+      Codecs,
+      --  End Originate
+      --  Redirect
+      ExtraExten,
+      ExtraChannel,
+      ExtraContext,
+      ExtraPriority,
+      --  END Redirect
+      Tone,
+      --  MASQ
+      Clone,
+      CloneState,
+      Original,
+      OriginalState,
+      --  END MASQ
+      Soft,
+      ParkingLot,
+      Class,
+      Domain,
+      ConnectedLineName,
+      Module,
+      Hint,
       WrapupTime, -- Probably deprecated.
       ApplicationData,
       ReloadReason,
@@ -75,8 +108,6 @@ package AMI.Parser is
       Destination,
       SrcUniqueID,
       DestUniqueID,
-      Extension,
-      Priority,
       Bridgestate,
       Application,
       AppData,
@@ -201,7 +232,7 @@ package AMI.Parser is
    --  Takes a line of text, with key-value pairs structured:
    --  Key: Value<CRLF>
 
-   function Read_Packet (Client : access AMI.Client.Client_Type)
+   function Read_Packet (Get_Line : Get_Line_Procedure)
                          return Packet_Type;
    --  Continously calls Read_Line and Parse_Line untill a complete packet has
    --  been assembled.

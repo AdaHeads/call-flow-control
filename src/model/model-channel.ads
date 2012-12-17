@@ -24,7 +24,7 @@ with Model.Channel_ID;
 
 package Model.Channel is
    use Model.Call_ID;
-   use Model.Channel_ID;
+   use Model;
 
    use Ada.Strings.Unbounded;
 
@@ -32,7 +32,7 @@ package Model.Channel is
                                Dialed, Ringing, Receiver_Ringing, Up, Busy);
 
    type Channel_Type is tagged record
-      ID           : Channel_ID_Type;
+      ID           : Channel_ID.Instance (Temporary => False);
       Call_ID      : Call_ID_Type;
       State        : Channel_State_Type;
       Description  : Unbounded_String;
@@ -54,7 +54,7 @@ package Model.Channel is
    --  Conversion functions.
 private
    Null_Channel : constant Channel_Type :=
-                    (ID           => Null_Channel_ID,
+                    (ID           => Channel_ID.Null_Channel_ID,
                      Call_ID      => Null_Call_ID,
                      State        => Unknown,
                      Description  => Null_Unbounded_String,

@@ -57,7 +57,7 @@ package body View.Call is
          Value.Set_Field (View.State_S, To_Lower (Call.State'Img));
          Value.Set_Field (View.Inbound, Call.Inbound);
          Value.Set_Field (View.Assigned_To_S, Call.Assigned_To.To_String);
-         Value.Set_Field (View.Channel, Call.Channel_ID.To_String);
+         Value.Set_Field (View.Channel, Call.Channel.Image);
          Value.Set_Field (View.Organization_Id, To_String (Call.Queue));
          Value.Set_Field (View.Call_ID_S,  To_String (Call.ID));
          Value.Set_Field (View.Arrival_Time_S, Unix_Timestamp (Call.Arrived));
