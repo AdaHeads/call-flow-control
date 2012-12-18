@@ -14,36 +14,33 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with Common;
+
 with Ada.Characters.Handling;
 
-package body PBX.Event.Agent_State is
-   use Common;
+with Common;
+
+package body Client_Notification is
    use Ada.Characters.Handling;
 
-   function Create (ID        : in Agent_ID.Agent_ID_Type;
-                    Old_State : in Agent.State;
-                    New_State : in Agent.State) return Instance is
+   procedure JSON_Append (Node  : in JSON_Value;
+                          Key   : in String;
+                          Value : in JSON_Value) is
    begin
-      return (ID        => ID,
-              Old_State => Old_State,
-              New_State => New_State);
-   end Create;
+      Node.Get (Field => "notification").Set_Field (Key, Value);
+   end JSON_Append;
 
-   function To_JSON (O : in Instance) return JSON_Value is
-      Content      : constant JSON_Value := Create_Object;
-      Notification : constant JSON_Value := Create_Object;
+   function JSON_Root (O : in Instance'Class) return JSON_Value is
+      Root_JSON         : constant JSON_Value := Create_Object;
+      Notification_JSON : constant JSON_Value := Create_Object;
    begin
-      Content.Set_Field ("agent_id", O.ID.ID);
-      Content.Set_Field ("persistent", False);
-      Content.Set_Field ("event", "agent_state");
-      Content.Set_Field ("new_state", To_Lower (O.New_State'Img));
-      Content.Set_Field ("old_state", To_Lower (O.Old_State'Img));
+      Notification_JSON.Set_Field ("persistent", To_Lower (O.Persistant'Img));
+      Notification_JSON.Set_Field ("event", O.Header_Name);
 
-      Notification.Set_Field ("timestamp", Unix_Timestamp (Current_Time));
-      Notification.Set_Field ("notification", Content);
+      Root_JSON.Set_Field ("timestamp", Common.Unix_Timestamp
+                           (Common.Current_Time));
+      Root_JSON.Set_Field ("notification", Notification_JSON);
 
-      return Notification;
-   end To_JSON;
+      return Root_JSON;
+   end JSON_Root;
 
-end PBX.Event.Agent_State;
+end Client_Notification;

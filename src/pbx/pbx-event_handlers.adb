@@ -31,10 +31,8 @@ with Model.Peers;
 with Model.Peer_ID;
 with Handlers.Notifications;
 with Model.Call_ID;
-with PBX.Event.Park;
-with PBX.Event.Join;
-with PBX.Event.Leave;
-
+with Client_Notification.Queue;
+with Client_Notification.Call;
 package body PBX.Event_Handlers is
    use Common;
    use System_Messages;
@@ -129,7 +127,7 @@ package body PBX.Event_Handlers is
          System_Messages.Notify (Debug, Package_Name & "." & Context & ": " &
                                    "Dial Begin");
          Call.ID := Model.Call_ID.Create
-           (To_String (Packet.Fields.Element (Parser.DestUniqueid)));
+           (To_String (Packet.Fields.Element (Parser.DestUniqueID)));
          Call.Channel := Model.Channel_ID.Value
            (To_String (Packet.Fields.Element (Parser.Destination)));
          Call.Inbound := False; --  A dial event implies outbound.
@@ -144,7 +142,6 @@ package body PBX.Event_Handlers is
                                    "Dial End");
          Call.ID := Model.Call_ID.Create
            (To_String (Packet.Fields.Element (Parser.Uniqueid)));
-         Model.Calls.List.Remove (Call_ID => Call.ID);
       else
          System_Messages.Notify
            (Error, Package_Name & "." & Context & ": " &
@@ -189,8 +186,8 @@ package body PBX.Event_Handlers is
    ------------
 
    procedure Join (Packet : in Parser.Packet_Type) is
-      Call       : Call_Type := Null_Call;
-      Temp_Value : Unbounded_String;
+      Call         : Call_Type := Null_Call;
+      Temp_Value   : Unbounded_String;
    begin
       Call.ID := Call_ID.Create
         (To_String (Packet.Fields.Element (Parser.Uniqueid)));
@@ -210,7 +207,8 @@ package body PBX.Event_Handlers is
         (To_String (Packet.Fields.Element (Parser.Channel)));
       Model.Calls.List.Insert (Call);
 
-      Notifications.Broadcast (Event.Join.Create (C => Call).To_JSON);
+      Notifications.Broadcast
+        (Client_Notification.Queue.Join (C => Call).To_JSON);
    exception
          when others =>
          System_Messages.Notify
@@ -233,7 +231,8 @@ package body PBX.Event_Handlers is
         (Call_ID => Create
            (To_String (Packet.Fields.Element (Parser.Uniqueid))));
 
-      Notifications.Broadcast (PBX.Event.Leave.Create (C => Call).To_JSON);
+      Notifications.Broadcast
+        (Client_Notification.Queue.Leave (C => Call).To_JSON);
    end Leave;
 
    --  A Newchannel event represents any channel created within asterisk.
@@ -315,15 +314,14 @@ package body PBX.Event_Handlers is
 
    procedure Parked_Call (Packet : in Parser.Packet_Type) is
       Call_To_Park : Call.Call_Type := Null_Call;
-      Park_Event   : PBX.Event.Park.Instance;
    begin
       Call_To_Park := Calls.List.Get
         (Call_ID.Create
            (To_String (Packet.Fields.Element (Parser.Uniqueid))));
       Call_To_Park.State := Parked;
       Calls.List.Put (Call_To_Park);
-      Park_Event := PBX.Event.Park.Create (Call_To_Park);
-      Notifications.Broadcast (To_JSON_String (Park_Event.To_JSON.Write));
+      Notifications.Broadcast
+        (Client_Notification.Call.Park (C => Call_To_Park).To_JSON);
 
       --  TODO: Broadcast it.
    end Parked_Call;

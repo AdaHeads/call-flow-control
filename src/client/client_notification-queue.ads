@@ -14,28 +14,34 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with Common;
 
-package body PBX.Event.Leave is
-   use Common;
+with Model.Call;
 
-   function Create (C : in Call.Call_Type) return Instance is
-   begin
-      return (Call => C);
-   end Create;
+package Client_Notification.Queue is
+   use Model;
 
-   function To_JSON (O : in Instance) return JSON_Value is
-      Content      : constant JSON_Value := Create_Object;
-      Notification : constant JSON_Value := Create_Object;
-   begin
-      Content.Set_Field ("call", O.Call.To_JSON);
-      Content.Set_Field ("persistent", False);
-      Content.Set_Field ("event", "queue_leave");
+   type Join_Event is new Client_Notification.Instance
+     (Persistant => False) with
+      record
+         Call : Model.Call.Call_Type;
+      end record;
+   function To_JSON (O : in Join_Event) return JSON_Value;
+   function Header_Name (O : in Join_Event) return String;
 
-      Notification.Set_Field ("timestamp", Unix_Timestamp (Current_Time));
-      Notification.Set_Field ("notification", Content);
+   type Leave_Event is new Client_Notification.Instance
+     (Persistant => False) with
+      record
+         Call : Model.Call.Call_Type;
+      end record;
+   function To_JSON (O : in Leave_Event) return JSON_Value;
+   function Header_Name (O : in Leave_Event) return String;
 
-      return Notification;
-   end To_JSON;
+   function Join (C : in Call.Call_Type) return Join_Event;
+   function Leave (C : in Call.Call_Type) return Leave_Event;
 
-end PBX.Event.Leave;
+private
+
+   Join_Header  : constant String := "queue_join";
+   Leave_Header : constant String := "queue_leave";
+
+end Client_Notification.Queue;

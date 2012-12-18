@@ -15,15 +15,19 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with Model.Agent;
 
-package PBX.Event is
-   use GNATCOLL.JSON;
+package Client_Notification.Agent is
+   use Model;
 
-   type Instance is abstract tagged private;
-   function To_JSON (O : in Instance) return JSON_Value is abstract;
+   type Notification is new Client_Notification.Instance with
+      record
+         Agent : Model.Agent.Agent_Type;
+      end record;
+   function To_JSON (O : in Notification) return JSON_Value;
+
+
 
 private
-   type Instance is abstract tagged null record;
-
-end PBX.Event;
+   Agent_State_Header : constant String := "agent_state";
+end Client_Notification.Agent;

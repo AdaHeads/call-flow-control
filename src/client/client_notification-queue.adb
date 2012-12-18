@@ -15,21 +15,44 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Model.Agent;
-with Model.Agent_ID;
+package body Client_Notification.Queue is
 
-package PBX.Event.Agent_State is
-   use Model;
+   function Header_Name (O : in Join_Event) return String is
+      pragma Unreferenced (O);
+   begin
+      return Join_Header;
+   end Header_Name;
 
-   type Instance is new Event.Instance with
-      record
-         ID                   : Agent_ID.Agent_ID_Type;
-         Old_State, New_State : Agent.State;
-      end record;
-   function To_JSON (O : in Instance) return JSON_Value;
+   function Header_Name (O : in Leave_Event) return String is
+      pragma Unreferenced (O);
+   begin
+      return Leave_Header;
+   end Header_Name;
 
-   function Create (ID        : in Agent_ID.Agent_ID_Type;
-                    Old_State : in Agent.State;
-                    New_State : in Agent.State) return Instance;
+   function Join (C : in Call.Call_Type) return Join_Event is
+   begin
+      return (Instance with Persistant => False, Call => C);
+   end Join;
 
-end PBX.Event.Agent_State;
+   function Leave (C : in Call.Call_Type) return Leave_Event is
+   begin
+      return (Instance with Persistant => False, Call => C);
+   end Leave;
+
+   function To_JSON (O : in Join_Event) return JSON_Value is
+      Notification_JSON : constant JSON_Value := O.JSON_Root;
+   begin
+      JSON_Append (Notification_JSON, "call", O.Call.To_JSON);
+
+      return Notification_JSON;
+   end To_JSON;
+
+   function To_JSON (O : in Leave_Event) return JSON_Value is
+      Notification_JSON : constant JSON_Value := O.JSON_Root;
+   begin
+      JSON_Append (Notification_JSON, "call", O.Call.To_JSON);
+
+      return Notification_JSON;
+   end To_JSON;
+
+end Client_Notification.Queue;

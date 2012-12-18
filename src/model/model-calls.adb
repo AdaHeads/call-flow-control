@@ -204,7 +204,11 @@ package body Model.Calls is
 
       procedure Remove (Call_ID : Call_ID_Type) is
       begin
-         Protected_List.Delete (Call_ID);
+         if Protected_List.Contains (Call_ID) then
+            Protected_List.Delete (Call_ID);
+         else
+            raise Call_Not_Found;
+         end if;
       end Remove;
 
       -------------

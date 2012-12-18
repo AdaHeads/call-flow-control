@@ -24,7 +24,9 @@ with AMI.Response;
 with AMI.Parser;
 
 with PBX.Action;
+
 with PBX.Event_Handlers;
+pragma Unreferenced (PBX.Event_Handlers);
 
 with My_Configuration;
 with System_Messages;

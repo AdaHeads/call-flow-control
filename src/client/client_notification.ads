@@ -15,17 +15,29 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Model.Call;
+with GNATCOLL.JSON;
 
-package PBX.Event.Join is
-   use Model;
+package Client_Notification is
+   use GNATCOLL.JSON;
 
-   type Instance is new Event.Instance with
-      record
-         Call : Model.Call.Call_Type;
-      end record;
-   function To_JSON (O : in Instance) return JSON_Value;
+   type Instance (Persistant : Boolean) is abstract tagged private;
 
-   function Create (C : in Call.Call_Type) return Instance;
+   function JSON_Root (O : in Instance'Class) return JSON_Value;
+   --  Class-wide operation that returns the root of the notification
+   --  in JSON format.
 
-end PBX.Event.Join;
+   procedure JSON_Append (Node  : in JSON_Value;
+                          Key   : in String;
+                          Value : in JSON_Value);
+   --  Appends additional JSON objects to the body.
+
+   function To_JSON (O : in Instance) return JSON_Value is abstract;
+   --  Mandatory individual JSON conversion function.
+
+   function Header_Name (O : in Instance) return String is abstract;
+   --  Mandatory header name.
+
+private
+   type Instance (Persistant : Boolean) is abstract tagged null record;
+
+end Client_Notification;
