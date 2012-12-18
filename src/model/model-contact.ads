@@ -27,7 +27,8 @@ package Model.Contact is
 
    procedure Add_Attribute
      (Instance  : in out Object;
-      Attribute : in     Model.Attribute.Object);
+      Attribute : in     Model.Attribute.Object)
+   with Pre => Instance.ID = Attribute.Contact_ID;
    --  Add Attribute to Instance.
 
    function Attributes
