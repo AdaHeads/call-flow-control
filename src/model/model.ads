@@ -24,8 +24,8 @@ package Model is
 
    type Organization_Contact_Identifier is
       record
-         CID : Contact_Identifier;
-         OID : Organization_Identifier;
+         CID : Contact_Identifier := 0;
+         OID : Organization_Identifier := 0;
       end record;
    --  Identifies the CID contact in the context of the OID organization.
 
