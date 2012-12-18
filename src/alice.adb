@@ -19,19 +19,14 @@ with My_Handlers;
 with PBX;
 with System_Message.Critical;
 with System_Message.Info;
-with Yolk.Process_Control;
-with Yolk.Process_Owner;
-with Yolk.Server;
 with Unexpected_Exception;
 
-with AGI.Callbacks;
-
-pragma Unreferenced (AGI.Callbacks);
+with Yolk.Process_Control;
+with Yolk.Server;
 
 procedure Alice is
    use System_Message;
    use Yolk.Process_Control;
-   use Yolk.Process_Owner;
    use Yolk.Server;
 
    Alice_Version : constant String := "0.40";
@@ -52,8 +47,6 @@ begin
 
    Info.Alice_Stop;
 exception
-   when Event : Username_Does_Not_Exist =>
-      Critical.Unknown_User (Event);
    when Event : others =>
       Critical.Alice_Shutdown_With_Exception (Event);
       Web_Server.Stop;
