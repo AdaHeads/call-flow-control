@@ -1,4 +1,3 @@
-
 -------------------------------------------------------------------------------
 --                                                                           --
 --                     Copyright (C) 2012-, AdaHeads K/S                     --
@@ -23,6 +22,38 @@ with Ada.Characters.Latin_1;
 with System_Messages;   use System_Messages;
 
 package body AMI.Parser is
+
+   function Get_Value (Packet   : in Packet_Type;
+                       Key      : in AMI_Key_Type;
+                       Required : in Boolean := True) return String is
+   begin
+      return To_String (Packet.Get_Value (Key, Required));
+   end Get_Value;
+
+   function Get_Value (Packet   : in Packet_Type;
+                       Key      : in AMI_Key_Type;
+                       Required : in Boolean := True)
+                       return Unbounded_String is
+   begin
+      if Required then
+         return Packet.Fields.Element (Key);
+      else
+         if not Packet.Has_Value (Key) then
+            return Null_Unbounded_String;
+         else
+            return Packet.Fields.Element (Key);
+         end if;
+      end if;
+   exception
+      when Constraint_Error =>
+         raise Key_Not_In_Packet with "No pair with key " & Key'Img;
+   end Get_Value;
+
+   function Has_Value (Packet   : in Packet_Type;
+                       Key      : in AMI_Key_Type) return Boolean is
+   begin
+      return Packet.Fields.Contains (Key);
+   end Has_Value;
 
    function Hash_Equivalent_Keys (Left, Right : in AMI_Key_Type)
                                   return Boolean is

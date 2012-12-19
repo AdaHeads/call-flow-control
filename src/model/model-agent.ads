@@ -17,14 +17,14 @@
 
 with Ada.Strings.Unbounded;
 with Model.Agent_ID;
-with Model.Peers;
-with Model.Peer_ID;
+with AMI.Peer;
+with AMI.Peer_ID;
 
 package Model.Agent is
    use Ada.Strings.Unbounded;
    use Model.Agent_ID;
-   use Model.Peers;
-   use Model.Peer_ID;
+   use AMI.Peer;
+   use AMI.Peer_ID;
 
    type Agent_Type is tagged private;
    type State is (Signed_Out, Idle, Paused, Away);

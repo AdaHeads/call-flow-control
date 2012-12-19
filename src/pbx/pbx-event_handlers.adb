@@ -23,16 +23,16 @@ with AMI.Event;
 with AMI.Observers;
 with Model.Agent;
 with Model.Call;
-with Model.Calls;
-with Model.Channel;
-with Model.Channels;
-with Model.Channel_ID;
-with Model.Peers;
-with Model.Peer_ID;
-with Handlers.Notifications;
 with Model.Call_ID;
+with Model.Calls;
+with AMI.Channel;
+with AMI.Channel_ID;
+with AMI.Peer;
+with AMI.Peer_ID;
+with Handlers.Notifications;
 with Client_Notification.Queue;
 with Client_Notification.Call;
+
 package body PBX.Event_Handlers is
    use Common;
    use System_Messages;
@@ -41,7 +41,7 @@ package body PBX.Event_Handlers is
    use Model;
    use Model.Call;
    use Model.Call_ID;
-   use Model.Peers;
+   use AMI.Peer;
 
    package Notifications renames Handlers.Notifications;
 
@@ -53,9 +53,9 @@ package body PBX.Event_Handlers is
       ID1, ID2 : Call_ID.Call_ID_Type := Null_Call_ID;
    begin
       ID1 := Call_ID.Create
-        (To_String (Packet.Fields.Element (Parser.Uniqueid1)));
+        (To_String (Packet.Fields.Element (Parser.UniqueID1)));
       ID2 := Call_ID.Create
-        (To_String (Packet.Fields.Element (Parser.Uniqueid2)));
+        (To_String (Packet.Fields.Element (Parser.UniqueID2)));
       Calls.List.Link (ID1 => ID1,
                        ID2 => ID2);
    end Bridge;
@@ -67,23 +67,12 @@ package body PBX.Event_Handlers is
    --  TODO: Move this to a consistency_check package, and use more
    --  of the information.
    procedure Core_Show_Channel (Packet : in Parser.Packet_Type) is
-      Requested_Channel : Channel.Channel_Type := Channel.Null_Channel;
+      Requested_Channel : AMI.Channel.Instance := AMI.Channel.Null_Object;
    begin
       --  Only load missing channels.
-      if not Channels.List.Contains (Key => Requested_Channel.ID) then
-         Requested_Channel.ID        :=
-           Channel_ID.Value
-             (To_String (Packet.Fields.Element (AMI.Parser.Channel)));
-         Requested_Channel.State     :=
-           Channel.To_Channel_State
-             (To_String (Packet.Fields.Element (AMI.Parser.ChannelState)));
-         Requested_Channel.Description :=
-           Packet.Fields.Element (AMI.Parser.ChannelStateDesc);
-         Requested_Channel.CallerIDNum :=
-           Packet.Fields.Element (AMI.Parser.CallerIDNum);
-         Requested_Channel.Call_ID := Create
-           (To_String (Packet.Fields.Element (AMI.Parser.Uniqueid)));
-         Model.Channels.List.Insert (Requested_Channel);
+      if not Channel.List.Contains (Key => Requested_Channel.ID) then
+         Requested_Channel := AMI.Channel.Create (Packet);
+         Channel.List.Insert (Requested_Channel);
       end if;
    end Core_Show_Channel;
 
@@ -99,7 +88,7 @@ package body PBX.Event_Handlers is
         Natural'Value (To_String (Packet.Fields.Element (Parser.ListItems)));
    begin
       System_Messages.Notify (Debug, "Core_Show_Channel_Complete");
-      if Number_Of_Events /= Model.Channels.List.Length then
+      if Number_Of_Events /= Channel.List.Length then
          System_Messages.Notify (Error, Package_Name & "." & Context & ": " &
                                 "Channel list inconsistent!");
       end if;
@@ -128,7 +117,7 @@ package body PBX.Event_Handlers is
                                    "Dial Begin");
          Call.ID := Model.Call_ID.Create
            (To_String (Packet.Fields.Element (Parser.DestUniqueID)));
-         Call.Channel := Model.Channel_ID.Value
+         Call.Channel := Channel_ID.Value
            (To_String (Packet.Fields.Element (Parser.Destination)));
          Call.Inbound := False; --  A dial event implies outbound.
          Call.Arrived := Current_Time;
@@ -140,8 +129,7 @@ package body PBX.Event_Handlers is
       elsif To_String (Packet.Fields.Element (Parser.SubEvent)) = "End" then
          System_Messages.Notify (Debug, Package_Name & "." & Context & ": " &
                                    "Dial End");
-         Call.ID := Model.Call_ID.Create
-           (To_String (Packet.Fields.Element (Parser.Uniqueid)));
+         Call.ID := Model.Call_ID.Create (Packet.Get_Value (Parser.UniqueID));
       else
          System_Messages.Notify
            (Error, Package_Name & "." & Context & ": " &
@@ -156,29 +144,28 @@ package body PBX.Event_Handlers is
 
    procedure Hangup (Packet : in Parser.Packet_Type)
    is
-      Context : constant String      := Package_Name & ".Hangup";
-      Channel : Channel_ID.Instance  := Channel_ID.Null_Channel_ID;
-      Call    : Call_ID.Call_ID_Type := Call_ID.Null_Call_ID;
+      Context        : constant String      := Package_Name & ".Hangup";
+      Hungup_Channel : Channel_ID.Instance  := Channel_ID.Null_Channel_ID;
+      Call           : Call_ID.Call_ID_Type := Call_ID.Null_Call_ID;
    begin
-      Channel := Channel_ID.Value
-        (To_String (Packet.Fields.Element (Parser.Channel)));
-      Call    := Call_ID.Create
-        (To_String (Packet.Fields.Element (Parser.Uniqueid)));
+      Hungup_Channel
+        := Channel_ID.Value (Packet.Get_Value (Parser.Channel));
+      Call    := Call_ID.Create (Packet.Get_Value (Parser.UniqueID));
 
-      Model.Channels.List.Remove (Channel);
+      Channel.List.Remove (Hungup_Channel);
 
       Model.Calls.List.Remove (Call);
 
       System_Messages.Notify
         (Debug, Package_Name & ".Hangup: Removed channel " &
-         Channel.Image & " and call " & Call.To_String);
+         Hungup_Channel.Image & " and call " & Call.To_String);
 
    exception
       when Calls.Call_Not_Found =>
          System_Messages.Notify
            (Error, Context & ": Call not found" & Call.To_String);
-      when Channels.CHANNEL_NOT_FOUND =>
-         System_Messages.Notify (Error, Context & ": " & Channel.Image);
+      when Channel.Not_Found =>
+         System_Messages.Notify (Error, Context & ": " & Hungup_Channel.Image);
    end Hangup;
 
    ------------
@@ -189,8 +176,7 @@ package body PBX.Event_Handlers is
       Call         : Call_Type := Null_Call;
       Temp_Value   : Unbounded_String;
    begin
-      Call.ID := Call_ID.Create
-        (To_String (Packet.Fields.Element (Parser.Uniqueid)));
+      Call.ID := Call_ID.Create (Packet.Get_Value (Parser.UniqueID));
       Call.Inbound := True;  --  Join implies an inbound call.
 
       --  See if the call already exists
@@ -228,8 +214,7 @@ package body PBX.Event_Handlers is
       Call    : Call_Type       := Null_Call;
    begin
       Call := Model.Calls.List.Get
-        (Call_ID => Create
-           (To_String (Packet.Fields.Element (Parser.Uniqueid))));
+        (Call_ID => Create (Packet.Get_Value (Parser.UniqueID)));
 
       Notifications.Broadcast
         (Client_Notification.Queue.Leave (C => Call).To_JSON);
@@ -239,36 +224,16 @@ package body PBX.Event_Handlers is
    --  We collect every channel into a channel list and distribute them
    --  from there to either a call list or a peer channel list.
    procedure New_Channel (Packet : in Parser.Packet_Type) is
-      New_Channel : Channel.Channel_Type := Channel.Null_Channel;
-      Channel_String : String renames
-                         To_String (Packet.Fields.Element
-                                    (Parser.Channel));
+      use type Channel.Instance;
+      New_Channel : constant AMI.Channel.Instance :=
+                      AMI.Channel.Create (Packet => Packet);
    begin
       --  Ignore invalid channels for now.
-      if Channel_ID.Validate (Channel_String) then
-
-         New_Channel.ID        := Channel_ID.Value (Channel_String);
-         New_Channel.State     :=
-           Channel.To_Channel_State
-             (To_String (Packet.Fields.Element (AMI.Parser.ChannelState)));
-         New_Channel.Description :=
-           Packet.Fields.Element (AMI.Parser.ChannelStateDesc);
-         New_Channel.CallerIDNum :=
-           Packet.Fields.Element (AMI.Parser.CallerIDNum);
-         New_Channel.CallerIDName :=
-           Packet.Fields.Element (AMI.Parser.CallerIDName);
-         New_Channel.Extension := Packet.Fields.Element (AMI.Parser.Exten);
-         New_Channel.AccountCode :=
-           Packet.Fields.Element (AMI.Parser.AccountCode);
-         New_Channel.Context :=
-           Packet.Fields.Element (AMI.Parser.Context);
-         New_Channel.Call_ID := Create
-           (To_String (Packet.Fields.Element (AMI.Parser.Uniqueid)));
-
-         Channels.List.Insert (New_Channel);
+      if New_Channel /= Channel.Null_Object then
+         Channel.List.Insert (New_Channel);
          System_Messages.Notify
            (Debug, "My_Callbacks.New_Channel: Channel_List: " &
-              Model.Channels.List.To_String);
+              Channel.List.To_String);
       end if;
    end New_Channel;
 
@@ -281,26 +246,16 @@ package body PBX.Event_Handlers is
    --  CallerIDName:
    --  Uniqueid: 1340097427.11
    procedure New_State (Packet : in Parser.Packet_Type) is
-      Context           : constant String      := "New_State";
-      Channel_To_Change : Channel.Channel_Type := Channel.Null_Channel;
+      Context           : constant String  := "New_State";
+      Channel_To_Change : Channel.Instance := Channel.Empty_Object;
    begin
-      --  Fetch the previous channel image
-      Channel_To_Change := Channels.List.Get
-        (Channel_ID.Value
-           (To_String (Packet.Fields.Element (AMI.Parser.Channel))));
+      Channel_To_Change := Channel.List.Get
+                              (Channel_ID.Value
+                                 (Packet.Get_Value
+                                    (Parser.Channel)));
 
-      --  Update the fields
-      Channel_To_Change.State := Channel.To_Channel_State
-        (To_String (Packet.Fields.Element (Parser.ChannelState)));
-
-      Channel_To_Change.Description  := Packet.Fields.Element
-        (Parser.ChannelStateDesc);
-      Channel_To_Change.CallerIDNum  := Packet.Fields.Element
-        (Parser.CallerIDNum);
-      Channel_To_Change.CallerIDName := Packet.Fields.Element
-        (Parser.CallerIDName);
-
-      Channels.List.Update (Channel_To_Change);
+      Channel_To_Change.Change_State (Packet);
+      Channel.List.Update (Channel_To_Change);
    exception
       when others =>
          System_Messages.Notify (Error, Package_Name & "." & Context & ": " &
@@ -316,14 +271,13 @@ package body PBX.Event_Handlers is
       Call_To_Park : Call.Call_Type := Null_Call;
    begin
       Call_To_Park := Calls.List.Get
-        (Call_ID.Create
-           (To_String (Packet.Fields.Element (Parser.Uniqueid))));
+        (Call_ID.Create (Packet.Get_Value (Parser.UniqueID)));
       Call_To_Park.State := Parked;
       Calls.List.Put (Call_To_Park);
+
+      --  Broadcast it.
       Notifications.Broadcast
         (Client_Notification.Call.Park (C => Call_To_Park).To_JSON);
-
-      --  TODO: Broadcast it.
    end Parked_Call;
 
    ----------------
@@ -356,7 +310,7 @@ package body PBX.Event_Handlers is
       end if;
 
       --  Update the peer
-      Peers.List.Put (Peer => Peer);
+      AMI.Peer.List.Put (Peer => Peer);
 
    end Peer_Entry;
 
@@ -366,11 +320,11 @@ package body PBX.Event_Handlers is
       Number_Of_Events : constant Natural :=
         Natural'Value (To_String (Packet.Fields.Element (Parser.ListItems)));
    begin
-      if Number_Of_Events /= Model.Peers.List.Count then
+      if Number_Of_Events /= AMI.Peer.List.Count then
          System_Messages.Notify (Error, Package_Name & "." & Context & ": " &
                                    "peer list inconsistent! Got" &
                                    Number_Of_Events'Img &
-                                " - expected" & Model.Peers.List.Count'Img);
+                                " - expected" & AMI.Peer.List.Count'Img);
       end if;
    end Peer_List_Complete;
 
@@ -387,8 +341,8 @@ package body PBX.Event_Handlers is
       Peer.ID := Peer_ID.Create
         (To_String (Packet.Fields.Element (AMI.Parser.Peer)));
       --  Check if the peer is known
-      if Model.Peers.List.Contains (Peer.ID) then
-         Peer := Model.Peers.List.Get (Peer.ID);
+      if AMI.Peer.List.Contains (Peer.ID) then
+         Peer := AMI.Peer.List.Get (Peer.ID);
       else
          System_Messages.Notify (Critical,
                                  Package_Name & "." & Context &
@@ -438,7 +392,7 @@ package body PBX.Event_Handlers is
       end if;
 
       --  Update the peer
-      Model.Peers.List.Put (Peer => Peer);
+      AMI.Peer.List.Put (Peer => Peer);
 
    end Peer_Status;
 
@@ -457,7 +411,7 @@ package body PBX.Event_Handlers is
       Hold_Time         : Integer := -1;
    begin
       Call.ID := Create
-        (To_String (Packet.Fields.Element (Parser.Uniqueid)));
+        (To_String (Packet.Fields.Element (Parser.UniqueID)));
 
       Position := Integer'Value
         (To_String (Packet.Fields.Element (Parser.Position)));

@@ -174,7 +174,6 @@ package body PBX is
    begin
       Client := AMI.Client.Create (On_Connect    => Authenticate'Access,
                                    On_Disconnect => Connect'Access);
-      --  Reader.Start; --  Order is important here!
       Connect; --  Initial connect.
       System_Messages.Notify (Information, "PBX Subsystem started");
    end Start;

@@ -15,40 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Common;
-with HTTP_Codes;
-with Response;
-with AMI.Peer;
-with AMI.Channel;
+--  Declares a call list with corresponding primitives.
+--  Currently also holds a singleton call list object for easy access.
 
-package body Handlers.Debug is
-   use Common;
-   use AMI;
+with Ada.Strings.Unbounded;
 
-   function Channel_List (Request : in AWS.Status.Data)
-                          return AWS.Response.Data is
-      use HTTP_Codes;
+with System_Messages;
 
-      Response_Object : Response.Object := Response.Factory (Request);
-   begin
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content
-        (To_JSON_String (Channel.List.To_JSON.Write));
+package body Model.Channels is
+   use System_Messages;
 
-      return Response_Object.Build;
-   end Channel_List;
-
-   function Peer_List (Request : in AWS.Status.Data)
-                       return AWS.Response.Data is
-      use HTTP_Codes;
-
-      Response_Object : Response.Object := Response.Factory (Request);
-   begin
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content
-        (To_JSON_String (Peer.List.To_JSON.Write));
-
-      return Response_Object.Build;
-   end Peer_List;
-
-end Handlers.Debug;
+end Model.Channels;

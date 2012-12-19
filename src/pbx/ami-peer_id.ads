@@ -15,40 +15,40 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Common;
-with HTTP_Codes;
-with Response;
-with AMI.Peer;
-with AMI.Channel;
+with Ada.Strings.Unbounded;
 
-package body Handlers.Debug is
-   use Common;
-   use AMI;
+package AMI.Peer_ID is
+   use Ada.Strings.Unbounded;
 
-   function Channel_List (Request : in AWS.Status.Data)
-                          return AWS.Response.Data is
-      use HTTP_Codes;
+   Invalid_ID : exception;
 
-      Response_Object : Response.Object := Response.Factory (Request);
-   begin
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content
-        (To_JSON_String (Channel.List.To_JSON.Write));
+   type Channel_Type is (Unknown, Agent, Console,
+                               H323, IAX, IAX2, Local,
+                               MGCP, MISDN, Modem, NBS,
+                               Phone, SIP, Skinny, Gtalk,
+                               VPB, ZAP);
 
-      return Response_Object.Build;
-   end Channel_List;
+   --  TODO: Add special cases such as MulticastRTP, VOFR
 
-   function Peer_List (Request : in AWS.Status.Data)
-                       return AWS.Response.Data is
-      use HTTP_Codes;
+   type Peer_ID_Type is tagged record
+      Kind     : Channel_Type     := Unknown;
+      Peername : Unbounded_String := Null_Unbounded_String;
+   end record;
 
-      Response_Object : Response.Object := Response.Factory (Request);
-   begin
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content
-        (To_JSON_String (Peer.List.To_JSON.Write));
+   function Create (Item : in String) return Peer_ID_Type;
+   --  Constructor which expect the format <Channel_type>/<Peername>.
 
-      return Response_Object.Build;
-   end Peer_List;
+   function Create (Channel_Kind : in String;
+                    Peername     : in String) return Peer_ID_Type;
+   --  Constructor which take in each part of the ID in seperately.
 
-end Handlers.Debug;
+   function To_String (Peer_ID : in Peer_ID_Type) return String;
+
+   function "<" (Left  : in Peer_ID_Type;
+                 Right : in Peer_ID_Type) return Boolean;
+
+   function "=" (Left  : in Peer_ID_Type;
+                 Right : in Peer_ID_Type) return Boolean;
+
+   Null_Peer_ID : constant Peer_ID_Type := (Unknown, Null_Unbounded_String);
+end AMI.Peer_ID;

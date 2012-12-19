@@ -22,6 +22,8 @@ package AMI.Parser is
 
    type Get_Line_Procedure is not null access function return String;
 
+   Key_Not_In_Packet : exception;
+
    type AMI_Key_Type is
      (Async,
       AuthType,
@@ -97,10 +99,10 @@ package AMI.Parser is
       Queue,
       Position,
       Count,
-      Uniqueid,
+      UniqueID,
       Timeout,
-      Uniqueid1,
-      Uniqueid2,
+      UniqueID1,
+      UniqueID2,
       SSRC,
       State,
       Cause,
@@ -217,11 +219,31 @@ package AMI.Parser is
       Hash            => Hash_Function,
       Equivalent_Keys => Hash_Equivalent_Keys);
 
-   type Packet_Type is record
+   type Packet_Type is tagged record
       Header : Pair_Type := Null_Pair;
       Fields : Pair_List_Type.Map;
    end record;
-   --  Every AMI event/response has the same format
+   --  Every AMI event/response has the same basic format ... not counting
+   --  The ones with "text" format.
+
+   function Get_Value (Packet   : in Packet_Type;
+                       Key      : in AMI_Key_Type;
+                       Required : in Boolean := True) return String;
+   --  Extracts a value from a packet.
+
+   function Get_Value (Packet   : in Packet_Type;
+                       Key      : in AMI_Key_Type;
+                       Required : in Boolean := True) return Unbounded_String;
+
+   function Has_Value (Packet   : in Packet_Type;
+                       Key      : in AMI_Key_Type) return Boolean;
+
+   function Image (Packet : in Packet_Type) return String;
+
+   function Read_Packet (Get_Line : Get_Line_Procedure)
+                         return Packet_Type;
+   --  Continously calls Read_Line and Parse_Line untill a complete packet has
+   --  been assembled.
 
    New_Packet : constant Packet_Type :=
      (Header => Null_Pair,
@@ -232,19 +254,12 @@ package AMI.Parser is
    --  Takes a line of text, with key-value pairs structured:
    --  Key: Value<CRLF>
 
-   function Read_Packet (Get_Line : Get_Line_Procedure)
-                         return Packet_Type;
-   --  Continously calls Read_Line and Parse_Line untill a complete packet has
-   --  been assembled.
-
    function Try_Get
      (List  : in Pair_List_Type.Map;
       Key   : in AMI_Key_Type;
       Value : out Unbounded_String)
       return  Boolean;
    --  Wraps the contains and element operations of a hashed map
-
-   function Image (Packet : in Packet_Type) return String;
 
    function Image (List : in Pair_List_Type.Map) return String;
 

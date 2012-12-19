@@ -19,12 +19,12 @@
 
 with Model.Agent;
 with Model.Agent_ID;
-with Model.Peer_ID;
+with AMI.Peer_ID;
 
 package Model.Agents is
    use Model.Agent;
    use Model.Agent_ID;
-   use Model.Peer_ID;
+   use AMI.Peer_ID;
 
    function Get (Agent_ID : in Agent_ID_Type) return Agent_Type;
    --  Locate an agent by Agent_ID
