@@ -26,7 +26,7 @@ with Model.Agents;
 with Model.Agent_ID;
 with Model.Call;
 with Model.Calls;
-with Model.Peers;
+with AMI.Peer;
 with View.Call;
 
 with PBX;
@@ -199,11 +199,6 @@ package body Handlers.Call is
               (Channel          => Requested_Call.Channel.Image,
                Fallback_Channel => Fallback_Call.Channel.Image));
 
-         --  Park it
---           AMI.Action.Park (Client   => PBX.Client_Access,
---                            Channel  => Requested_Call.Channel_ID.Image,
---                            Fallback_Channel => "");
-
          --  And let the user know that everything went according to plan.
          Response_Object.HTTP_Status_Code (OK);
          Response_Object.Content (Status_Message ("status", "ok"));
@@ -239,7 +234,7 @@ package body Handlers.Call is
       use Model.Agent;
       use Model.Call;
       use Model.Call_ID;
-      use Model.Peers;
+      use AMI.Peer;
 
       Call_ID_String    : constant String :=
                             Parameters (Request).Get (Name => "call_id");
@@ -267,7 +262,7 @@ package body Handlers.Call is
       end if;
 
       --  Lookup the peer from the agent_id.
-      Peer := Model.Peers.List.Get
+      Peer := AMI.Peer.List.Get
         (Model.Agents.Get (Agent_ID => Agent_ID).Peer_ID);
 
       if not Peer.Available then

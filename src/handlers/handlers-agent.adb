@@ -25,11 +25,11 @@ with Common;
 with HTTP_Codes;
 with Response;
 with System_Messages;
-with Model.Peers;
+with AMI.Peer;
 --  with JSON.Peer;
 
 package body Handlers.Agent is
-   use Model;
+   use AMI;
 --   use JSON.Peer;
    -------------
    --  Agent  --
@@ -45,7 +45,7 @@ package body Handlers.Agent is
       JSON            : JSON_String;
       Response_Object : Response.Object := Response.Factory (Request);
    begin
-      JSON := To_JSON_String (Peers.List.To_JSON.Write);
+      JSON := To_JSON_String (Peer.List.To_JSON.Write);
 
       Response_Object.HTTP_Status_Code (OK);
       Response_Object.Content (JSON);
@@ -68,8 +68,8 @@ package body Handlers.Agent is
       JSON            : JSON_String;
       Response_Object : Response.Object := Response.Factory (Request);
    begin
-      Notify (Debug, Peers.List.To_String);
-      JSON := To_JSON_String (Peers.List.To_JSON.Write);
+      Notify (Debug, Peer.List.To_String);
+      JSON := To_JSON_String (Peer.List.To_JSON.Write);
 
       Response_Object.HTTP_Status_Code (OK);
       Response_Object.Content (JSON);

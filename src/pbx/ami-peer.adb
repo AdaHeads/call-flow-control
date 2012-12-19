@@ -18,7 +18,7 @@ with Ada.Calendar.Formatting;
 
 with View.Peer;
 
-package body Model.Peers is
+package body AMI.Peer is
 
    --  TODO: Add a time limit for when we timeout a peer
    function Available (Peer : in Peer_Type) return Boolean is
@@ -37,11 +37,11 @@ package body Model.Peers is
                          Time  => Current_Time);
    end Seen;
 
-   function To_JSON (Peer : in Peers.Peer_Type)
+   function To_JSON (Peer : in Peer_Type)
                      return GNATCOLL.JSON.JSON_Value is
    begin
 
-      return View.Peer.To_JSON (Peer => Peer);
+      return View.Peer.To_JSON (Peer);
    end To_JSON;
 
    function To_String (Item : in Conditional_Time) return String is
@@ -206,4 +206,4 @@ package body Model.Peers is
 --        return Peers_List.List_As_String;
 --     end List_As_String;
 
-end Model.Peers;
+end AMI.Peer;

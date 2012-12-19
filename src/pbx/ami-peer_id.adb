@@ -17,7 +17,7 @@
 
 with Ada.Strings.Fixed;
 
-package body Model.Peer_ID is
+package body AMI.Peer_ID is
 
    function "<" (Left  : in Peer_ID_Type;
                  Right : in Peer_ID_Type) return Boolean is
@@ -65,4 +65,4 @@ package body Model.Peer_ID is
       end if;
    end To_String;
 
-end Model.Peer_ID;
+end AMI.Peer_ID;

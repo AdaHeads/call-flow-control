@@ -17,13 +17,13 @@
 
 with GNATCOLL.JSON;
 
-with Model.Peers;
+with AMI.Peer;
 
 --  Utility functions for converting a peer to viewable types
 package View.Peer is
-   use Model;
+   use AMI.Peer;
 
-   function To_JSON (Peer : in Peers.Peer_Type)
+   function To_JSON (Item : in Peer_Type)
                         return GNATCOLL.JSON.JSON_Value;
 
 end View.Peer;
