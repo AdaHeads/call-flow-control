@@ -23,6 +23,15 @@ procedure Model.Channel_ID.Test is
 
    procedure Image_Of_Value
      (Input  : in String;
+      Output : in String);
+   --  Check that image of Input = Output.
+
+   ----------------------
+   --  Image_Of_Value  --
+   ----------------------
+
+   procedure Image_Of_Value
+     (Input  : in String;
       Output : in String)
    is
       use Ada.Text_IO;
