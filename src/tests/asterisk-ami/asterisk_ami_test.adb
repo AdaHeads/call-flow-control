@@ -15,13 +15,18 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Command_Line;
 with PBX;
 
 procedure  Asterisk_AMI_Test is
-   
+   use Ada.Command_Line;
 begin
    PBX.Start;
    delay 3.0;
    PBX.Stop;
 
+   Set_Exit_Status (Success);
+exception
+   when others =>
+      Set_Exit_Status (Failure);
 end Asterisk_AMI_Test;
