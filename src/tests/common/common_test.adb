@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2012-, AdaHeads K/S                    --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,15 +15,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared.gpr";
-with "gnatcoll";
+with Ada.Command_Line;
+with Ada.Text_IO;
 
-project Channel_ID is
-   for Main use ("model-channel_id-test");
-   for Source_Dirs use ("../../../src/**");
-   for Object_Dir use "../../../build_production";
-   for Exec_Dir use ".";
-
-   package Compiler renames Shared.Compiler;
-   package Ide renames Shared.Ide;
-end Channel_ID;
+procedure Common_Test is
+   use Ada.Command_Line;
+   use Ada.Text_IO;
+begin
+   Put_Line ("common-test");
+   Set_Exit_Status (Success);
+end Common_Test;
