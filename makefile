@@ -34,4 +34,4 @@ tests: all
 	@./src/tests/run
 
 cleanup_messy_temp_files:
-	find . -name "*~" -type f -print0 | xargs -0 /bin/rm
+	find . -name "*~" -type f -print0 | xargs -0 -r /bin/rm

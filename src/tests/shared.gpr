@@ -15,15 +15,19 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared.gpr";
-with "gnatcoll";
+abstract project Shared is
+   for Source_Dirs use ();
 
-project Channel_ID is
-   for Main use ("model-channel_id-test");
-   for Source_Dirs use ("../../../src/**");
-   for Object_Dir use "../../../build_production";
-   for Exec_Dir use ".";
+   package Compiler is
+      for Default_Switches ("Ada") use ("-gnatwa",
+                                        "-gnaty3abcdefhiklmnoprstux",
+                                        "-Wall",
+                                        "-pipe",
+                                        "-O2",
+                                        "-gnat2012");
+   end Compiler;
 
-   package Compiler renames Shared.Compiler;
-   package Ide renames Shared.Ide;
-end Channel_ID;
+   package Ide is
+      for Compiler_Command ("ada") use "gnatmake";
+   end Ide;
+end Shared;
