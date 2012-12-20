@@ -19,44 +19,44 @@ with Ada.Strings.Unbounded;
 
 package body Model.Agents is
    use Ada.Strings.Unbounded;
-   use Model;
+
    function Get (Agent_ID : in Agent_ID_Type) return Agent_Type is
    begin
       case Agent_ID.ID  is
          when 1 =>
             return Agent.Create
               (ID        => Agent_ID,
-               Peer_ID   => Model.Peer_ID.Create ("SIP/softphone1"),
+               Peer_ID   => AMI.Peer_ID.Create ("SIP/softphone1"),
                Extension => "101");
          when 2 =>
             return Agent.Create
               (ID        => Agent_ID,
-               Peer_ID   =>  Model.Peer_ID.Create ("SIP/softphone1"),
+               Peer_ID   =>  AMI.Peer_ID.Create ("SIP/softphone1"),
                Extension => "102");
          when 3 =>
             return Agent.Create
               (ID        => Agent_ID,
-               Peer_ID   =>  Model.Peer_ID.Create ("SIP/softphone1"),
+               Peer_ID   =>  AMI.Peer_ID.Create ("SIP/softphone1"),
                Extension => "103");
          when 4 =>
             return Agent.Create
            (ID        => Agent_ID,
-            Peer_ID   =>  Model.Peer_ID.Create ("SIP/softphone1"),
+            Peer_ID   =>  AMI.Peer_ID.Create ("SIP/softphone1"),
             Extension => "104");
          when 5 =>
             return Agent.Create
            (ID        => Agent_ID,
-            Peer_ID   =>  Model.Peer_ID.Create ("SIP/softphone1"),
+            Peer_ID   =>  AMI.Peer_ID.Create ("SIP/softphone1"),
             Extension => "105");
          when 6 =>
             return Agent.Create
            (ID        => Agent_ID,
-            Peer_ID   =>  Model.Peer_ID.Create ("SIP/softphone1"),
+            Peer_ID   =>  AMI.Peer_ID.Create ("SIP/softphone1"),
             Extension => "106");
          when 7 =>
             return Agent.Create
               (ID        => Agent_ID,
-               Peer_ID   =>  Model.Peer_ID.Create ("SIP/uhh"),
+               Peer_ID   =>  AMI.Peer_ID.Create ("SIP/uhh"),
                Extension => "107");
          when others =>
             return Null_Agent;

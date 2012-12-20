@@ -19,17 +19,16 @@ with Ada.Strings.Unbounded;
 with Model.Agent_ID;
 with Common;
 with Model.Call_ID;
-with Model.Channel_ID;
+with AMI.Channel_ID;
 with GNATCOLL.JSON;
 
 package Model.Call is
    use Ada.Strings.Unbounded;
    use GNATCOLL.JSON;
    use Common;
-   use Model;
+   use AMI;
    use Model.Agent_ID;
    use Model.Call_ID;
-   use Model.Channel_ID;
 
    BAD_EXTENSION   : exception;
    EMPTY_EXTENSION : exception;
@@ -70,7 +69,7 @@ private
       State          => Unknown,
       Queue_Priority => Invalid,
       Inbound        => False,
-      Channel        => Null_Channel_ID,
+      Channel        => Channel_ID.Null_Channel_ID,
       Queue          => Null_Unbounded_String,
       Position       => 0,
       Count          => 0,

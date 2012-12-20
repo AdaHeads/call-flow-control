@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2012-, AdaHeads K/S                    --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,15 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared.gpr";
-with "gnatcoll";
+--  Declares a call list with corresponding primitives.
+--  Currently also holds a singleton call list object for easy access.
 
-project Channel_ID is
-   for Main use ("ami-channel_id-test");
-   for Source_Dirs use ("../../../src/**");
-   for Object_Dir use "../../../build_production";
-   for Exec_Dir use ".";
+with Ada.Strings.Unbounded;
 
-   package Compiler renames Shared.Compiler;
-   package IDE renames Shared.IDE;
-end Channel_ID;
+with System_Messages;
+
+package body Model.Channels is
+   use System_Messages;
+
+end Model.Channels;

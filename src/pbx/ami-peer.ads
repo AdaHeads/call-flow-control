@@ -19,15 +19,15 @@ with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Hash;
 with Ada.Strings.Unbounded;
 with Model.Agent_ID;
-with Model.Peer_ID;
+with AMI.Peer_ID;
 with GNATCOLL.JSON;
 
 with Common;
-package Model.Peers is
+package AMI.Peer is
    use Ada.Containers;
    use Ada.Strings.Unbounded;
    use Model.Agent_ID;
-   use Model.Peer_ID;
+   use AMI.Peer_ID;
    use Common;
 
    Peer_Not_Found : exception;
@@ -64,7 +64,7 @@ package Model.Peers is
    procedure Seen (Peer : out Peer_Type);
    --  Bump the timestamp for the peer to the current_time.
 
-   function To_JSON (Peer : in Peers.Peer_Type)
+   function To_JSON (Peer : in Peer_Type)
                      return GNATCOLL.JSON.JSON_Value;
    function To_String (Peer : in Peer_Type) return String;
 
@@ -104,4 +104,4 @@ private
       Port         => Null_Unbounded_String,
       Address      => Null_Unbounded_String,
       Last_Seen    => (Never => True));
-end Model.Peers;
+end AMI.Peer;

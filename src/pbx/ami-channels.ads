@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2012-, AdaHeads K/S                    --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,15 +15,15 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared.gpr";
-with "gnatcoll";
+with Ada.Containers.Indefinite_Ordered_Maps;
 
-project Channel_ID is
-   for Main use ("ami-channel_id-test");
-   for Source_Dirs use ("../../../src/**");
-   for Object_Dir use "../../../build_production";
-   for Exec_Dir use ".";
+with GNATCOLL.JSON;
 
-   package Compiler renames Shared.Compiler;
-   package IDE renames Shared.IDE;
-end Channel_ID;
+with AMI.Channel;
+with AMI.Channel_ID;
+
+package Model.Channels is
+   use AMI;
+
+
+end Model.Channels;

@@ -17,7 +17,7 @@
 
 with Ada.Strings.Unbounded;
 
-package Model.Channel_ID is
+package AMI.Channel_ID is
    type Technologies    is (SIP);
    type Peer_Name       is new Ada.Strings.Unbounded.Unbounded_String;
    type Sequence_Number is mod 16 ** 8;
@@ -70,4 +70,4 @@ private
                         Technology => SIP,
                         Peer       => To_Unbounded_String (""),
                         Sequence   => 16#ffffffff#);
-end Model.Channel_ID;
+end AMI.Channel_ID;

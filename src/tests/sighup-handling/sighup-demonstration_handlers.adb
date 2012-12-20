@@ -15,40 +15,21 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded;
+with
+  Ada.Text_IO;
 
-package Model.Peer_ID is
-   use Ada.Strings.Unbounded;
+package body SIGHUP.Demonstration_Handlers is
+   procedure Minimal is
+   begin
+      Called := True;
+   end Minimal;
 
-   Invalid_ID : exception;
-
-   type Channel_Type is (Unknown, Agent, Console,
-                               H323, IAX, IAX2, Local,
-                               MGCP, MISDN, Modem, NBS,
-                               Phone, SIP, Skinny, Gtalk,
-                               VPB, ZAP);
-
-   --  TODO: Add special cases such as MulticastRTP, VOFR
-
-   type Peer_ID_Type is tagged record
-      Kind     : Channel_Type     := Unknown;
-      Peername : Unbounded_String := Null_Unbounded_String;
-   end record;
-
-   function Create (Item : in String) return Peer_ID_Type;
-   --  Constructor which expect the format <Channel_type>/<Peername>.
-
-   function Create (Channel_Kind : in String;
-                    Peername     : in String) return Peer_ID_Type;
-   --  Constructor which take in each part of the ID in seperately.
-
-   function To_String (Peer_ID : in Peer_ID_Type) return String;
-
-   function "<" (Left  : in Peer_ID_Type;
-                 Right : in Peer_ID_Type) return Boolean;
-
-   function "=" (Left  : in Peer_ID_Type;
-                 Right : in Peer_ID_Type) return Boolean;
-
-   Null_Peer_ID : constant Peer_ID_Type := (Unknown, Null_Unbounded_String);
-end Model.Peer_ID;
+   procedure Put_Line is
+   begin
+      Called := True;
+      Ada.Text_IO.Put_Line ("Received a hangup signal.");
+   end Put_Line;
+begin
+   SIGHUP.Register (Minimal'Access);
+   SIGHUP.Register (Put_Line'Access);
+end SIGHUP.Demonstration_Handlers;

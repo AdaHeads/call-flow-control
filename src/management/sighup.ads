@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2012-, AdaHeads K/S                    --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,15 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared.gpr";
-with "gnatcoll";
+package SIGHUP is
+   type Callback is access procedure;
 
-project Channel_ID is
-   for Main use ("ami-channel_id-test");
-   for Source_Dirs use ("../../../src/**");
-   for Object_Dir use "../../../build_production";
-   for Exec_Dir use ".";
+   procedure Register (Handler : in     Callback);
 
-   package Compiler renames Shared.Compiler;
-   package IDE renames Shared.IDE;
-end Channel_ID;
+   procedure Stop;
+end SIGHUP;

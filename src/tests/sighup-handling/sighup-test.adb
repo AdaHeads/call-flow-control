@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2012-, AdaHeads K/S                    --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,15 +15,31 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared.gpr";
-with "gnatcoll";
+with
+  Ada.Command_Line,
+  Ada.Text_IO;
+with
+  SIGHUP.Demonstration_Handlers;
 
-project Channel_ID is
-   for Main use ("ami-channel_id-test");
-   for Source_Dirs use ("../../../src/**");
-   for Object_Dir use "../../../build_production";
-   for Exec_Dir use ".";
+procedure SIGHUP.Test is
+begin
+   Ada.Text_IO.Put_Line ("Waiting 10 seconds.");
+   delay 10.0;
+   Ada.Text_IO.Put_Line ("Stopping the SIGHUP handlers.");
+   SIGHUP.Stop;
 
-   package Compiler renames Shared.Compiler;
-   package IDE renames Shared.IDE;
-end Channel_ID;
+   if SIGHUP.Demonstration_Handlers.Called then
+      Ada.Text_IO.Put_Line ("At least one of the demonstration handlers were called.");
+   else
+      Ada.Text_IO.Put_Line ("None of the demonstration handlers were called.");
+   end if;
+
+   if Ada.Command_Line.Argument_Count = 0 or else
+        SIGHUP.Demonstration_Handlers.Called then
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Success);
+   else
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+   end if;
+
+   Ada.Text_IO.Put_Line ("Test done.");
+end SIGHUP.Test;

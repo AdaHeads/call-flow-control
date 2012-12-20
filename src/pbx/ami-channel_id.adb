@@ -20,7 +20,7 @@ with
   Ada.Strings.Fixed,
   Ada.Text_IO;
 
-package body Model.Channel_ID is
+package body AMI.Channel_ID is
    package Sequence_Text_IO is
      new Ada.Text_IO.Modular_IO (Sequence_Number);
 
@@ -185,4 +185,4 @@ package body Model.Channel_ID is
          return False;
    end Validate;
 
-end Model.Channel_ID;
+end AMI.Channel_ID;
