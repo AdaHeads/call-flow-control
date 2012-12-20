@@ -15,22 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Command_Line;
-with Ada.Text_IO;
+with
+  Ada.Command_Line,
+  Ada.Text_IO;
 
-procedure Model.Channel_ID.Test is
+procedure AMI.Channel_ID.Test is
    use Ada.Command_Line;
 
-   procedure Image_Of_Value
-     (Input  : in String;
-      Output : in String);
-   --  Check that image of Input = Output.
-
-   ----------------------
-   --  Image_Of_Value  --
-   ----------------------
-
-   procedure Image_Of_Value
+   procedure Check_Image_And_Value
      (Input  : in String;
       Output : in String)
    is
@@ -51,25 +43,25 @@ procedure Model.Channel_ID.Test is
       when others =>
          Put_Line ("Conversion of """ & Input & """ raised an exception.");
          Set_Exit_Status (Failure);
-   end Image_Of_Value;
+   end Check_Image_And_Value;
 begin
    Set_Exit_Status (Success);
 
-   Image_Of_Value (Input  => "SIP/0004F2060EB4-0000001b",
-                   Output => "SIP/0004F2060EB4-0000001B");
+   Check_Image_And_Value (Input  => "SIP/0004F2060EB4-0000001b",
+                          Output => "SIP/0004F2060EB4-0000001B");
 
-   Image_Of_Value (Input  => "SIP/JSA-N900-00000037",
-                   Output => "SIP/JSA-N900-00000037");
+   Check_Image_And_Value (Input  => "SIP/JSA-N900-00000037",
+                          Output => "SIP/JSA-N900-00000037");
 
-   Image_Of_Value (Input  => "Parked/SIP/JSA-N900-0000003a",
-                   Output => "Parked/SIP/JSA-N900-0000003A");
+   Check_Image_And_Value (Input  => "Parked/SIP/JSA-N900-0000003a",
+                          Output => "Parked/SIP/JSA-N900-0000003A");
 
-   Image_Of_Value (Input  => "SIP/JSA-N900-00000035<zombie>",
-                   Output => "<temporary>");
+   Check_Image_And_Value (Input  => "SIP/JSA-N900-00000035<zombie>",
+                          Output => "<temporary>");
 
-   Image_Of_Value (Input  => "Parked/SIP/JSA-N900-00000035<zombie>",
-                   Output => "<temporary>");
+   Check_Image_And_Value (Input  => "Parked/SIP/JSA-N900-00000035<zombie>",
+                          Output => "<temporary>");
 
-   Image_Of_Value (Input  => "GSM/JSA-N900-00000033",
-                   Output => "<temporary>");
-end Model.Channel_ID.Test;
+   Check_Image_And_Value (Input  => "GSM/JSA-N900-00000033",
+                          Output => "<temporary>");
+end AMI.Channel_ID.Test;
