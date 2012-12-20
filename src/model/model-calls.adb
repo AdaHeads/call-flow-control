@@ -105,17 +105,15 @@ package body Model.Calls is
       ---------
 
       function Get (Call_ID : in Call_ID_Type) return Call_Type is
-         Call : Call_Type := Null_Call;
       begin
-         if Call_ID /= Null_Call_ID then
-            Call := Protected_List.Element (Key => Call_ID);
+
+         if Call_ID = Null_Call_ID or not
+           Protected_List.Contains (Call_ID)
+         then
+            raise Call_Not_Found with Call_ID.To_String;
          end if;
 
-         if Call = Null_Call then
-            raise Call_Not_Found;
-         end if;
-
-         return Call;
+         return  Protected_List.Element (Key => Call_ID);
       end Get;
 
       ------------
