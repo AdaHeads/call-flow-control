@@ -21,7 +21,7 @@ cd "$(dirname "$0")" || exit 2
 ./sighup-test . &
 pid=$!
 
-sleep 5
+sleep 2
 
 kill -HUP $pid
 
