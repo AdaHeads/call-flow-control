@@ -52,6 +52,9 @@ package body SIGHUP is
       procedure Stop is
       begin
          Stopping := True;
+         for H of Handle (1 .. Registered) loop
+            H := True;
+         end loop;
       end Stop;
 
       entry Wait (for Handler in Handler_Indices) (Stop :    out Boolean)

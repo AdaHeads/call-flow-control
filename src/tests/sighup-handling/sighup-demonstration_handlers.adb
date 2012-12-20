@@ -16,30 +16,20 @@
 -------------------------------------------------------------------------------
 
 with
-  Ada.Command_Line,
   Ada.Text_IO;
-with
-  SIGHUP.Demonstration_Handlers;
 
-procedure SIGHUP.Test is
+package body SIGHUP.Demonstration_Handlers is
+   procedure Minimal is
+   begin
+      Called := True;
+   end Minimal;
+
+   procedure Put_Line is
+   begin
+      Called := True;
+      Ada.Text_IO.Put_Line ("Received a hangup signal.");
+   end Put_Line;
 begin
-   Ada.Text_IO.Put_Line ("Waiting 10 seconds.");
-   delay 10.0;
-   Ada.Text_IO.Put_Line ("Stopping the SIGHUP handlers.");
-   SIGHUP.Stop;
-
-   if SIGHUP.Demonstration_Handlers.Called then
-      Ada.Text_IO.Put_Line ("At least one of the demonstration handlers were called.");
-   else
-      Ada.Text_IO.Put_Line ("None of the demonstration handlers were called.");
-   end if;
-
-   if Ada.Command_Line.Argument_Count = 0 or else
-        SIGHUP.Demonstration_Handlers.Called then
-      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Success);
-   else
-      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
-   end if;
-
-   Ada.Text_IO.Put_Line ("Test done.");
-end SIGHUP.Test;
+   SIGHUP.Register (Minimal'Access);
+   SIGHUP.Register (Put_Line'Access);
+end SIGHUP.Demonstration_Handlers;
