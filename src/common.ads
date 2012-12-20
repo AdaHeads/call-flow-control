@@ -20,13 +20,17 @@ with Ada.Strings.Unbounded;
 
 package Common is
 
-   function Current_Time return Ada.Calendar.Time renames Ada.Calendar.Clock;
    subtype Time is Ada.Calendar.Time;
 
-   function U
-     (S : in String)
-      return Ada.Strings.Unbounded.Unbounded_String
-      renames Ada.Strings.Unbounded.To_Unbounded_String;
+   function Current_Time
+     return Ada.Calendar.Time
+     renames Ada.Calendar.Clock;
+
+   function Unix_Timestamp
+     (Date : in Time)
+      return String;
+   --  Convert and trim an Ada.Calendar.Time type to a Unix timestamp
+   --  String.
 
    type JSON_String is new Ada.Strings.Unbounded.Unbounded_String;
 
@@ -39,10 +43,9 @@ package Common is
       return JSON_String
       renames To_Unbounded_String;
 
-   function Unix_Timestamp
-     (Date : in Time)
-     return String;
-   --  Convert and trim an Ada.Calendar.Time type to a Unix timestamp
-   --  String.
+   function U
+     (S : in String)
+      return Ada.Strings.Unbounded.Unbounded_String
+      renames Ada.Strings.Unbounded.To_Unbounded_String;
 
 end Common;

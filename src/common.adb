@@ -14,15 +14,21 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
+
 with Ada.Calendar.Conversions;
 with Ada.Strings.Fixed;
 with Ada.Strings;
 with Interfaces.C;
 
 package body Common is
+
+   ----------------------
+   --  Unix_Timestamp  --
+   ----------------------
+
    function Unix_Timestamp
      (Date : in Time)
-     return String
+      return String
    is
       use Ada.Strings;
       use Interfaces.C;
@@ -32,4 +38,5 @@ package body Common is
            (Ada.Calendar.Conversions.To_Unix_Time (Date)),
          Side   => Left);
    end Unix_Timestamp;
+
 end Common;
