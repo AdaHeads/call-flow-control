@@ -21,6 +21,11 @@ package body Client_Notification.Call is
       return (Instance with Persistant => False, Call => C);
    end Park;
 
+   function Pickup (C : in Model.Call.Call_Type) return Pickup_Event is
+   begin
+      return (Instance with Persistant => False, Call => C);
+   end Pickup;
+
    -----------------------------
    --  Header_Name functions  --
    -----------------------------

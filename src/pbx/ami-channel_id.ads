@@ -32,6 +32,7 @@ package AMI.Channel_ID is
       case Temporary is
          when False =>
             Parked     : Boolean;
+            AsyncGoto  : Boolean;
             Technology : Technologies;
             Peer       : Peer_Name;
             Sequence   : Sequence_Number;
@@ -67,6 +68,7 @@ private
    Null_Channel_ID : constant Instance :=
                        (Temporary  => False,
                         Parked     => True,
+                        AsyncGoto  => True,
                         Technology => SIP,
                         Peer       => To_Unbounded_String (""),
                         Sequence   => 16#ffffffff#);

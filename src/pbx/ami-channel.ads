@@ -29,8 +29,8 @@ package AMI.Channel is
    use Model.Call_ID;
    use Model;
 
-   type Valid_State is (Unknown, Down, Reserved, Off_Hook,
-                        Dialed, Ringing, Receiver_Ringing, Up, Busy);
+   type Valid_State is (Down, Reserved, Off_Hook,
+                        Dialed, Ringing, Receiver_Ringing, Up, Busy, Unknown);
 
    package US renames Ada.Strings.Unbounded;
 
@@ -108,7 +108,10 @@ package AMI.Channel is
    List : Protected_Channel_List_Type;
    --  Package-visible singleton.
 
+   Transition_List : Protected_Channel_List_Type;
+   --  Package-visible singleton of the channels currently in transition.
 private
+
    Null_Object : constant Instance := (Is_Null => True);
    Empty_Object : constant Instance :=
                     (Is_Null               => False,
