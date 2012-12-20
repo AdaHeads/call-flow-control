@@ -28,17 +28,53 @@ succeeded_list=$(mktemp)
 echo "Running tests."
 
 for file in $(find ./ -mindepth 2 -type f -perm +100 | sort); do
+   NAME=`basename ${file}`
    test=$(echo ${file} | cut -d/ -f2)
 
    if [ ! -f ${file}.arguments ]; then
       touch ${file}.arguments
    fi
 
-   if ./${file} $(cat ${file}.arguments) 1>${file}.output \
-                                         2>${file}.errors; then
+   # Start the test and background it.
+   ./${file} $(cat ${file}.arguments) 1>${file}.output \
+                                      2>${file}.errors \
+                                      &
+   PID=$!
+
+   COUNTER=0
+   while [ -d /proc/${PID} ]; do
+      let "COUNTER++"
+
+      # Kill tests that run for more than 10 seconds.
+      if [ "$COUNTER" -gt 20 ]; then
+         echo "${NAME} seems stuck. Killing it."
+         kill $PID 2>/dev/null
+         wait $PID 2>/dev/null
+
+         sleep 1 # Waiting 1 second for test to die nicely.
+
+         if [ -d /proc/${PID} ]; then
+            echo "${NAME} wont die nicely. Shooting it in the head with -9."
+            kill -9 $PID 2>/dev/null
+            wait $PID 2>/dev/null
+         fi
+      fi
+
+      sleep 0.5
+   done
+
+   # Get information about the background test process.
+   wait ${PID}
+
+   if [ $? -eq 0 ]; then
       echo ${test} >> ${succeeded_list}
+      echo "${NAME} completed."
    else
-      echo ${test} >>    ${failed_list}
+      echo ${test} >> ${failed_list}
+      echo "${NAME} failed."
+
+      # Reset success
+      success="true"
    fi
 done
 
