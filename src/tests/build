@@ -25,18 +25,28 @@ cd "$(dirname "$0")" || exit -1
 failed_list=$(mktemp)
 succeeded_list=$(mktemp)
 
+number_of_builds=$(find ./ -mindepth 2 -type f -name \*.gpr | wc -l)
+build_number=0
+
 echo -n "Building tests...  "
 
 for file in $(find ./ -mindepth 2 -type f -name \*.gpr | sort); do
-   test=$(echo ${file} | cut -d/ -f2)
+   let build_number++
+
+   echo ${build_number}/${number_of_builds}$'\tBuilding '${file}'...' 1>&2
 
    if gnatmake -P ${file} 1>${file}.output \
                           2>${file}.errors; then
-      echo ${test} >> ${succeeded_list}
+      echo ${build_number}/${number_of_builds}$'\tBuild succeeded' 1>&2
+
+      echo ${file} >> ${succeeded_list}
    else
-      echo ${test} >>    ${failed_list}
+      echo ${build_number}/${number_of_builds}$'\tBuild failed' 1>&2
+
+      echo ${file} >>    ${failed_list}
    fi
-done
+done \
+  2>build.status
 
 total=$(cat ${succeeded_list} ${failed_list} | wc -l)
 failed=$(cat ${failed_list} | wc -l)
