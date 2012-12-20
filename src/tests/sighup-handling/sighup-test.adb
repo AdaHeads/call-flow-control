@@ -23,8 +23,8 @@ with
 
 procedure SIGHUP.Test is
 begin
-   Ada.Text_IO.Put_Line ("Waiting 10 seconds.");
-   delay 10.0;
+   Ada.Text_IO.Put_Line ("Waiting 4 seconds.");
+   delay 4.0;
    Ada.Text_IO.Put_Line ("Stopping the SIGHUP handlers.");
    SIGHUP.Stop;
 
