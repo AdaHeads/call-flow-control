@@ -201,6 +201,22 @@ package AMI.Packet.Action is
      ) return Request;
    --  List currently defined channels and some information about them.
 
+   function Core_Status
+     (On_Response : in Response_Handler_Type :=
+        Null_Reponse_Handler'Access
+      --  The reponse handler
+     ) return Request;
+   --  Query for Core PBX status.
+
+   function Create_Config
+     (Filename    : in String;
+      On_Response : in Response_Handler_Type :=
+        Null_Reponse_Handler'Access
+      --  The reponse handler
+     ) return Request;
+   --  This action will create an empty file in the configuration directory,
+   --  and is intended to be used before an UpdateConfig action.
+
    procedure DB_Get
      (Family : in String;
       --  The AstDB key family from which to retrieve the value.

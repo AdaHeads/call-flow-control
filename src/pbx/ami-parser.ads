@@ -35,6 +35,7 @@ package AMI.Parser is
       Extension,
       ConnectedLineNum,
       Priority,
+      Filename,
       --  Originate
       Account,
       Codecs,

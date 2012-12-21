@@ -28,29 +28,6 @@ package body AMI.Channel_ID is
    -- "<" --
    ---------
 
-   function Image (Item : in Sequence_Number) return String is
-      Buffer : String (1 .. 12);
-   begin
-      Sequence_Text_IO.Put (To   => Buffer,
-                            Item => Item,
-                            Base => 16);
-      for Index in Buffer'Range loop
-         if Buffer (Index) = '#' then
-            Buffer (Index) := '0';
-            exit;
-         else
-            Buffer (Index) := '0';
-         end if;
-      end loop;
-
-      return Buffer (4 .. 11);
-   end Image;
-
-   function Value (Item : in String) return Sequence_Number is
-   begin
-      return Sequence_Number'Value ("16#" & Item & "#");
-   end Value;
-
    function "<" (Left  : in Instance;
                  Right : in Instance) return Boolean is
    begin
@@ -75,6 +52,29 @@ package body AMI.Channel_ID is
       end if;
    end  "=";
 
+   function Image (Item : in Sequence_Number) return String is
+      Buffer : String (1 .. 12);
+   begin
+      Sequence_Text_IO.Put (To   => Buffer,
+                            Item => Item,
+                            Base => 16);
+      for Index in Buffer'Range loop
+         if Buffer (Index) = '#' then
+            Buffer (Index) := '0';
+            exit;
+         else
+            Buffer (Index) := '0';
+         end if;
+      end loop;
+
+      return Buffer (4 .. 11);
+   end Image;
+
+   function Value (Item : in String) return Sequence_Number is
+   begin
+      return Sequence_Number'Value ("16#" & Item & "#");
+   end Value;
+
    -----------
    -- Value --
    -----------
@@ -82,16 +82,18 @@ package body AMI.Channel_ID is
    function Value (Item : in String) return Instance is
       use Ada.Characters.Handling, Ada.Strings.Fixed;
 
-      Null_Key     : constant String := "<null>";
-      Parked_Key   : constant String := "Parked/";
-      Peer_Key     : constant String := "/";
-      Sequence_Key : constant String := "-";
+      Null_Key      : constant String := "<null>";
+      Parked_Key    : constant String := "Parked/";
+      AsyncGoto_Key : constant String := "AsyncGoto/";
+      Peer_Key      : constant String := "/";
+      Sequence_Key  : constant String := "-";
 
       Technology_Index : Positive;
       Peer_Index       : Natural;
       Sequence_Index   : Natural;
 
       Parked     : Boolean;
+      AsyncGoto  : Boolean;
       Technology : Technologies;
       Peer       : Peer_Name;
       Sequence   : Sequence_Number;
@@ -111,10 +113,16 @@ package body AMI.Channel_ID is
          return (Temporary => True);
       end if;
 
-      Parked := To_Upper (Parked_Key) = To_Upper (Head (Item, Parked_Key'Length));
+      Parked := To_Upper (Parked_Key) =
+        To_Upper (Head (Item, Parked_Key'Length));
+
+      AsyncGoto := To_Upper (Parked_Key) =
+        To_Upper (Head (Item, Parked_Key'Length));
 
       if Parked then
          Technology_Index := Item'First + Parked_Key'Length;
+      elsif AsyncGoto then
+         Technology_Index := Item'First + AsyncGoto_Key'Length;
       else
          Technology_Index := Item'First;
       end if;
@@ -131,6 +139,7 @@ package body AMI.Channel_ID is
 
       return (Temporary  => False,
               Parked     => Parked,
+              AsyncGoto  => AsyncGoto,
               Technology => Technology,
               Peer       => Peer,
               Sequence   => Sequence);

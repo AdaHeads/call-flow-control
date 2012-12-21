@@ -15,15 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Indefinite_Ordered_Maps;
+package AMI.Channel.Event_Handlers is
+   Package_Name : constant String := "AMI.Channel.Event_Handlers";
 
-with GNATCOLL.JSON;
+   procedure Register_Handlers;
+   --  Registers the appropriate event handlers.
 
-with AMI.Channel;
-with AMI.Channel_ID;
-
-package Model.Channels is
-   use AMI;
-
-
-end Model.Channels;
+end AMI.Channel.Event_Handlers;
