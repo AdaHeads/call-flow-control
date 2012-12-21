@@ -18,7 +18,7 @@ with AMI.Parser;
 
 package PBX.Event_Handlers is
 
-   Package_Name : constant String := "My_Callbacks";
+   Package_Name : constant String := "PBX.Event_Handlers";
 
    Not_Implemented : exception;
 
@@ -38,7 +38,6 @@ package PBX.Event_Handlers is
    --  E.g. hangup or pickup. This is responsible tagging calls as picked up,
    --  but does not touch the channel.
 
-   procedure New_Channel   (Packet : in Parser.Packet_Type);
    procedure Queue_Abandon (Packet : in Parser.Packet_Type);
    --  procedure Unlink_Callback     (Event_List : in Event_List_Type.Map);
 
@@ -46,8 +45,6 @@ package PBX.Event_Handlers is
    procedure Peer_Entry (Packet : in Parser.Packet_Type);
 
    procedure Peer_List_Complete (Packet : in Parser.Packet_Type);
-   procedure New_State (Packet : in Parser.Packet_Type);
-   --  Update the state of a channel.
 
    procedure Bridge (Packet : in Parser.Packet_Type);
 

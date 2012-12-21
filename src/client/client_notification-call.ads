@@ -27,7 +27,7 @@ package Client_Notification.Call is
       end record;
    function To_JSON (O : in Pickup_Event) return JSON_Value;
    function Header_Name (O : in Pickup_Event) return String;
-   --  function Pickup (C : in Call.Call_Type) return Pickup_Event;
+   function Pickup (C : in Model.Call.Call_Type) return Pickup_Event;
 
    type Hangup_Event is new Client_Notification.Instance
      (Persistant => False) with
@@ -57,8 +57,8 @@ package Client_Notification.Call is
    function Header_Name (O : in Bridge_Event) return String;
 
 private
-   Pickup_Header : constant String := "call_hangup";
-   Hangup_Header : constant String := "call_pickup";
+   Pickup_Header : constant String := "call_pickup";
+   Hangup_Header : constant String := "call_hangup";
    Park_Header   : constant String := "call_park";
    Bridge_Header : constant String := "call_bridge";
 end Client_Notification.Call;

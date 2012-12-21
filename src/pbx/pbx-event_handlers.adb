@@ -32,6 +32,7 @@ with AMI.Peer_ID;
 with Handlers.Notifications;
 with Client_Notification.Queue;
 with Client_Notification.Call;
+with AMI.Channel.Event_Handlers;
 
 package body PBX.Event_Handlers is
    use Common;
@@ -43,21 +44,30 @@ package body PBX.Event_Handlers is
    use Model.Call_ID;
    use AMI.Peer;
 
-   package Notifications renames Handlers.Notifications;
+   package Notification renames Handlers.Notifications;
 
    --------------
    --  Bridge  --
    --------------
 
    procedure Bridge (Packet : in Parser.Packet_Type) is
-      ID1, ID2 : Call_ID.Call_ID_Type := Null_Call_ID;
+      Context   : constant String      := "Bridge";
+      ID1, ID2  : Call_ID.Call_ID_Type := Null_Call_ID;
+      Some_Call : Call.Call_Type       := Null_Call;
    begin
       ID1 := Call_ID.Create
-        (To_String (Packet.Fields.Element (Parser.UniqueID1)));
+        (To_String (Packet.Get_Value (Parser.UniqueID1)));
       ID2 := Call_ID.Create
-        (To_String (Packet.Fields.Element (Parser.UniqueID2)));
+        (To_String (Packet.Get_Value (Parser.UniqueID2)));
       Calls.List.Link (ID1 => ID1,
                        ID2 => ID2);
+      Some_Call := Calls.List.Get (ID1);
+
+      System_Messages.Notify
+        (Debug, Package_Name & "." & Context & ": " &
+           Client_Notification.Call.Pickup (Some_Call).To_JSON.Write);
+      Notification.Broadcast
+           (Client_Notification.Call.Pickup (Some_Call).To_JSON);
    end Bridge;
 
    -------------------------
@@ -67,12 +77,13 @@ package body PBX.Event_Handlers is
    --  TODO: Move this to a consistency_check package, and use more
    --  of the information.
    procedure Core_Show_Channel (Packet : in Parser.Packet_Type) is
-      Requested_Channel : AMI.Channel.Instance := AMI.Channel.Null_Object;
+      Requested_Channel_ID : constant Channel_ID.Instance :=
+                               Channel_ID.Value (Packet.Get_Value
+                                                 (Parser.Channel));
    begin
       --  Only load missing channels.
-      if not Channel.List.Contains (Key => Requested_Channel.ID) then
-         Requested_Channel := AMI.Channel.Create (Packet);
-         Channel.List.Insert (Requested_Channel);
+      if not Channel.List.Contains (Key => Requested_Channel_ID) then
+         Channel.List.Insert (AMI.Channel.Create (Packet));
       end if;
    end Core_Show_Channel;
 
@@ -85,7 +96,7 @@ package body PBX.Event_Handlers is
       Context          : constant String :=
                            "Core_Show_Channels_Complete";
       Number_Of_Events : constant Natural :=
-        Natural'Value (To_String (Packet.Fields.Element (Parser.ListItems)));
+        Natural'Value (To_String (Packet.Get_Value (Parser.ListItems)));
    begin
       System_Messages.Notify (Debug, "Core_Show_Channel_Complete");
       if Number_Of_Events /= Channel.List.Length then
@@ -112,13 +123,13 @@ package body PBX.Event_Handlers is
    begin
       --  There is a sequence to a Dial event represented by a SubEvent.
       --  It consists of "Begin" or "End"
-      if To_String (Packet.Fields.Element (Parser.SubEvent)) = "Begin" then
+      if To_String (Packet.Get_Value (Parser.SubEvent)) = "Begin" then
          System_Messages.Notify (Debug, Package_Name & "." & Context & ": " &
                                    "Dial Begin");
          Call.ID := Model.Call_ID.Create
-           (To_String (Packet.Fields.Element (Parser.DestUniqueID)));
+           (To_String (Packet.Get_Value (Parser.DestUniqueID)));
          Call.Channel := Channel_ID.Value
-           (To_String (Packet.Fields.Element (Parser.Destination)));
+           (To_String (Packet.Get_Value (Parser.Destination)));
          Call.Inbound := False; --  A dial event implies outbound.
          Call.Arrived := Current_Time;
 
@@ -126,7 +137,7 @@ package body PBX.Event_Handlers is
 
       --  When a Dial event ends, the call is over, and must thus be removed
       --  From the call list.
-      elsif To_String (Packet.Fields.Element (Parser.SubEvent)) = "End" then
+      elsif To_String (Packet.Get_Value (Parser.SubEvent)) = "End" then
          System_Messages.Notify (Debug, Package_Name & "." & Context & ": " &
                                    "Dial End");
          Call.ID := Model.Call_ID.Create (Packet.Get_Value (Parser.UniqueID));
@@ -134,7 +145,7 @@ package body PBX.Event_Handlers is
          System_Messages.Notify
            (Error, Package_Name & "." & Context & ": " &
               "unknown SubEvent: " &
-              To_String (Packet.Fields.Element (Parser.SubEvent)));
+              To_String (Packet.Get_Value (Parser.SubEvent)));
       end if;
    end Dial;
 
@@ -150,9 +161,13 @@ package body PBX.Event_Handlers is
    begin
       Hungup_Channel
         := Channel_ID.Value (Packet.Get_Value (Parser.Channel));
-      Call    := Call_ID.Create (Packet.Get_Value (Parser.UniqueID));
 
-      Channel.List.Remove (Hungup_Channel);
+      Call := Call_ID.Create (Packet.Get_Value (Parser.UniqueID));
+
+      if Hungup_Channel.Parked or Hungup_Channel.AsyncGoto then
+         Channel.Transition_List.Remove (Hungup_Channel);
+         Channel.List.Remove (Hungup_Channel);
+      end if;
 
       Model.Calls.List.Remove (Call);
 
@@ -188,12 +203,12 @@ package body PBX.Event_Handlers is
          Call.Arrived := Current_Time;
       end if;
 
-      Call.Queue := Packet.Fields.Element (Parser.Queue);
+      Call.Queue := Packet.Get_Value (Parser.Queue);
       Call.Channel := Channel_ID.Value
-        (To_String (Packet.Fields.Element (Parser.Channel)));
+        (To_String (Packet.Get_Value (Parser.Channel)));
       Model.Calls.List.Insert (Call);
 
-      Notifications.Broadcast
+      Notification.Broadcast
         (Client_Notification.Queue.Join (C => Call).To_JSON);
    exception
          when others =>
@@ -216,52 +231,9 @@ package body PBX.Event_Handlers is
       Call := Model.Calls.List.Get
         (Call_ID => Create (Packet.Get_Value (Parser.UniqueID)));
 
-      Notifications.Broadcast
+      Notification.Broadcast
         (Client_Notification.Queue.Leave (C => Call).To_JSON);
    end Leave;
-
-   --  A Newchannel event represents any channel created within asterisk.
-   --  We collect every channel into a channel list and distribute them
-   --  from there to either a call list or a peer channel list.
-   procedure New_Channel (Packet : in Parser.Packet_Type) is
-      use type Channel.Instance;
-      New_Channel : constant AMI.Channel.Instance :=
-                      AMI.Channel.Create (Packet => Packet);
-   begin
-      --  Ignore invalid channels for now.
-      if New_Channel /= Channel.Null_Object then
-         Channel.List.Insert (New_Channel);
-         System_Messages.Notify
-           (Debug, "My_Callbacks.New_Channel: Channel_List: " &
-              Channel.List.To_String);
-      end if;
-   end New_Channel;
-
-   --  Event: Newstate
-   --  Privilege: call,all
-   --  Channel: SIP/softphone1-0000000b
-   --  ChannelState: 5
-   --  ChannelStateDesc: Ringing
-   --  CallerIDNum: 100
-   --  CallerIDName:
-   --  Uniqueid: 1340097427.11
-   procedure New_State (Packet : in Parser.Packet_Type) is
-      Context           : constant String  := "New_State";
-      Channel_To_Change : Channel.Instance := Channel.Empty_Object;
-   begin
-      Channel_To_Change := Channel.List.Get
-                              (Channel_ID.Value
-                                 (Packet.Get_Value
-                                    (Parser.Channel)));
-
-      Channel_To_Change.Change_State (Packet);
-      Channel.List.Update (Channel_To_Change);
-   exception
-      when others =>
-         System_Messages.Notify (Error, Package_Name & "." & Context & ": " &
-                                   "failed to update channel " &
-                                   Channel_To_Change.To_String);
-   end New_State;
 
    ------------------
    -- Parked_Call --
@@ -272,12 +244,16 @@ package body PBX.Event_Handlers is
    begin
       Call_To_Park := Calls.List.Get
         (Call_ID.Create (Packet.Get_Value (Parser.UniqueID)));
+
       Call_To_Park.State := Parked;
+      Call_To_Park.Bridged_With := Null_Call_ID;
       Calls.List.Put (Call_To_Park);
 
       --  Broadcast it.
-      Notifications.Broadcast
+      Notification.Broadcast
         (Client_Notification.Call.Park (C => Call_To_Park).To_JSON);
+      System_Messages.Notify (Debug, Client_Notification.Call.Park
+                              (C => Call_To_Park).To_JSON.Write);
    end Parked_Call;
 
    ----------------
@@ -292,17 +268,17 @@ package body PBX.Event_Handlers is
       --  Fetch the peer's ID.
       Peer.ID := Peer_ID.Create
         (Channel_Kind =>
-           To_String (Packet.Fields.Element (Parser.ChannelType)),
+           To_String (Packet.Get_Value (Parser.ChannelType)),
          Peername     =>
-           To_String (Packet.Fields.Element (Parser.ObjectName)));
+           To_String (Packet.Get_Value (Parser.ObjectName)));
 
       --  Set the agent field
       --  TODO
 
       --  TODO: Update this to the whatever format Asterisk 1.8 supports.
-      if To_String (Packet.Fields.Element (Parser.IPaddress)) /= "-none-" then
-         Peer.Address := Packet.Fields.Element (Parser.IPaddress);
-         Peer.Port := Packet.Fields.Element (Parser.IPport);
+      if To_String (Packet.Get_Value (Parser.IPaddress)) /= "-none-" then
+         Peer.Address := Packet.Get_Value (Parser.IPaddress);
+         Peer.Port := Packet.Get_Value (Parser.IPport);
 
          Peer.State := Unknown;
       else
@@ -318,7 +294,7 @@ package body PBX.Event_Handlers is
       Context          : constant String :=
                            "Peer_List_Complete";
       Number_Of_Events : constant Natural :=
-        Natural'Value (To_String (Packet.Fields.Element (Parser.ListItems)));
+        Natural'Value (To_String (Packet.Get_Value (Parser.ListItems)));
    begin
       if Number_Of_Events /= AMI.Peer.List.Count then
          System_Messages.Notify (Error, Package_Name & "." & Context & ": " &
@@ -339,7 +315,7 @@ package body PBX.Event_Handlers is
    begin
 
       Peer.ID := Peer_ID.Create
-        (To_String (Packet.Fields.Element (AMI.Parser.Peer)));
+        (To_String (Packet.Get_Value (AMI.Parser.Peer)));
       --  Check if the peer is known
       if AMI.Peer.List.Contains (Peer.ID) then
          Peer := AMI.Peer.List.Get (Peer.ID);
@@ -355,22 +331,22 @@ package body PBX.Event_Handlers is
       --  Update fields
       Peer.Seen; --  Bump timstamp.
       if Packet.Fields.Contains (AMI.Parser.Address) then
-         Peer.Address := Packet.Fields.Element (Parser.Address);
+         Peer.Address := Packet.Get_Value (Parser.Address);
       end if;
 
       if Packet.Fields.Contains (AMI.Parser.Port) then
-         Peer.Port := Packet.Fields.Element (Parser.Port);
+         Peer.Port := Packet.Get_Value (Parser.Port);
       end if;
 
       --  Setting the State - registered or not.
       if Packet.Fields.Contains (AMI.Parser.PeerStatus) then
          --  Save the previous state.
          Peer.Last_State := Peer.State;
-         if To_String (Packet.Fields.Element (Parser.PeerStatus)) =
+         if To_String (Packet.Get_Value (Parser.PeerStatus)) =
            AMI.Peer_State_Unregistered then
             Peer.State := Unregistered;
 
-         elsif To_String (Packet.Fields.Element (Parser.PeerStatus)) =
+         elsif To_String (Packet.Get_Value (Parser.PeerStatus)) =
            AMI.Peer_State_Registered then
             Peer.State := Idle;
 
@@ -379,7 +355,7 @@ package body PBX.Event_Handlers is
             System_Messages.Notify
               (Critical, "My_Callbacks.Peer_Status: " &
                  "Peer changed state into an unknown state: " &
-                 To_String (Packet.Fields.Element (Parser.PeerStatus)));
+                 To_String (Packet.Get_Value (Parser.PeerStatus)));
          end if;
 
          System_Messages.Notify
@@ -396,6 +372,21 @@ package body PBX.Event_Handlers is
 
    end Peer_Status;
 
+   --------------
+   --  Unlink  --
+   --------------
+
+--     procedure Unlink (Packet : in Parser.Packet_Type) is
+--        ID1, ID2 : Call_ID.Call_ID_Type := Null_Call_ID;
+--     begin
+--        ID1 := Call_ID.Create
+--          (To_String (Packet.Get_Value (Parser.UniqueID1)));
+--        ID2 := Call_ID.Create
+--          (To_String (Packet.Get_Value (Parser.UniqueID2)));
+--        Calls.List.Unlink (ID1 => ID1,
+--                         ID2 => ID2);
+--     end Unlink;
+
    --  Event: QueueCallerAbandon
    --  Privilege: agent,all
    --  Queue: org_id2
@@ -411,18 +402,18 @@ package body PBX.Event_Handlers is
       Hold_Time         : Integer := -1;
    begin
       Call.ID := Create
-        (To_String (Packet.Fields.Element (Parser.UniqueID)));
+        (To_String (Packet.Get_Value (Parser.UniqueID)));
 
       Position := Integer'Value
-        (To_String (Packet.Fields.Element (Parser.Position)));
+        (To_String (Packet.Get_Value (Parser.Position)));
 
-      Queue := Packet.Fields.Element (Parser.Queue);
+      Queue := Packet.Get_Value (Parser.Queue);
 
       Original_Position := Integer'Value
-        (To_String (Packet.Fields.Element (Parser.OriginalPosition)));
+        (To_String (Packet.Get_Value (Parser.OriginalPosition)));
 
       Hold_Time := Integer'Value
-        (To_String (Packet.Fields.Element (Parser.HoldTime)));
+        (To_String (Packet.Get_Value (Parser.HoldTime)));
 
       System_Messages.Notify (Debug, "My.Callbacks.Queue_Abandon: Call_ID " &
                                 To_String (Call.ID) & " left queue " &
@@ -432,9 +423,10 @@ package body PBX.Event_Handlers is
    end Queue_Abandon;
 
 begin
+   AMI.Channel.Event_Handlers.Register_Handlers;
+
    AMI.Observers.Register (Event   => AMI.Event.Bridge,
                            Handler => Bridge'Access);
-
    AMI.Observers.Register (Event   => AMI.Event.CoreShowChannel,
                            Handler => Core_Show_Channel'Access);
    AMI.Observers.Register (Event   => AMI.Event.CoreShowChannelsComplete,
@@ -451,10 +443,6 @@ begin
                            Handler => Join'Access);
    AMI.Observers.Register (Event   => AMI.Event.Leave,
                            Handler => Leave'Access);
-   AMI.Observers.Register (Event   => AMI.Event.Newchannel,
-                           Handler => New_Channel'Access);
-   AMI.Observers.Register (Event   => AMI.Event.Newstate,
-                           Handler => New_State'Access);
    AMI.Observers.Register (Event   => AMI.Event.Dial,
                            Handler => Dial'Access);
    AMI.Observers.Register (Event   => AMI.Event.QueueCallerAbandon,

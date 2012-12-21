@@ -347,6 +347,20 @@ package body AMI.Packet.Action is
                             On_Response => On_Response);
    end Core_Show_Channels;
 
+   -----------------
+   -- Core_Status --
+   -----------------
+
+   function Core_Status
+     (On_Response : in Response_Handler_Type :=
+        Null_Reponse_Handler'Access
+     ) return Request is
+   begin
+      return Action.Create (Action      => Valid_Action'(CoreStatus),
+                            Fields      => Field.Field_List.Empty_List,
+                            On_Response => On_Response);
+   end Core_Status;
+
    ------------
    -- Create --
    ------------
@@ -364,6 +378,27 @@ package body AMI.Packet.Action is
               Response_Handler => On_Response);
    end Create;
 
+   ---------------------
+   --  Create_Config  --
+   ---------------------
+
+   function Create_Config
+     (Filename    : in String;
+      On_Response : in Response_Handler_Type :=
+        Null_Reponse_Handler'Access
+      --  The reponse handler
+     ) return Request
+   is
+      Fields : AMI.Packet.Field.Field_List.List :=
+                 AMI.Packet.Field.Field_List.Empty_List;
+   begin
+      Fields.Append (AMI.Packet.Field.Create (Key   => AMI.Parser.Filename,
+                                              Value => Filename));
+
+      return Action.Create (Action      => CreateConfig,
+                            Fields      => Fields,
+                            On_Response => On_Response);
+   end Create_Config;
    ------------
    -- Hangup --
    ------------
