@@ -16,6 +16,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Hash;
+
 with Model.Attribute;
 with SQL_Statements.Contact;
 with Storage;
@@ -63,6 +64,7 @@ package body Model.Contacts is
      (Cursor : in out Database_Cursor'Class)
       return List
    is
+      use GNATCOLL.JSON;
       use Model.Contact;
 
       A_Id    : Attribute_Identifier;
@@ -82,8 +84,10 @@ package body Model.Contacts is
                        (Cursor.Integer_Value (5)));
 
             Contact.Add_Attribute
-              (Model.Attribute.Create (ID   => A_Id,
-                                       JSON => Cursor.Json_Object_Value (3)));
+              (Model.Attribute.Create
+                 (ID   => A_Id,
+                  JSON => Read
+                    (Cursor.Json_Text_Value (3), "attribute json error")));
          end if;
 
          A_List.Add_Contact

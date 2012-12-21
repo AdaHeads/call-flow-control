@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with GNATCOLL.JSON;
+
 with SQL_Statements.Contact;
 with Storage;
 with View.Contact;
@@ -72,6 +74,7 @@ package body Model.Contact is
       return Object
    is
       use Common;
+      use GNATCOLL.JSON;
 
       CO : Object;
    begin
@@ -91,7 +94,7 @@ package body Model.Contact is
                        (C.Integer_Value (4, Default => 0)),
                      OID => Organization_Identifier
                        (C.Integer_Value (5, Default => 0))),
-                  JSON => C.Json_Object_Value (3)));
+                  JSON => Read (C.Json_Text_Value (3), "contact json error")));
          end if;
 
          C.Next;

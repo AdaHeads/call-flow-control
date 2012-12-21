@@ -15,8 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Common;
 with GNATCOLL.JSON;
+
+with Common;
 
 package Model.Attribute is
 

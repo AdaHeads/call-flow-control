@@ -16,7 +16,9 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Hash;
+
 with GNATCOLL.JSON;
+
 with SQL_Statements.Organization;
 with Storage;
 with View.Organization;
@@ -147,6 +149,7 @@ package body Model.Organizations is
      (Cursor : in out Database_Cursor'Class)
       return List
    is
+      use GNATCOLL.JSON;
       use Model.Organization;
 
       A_List       : List;
@@ -157,7 +160,8 @@ package body Model.Organizations is
            (ID         => Organization_Identifier (Cursor.Integer_Value (3)),
             Full_Name  => Cursor.Value (0),
             Identifier => Cursor.Value (1),
-            JSON       => Cursor.Json_Object_Value (2),
+            JSON       =>
+              Read (Cursor.Json_Text_Value (2), "organization json error"),
             Mode       => Request_Parameters.Midi);
 
          A_List.Organizations.Include
