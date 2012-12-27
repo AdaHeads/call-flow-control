@@ -16,7 +16,9 @@
 -------------------------------------------------------------------------------
 
 with Ada.Containers.Hashed_Maps;
+
 with GNATCOLL.JSON;
+
 with Model.Attribute;
 
 package Model.Attributes is

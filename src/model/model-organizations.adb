@@ -149,7 +149,7 @@ package body Model.Organizations is
      (Cursor : in out Database_Cursor'Class)
       return List
    is
-      use GNATCOLL.JSON;
+      use Common;
       use Model.Organization;
 
       A_List       : List;
@@ -160,8 +160,7 @@ package body Model.Organizations is
            (ID         => Organization_Identifier (Cursor.Integer_Value (3)),
             Full_Name  => Cursor.Value (0),
             Identifier => Cursor.Value (1),
-            JSON       =>
-              Read (Cursor.Json_Text_Value (2), "organization json error"),
+            JSON       => String_To_JSON_Object (Cursor.Json_Text_Value (2)),
             Mode       => Request_Parameters.Midi);
 
          A_List.Organizations.Include

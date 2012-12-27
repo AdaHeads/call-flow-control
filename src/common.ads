@@ -18,6 +18,8 @@
 with Ada.Calendar;
 with Ada.Strings.Unbounded;
 
+with GNATCOLL.JSON;
+
 package Common is
 
    subtype Time is Ada.Calendar.Time;
@@ -37,6 +39,18 @@ package Common is
    Null_JSON_String : constant JSON_String :=
                         JSON_String
                           (Ada.Strings.Unbounded.Null_Unbounded_String);
+
+   function String_To_JSON_Object
+     (Value : in String)
+      return GNATCOLL.JSON.JSON_Value;
+   --  Turn the Value string into a GNATCOLL JSON object. In the case of an
+   --  empty string or a "null" string a GNATCOLL.JSON.JSON_Null is returned.
+
+   function String_To_JSON_Object
+     (Value : in JSON_String)
+      return GNATCOLL.JSON.JSON_Value;
+   --  Turn the Value string into a GNATCOLL JSON object. In the case of an
+   --  empty string or a "null" string a GNATCOLL.JSON.JSON_Null is returned.
 
    function To_JSON_String
      (Source : in String)

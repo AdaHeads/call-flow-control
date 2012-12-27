@@ -19,10 +19,6 @@ with GNATCOLL.SQL.Exec;
 
 package Storage is
 
-   ----------------------------
-   --  Process_Select_Query  --
-   ----------------------------
-
    generic
 
       type Database_Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with
@@ -37,5 +33,7 @@ package Storage is
      (Process_Element    : not null access procedure (E : in Element);
       Prepared_Statement : in GNATCOLL.SQL.Exec.Prepared_Statement;
       Query_Parameters   : in GNATCOLL.SQL.Exec.SQL_Parameters);
+   --  Hand every Element created by Cursor_To_Element to the Process_Element
+   --  procedure.
 
 end Storage;

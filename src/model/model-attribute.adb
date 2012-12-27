@@ -45,14 +45,14 @@ package body Model.Attribute is
      (C : in out Database_Cursor'Class)
       return Object
    is
-      use GNATCOLL.JSON;
+      use Common;
    begin
       return
         (ID   => Attribute_Identifier'
            (CID => Contact_Identifier (C.Integer_Value (0, Default => 0)),
             OID => Organization_Identifier
               (C.Integer_Value (1, Default => 0))),
-         JSON => Read (C.Json_Text_Value (2), "attribute json error"));
+         JSON => String_To_JSON_Object (C.Json_Text_Value (2)));
    end Contact_Attributes_Element;
 
    ------------------
