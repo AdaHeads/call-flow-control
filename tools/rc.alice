@@ -37,17 +37,17 @@
 NAME=alice
 
 # Path to the NAME executable.
-LOCATION=/opt/alice
+LOCATION=/home/thomas/Ada/AdaHeads/Alice/exe
 
 # Paths to the configuration files.
-ALICE_CONFIG=configuration/alice_config.ini
-YOLK_CONFIG=configuration/config.ini
+ALICE_CONFIG=/home/thomas/Ada/AdaHeads/Alice/exe/configuration/alice_config.ini
+YOLK_CONFIG=/home/thomas/Ada/AdaHeads/Alice/exe/configuration/config.ini
 
 # Path to the PID file.
 PID=`realpath ${LOCATION}`/${NAME}.pid
 
 # User to run Alice as:
-USER=alice
+USER=thomas
 
 ##############################################################
 # Do not edit below here, unless you know what you're doing. #
@@ -94,10 +94,10 @@ yolk_start() {
 
     if [ -f ${ALICE_CONFIG} -a -f ${YOLK_CONFIG} ]
     then
-	su -c "./${NAME} --alice-config-file ${ALICE_CONFIG} --yolk-config-file ${YOLK_CONFIG} > /dev/null &" ${USER}
+        su -c "./${NAME} --alice-config-file ${ALICE_CONFIG} --yolk-config-file ${YOLK_CONFIG} > /dev/null &" ${USER}
 
         # Create the PID file
-	YOLK_PID=$!
+	YOLK_PID=`pidof ${NAME}`  # TODO: Fix this bad solution.
 	echo $YOLK_PID > ${PID}
 
         # Check that everything went well.
