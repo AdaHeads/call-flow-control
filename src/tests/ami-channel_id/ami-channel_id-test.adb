@@ -23,8 +23,9 @@ procedure AMI.Channel_ID.Test is
    use Ada.Command_Line;
 
    procedure Check_Image_And_Value
-     (Input  : in String;
-      Output : in String)
+     (Input            : in String;
+      Output           : in String;
+      Expect_Exception : in Boolean := False)
    is
       use Ada.Text_IO;
    begin
@@ -41,11 +42,25 @@ procedure AMI.Channel_ID.Test is
       end;
    exception
       when others =>
-         Put_Line ("Conversion of """ & Input & """ raised an exception.");
-         Set_Exit_Status (Failure);
+         if not Expect_Exception then
+            Put_Line ("Conversion of """ & Input & """ raised an exception.");
+            Set_Exit_Status (Failure);
+         end if;
    end Check_Image_And_Value;
 begin
    Set_Exit_Status (Success);
+
+   if Value ("Parked/SIP/JSA-N900-0000003a") =
+     Value ("SIP/JSA-N900-0000003a") then
+      Ada.Text_IO.Put_Line ("Comparator failure");
+      Set_Exit_Status (Failure);
+   end if;
+
+   if Value ("Parked/SIP/JSA-N900-00000035<ZOMBIE>") =
+     Value ("SIP/JSA-N900-00000035") then
+      Ada.Text_IO.Put_Line ("Comparator failure");
+      Set_Exit_Status (Failure);
+   end if;
 
    Check_Image_And_Value (Input  => "SIP/0004F2060EB4-0000001b",
                           Output => "SIP/0004F2060EB4-0000001B");
@@ -56,12 +71,13 @@ begin
    Check_Image_And_Value (Input  => "Parked/SIP/JSA-N900-0000003a",
                           Output => "Parked/SIP/JSA-N900-0000003A");
 
-   Check_Image_And_Value (Input  => "SIP/JSA-N900-00000035<zombie>",
-                          Output => "<temporary>");
+   Check_Image_And_Value (Input  => "SIP/JSA-N900-00000035<ZOMBIE>",
+                          Output => "SIP/JSA-N900-00000035<ZOMBIE>");
 
-   Check_Image_And_Value (Input  => "Parked/SIP/JSA-N900-00000035<zombie>",
-                          Output => "<temporary>");
+   Check_Image_And_Value (Input  => "Parked/SIP/JSA-N900-00000035<ZOMBIE>",
+                          Output => "Parked/SIP/JSA-N900-00000035<ZOMBIE>");
 
-   Check_Image_And_Value (Input  => "GSM/JSA-N900-00000033",
-                          Output => "<temporary>");
+   Check_Image_And_Value (Input            => "GSM/JSA-N900-00000033",
+                          Output           => "<null>",
+                          Expect_Exception => True);
 end AMI.Channel_ID.Test;

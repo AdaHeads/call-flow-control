@@ -15,12 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Ada.Characters.Handling,
-  Ada.Strings.Fixed,
-  Ada.Text_IO;
+with Ada.Characters.Handling;
+with Ada.Strings.Fixed;
+with Ada.Text_IO;
 
 package body AMI.Channel_ID is
+
+   function Value (Item : in String) return Sequence_Number;
+
    package Sequence_Text_IO is
      new Ada.Text_IO.Modular_IO (Sequence_Number);
 
@@ -31,8 +33,11 @@ package body AMI.Channel_ID is
    function "<" (Left  : in Instance;
                  Right : in Instance) return Boolean is
    begin
-      if Left.Temporary or Right.Temporary then
+      if Left.Is_Null or Right.Is_Null then
          return False;
+      elsif Left.Sequence = Right.Sequence then
+         return Left.Volatile < Right.Volatile or
+           Left.Transition < Right.Transition;
       else
          return Left.Sequence < Right.Sequence;
       end if;
@@ -45,12 +50,54 @@ package body AMI.Channel_ID is
    function "=" (Left  : in Instance;
                  Right : in Instance) return Boolean is
    begin
-      if Left.Temporary or Right.Temporary then
-         return False;
-      else
-         return Left.Sequence = Right.Sequence;
+      if Left.Is_Null or Right.Is_Null then
+         return Left.Is_Null and Right.Is_Null;
+      elsif
+        Left.Sequence   = Right.Sequence   and
+        Left.Transition = Right.Transition and
+        Left.Volatile   = Right.Volatile   then
+         return True;
       end if;
+
+      return False;
    end  "=";
+
+   function Image (Item : in Instance) return String is
+      use Ada.Strings.Unbounded;
+      Buffer : Unbounded_String := Null_Unbounded_String;
+   begin
+      if Item.Is_Null then
+         return "<null>";
+      end if;
+
+      case Item.Transition is
+         when Bridge =>
+            Append (Buffer, "Bridge/");
+         when Async_Goto =>
+            Append (Buffer, "AsyncGoto/");
+         when Parked =>
+            Append (Buffer, "Parked/");
+         when others =>
+            null;
+      end case;
+
+      Append (Buffer, Technologies'Image (Item.Technology) &
+                "/" &
+                To_String (Item.Peer) &
+                "-" &
+                Image (Item.Sequence));
+
+      case Item.Volatile is
+         when Zombie =>
+            Append (Buffer, "<ZOMBIE>");
+         when Masq =>
+            Append (Buffer, "<MASQ>");
+         when others =>
+            null;
+      end case;
+
+      return To_String (Buffer);
+   end Image;
 
    function Image (Item : in Sequence_Number) return String is
       Buffer : String (1 .. 12);
@@ -70,6 +117,11 @@ package body AMI.Channel_ID is
       return Buffer (4 .. 11);
    end Image;
 
+   function Temporary (Item : in Instance) return Boolean is
+   begin
+      return Item.Transition /= None or Item.Volatile /= None;
+   end Temporary;
+
    function Value (Item : in String) return Sequence_Number is
    begin
       return Sequence_Number'Value ("16#" & Item & "#");
@@ -81,20 +133,27 @@ package body AMI.Channel_ID is
 
    function Value (Item : in String) return Instance is
       use Ada.Characters.Handling, Ada.Strings.Fixed;
+      use Ada.Strings.Unbounded;
 
       Null_Key      : constant String := "<null>";
+      Bridged_Key   : constant String := "Bridged/";
       Parked_Key    : constant String := "Parked/";
       AsyncGoto_Key : constant String := "AsyncGoto/";
+
+      Zombie_Key    : constant String := "<ZOMBIE>";
+      Masq_Key      : constant String := "<MASQ>";
+
       Peer_Key      : constant String := "/";
       Sequence_Key  : constant String := "-";
 
-      Technology_Index : Positive;
+      Technology_Index : Natural := 0;
+      Volatile_Index   : Natural := 0;
       Peer_Index       : Natural;
       Sequence_Index   : Natural;
 
-      Parked     : Boolean;
-      AsyncGoto  : Boolean;
+      Transition : Transitions := None;
       Technology : Technologies;
+      Volatile   : Volatility := None;
       Peer       : Peer_Name;
       Sequence   : Sequence_Number;
    begin
@@ -102,85 +161,76 @@ package body AMI.Channel_ID is
          return Null_Channel_ID;
       end if;
 
-      Sequence_Index := Ada.Strings.Fixed.Index
-                          (Source  => Item,
-                           Pattern => Sequence_Key,
-                           Going   => Ada.Strings.Backward);
+      Volatile_Index := Ada.Strings.Fixed.Index
+        (Source  => To_Upper (Item),
+         Pattern => To_Upper (Masq_Key),
+         Going   => Ada.Strings.Backward);
 
-      if Sequence_Index + 8 = Item'Last then
-         Sequence := Value (Item (Sequence_Index + 1 .. Item'Last));
+      --  Search for the next valid item.
+      if Volatile_Index = 0 then
+         Volatile_Index := Ada.Strings.Fixed.Index
+           (Source  => To_Upper (Item),
+            Pattern => To_Upper (Zombie_Key),
+            Going   => Ada.Strings.Backward);
       else
-         return (Temporary => True);
+         Volatile := Masq;
       end if;
 
-      Parked := To_Upper (Parked_Key) =
-        To_Upper (Head (Item, Parked_Key'Length));
+      if Volatile_Index > 0 then
+         Volatile := Zombie;
+      end if;
+      Sequence_Index := Ada.Strings.Fixed.Index
+        (Source  => Item,
+         Pattern => Sequence_Key,
+         Going   => Ada.Strings.Backward);
 
-      AsyncGoto := To_Upper (Parked_Key) =
-        To_Upper (Head (Item, Parked_Key'Length));
+      Sequence := Value (Item (Sequence_Index + 1 .. Sequence_Index + 8));
 
-      if Parked then
+      if To_Upper (Parked_Key) = To_Upper (Head (Item, Parked_Key'Length)) then
+         Transition := Parked;
+      elsif To_Upper (AsyncGoto_Key) =
+        To_Upper (Head (Item, AsyncGoto_Key'Length)) then
+         Transition := Async_Goto;
+      elsif To_Upper (Bridged_Key) =
+        To_Upper (Head (Item, Bridged_Key'Length)) then
+         Transition := Bridge;
+      end if;
+
+      if Transition = Parked then
          Technology_Index := Item'First + Parked_Key'Length;
-      elsif AsyncGoto then
+      elsif Transition = Async_Goto then
          Technology_Index := Item'First + AsyncGoto_Key'Length;
       else
          Technology_Index := Item'First;
       end if;
 
       Peer_Index := Ada.Strings.Fixed.Index
-                      (Source  => Item (Technology_Index .. Sequence_Index),
-                       Pattern => Peer_Key);
+        (Source  => Item (Technology_Index .. Sequence_Index),
+         Pattern => Peer_Key);
 
       Technology := Technologies'Value
-                      (Item (Technology_Index .. Peer_Index - 1));
+        (Item (Technology_Index .. Peer_Index - 1));
 
       Peer := To_Unbounded_String
-                (Item (Peer_Index + 1 .. Sequence_Index - 1));
+        (Item (Peer_Index + 1 .. Sequence_Index - 1));
 
-      return (Temporary  => False,
-              Parked     => Parked,
-              AsyncGoto  => AsyncGoto,
+      return (Is_Null    => False,
+              Transition => Transition,
               Technology => Technology,
               Peer       => Peer,
-              Sequence   => Sequence);
+              Sequence   => Sequence,
+              Volatile   => Volatile);
    exception
       when Constraint_Error =>
-         return (Temporary => True);
+         return (Is_Null => True);
    end Value;
-
-   function Image (Item : in Instance) return String is
-   begin
-      if Item = Null_Channel_ID then
-         return "<null>";
-      else
-         case Item.Temporary is
-            when False =>
-               if Item.Parked then
-                  return "Parked/" &
-                         Technologies'Image (Item.Technology) &
-                         "/" &
-                         To_String (Item.Peer) &
-                         "-" &
-                         Image (Item.Sequence);
-               else
-                  return Technologies'Image (Item.Technology) &
-                         "/" &
-                         To_String (Item.Peer) &
-                         "-" &
-                         Image (Item.Sequence);
-               end if;
-            when True =>
-               return "<temporary>";
-         end case;
-      end if;
-   end Image;
 
    --------------
    -- Validate --
    --------------
 
    function Validate (Item : in String) return Boolean is
-      Dummy_Channel_ID : Channel_ID_Type := Null_Channel_ID;
+      Dummy_Channel_ID : Channel_ID.Instance := Empty_Channel;
       pragma Unreferenced (Dummy_Channel_ID);
    begin
       if Item'Length < 3 then

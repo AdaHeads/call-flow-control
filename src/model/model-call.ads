@@ -45,7 +45,7 @@ package Model.Call is
          State          : Call_State;
          Inbound        : Boolean;
          Queue_Priority : Priority_Level;
-         Channel        : Channel_ID.Instance (Temporary => False);
+         Channel        : Channel_ID.Instance (Is_Null => False);
          Queue          : Unbounded_String;
          Position       : Natural;
          Count          : Natural;
@@ -69,7 +69,7 @@ private
       State          => Unknown,
       Queue_Priority => Invalid,
       Inbound        => False,
-      Channel        => Channel_ID.Null_Channel_ID,
+      Channel        => Channel_ID.Empty_Channel,
       Queue          => Null_Unbounded_String,
       Position       => 0,
       Count          => 0,

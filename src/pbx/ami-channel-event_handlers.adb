@@ -46,10 +46,28 @@ package body AMI.Channel.Event_Handlers is
    -----------------------
 
    procedure Attach_Variable (Packet : in Parser.Packet_Type) is
-      Context : constant String := "Attach_Variable";
+      Context        : constant String  := Package_Name & ".Attach_Variable";
+      Channel_Key    : US.Unbounded_String renames
+                         Packet.Get_Value (Parser.Channel);
+      Target_Channel : Channel.Instance := Channel.Empty_Object;
    begin
-      System_Messages.Notify
-        (Debug, Package_Name & "." & Context & ": Not implemented");
+      Target_Channel := Channel.List.Get (Channel_Key);
+      Target_Channel.Add_Variable (Packet.Get_Value (Parser.Variable),
+                                   Packet.Get_Value (Parser.Value));
+      Channel.List.Update (Key  => Channel_Key,
+                           Item => Target_Channel);
+      System_Messages.Notify (Debug, Context & ": Adding [" &
+                                Packet.Get_Value (Parser.Variable) & "] => [" &
+                                Packet.Get_Value (Parser.Value)    & "]" &
+                                " to channel " & US.To_String (Channel_Key));
+   exception
+      when others =>
+         System_Messages.Notify
+           (Error, Context & ": failed to add [" &
+              Packet.Get_Value (Parser.Variable) & "] => [" &
+              Packet.Get_Value (Parser.Value)    & "]" &
+              " to channel " & US.To_String (Channel_Key));
+         raise;
    end Attach_Variable;
 
    ---------------------
@@ -63,7 +81,7 @@ package body AMI.Channel.Event_Handlers is
       Old_ID         : Call_ID.Call_ID_Type := Call_ID.Null_Call_ID;
    begin
       Target_Channel := Channel.List.Get
-        (Channel_ID.Value (Packet.Get_Value (Parser.Channel)));
+        (Packet.Get_Value (Parser.Channel));
 
       System_Messages.Notify
         (Debug, Package_Name & "." & Context & ": Changing call id from " &
@@ -81,7 +99,8 @@ package body AMI.Channel.Event_Handlers is
       Target_Channel.Unique_ID :=
         Call_ID.Create (Packet.Get_Value (Parser.UniqueID));
 
-      Channel.List.Update (Target_Channel);
+      Channel.List.Update (Packet.Get_Value (Parser.UniqueID),
+                             Target_Channel);
 
    end New_Caller_ID;
 
@@ -97,20 +116,15 @@ package body AMI.Channel.Event_Handlers is
    begin
       System_Messages.Notify
         (Debug, Package_Name & "." & Context & ": " & New_Channel.To_String);
-      --  Ignore invalid channels for now.
-      if New_Channel.ID.Parked or New_Channel.ID.AsyncGoto Then
-         System_Messages.Notify
-           (Debug, Package_Name & ".New_Channel: Inserting Parked channel " &
-              New_Channel.To_String);
-         Channel.Transition_List.Insert (New_Channel);
-      elsif not New_Channel.Is_Null then
+      if not New_Channel.Is_Null then
          System_Messages.Notify
            (Debug, Package_Name & ".New_Channel: Inserting " &
               New_Channel.To_String);
-         Channel.List.Insert (New_Channel);
+         Channel.List.Insert
+           (Packet.Get_Value (Parser.Channel),
+            New_Channel);
       end if;
    end New_Channel;
-
 
    -----------------
    --  New_State  --
@@ -119,32 +133,23 @@ package body AMI.Channel.Event_Handlers is
    procedure New_State (Packet : in Parser.Packet_Type) is
       Context           : constant String  := "New_State";
       Channel_To_Change : Channel.Instance := Channel.Empty_Object;
-      ID                : constant Channel_ID.Instance := Channel_ID.Value
-        (Packet.Get_Value
-           (Parser.Channel));
    begin
 
-      if ID.Parked or ID.AsyncGoto then
-         System_Messages.Notify
-           (Debug, Package_Name & "." & Context & ": updating Parked channel "
-            & ID.Image);
-         Channel_To_Change := Channel.Transition_List.Get (ID);
-         Channel_To_Change.Change_State (Packet);
-         Channel.Transition_List.Update (Channel_To_Change);
-      elsif not ID.Temporary then
-         System_Messages.Notify
-           (Debug, Package_Name & "." & Context & ": updating channel "
-            & ID.Image);
-         Channel_To_Change := Channel.List.Get (ID);
-         Channel_To_Change.Change_State (Packet);
-         Channel.List.Update (Channel_To_Change);
-      end if;
+      System_Messages.Notify
+        (Debug, Package_Name & "." & Context & ": updating channel "
+         & Packet.Get_Value (Parser.Channel));
+      Channel_To_Change := Channel.List.Get (Packet.Get_Value
+                                             (Parser.Channel));
+      Channel_To_Change.Change_State (Packet);
+      Channel.List.Update (Packet.Get_Value (Parser.Channel),
+                           Channel_To_Change);
 
    exception
       when others =>
          System_Messages.Notify (Error, Package_Name & "." & Context & ": " &
                                    "failed to update channel " &
                                    Channel_To_Change.To_String);
+         raise;
    end New_State;
 
    -------------------------

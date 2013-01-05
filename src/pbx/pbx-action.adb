@@ -16,6 +16,7 @@
 -------------------------------------------------------------------------------
 
 with AMI.Response;
+with AMI.Channel_ID;
 
 package body PBX.Action is
 
@@ -23,6 +24,33 @@ package body PBX.Action is
                   return AMI.Packet.Action.Response_Handler_Type;
    function Cast (ID : AMI.Action_ID_Type)
                   return Reply_Ticket;
+
+   --------------
+   --  Bridge  --
+   --------------
+
+   function Bridge (Channel1    : in String;
+                    Channel2    : in String;
+                    On_Response : in Response_Handler := Ignore)
+                    return Reply_Ticket
+   is
+      Bridge_Action : AMI.Packet.Action.Request :=
+                        AMI.Packet.Action.Bridge
+                          (Channel1    => Channel1,
+                           Channel2    => Channel2,
+                           On_Response => Cast (On_Response));
+   begin
+      if
+        Channel_ID.Validate (Channel1)  and
+        Channel_ID.Validate (Channel2)
+      then
+         PBX.Client.Send (Bridge_Action.To_AMI_Packet);
+
+         return Cast (Bridge_Action.Action_ID);
+      end if;
+
+      return Null_Reply;
+   end Bridge;
 
    --------------------
    -- Cast functions --

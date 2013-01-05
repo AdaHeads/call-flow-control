@@ -22,10 +22,10 @@ package Handlers.Call is
 
    Package_Name : constant String := "Handlers.Call";
 
---     function Bridge
---       (Request : in AWS.Status.Data)
---        return AWS.Response.Data;
---     --  Bridges two calls in the PBX
+   function Transfer
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --  Bridges two calls in the PBX
 
    function Originate
      (Request : in AWS.Status.Data)

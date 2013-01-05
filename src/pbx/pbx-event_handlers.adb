@@ -63,6 +63,8 @@ package body PBX.Event_Handlers is
                        ID2 => ID2);
       Some_Call := Calls.List.Get (ID1);
 
+      --  TODO: Find the Sip peer and attach the current channel
+
       System_Messages.Notify
         (Debug, Package_Name & "." & Context & ": " &
            Client_Notification.Call.Pickup (Some_Call).To_JSON.Write);
@@ -77,14 +79,9 @@ package body PBX.Event_Handlers is
    --  TODO: Move this to a consistency_check package, and use more
    --  of the information.
    procedure Core_Show_Channel (Packet : in Parser.Packet_Type) is
-      Requested_Channel_ID : constant Channel_ID.Instance :=
-                               Channel_ID.Value (Packet.Get_Value
-                                                 (Parser.Channel));
    begin
-      --  Only load missing channels.
-      if not Channel.List.Contains (Key => Requested_Channel_ID) then
-         Channel.List.Insert (AMI.Channel.Create (Packet));
-      end if;
+      Channel.List.Put (Key  => Packet.Get_Value (Parser.Channel),
+                        Item => AMI.Channel.Create (Packet));
    end Core_Show_Channel;
 
    -----------------------------------
@@ -156,31 +153,25 @@ package body PBX.Event_Handlers is
    procedure Hangup (Packet : in Parser.Packet_Type)
    is
       Context        : constant String      := Package_Name & ".Hangup";
-      Hungup_Channel : Channel_ID.Instance  := Channel_ID.Null_Channel_ID;
       Call           : Call_ID.Call_ID_Type := Call_ID.Null_Call_ID;
    begin
-      Hungup_Channel
-        := Channel_ID.Value (Packet.Get_Value (Parser.Channel));
-
       Call := Call_ID.Create (Packet.Get_Value (Parser.UniqueID));
 
-      if Hungup_Channel.Parked or Hungup_Channel.AsyncGoto then
-         Channel.Transition_List.Remove (Hungup_Channel);
-         Channel.List.Remove (Hungup_Channel);
-      end if;
+      Channel.List.Remove (Packet.Get_Value (Parser.Channel));
 
       Model.Calls.List.Remove (Call);
 
       System_Messages.Notify
         (Debug, Package_Name & ".Hangup: Removed channel " &
-         Hungup_Channel.Image & " and call " & Call.To_String);
+         Packet.Get_Value (Parser.Channel) & " and call " & Call.To_String);
 
    exception
       when Calls.Call_Not_Found =>
          System_Messages.Notify
            (Error, Context & ": Call not found" & Call.To_String);
       when Channel.Not_Found =>
-         System_Messages.Notify (Error, Context & ": " & Hungup_Channel.Image);
+         System_Messages.Notify (Error, Context & ": " &
+                                   Packet.Get_Value (Parser.Channel));
    end Hangup;
 
    ------------
@@ -220,10 +211,10 @@ package body PBX.Event_Handlers is
                  To_String (Temp_Value));
    end Join;
 
-   --  Channel: SIP/softphone1-00000046
-   --  Queue: org_id1
-   --  Count: 1
-   --  Uniqueid: 1354278576.70
+   -------------
+   --  Leave  --
+   -------------
+
    procedure Leave (Packet : in Parser.Packet_Type) is
       --  Context : constant String := "My_Callbacks.Leave";
       Call    : Call_Type       := Null_Call;

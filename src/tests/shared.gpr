@@ -20,6 +20,7 @@ abstract project Shared is
 
    package Compiler is
       for Default_Switches ("Ada") use ("-gnatwa",
+					"-gnatf",
                                         "-gnaty3abcdefhiklmnoprstux",
                                         "-Wall",
                                         "-pipe",

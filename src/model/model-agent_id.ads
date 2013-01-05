@@ -38,7 +38,7 @@ package Model.Agent_ID is
 
 private
    type Agent_ID_Type is tagged record
-      ID   : Natural := 0;
+      ID           : Natural := 0;
    end record;
    --  Represetation of an agent ID, should probably be converted into a
    --  composite type, or a database key.

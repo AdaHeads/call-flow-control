@@ -137,6 +137,12 @@ package body My_Handlers is
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
+         URI        => "/call/transfer",
+         Action     => Create
+           (Callback => Call.Transfer'Access));
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
          URI        => "/call/list",
          Action     => Create
            (Callback => Call.List'Access));

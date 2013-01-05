@@ -15,8 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Indefinite_Ordered_Maps;
+with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded.Hash_Case_Insensitive;
 
 with GNATCOLL.JSON;
 
@@ -29,16 +30,30 @@ package AMI.Channel is
    use Model.Call_ID;
    use Model;
 
+   package US renames Ada.Strings.Unbounded;
+
+   subtype Channel_Key is US.Unbounded_String;
+
+   subtype Variable_Key is US.Unbounded_String;
+
+   subtype Variable_Value is US.Unbounded_String;
+
+   package Variable_Storage is new
+     Ada.Containers.Indefinite_Hashed_Maps
+       (Key_Type       => Variable_Key,
+        Element_Type   => Variable_Value,
+        Hash           => Ada.Strings.Unbounded.Hash_Case_Insensitive,
+        Equivalent_Keys => Ada.Strings.Unbounded."=",
+        "="             => Ada.Strings.Unbounded."=");
+
    type Valid_State is (Down, Reserved, Off_Hook,
                         Dialed, Ringing, Receiver_Ringing, Up, Busy, Unknown);
-
-   package US renames Ada.Strings.Unbounded;
 
    type Instance (Is_Null : Boolean) is tagged record
       case Is_Null is
          when False =>
-            ID                    : Channel_ID.Instance (Temporary => False);
-            Bridged_With          : Channel_ID.Instance (Temporary => False);
+            ID                    : Channel_ID.Instance (Is_Null => False);
+            Bridged_With          : Channel_ID.Instance (Is_Null => False);
             State                 : Valid_State;
             Priority              : Natural;
             Unique_ID             : Call_ID_Type;
@@ -53,14 +68,20 @@ package AMI.Channel is
             Context               : US.Unbounded_String;
             Bridged_Unique_ID     : Call_ID.Call_ID_Type;
             Created_At            : Common.Time;
+            Variable              : Variable_Storage.Map;
          when True =>
             null;
       end case;
    end record;
    --  Representation of a channel.
 
+   procedure Add_Variable (Channel :    out Instance;
+                           Key     : in     US.Unbounded_String;
+                           Value   : in     US.Unbounded_String);
+   --  Add a variable to a channel.
+
    function Create (Packet : in AMI.Parser.Packet_Type) return Instance;
-   --  Robust constructor that ignores, non-important missing fields.
+   --  Robust constructor that ignores, non-important, missing fields.
 
    procedure Change_State (Channel :    out Instance;
                            Packet  : in     AMI.Parser.Packet_Type);
@@ -79,28 +100,34 @@ package AMI.Channel is
    function To_Channel_State (Item : in Integer) return Valid_State;
    --  Conversion functions.
 
-      Not_Found     : exception;
+   Not_Found     : exception;
    Duplicate_Key : exception;
 
    type Channel_Process_Type is not null access
      procedure (C : in AMI.Channel.Instance);
 
+   function "=" (Left : Instance; Right : Instance) return Boolean;
+
    package Channel_List_Type is new
-     Ada.Containers.Indefinite_Ordered_Maps
-       (Key_Type     => Channel_ID.Instance,
-        Element_Type => AMI.Channel.Instance,
-        "<"          => Channel_ID."<",
-        "="          => AMI.Channel."=");
+     Ada.Containers.Indefinite_Hashed_Maps
+       (Key_Type       => Channel_Key,
+        Element_Type   => AMI.Channel.Instance,
+        Hash           => Ada.Strings.Unbounded.Hash_Case_Insensitive,
+        Equivalent_Keys => Ada.Strings.Unbounded."=");
 
    protected type Protected_Channel_List_Type is
-      function Contains (Key : in Channel_ID.Instance) return Boolean;
-      procedure Insert (Item : in AMI.Channel.Instance);
-      procedure Remove (Key : in Channel_ID.Instance);
-      function Get (Key : in Channel_ID.Instance) return AMI.Channel.Instance;
+      function Contains (Key : in Channel_Key) return Boolean;
+      procedure Insert (Key  : in Channel_Key;
+                        Item : in AMI.Channel.Instance);
+      procedure Remove (Key : in Channel_Key);
+      function Get (Key : in Channel_Key) return AMI.Channel.Instance;
       function Length return Natural;
+      procedure Put (Key  : in Channel_Key;
+                     Item : in AMI.Channel.Instance);
       function To_JSON return GNATCOLL.JSON.JSON_Value;
       function To_String return String;
-      procedure Update (Item : in AMI.Channel.Instance);
+      procedure Update (Key  : in Channel_Key;
+                        Item : in AMI.Channel.Instance);
    private
       Protected_List : Channel_List_Type.Map;
    end Protected_Channel_List_Type;
@@ -115,8 +142,8 @@ private
    Null_Object : constant Instance := (Is_Null => True);
    Empty_Object : constant Instance :=
                     (Is_Null               => False,
-                     ID                    => Channel_ID.Null_Channel_ID,
-                     Bridged_With          => Channel_ID.Null_Channel_ID,
+                     ID                    => Channel_ID.Empty_Channel,
+                     Bridged_With          => Channel_ID.Empty_Channel,
                      State                 => Unknown,
                      Priority              => 0,
                      Caller_ID_Number      => US.Null_Unbounded_String,
@@ -130,7 +157,8 @@ private
                      Bridged_Unique_ID     => Call_ID.Null_Call_ID,
                      Extension             => US.Null_Unbounded_String,
                      Context               => US.Null_Unbounded_String,
-                     Created_At            => Common.Current_Time);
+                     Created_At            => Common.Current_Time,
+                     Variable              => Variable_Storage.Empty_Map);
 
    --  TODO: Implement these
    --     package Channel_Storage is new

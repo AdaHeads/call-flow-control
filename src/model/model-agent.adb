@@ -39,6 +39,7 @@ package body Model.Agent is
                     Extension : in String) return Agent_Type is
    begin
       return (ID            => ID,
+              Current_Call  => Model.Call_ID.Null_Call_ID,
               Current_State => Signed_Out,
               Name          => Null_Unbounded_String,
               Context       => Null_Unbounded_String,
@@ -50,6 +51,12 @@ package body Model.Agent is
    begin
       return Agent.Current_State;
    end Current_State;
+
+   function Current_Call (Agent : in Agent_Type)
+                          return Model.Call_ID.Call_ID_Type is
+   begin
+      return Agent.Current_Call;
+   end Current_Call;
 
    function Extension (Agent : in Agent_Type) return String is
    begin

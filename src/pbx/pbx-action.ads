@@ -27,6 +27,11 @@ package PBX.Action is
 
    Ignore : constant Response_Handler;
 
+   function Bridge (Channel1    : in String;
+                    Channel2    : in String;
+                    On_Response : in Response_Handler := Ignore)
+                  return Reply_Ticket;
+
    function Hangup (ID : in Call_ID.Call_ID_Type) return Reply_Ticket;
 
    function Login (Username    : in String;

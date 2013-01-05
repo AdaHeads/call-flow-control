@@ -46,10 +46,10 @@ package body Model.Call is
    function To_String (Call : in Call_Type) return String is
       Response : Unbounded_String;
    begin
-      Append (Response, "ID => " & Call.ID.To_String);
+      Append (Response, "ID => "        & Call.ID.To_String);
       Append (Response, ", Channel => " & Call.Channel.Image);
-      Append (Response, ", Queue => "    & To_String (Call.Queue));
-      Append (Response, ", State => "    & Call.State'Img);
+      Append (Response, ", Queue => "   & To_String (Call.Queue));
+      Append (Response, ", State => "   & Call.State'Img);
       return To_String (Response);
    end To_String;
 

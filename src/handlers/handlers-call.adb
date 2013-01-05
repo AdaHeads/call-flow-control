@@ -138,7 +138,7 @@ package body Handlers.Call is
       return AWS.Response.Data is
       use Common;
 
-      Agent_ID_String   : constant String :=
+      Agent_ID_String   : String renames
                             Parameters (Request).Get ("agent_id");
       Extension_String  : constant String :=
                             Parameters (Request).Get ("extension");
@@ -236,7 +236,7 @@ package body Handlers.Call is
       use Model.Call_ID;
       use AMI.Peer;
 
-      Call_ID_String    : constant String :=
+      Call_ID_String    : String renames
                             Parameters (Request).Get (Name => "call_id");
       Agent_ID_String   : constant String :=
                             Parameters (Request).Get (Name => "agent_id");
@@ -349,5 +349,64 @@ package body Handlers.Call is
 
       return List (Request);
    end Queue;
+
+   ----------------
+   --  Transfer  --
+   ----------------
+
+   function Transfer
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+      Source_ID_String    : String renames
+                              Parameters (Request).Get ("source");
+      Agent_ID_String    : String renames
+                              Parameters (Request).Get ("agent_id");
+      Response_Object     : Response.Object       :=
+                              Response.Factory (Request);
+      Source, Destination : Model.Call.Call_Type  :=
+                              Model.Call.Null_Call;
+   begin
+      --  Check valitity of the call. (Will raise exception on invalid.
+      if Source_ID_String /= "" or not Call_ID.Validate (Source_ID_String) then
+         Response_Object.HTTP_Status_Code (Bad_Request);
+         Response_Object.Content
+           (Status_Message
+              ("Bad request", "Invalid or no call ID supplied"));
+         return Response_Object.Build;
+      end if;
+
+      Source := Calls.List.Get
+        (Call_ID => Model.Call_ID.Create (Source_ID_String));
+      Destination := Calls.List.Get
+        (Call_ID => (Agents.Get
+                     (Agent_ID.Create (Agent_ID_String)).Current_Call));
+
+      PBX.Action.Wait_For
+        (PBX.Action.Bridge
+           (Channel1 => Source.Channel.Image,
+            Channel2 => Destination.Channel.Image));
+
+      Response_Object.HTTP_Status_Code (OK);
+      Response_Object.Content
+           (Status_Message
+              ("Success", "Transfer succeeded"));
+         return Response_Object.Build;
+
+   exception
+      when Calls.Call_Not_Found =>
+         Response_Object.HTTP_Status_Code (Not_Found);
+         Response_Object.Content
+           (Status_Message
+              ("Not found", "No call found with ID " & Source_ID_String));
+         return Response_Object.Build;
+
+      when E : others =>
+         System_Message.Critical.Response_Exception
+           (Event           => E,
+            Message         => "Transfer request failed",
+            Response_Object => Response_Object);
+         return Response_Object.Build;
+   end Transfer;
 
 end Handlers.Call;

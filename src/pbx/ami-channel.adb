@@ -23,12 +23,12 @@ package body AMI.Channel is
    use type Channel_ID.Instance;
 
    protected body Protected_Channel_List_Type is
-      function Contains (Key : in Channel_ID.Instance) return Boolean is
+      function Contains (Key : in Channel_Key) return Boolean is
       begin
          return Protected_List.Contains (Key);
       end Contains;
 
-      function Get (Key : in Channel_ID.Instance)
+      function Get (Key : in Channel_Key)
                     return AMI.Channel.Instance is
          Item : constant AMI.Channel.Instance :=
            Protected_List.Element (Key => Key);
@@ -40,19 +40,17 @@ package body AMI.Channel is
          return Item;
       end Get;
 
-      --  Places the Channel, in the queue.
-      procedure Insert (Item : in AMI.Channel.Instance) is
+      --  Places the Channel in the map.
+      procedure Insert (Key  : in Channel_Key;
+                        Item : in AMI.Channel.Instance) is
       begin
          Protected_List.Insert
-           (Key       => Item.ID,
+           (Key       => Key,
             New_Item  => Item);
       exception
          when Constraint_Error =>
-            if Protected_List.Element (Key => Item.ID).ID = Item.ID then
-               raise Duplicate_Key with "key " & Item.ID.Image &
-                 " already in map.";
-            end if;
-            raise;
+            raise Duplicate_Key with "key " & Item.ID.Image &
+              " already in map.";
       end Insert;
 
       --  Returns the total number of Channels.
@@ -62,23 +60,42 @@ package body AMI.Channel is
          return Natural (Protected_List.Length);
       end Length;
 
+      procedure Put (Key  : in Channel_Key;
+                        Item : in AMI.Channel.Instance) is
+      begin
+         if not Protected_List.Contains (Key => Key) then
+            Protected_List.Insert
+              (Key       => Key,
+               New_Item  => Item);
+         else
+            Protected_List.Replace
+              (Key       => Key,
+               New_Item  => Item);
+
+         end if;
+      exception
+         when Constraint_Error =>
+            raise Duplicate_Key with "key " & Item.ID.Image &
+              " already in map.";
+      end Put;
+
       --  Removes the Channel with the specified UniqueID
-      procedure Remove (Key : Channel_ID.Instance) is
+      procedure Remove (Key : Channel_Key) is
       begin
          Protected_List.Delete (Key);
       end Remove;
 
       function To_JSON return GNATCOLL.JSON.JSON_Value is
+         use Channel_List_Type;
          use GNATCOLL.JSON;
-         Value     : JSON_Value := Create_Object;
+         Value     : constant JSON_Value := Create_Object;
          JSON_List : JSON_Array;
          Root      : constant JSON_Value := Create_Object;
       begin
-         for Item of Protected_List loop
-            if Item /= AMI.Channel.Null_Object then
-               Value := Item.To_JSON;
-               Append (JSON_List, Value);
-            end if;
+         for C in Protected_List.Iterate loop
+            Value.Set_Field (US.To_String (Key (C)),
+                             Element (C).To_JSON);
+            Append (JSON_List, Value);
          end loop;
          Root.Set_Field ("channels", JSON_List);
          return Root;
@@ -94,16 +111,44 @@ package body AMI.Channel is
          return To_String (Item);
       end To_String;
 
-      procedure Update (Item : in AMI.Channel.Instance) is
+      procedure Update (Key  : in Channel_Key;
+                        Item : in AMI.Channel.Instance) is
       begin
-         if Protected_List.Contains (Item.ID) then
-            Protected_List.Replace (Key      => Item.ID,
-                                    New_Item => Item);
+         if Protected_List.Contains (Key) then
+            Protected_List.Replace
+              (Key      => Key,
+               New_Item => Item);
          else
             raise Not_Found;
          end if;
       end Update;
    end Protected_Channel_List_Type;
+
+   -----------
+   --  "="  --
+   -----------
+
+   function "=" (Left : Instance; Right : Instance) return Boolean is
+      use Channel_ID;
+   begin
+      if Left.Is_Null or Right.Is_Null then
+         return Left.Is_Null and Right.Is_Null;
+      else
+         return Left.ID.Image = Left.ID.Image;
+      end if;
+   end "=";
+
+   --------------------
+   --  Add_Variable  --
+   --------------------
+
+   procedure Add_Variable (Channel :    out Instance;
+                           Key     : in     US.Unbounded_String;
+                           Value   : in     US.Unbounded_String) is
+   begin
+      Channel.Variable.Insert (Key      => Key,
+                               New_Item => Value);
+   end Add_Variable;
 
    --------------------
    --  Change_State  --
@@ -131,7 +176,7 @@ package body AMI.Channel is
    function Create (Packet : in AMI.Parser.Packet_Type) return Instance is
       use Ada.Calendar;
 
-      Bridged_Channel   : Channel_ID.Instance  := Channel_ID.Null_Channel_ID;
+      Bridged_Channel   : Channel_ID.Instance  := Channel_ID.Empty_Channel;
       Bridged_Unique_ID : Call_ID.Call_ID_Type := Call_ID.Null_Call_ID;
       Created_At        : Common.Time          := Common.Current_Time;
       Time_Active       : Duration             := 0.0;
@@ -158,7 +203,8 @@ package body AMI.Channel is
            (Packet.Get_Value (AMI.Parser.BridgedUniqueID));
       end if;
 
-      --  Horribly inconsistant naming conflict fix.
+      --  Horribly inconsistant naming conflict fix. Sometimes
+      --  the packet has a field named exten, and sometimes extension..
       if Packet.Has_Value (AMI.Parser.Exten) then
          Extension := Packet.Get_Value (AMI.Parser.Exten);
       elsif Packet.Has_Value (AMI.Parser.Extension) then
@@ -209,7 +255,8 @@ package body AMI.Channel is
            Extension,
          Context               =>
            Packet.Get_Value (AMI.Parser.Context),
-         Created_At            => Created_At);
+         Created_At            => Created_At,
+         Variable              => Variable_Storage.Empty_Map);
    end Create;
 
    function To_Channel_State (Item : in String) return Valid_State is
@@ -227,10 +274,18 @@ package body AMI.Channel is
       use Common;
       use GNATCOLL.JSON;
       use Ada.Characters.Handling;
+      use Variable_Storage;
 
-      JSON         : constant JSON_Value := Create_Object;
-      Channel_JSON : constant JSON_Value := Create_Object;
+      JSON          : constant JSON_Value := Create_Object;
+      Channel_JSON  : constant JSON_Value := Create_Object;
+      Variable_JSON : constant JSON_Value := Create_Object;
    begin
+      for Item in Channel.Variable.Iterate loop
+         Variable_JSON.Set_Field (US.To_String (Key (Item)),
+                                  US.To_String (Element (Item)));
+      end loop;
+
+      Channel_JSON.Set_Field ("variable", Variable_JSON);
       Channel_JSON.Set_Field
         ("ID", Channel.ID.Image);
       Channel_JSON.Set_Field

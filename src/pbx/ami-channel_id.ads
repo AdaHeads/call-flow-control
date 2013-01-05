@@ -18,24 +18,35 @@
 with Ada.Strings.Unbounded;
 
 package AMI.Channel_ID is
-   type Technologies    is (SIP);
+   type Technologies    is (None, SIP, ZAP);
+   --  These are the various form of technolgies used within Asterisk.
+   --  The list is far from complete.
+
+   type Transitions     is (None, Bridge, Async_Goto, Parked);
+   --  These are various forms of transition states that a channel can take.
+   --  It will also reveal if a channel is temporary or not.
+
+   type Volatility      is (None, Zombie, Masq);
+   --  Determines whether or not the channel is volatile, and the type of
+   --  volatility.
+
    type Peer_Name       is new Ada.Strings.Unbounded.Unbounded_String;
    type Sequence_Number is mod 16 ** 8;
 
    function Image (Item : in Sequence_Number) return String;
 
-   function Value (Item : in String) return Sequence_Number;
+   --  function Value (Item : in String) return Sequence_Number;
 
    Invalid_ID : exception;
 
-   type Instance (Temporary : Boolean) is tagged record
-      case Temporary is
+   type Instance (Is_Null : Boolean) is tagged record
+      case Is_Null is
          when False =>
-            Parked     : Boolean;
-            AsyncGoto  : Boolean;
+            Transition : Transitions;
             Technology : Technologies;
             Peer       : Peer_Name;
             Sequence   : Sequence_Number;
+            Volatile   : Volatility;
          when True =>
             null;
       end case;
@@ -48,6 +59,8 @@ package AMI.Channel_ID is
 
    function Image (Item : in Instance) return String;
 
+   function Temporary (Item : in Instance) return Boolean;
+
    function "<" (Left  : in Instance;
                  Right : in Instance) return Boolean;
 
@@ -59,17 +72,17 @@ package AMI.Channel_ID is
    --  converted into a Channel_ID
 
    Null_Channel_ID : constant Instance;
-
-   subtype Channel_ID_Type is Instance;
-   pragma Obsolescent (Channel_ID_Type);
-
+   Empty_Channel   : constant Instance;
 private
 
-   Null_Channel_ID : constant Instance :=
-                       (Temporary  => False,
-                        Parked     => True,
-                        AsyncGoto  => True,
-                        Technology => SIP,
-                        Peer       => To_Unbounded_String (""),
-                        Sequence   => 16#ffffffff#);
+   Null_Channel_ID : constant Instance := (Is_Null => True);
+   Empty_Channel   : constant Instance :=
+                       (Is_Null    => False,
+                        Transition => None,
+                        Technology => None,
+                        Peer       => Peer_Name
+                            (Ada.Strings.Unbounded.Null_Unbounded_String),
+                        Sequence   => 16#00000000#,
+                        Volatile   => None);
+
 end AMI.Channel_ID;
