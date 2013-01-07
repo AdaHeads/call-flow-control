@@ -22,3 +22,6 @@ exe/session/*
 
 # Local files @krc
 TODO
+
+# www content
+exe/www/*
