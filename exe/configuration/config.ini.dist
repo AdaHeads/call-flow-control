@@ -1,0 +1,15 @@
+# See the Yolk config.ini.dist file for the full range of valid configuration
+# parameters. Those set here are for a basic Alice setup.
+
+Yolk_User alice
+Session_Name Alice
+Load_MIME_Types_File True
+Max_Connection 20
+Max_POST_Parameters 20
+Max_WebSocket_Handler 20
+MIME_Types_File configuration/mime.types
+Reuse_Address True
+Server_Name Alice
+Server_Port 4242
+WebSocket_Message_Queue_Size 20
+WWW_Root www
