@@ -30,6 +30,8 @@ package AMI.Channel is
    use Model.Call_ID;
    use Model;
 
+   Package_Name : constant String := "AMI.Channel";
+
    package US renames Ada.Strings.Unbounded;
 
    subtype Channel_Key is US.Unbounded_String;

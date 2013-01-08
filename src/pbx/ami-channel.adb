@@ -146,8 +146,13 @@ package body AMI.Channel is
                            Key     : in     US.Unbounded_String;
                            Value   : in     US.Unbounded_String) is
    begin
-      Channel.Variable.Insert (Key      => Key,
-                               New_Item => Value);
+      if Channel.Variable.Contains (Key) then
+         Channel.Variable.Replace (Key      => Key,
+                                   New_Item => Value);
+      else
+         Channel.Variable.Insert (Key      => Key,
+                                  New_Item => Value);
+      end if;
    end Add_Variable;
 
    --------------------
@@ -259,15 +264,27 @@ package body AMI.Channel is
          Variable              => Variable_Storage.Empty_Map);
    end Create;
 
+   ------------------------
+   --  To_Channel_State  --
+   ------------------------
+
    function To_Channel_State (Item : in String) return Valid_State is
    begin
       return Valid_State'Val (Integer'Value (Item));
    end To_Channel_State;
 
+   ------------------------
+   --  To_Channel_State  --
+   ------------------------
+
    function To_Channel_State (Item : in Integer) return Valid_State is
    begin
       return Valid_State'Val (Item);
    end To_Channel_State;
+
+   ---------------
+   --  To_JSON  --
+   ---------------
 
    function To_JSON (Channel : in Instance)
                      return GNATCOLL.JSON.JSON_Value is
@@ -284,27 +301,62 @@ package body AMI.Channel is
          Variable_JSON.Set_Field (US.To_String (Key (Item)),
                                   US.To_String (Element (Item)));
       end loop;
-
+      --  Append variables.
       Channel_JSON.Set_Field ("variable", Variable_JSON);
+
       Channel_JSON.Set_Field
-        ("ID", Channel.ID.Image);
+        ("account_code", US.To_String (Channel.Account_Code));
+
       Channel_JSON.Set_Field
-        ("Unique_ID", Channel.Unique_ID.To_String);
+        ("name", Channel.ID.Image);
+
       Channel_JSON.Set_Field
-        ("State", To_Lower (Channel.State'Img));
+        ("unique_id", Channel.Unique_ID.To_String);
+
       Channel_JSON.Set_Field
-        ("Caller_ID_Name", US.To_String (Channel.Caller_ID_Name));
+        ("bridged_unique_id", Channel.Bridged_Unique_ID.To_String);
+
       Channel_JSON.Set_Field
-        ("Caller_ID_Number", US.To_String (Channel.Caller_ID_Number));
+        ("state", To_Lower (Channel.State'Img));
+
       Channel_JSON.Set_Field
-        ("Account_Code", US.To_String (Channel.Account_Code));
-      Channel_JSON.Set_Field ("Extension", US.To_String (Channel.Extension));
-      Channel_JSON.Set_Field ("Context", US.To_String (Channel.Context));
+        ("caller_id_name", US.To_String (Channel.Caller_ID_Name));
+
+      Channel_JSON.Set_Field
+        ("caller_id_number", US.To_String (Channel.Caller_ID_Number));
+
+      Channel_JSON.Set_Field ("extension", US.To_String (Channel.Extension));
+
+      Channel_JSON.Set_Field ("context", US.To_String (Channel.Context));
+
+      Channel_JSON.Set_Field ("bridged_with",
+                              Channel.Bridged_With.Image);
+
+      Channel_JSON.Set_Field ("priority", Channel.Priority'Img);
+
+      Channel_JSON.Set_Field ("connected_line_number", US.To_String
+                              (Channel.Connected_Line_Number));
+
+      Channel_JSON.Set_Field ("connected_line_name",
+                              Channel.Connected_Line_Name);
+
+      Channel_JSON.Set_Field ("application", Channel.Application);
+
+      Channel_JSON.Set_Field ("application_data", US.To_String
+                              (Channel.Application_Data));
+
+      Channel_JSON.Set_Field ("created_at", Common.Unix_Timestamp
+                              (Channel.Created_At));
+
       JSON.Set_Field ("channel", Channel_JSON);
       JSON.Set_Field ("timestamp", Unix_Timestamp (Current_Time));
 
       return JSON;
    end To_JSON;
+
+   ---------------
+   --  To_String  --
+   ---------------
 
    function To_String (Channel : in Instance) return String is
    begin

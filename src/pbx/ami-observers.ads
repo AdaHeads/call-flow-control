@@ -20,6 +20,9 @@ with
   AMI.Parser;
 
 package AMI.Observers is
+
+   Package_Name : constant String := "AMI.Observers";
+
    procedure Register (Event   : in     AMI.Event.Event_Type;
                        Handler : in     AMI.Event.Event_Callback);
 

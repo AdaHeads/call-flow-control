@@ -23,9 +23,9 @@ with AWS.URL;
 
 with AMI.Event;
 with AMI.Observers;
+with AMI.Trace;
 with AMI.Packet.Action;
 with PBX;
-with System_Messages;
 
 package body AGI.Callbacks is
 
@@ -36,7 +36,7 @@ package body AGI.Callbacks is
    procedure Event
      (Packet : in AMI.Parser.Packet_Type)
    is
-      use System_Messages;
+      use AMI.Trace;
 
       type AGI_Events is (Start, Exec, Close, Unrecognised);
 
@@ -87,7 +87,7 @@ package body AGI.Callbacks is
          end if;
       exception
          when Constraint_Error =>
-            System_Messages.Notify
+            AMI.Trace.Log
               (Error,
                "AGI: Received an '" &
                  Descriptor &
@@ -160,7 +160,7 @@ package body AGI.Callbacks is
            (Key_Position + Key'Length ..  Terminator_Position - 1);
       exception
          when others =>
-            System_Messages.Notify
+            AMI.Trace.Log
               (Error,
                "AGI: From_Environment: Can not extract " &
                  Field &
@@ -194,7 +194,7 @@ package body AGI.Callbacks is
            Raw (Raw'First .. First - 1) & ")";
       exception
          when others =>
-            System_Messages.Notify
+            AMI.Trace.Log
               (Error,
                "AGI: Result field could not be parsed: """ &
                  Raw &
@@ -216,7 +216,7 @@ package body AGI.Callbacks is
          return AWS.URL.Decode (To_String (Packet.Fields.Element (Key)));
       exception
          when Constraint_Error =>
-            System_Messages.Notify
+            AMI.Trace.Log
               (Error,
                "AGI: No " &
                  AMI.Parser.AMI_Key_Type'Image (Key) &
@@ -231,15 +231,15 @@ package body AGI.Callbacks is
 
       pragma Unreferenced (Context, Extension);
    begin
-      System_Messages.Notify (Debug, "AGI:");
+      AMI.Trace.Log (Debug, "AGI:");
 
       Check_Event :
       begin
          if Event = "AsyncAGI" then
-            System_Messages.Notify
+            AMI.Trace.Log
               (Debug, "AGI: Received an 'AsyncAGI' event.");
          else
-            System_Messages.Notify
+            AMI.Trace.Log
               (Error,
                "AGI: Received an '" &
                  Event &
@@ -250,12 +250,12 @@ package body AGI.Callbacks is
          end if;
       end Check_Event;
 
-      System_Messages.Notify (Debug, "AGI: Channel: " & Channel);
+      AMI.Trace.Log (Debug, "AGI: Channel: " & Channel);
 
       case AGI_Event is
          when Start =>
-            System_Messages.Notify (Debug, "AGI: Channel just opened.");
-            System_Messages.Notify (Debug, "AGI: Telling Asterisk to answer.");
+            AMI.Trace.Log (Debug, "AGI: Channel just opened.");
+            AMI.Trace.Log (Debug, "AGI: Telling Asterisk to answer.");
 
             PBX.Client.Send
               (AMI.Packet.Action.AGI
@@ -264,7 +264,7 @@ package body AGI.Callbacks is
                   CommandID => "fixed-1").To_AMI_Packet);
 
             if Caller_ID = "TL-Softphone" then
-               System_Messages.Notify (Debug, "AGI: Say 'bye' to Thomas. ;-)");
+               AMI.Trace.Log (Debug, "AGI: Say 'bye' to Thomas. ;-)");
 
                PBX.Client.Send
                  (AMI.Packet.Action.AGI
@@ -272,7 +272,7 @@ package body AGI.Callbacks is
                      Command   => "SAY ALPHA ""Bye"" """"",
                      CommandID => "fixed-2").To_AMI_Packet);
             elsif Caller_ID = "softphone1" then
-               System_Messages.Notify (Debug, "AGI: Send Jacob to the IVR.");
+               AMI.Trace.Log (Debug, "AGI: Send Jacob to the IVR.");
 
                PBX.Client.Send
                  (AMI.Packet.Action.AGI
@@ -293,7 +293,7 @@ package body AGI.Callbacks is
                      Command   => "STREAM FILE ""demo-thanks"" """"",
                      CommandID => "fixed-2c").To_AMI_Packet);
             else
-               System_Messages.Notify (Debug, "AGI: Queue call.");
+               AMI.Trace.Log (Debug, "AGI: Queue call.");
 
                PBX.Client.Send
                  (AMI.Packet.Action.AGI
@@ -302,7 +302,7 @@ package body AGI.Callbacks is
                      CommandID => "fixed-2").To_AMI_Packet);
             end if;
 
-            System_Messages.Notify
+            AMI.Trace.Log
               (Debug, "AGI: Telling Asterisk to hang up.");
 
             PBX.Client.Send
@@ -312,10 +312,10 @@ package body AGI.Callbacks is
                   CommandID => "fixed-3").To_AMI_Packet);
          when Exec =>
             if Command_ID = "get_variable" then
-               System_Messages.Notify
+               AMI.Trace.Log
                  (Debug, "AGI: Value request: " & Value (AMI.Parser.Result));
             else
-               System_Messages.Notify
+               AMI.Trace.Log
                  (Debug,
                   "AGI: Command " &
                     Command_ID &
@@ -324,14 +324,14 @@ package body AGI.Callbacks is
                     ".");
             end if;
          when Unrecognised =>
-            System_Messages.Notify
+            AMI.Trace.Log
               (Debug, "AGI: Unrecognised (sub)event received.");
          when Close =>
-            System_Messages.Notify (Debug, "AGI: Channel closed.");
+            AMI.Trace.Log (Debug, "AGI: Channel closed.");
       end case;
    exception
       when others =>
-         System_Messages.Notify
+         AMI.Trace.Log
            (Error,
             "AGI: Raised an exception.  Tell Jacob to do something about it.");
          raise;

@@ -18,17 +18,17 @@
 with AMI.Parser;
 with AMI.Event;
 with AMI.Observers;
-
-with Model.Call;
-with Model.Calls;
-
-with System_Messages; use System_Messages;
+with AMI.Trace;
 
 package body AMI.Channel.Event_Handlers is
    use AMI;
+   use AMI.Trace;
+
+   procedure New_Account_Code (Packet : in Parser.Packet_Type);
+   --  Occurs whenever a channel changes its account code.
 
    procedure New_Caller_ID (Packet : in Parser.Packet_Type);
-   --  Occurs whenever a channel changes it's Caller_ID.
+   --  Occurs whenever a channel changes its caller ID (common name).
 
    procedure New_State (Packet : in Parser.Packet_Type);
    --  Update the state of a channel.
@@ -41,6 +41,10 @@ package body AMI.Channel.Event_Handlers is
    --  We collect every channel into a channel list and distribute them
    --  from there to either a call list or a peer channel list.
 
+   procedure New_Extension (Packet : in Parser.Packet_Type);
+   --  From the point of view of a channel, a new extension event changes the
+   --  application of the channel.
+
    -----------------------
    --  Attach_Variable  --
    -----------------------
@@ -52,17 +56,20 @@ package body AMI.Channel.Event_Handlers is
       Target_Channel : Channel.Instance := Channel.Empty_Object;
    begin
       Target_Channel := Channel.List.Get (Channel_Key);
+
       Target_Channel.Add_Variable (Packet.Get_Value (Parser.Variable),
                                    Packet.Get_Value (Parser.Value));
+
       Channel.List.Update (Key  => Channel_Key,
                            Item => Target_Channel);
-      System_Messages.Notify (Debug, Context & ": Adding [" &
-                                Packet.Get_Value (Parser.Variable) & "] => [" &
-                                Packet.Get_Value (Parser.Value)    & "]" &
-                                " to channel " & US.To_String (Channel_Key));
+
+--        AMI.Trace.Log (AMI.Trace.Debug, Context & ": Adding [" &
+--                         Packet.Get_Value (Parser.Variable) & "] => [" &
+--                         Packet.Get_Value (Parser.Value)    & "]" &
+--                         " to channel " & US.To_String (Channel_Key));
    exception
       when others =>
-         System_Messages.Notify
+         AMI.Trace.Log
            (Error, Context & ": failed to add [" &
               Packet.Get_Value (Parser.Variable) & "] => [" &
               Packet.Get_Value (Parser.Value)    & "]" &
@@ -71,37 +78,118 @@ package body AMI.Channel.Event_Handlers is
    end Attach_Variable;
 
    ---------------------
+   --  New_Extension  --
+   ---------------------
+
+   procedure New_Extension (Packet : in Parser.Packet_Type) is
+      use Ada.Strings.Unbounded;
+      Context          : constant String := Package_Name & ".Join";
+      Target_Channel   : Channel.Instance := Channel.Empty_Object;
+      Application      : US.Unbounded_String renames
+                           Packet.Get_Value (Parser.Application);
+      Application_Data : US.Unbounded_String renames
+                           Packet.Get_Value (Parser.AppData);
+      Channel_Key      : US.Unbounded_String renames
+                           Packet.Get_Value (Parser.Channel);
+      New_Extension    : US.Unbounded_String renames
+                           Packet.Get_Value (Parser.Extension);
+   begin
+      Target_Channel := Channel.List.Get (Channel_Key);
+
+      Target_Channel.Application := Application;
+
+      if Application_Data = "(NULL)" then
+         Target_Channel.Application_Data := Null_Unbounded_String;
+      else
+         Target_Channel.Application_Data := Application_Data;
+      end if;
+
+      if Target_Channel.Extension /= New_Extension then
+         AMI.Trace.Log (Critical, Context & ": " & To_String (Channel_Key) &
+                          " changed its extension!");
+      end if;
+
+      Channel.List.Update (Key  => Channel_Key,
+                           Item => Target_Channel);
+
+      AMI.Trace.Log (Debug, Context & ": " & To_String (Channel_Key) &
+                    " enters queue " & To_String (Application_Data));
+   exception
+      when Channel.Not_Found =>
+         AMI.Trace.Log (Error, Context & ": Channel not found " &
+                          To_String (Channel_Key));
+         raise;
+   end New_Extension;
+
+   ------------------------
+   --  New_Account_Code  --
+   ------------------------
+
+   procedure New_Account_Code (Packet : in Parser.Packet_Type) is
+      Context          : constant String := Package_Name & ".New_Account_Code";
+      Target_Channel   : Channel.Instance := Channel.Empty_Object;
+      New_Account_Code : String renames
+                           Packet.Get_Value (Parser.AccountCode);
+      Old_Account_Code : String renames
+                           Packet.Get_Value (Parser.OldAccountCode);
+      Channel_Key      : US.Unbounded_String renames
+                           Packet.Get_Value (Parser.Channel);
+   begin
+      if New_Account_Code /= Old_Account_Code then
+         AMI.Trace.Log (Debug, Context & ": No value changed - ignoring");
+      else
+         AMI.Trace.Log (Debug, Context & ": Changing account code (" &
+                          Old_Account_Code & " => " & New_Account_Code & ")");
+         Target_Channel := Channel.List.Get (Channel_Key);
+
+         Target_Channel.Account_Code :=
+           US.To_Unbounded_String (New_Account_Code);
+
+         Channel.List.Update (Key  => Channel_Key,
+                              Item => Target_Channel);
+      end if;
+   exception
+      when Channel.Not_Found =>
+         AMI.Trace.Log (Error, Context & ": Channel not found: " &
+                          Packet.Get_Value (Parser.Channel));
+         raise;
+   end New_Account_Code;
+
+   ---------------------
    --  New_Caller_ID  --
    ---------------------
 
    procedure New_Caller_ID (Packet : in Parser.Packet_Type) is
-      Context        : constant String  := "New_Caller_ID";
-      Target_Channel : Channel.Instance := Channel.Empty_Object;
-      Target_Call    : Call.Call_Type   := Call.Null_Call;
-      Old_ID         : Call_ID.Call_ID_Type := Call_ID.Null_Call_ID;
+      use Ada.Strings.Unbounded;
+      Context              : constant String  :=
+                               Package_Name & ".New_Caller_ID";
+      New_Caller_ID_Name   : Unbounded_String renames
+                               Packet.Get_Value (Parser.CallerIDName);
+      New_Caller_ID_Number : Unbounded_String renames
+                               Packet.Get_Value (Parser.CallerIDNum);
+      Channel_Key          : Unbounded_String renames
+                               Packet.Get_Value (Parser.Channel);
+      Target_Channel       : Channel.Instance := Channel.Empty_Object;
    begin
-      Target_Channel := Channel.List.Get
-        (Packet.Get_Value (Parser.Channel));
+      Target_Channel := Channel.List.Get (Channel_Key);
 
-      System_Messages.Notify
-        (Debug, Package_Name & "." & Context & ": Changing call id from " &
-           Target_Channel.Unique_ID.To_String & " to " &
-           Packet.Get_Value (Parser.UniqueID));
+      if
+        Target_Channel.Caller_ID_Number /= New_Caller_ID_Number or
+        Target_Channel.Caller_ID_Name   /= New_Caller_ID_Name
+      then
+         Target_Channel.Caller_ID_Number := New_Caller_ID_Number;
+         Target_Channel.Caller_ID_Name   := New_Caller_ID_Name;
 
-      Target_Call := Calls.List.Get (Target_Channel.Unique_ID);
-      Old_ID := Target_Call.ID;
-      Target_Call.ID :=
-        Call_ID.Create (Packet.Get_Value (Parser.UniqueID));
+         Channel.List.Update (Packet.Get_Value (Parser.UniqueID),
+                              Target_Channel);
 
-      Calls.List.Insert (Target_Call);
-      Calls.List.Remove (Old_ID);
-      --  Setting the new uniqueID
-      Target_Channel.Unique_ID :=
-        Call_ID.Create (Packet.Get_Value (Parser.UniqueID));
-
-      Channel.List.Update (Packet.Get_Value (Parser.UniqueID),
-                             Target_Channel);
-
+         AMI.Trace.Log (Debug, Context & ": channel" &
+                          To_String (Channel_Key) &
+                          " new values : Caller_ID_Name => " &
+                          To_String (New_Caller_ID_Name) &
+                          " new values : Caller_ID_Num => " &
+                          To_String (New_Caller_ID_Number));
+      end if;
    end New_Caller_ID;
 
    -------------------
@@ -109,21 +197,19 @@ package body AMI.Channel.Event_Handlers is
    -------------------
 
    procedure New_Channel (Packet : in Parser.Packet_Type) is
-      use type Channel.Instance;
-      Context     : constant String  := "New_Channel";
-      New_Channel : constant AMI.Channel.Instance :=
-                      AMI.Channel.Create (Packet => Packet);
+      use Ada.Strings.Unbounded;
+      Context              : constant String  :=
+                               Package_Name & ".New_Channel";
+      Channel_Key          : Unbounded_String renames
+                               Packet.Get_Value (Parser.Channel);
    begin
-      System_Messages.Notify
-        (Debug, Package_Name & "." & Context & ": " & New_Channel.To_String);
-      if not New_Channel.Is_Null then
-         System_Messages.Notify
-           (Debug, Package_Name & ".New_Channel: Inserting " &
-              New_Channel.To_String);
-         Channel.List.Insert
-           (Packet.Get_Value (Parser.Channel),
-            New_Channel);
-      end if;
+      AMI.Trace.Log
+        (Debug, Package_Name & "." & Context & ": " & To_String (Channel_Key));
+      AMI.Trace.Log
+        (Debug, Package_Name & ".New_Channel: Inserting " &
+           To_String (Channel_Key));
+      Channel.List.Insert (Packet.Get_Value (Parser.Channel),
+            Channel.Create (Packet => Packet));
    end New_Channel;
 
    -----------------
@@ -131,24 +217,30 @@ package body AMI.Channel.Event_Handlers is
    -----------------
 
    procedure New_State (Packet : in Parser.Packet_Type) is
-      Context           : constant String  := "New_State";
+      use Ada.Strings.Unbounded;
+      Context           : constant String  := Package_Name & ".New_State";
       Channel_To_Change : Channel.Instance := Channel.Empty_Object;
+      Channel_Key       : US.Unbounded_String renames
+                            Packet.Get_Value (Parser.Channel);
    begin
 
-      System_Messages.Notify
-        (Debug, Package_Name & "." & Context & ": updating channel "
-         & Packet.Get_Value (Parser.Channel));
-      Channel_To_Change := Channel.List.Get (Packet.Get_Value
-                                             (Parser.Channel));
-      Channel_To_Change.Change_State (Packet);
-      Channel.List.Update (Packet.Get_Value (Parser.Channel),
+      AMI.Trace.Log
+        (Debug, Context & ": updating channel "
+         & To_String (Channel_Key) & " with new state "
+         & Packet.Get_Value (Parser.ChannelStateDesc));
+
+      Channel_To_Change := Channel.List.Get (Channel_Key);
+
+      Channel.Change_State (Channel_To_Change, Packet);
+
+      Channel.List.Update (Channel_Key,
                            Channel_To_Change);
 
    exception
       when others =>
-         System_Messages.Notify (Error, Package_Name & "." & Context & ": " &
-                                   "failed to update channel " &
-                                   Channel_To_Change.To_String);
+         AMI.Trace.Log (Error, Context & ": " &
+                          "failed to update channel " &
+                          To_String (Channel_Key));
          raise;
    end New_State;
 
@@ -158,6 +250,14 @@ package body AMI.Channel.Event_Handlers is
 
    procedure Register_Handlers is
    begin
+      AMI.Observers.Register
+        (Event   => AMI.Event.Newexten,
+         Handler => New_Extension'Access);
+
+      AMI.Observers.Register
+        (Event   => AMI.Event.NewAccountCode,
+         Handler => New_Account_Code'Access);
+
       AMI.Observers.Register
         (Event   => AMI.Event.Newcallerid,
          Handler => New_Caller_ID'Access);

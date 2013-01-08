@@ -15,11 +15,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Ada.Containers.Vectors;
+with Ada.Containers.Vectors;
+with AMI.Trace;
 
 with System_Messages; use System_Messages;
 package body AMI.Observers is
+   use AMI.Trace;
+
    package Callback_Collections is
      new Ada.Containers.Vectors (Index_Type   => Positive,
                                  Element_Type => AMI.Event.Event_Callback,
@@ -38,7 +40,13 @@ package body AMI.Observers is
 
    procedure Notify (Event  : in     AMI.Event.Event_Type;
                      Packet : in     AMI.Parser.Packet_Type) is
+      Context : constant String := Package_Name & ".Notify";
    begin
+      if Callbacks (Event).Is_Empty then
+         AMI.Trace.Log (Debug, Context &
+                       ": Nobody cared about event " & Event'Img);
+      end if;
+
       for Callback of Callbacks (Event) loop
          Callback (Packet);
       end loop;
