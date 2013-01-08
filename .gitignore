@@ -25,3 +25,4 @@ TODO
 
 # www content
 exe/www/*
+!exe/www/.gitignore
