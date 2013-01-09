@@ -15,8 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Dispatchers.Callback;
-with AWS.Net.WebSocket.Registry;
 with Handlers.Contact;
 with Handlers.Agent;
 with Handlers.Call;
@@ -25,6 +23,11 @@ with Handlers.Notifications;
 with Handlers.Organization;
 with Handlers.Organization_List;
 with Not_Found;
+
+with AWS.Dispatchers.Callback;
+with AWS.Net.WebSocket.Registry;
+
+with Yolk.Static_Content;
 
 package body My_Handlers is
 
@@ -91,6 +94,25 @@ package body My_Handlers is
          Action     => Not_Found.Callback);
       --  This dispatcher is called if the requested resource doesn't match any
       --  of the other dispatchers. It returns a 404 to the user.
+
+      -----------------
+      --  Bob files  --
+      -----------------
+
+      Yolk.Static_Content.Set_Cache_Options;
+      --  Set some basic cache options.
+
+      AWS.Services.Dispatchers.URI.Register_Regexp
+        (Dispatcher => RH,
+         URI        => "/bob/*.",
+         Action     => Create
+           (Callback => Yolk.Static_Content.Non_Compressable'Access));
+      --  If a request begins with /bob/, then look for a file matching the
+      --  given URI, sans domain, postfixed the WWW_Root configuration
+      --  parameter.
+      --  We keep this as simple as possible. If things like compressing and
+      --  serverside caching of files is necessary, consider using an actual
+      --  proxy / cache server like varnish in front of Alice.
 
       ------------------
       --  Dispatchers --

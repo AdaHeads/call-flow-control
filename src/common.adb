@@ -14,15 +14,50 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
+
 with Ada.Calendar.Conversions;
 with Ada.Strings.Fixed;
 with Ada.Strings;
 with Interfaces.C;
 
 package body Common is
+
+   -----------------------------
+   --  String_To_JSON_Object  --
+   -----------------------------
+
+   function String_To_JSON_Object
+     (Value : in String)
+      return GNATCOLL.JSON.JSON_Value
+   is
+      use GNATCOLL.JSON;
+   begin
+      if Value = "null" or Value = "" then
+         return JSON_Null;
+      else
+         return Read (Value, "String_To_JSON_Object error");
+      end if;
+   end String_To_JSON_Object;
+
+   -----------------------------
+   --  String_To_JSON_Object  --
+   -----------------------------
+
+   function String_To_JSON_Object
+     (Value : in JSON_String)
+      return GNATCOLL.JSON.JSON_Value
+   is
+   begin
+      return String_To_JSON_Object (To_String (Value));
+   end String_To_JSON_Object;
+
+   ----------------------
+   --  Unix_Timestamp  --
+   ----------------------
+
    function Unix_Timestamp
      (Date : in Time)
-     return String
+      return String
    is
       use Ada.Strings;
       use Interfaces.C;
@@ -32,4 +67,5 @@ package body Common is
            (Ada.Calendar.Conversions.To_Unix_Time (Date)),
          Side   => Left);
    end Unix_Timestamp;
+
 end Common;

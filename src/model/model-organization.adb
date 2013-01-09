@@ -228,7 +228,7 @@ package body Model.Organization is
          Full_Name    => U (Cursor.Value (0)),
          ID           => Organization_Identifier (Cursor.Integer_Value (3)),
          Identifier   => U (Cursor.Value (1)),
-         JSON         => Cursor.Json_Object_Value (2),
+         JSON         => String_To_JSON_Object (Cursor.Json_Text_Value (2)),
          Mode         => Request_Parameters.Maxi);
 
       while Cursor.Has_Row loop
@@ -243,7 +243,7 @@ package body Model.Organization is
               (Model.Attribute.Create
                  (ID   => Attribute_Identifier'
                     (CID => Contact.ID, OID => Organization.ID),
-                  JSON => Cursor.Json_Object_Value (7)));
+                  JSON => String_To_JSON_Object (Cursor.Json_Text_Value (7))));
 
             Organization.Contact_List.Add_Contact (Contact => Contact,
                                                    ID      => Organization.ID);
@@ -270,7 +270,7 @@ package body Model.Organization is
               Full_Name    => U (C.Value (0)),
               ID           => Organization_Identifier (C.Integer_Value (3)),
               Identifier   => U (C.Value (1)),
-              JSON         => C.Json_Object_Value (2),
+              JSON         => String_To_JSON_Object (C.Json_Text_Value (2)),
               Mode         => Request_Parameters.Midi);
    end Organization_Midi_Element;
 

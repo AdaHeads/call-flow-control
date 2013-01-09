@@ -18,15 +18,21 @@
 with Ada.Calendar;
 with Ada.Strings.Unbounded;
 
+with GNATCOLL.JSON;
+
 package Common is
 
-   function Current_Time return Ada.Calendar.Time renames Ada.Calendar.Clock;
    subtype Time is Ada.Calendar.Time;
 
-   function U
-     (S : in String)
-      return Ada.Strings.Unbounded.Unbounded_String
-      renames Ada.Strings.Unbounded.To_Unbounded_String;
+   function Current_Time
+     return Ada.Calendar.Time
+     renames Ada.Calendar.Clock;
+
+   function Unix_Timestamp
+     (Date : in Time)
+      return String;
+   --  Convert and trim an Ada.Calendar.Time type to a Unix timestamp
+   --  String.
 
    type JSON_String is new Ada.Strings.Unbounded.Unbounded_String;
 
@@ -34,15 +40,26 @@ package Common is
                         JSON_String
                           (Ada.Strings.Unbounded.Null_Unbounded_String);
 
+   function String_To_JSON_Object
+     (Value : in String)
+      return GNATCOLL.JSON.JSON_Value;
+   --  Turn the Value string into a GNATCOLL JSON object. In the case of an
+   --  empty string or a "null" string a GNATCOLL.JSON.JSON_Null is returned.
+
+   function String_To_JSON_Object
+     (Value : in JSON_String)
+      return GNATCOLL.JSON.JSON_Value;
+   --  Turn the Value string into a GNATCOLL JSON object. In the case of an
+   --  empty string or a "null" string a GNATCOLL.JSON.JSON_Null is returned.
+
    function To_JSON_String
      (Source : in String)
       return JSON_String
       renames To_Unbounded_String;
 
-   function Unix_Timestamp
-     (Date : in Time)
-     return String;
-   --  Convert and trim an Ada.Calendar.Time type to a Unix timestamp
-   --  String.
+   function U
+     (S : in String)
+      return Ada.Strings.Unbounded.Unbounded_String
+      renames Ada.Strings.Unbounded.To_Unbounded_String;
 
 end Common;

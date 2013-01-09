@@ -16,6 +16,8 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Hash;
+
+with Common;
 with Model.Attribute;
 with SQL_Statements.Contact;
 with Storage;
@@ -63,6 +65,7 @@ package body Model.Contacts is
      (Cursor : in out Database_Cursor'Class)
       return List
    is
+      use Common;
       use Model.Contact;
 
       A_Id    : Attribute_Identifier;
@@ -82,8 +85,9 @@ package body Model.Contacts is
                        (Cursor.Integer_Value (5)));
 
             Contact.Add_Attribute
-              (Model.Attribute.Create (ID   => A_Id,
-                                       JSON => Cursor.Json_Object_Value (3)));
+              (Model.Attribute.Create
+                 (ID   => A_Id,
+                  JSON => String_To_JSON_Object (Cursor.Json_Text_Value (3))));
          end if;
 
          A_List.Add_Contact

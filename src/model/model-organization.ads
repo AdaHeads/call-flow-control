@@ -16,8 +16,10 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
-with Common;
+
 with GNATCOLL.JSON;
+
+with Common;
 with Model.Contact;
 with Model.Contacts;
 with Request_Parameters;

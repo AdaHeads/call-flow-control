@@ -91,7 +91,7 @@ package body Model.Contact is
                        (C.Integer_Value (4, Default => 0)),
                      OID => Organization_Identifier
                        (C.Integer_Value (5, Default => 0))),
-                  JSON => C.Json_Object_Value (3)));
+                  JSON => String_To_JSON_Object (C.Json_Text_Value (3))));
          end if;
 
          C.Next;

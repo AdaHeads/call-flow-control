@@ -16,7 +16,9 @@
 -------------------------------------------------------------------------------
 
 with Ada.Containers.Hashed_Maps;
+
 with GNATCOLL.JSON;
+
 with Model.Contact;
 
 package Model.Contacts is

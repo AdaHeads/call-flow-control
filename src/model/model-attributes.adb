@@ -16,6 +16,8 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Hash;
+
+with Common;
 with SQL_Statements.Attribute;
 with Storage;
 with View.Attribute;
@@ -58,6 +60,8 @@ package body Model.Attributes is
      (C : in out Database_Cursor'Class)
       return List
    is
+      use Common;
+
       A_List : List;
    begin
       while C.Has_Row loop
@@ -66,7 +70,7 @@ package body Model.Attributes is
               (ID   => (Contact_Identifier (C.Integer_Value (0, Default => 0)),
                         Organization_Identifier
                           (C.Integer_Value (1, Default => 0))),
-               JSON => C.Json_Object_Value (2)));
+               JSON => String_To_JSON_Object (C.Json_Text_Value (2))));
 
          C.Next;
       end loop;

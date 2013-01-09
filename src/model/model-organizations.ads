@@ -16,6 +16,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Containers.Hashed_Maps;
+
 with Common;
 with Model.Organization;
 with Request_Parameters;
