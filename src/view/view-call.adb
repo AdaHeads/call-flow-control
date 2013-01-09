@@ -38,7 +38,7 @@ package body View.Call is
 
       Value : constant JSON_Value := Create_Object;
    begin
-      if Call.ID /= Null_Identification then
+--        if Call.ID /= Null_Identification then
          Value.Set_Field (View.ID, To_String (Call.ID));
          Value.Set_Field (View.State_S, To_Lower (Call.State'Img));
          Value.Set_Field (View.B_Leg, To_String (Call.B_Leg));
@@ -48,9 +48,9 @@ package body View.Call is
          Value.Set_Field (View.Organization_Id, Natural (Call.Organization));
          Value.Set_Field (View.Arrival_Time_S, Unix_Timestamp
                           (Call.Arrival_Time));
-      else
-         Value.Set_Field (View.ID, "<null>");
-      end if;
+--        else
+--           Value.Set_Field (View.ID, "<null>");
+--        end if;
       return Value;
    end To_JSON;
 

@@ -136,7 +136,7 @@ package body AMI.Channel.Event_Handlers is
          Target_Channel.Caller_ID_Number := New_Caller_ID_Number;
          Target_Channel.Caller_ID_Name   := New_Caller_ID_Name;
 
-         Channel.List.Update (Packet.Get_Value (Parser.UniqueID),
+         Channel.List.Update (Channel_Key,
                               Target_Channel);
 
          AMI.Trace.Log (Debug, Context & ": channel" &
@@ -174,7 +174,7 @@ package body AMI.Channel.Event_Handlers is
 
    procedure New_Extension (Packet : in Parser.Packet_Type) is
       use Ada.Strings.Unbounded;
-      Context          : constant String := Package_Name & ".Join";
+      Context          : constant String := Package_Name & ".New_Extension";
       Target_Channel   : Channel.Instance := Channel.Empty_Object;
       Application      : US.Unbounded_String renames
                            Packet.Get_Value (Parser.Application);
@@ -197,7 +197,10 @@ package body AMI.Channel.Event_Handlers is
 
       if Target_Channel.Extension /= New_Extension then
          AMI.Trace.Log (Critical, Context & ": " & To_String (Channel_Key) &
-                          " changed its extension!");
+                          " changed its extension from " &
+                          To_String (Target_Channel.Extension) &
+                          " to " &
+                          To_String (New_Extension));
       end if;
 
       Channel.List.Update (Key  => Channel_Key,

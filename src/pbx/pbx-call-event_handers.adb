@@ -16,10 +16,23 @@
 -------------------------------------------------------------------------------
 
 with AMI.Channel_ID;
+with AMI.Observers;
+with AMI.Event;
+with AMI.Parser;
+with AMI.Trace;
+with View.Call;
+
+with Handlers.Notifications;
+with Client_Notification.Queue;
 
 package body PBX.Call.Event_Handers is
+   use AMI.Trace;
+
+   package Notification renames Handlers.Notifications;
 
    procedure Dial (Packet : in Parser.Packet_Type);
+
+   procedure Join (Packet : in Parser.Packet_Type);
 
       ------------
    --  Dial  --
@@ -27,7 +40,6 @@ package body PBX.Call.Event_Handers is
 
    procedure Dial (Packet : in Parser.Packet_Type) is
       Context   : constant String := Package_Name & ".Dial";
-      Call      : Instance;
 
       Sub_Event   : String renames Packet.Get_Value (Parser.SubEvent);
       Channel     : String renames Packet.Get_Value (Parser.Channel);
@@ -36,6 +48,7 @@ package body PBX.Call.Event_Handers is
       --  There is a sequence to a Dial event represented by a SubEvent.
       --  It consists of "Begin" or "End"
       if Sub_Event = "Begin" then
+
          if AMI.Channel_ID.Value (Channel).Is_Local then
             Create_And_Insert
               (Inbound        => False,
@@ -50,54 +63,52 @@ package body PBX.Call.Event_Handers is
 
          end if;
 
+         AMI.Trace.Log (Debug, "Begin: "&  View.Call.To_JSON
+                        (Get (Channel => Value (Channel))).Write);
+
       --  When a Dial event ends, the call is over, and must thus be removed
       --  From the call list.
       elsif Sub_Event = "End" then
          Get (Channel => Value (Channel)).End_Dial;
+
+         AMI.Trace.Log (Debug, "End: " & View.Call.To_JSON
+                        (Get (Channel => Value (Channel))).Write);
       else
-         System_Messages.Notify
+         AMI.Trace.Log
            (Error, Package_Name & "." & Context & ": " &
-              "unknown SubEvent: " &
-              To_String (Packet.Get_Value (Parser.SubEvent)));
+              "unknown SubEvent: " & Sub_Event);
       end if;
    end Dial;
 
    procedure Join (Packet : in Parser.Packet_Type) is
-      Call         : PBX.Call.Instance;
-      Temp_Value   : Unbounded_String;
+      Context   : constant String := Package_Name & ".Join";
+      Channel     : String renames Packet.Get_Value (Parser.Channel);
    begin
-      Call.ID := Call_ID.Create (Packet.Get_Value (Parser.UniqueID));
-      Call.Inbound := True;  --  Join implies an inbound call.
-
-      --  See if the call already exists
-      if Model.Calls.List.Contains (Call_ID => Call.ID) then
-         Call := Model.Calls.List.Get (Call.ID);
-         Call.State := Requeued;
-      else
-         Call.State := Newly_Arrived;
-         Call.Arrived := Current_Time;
-      end if;
-
-      Call.Queue := Packet.Get_Value (Parser.Queue);
-      Call.Channel := Channel_ID.Value
-        (To_String (Packet.Get_Value (Parser.Channel)));
-      Model.Calls.List.Insert (Call);
+      Create_And_Insert
+        (Inbound        => True,
+         Channel        => Channel,
+         State          => Queued);
+--      Get (Channel => Value (Channel)).Enqueue;
 
       Notification.Broadcast
-        (Client_Notification.Queue.Join (C => Call).To_JSON);
+        (Client_Notification.Queue.Join
+           (Get (Channel => Value (Channel))).To_JSON);
    exception
          when others =>
-         System_Messages.Notify
-           (Error,
-            "My_Callbacks.Join: Got a Join event, " &
+         AMI.Trace.Log
+           (Error, Context & ": Got a Join event, " &
               "on a channel there is not in the channel list. " &
-              "Channel: " &
-                 To_String (Temp_Value));
+              "Channel: " & Channel);
    end Join;
 
    procedure Register_Handlers is
    begin
       AMI.Observers.Register (Event   => AMI.Event.Dial,
                               Handler => Dial'Access);
+      AMI.Observers.Register (Event   => AMI.Event.Join,
+                              Handler => Join'Access);
    end Register_Handlers;
+
+begin
+   Register_Handlers;
 end PBX.Call.Event_Handers;

@@ -14,7 +14,6 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with AMI.Parser;
 
 package PBX.Call.Event_Handers is
 

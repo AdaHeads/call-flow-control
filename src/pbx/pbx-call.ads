@@ -20,6 +20,8 @@ with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Unbounded.Hash_Case_Insensitive;
 
+with GNATCOLL.JSON;
+
 with AMI.Channel;
 with Model.Agent_ID;
 with Model;
@@ -81,6 +83,8 @@ package PBX.Call is
 
    function Get (Call : Identification) return Instance;
 
+   --  Constructors
+
    function Create_And_Insert
      (Inbound         : in Boolean;
       Channel         : in String;
@@ -95,6 +99,8 @@ package PBX.Call is
       State           : in States := Unknown;
       Organization_ID : in Natural := 0;
       B_Leg           : in String := "");
+
+   function To_JSON (Obj : in Instance) return GNATCOLL.JSON.JSON_Value;
 
    function Next return Identification;
 

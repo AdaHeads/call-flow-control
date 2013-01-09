@@ -17,6 +17,8 @@
 
 with Ada.Strings;
 with Ada.Strings.Fixed;
+with View.Call;
+
 
 package body PBX.Call is
 
@@ -148,13 +150,21 @@ package body PBX.Call is
 
    function Next return Identification is
    begin
+      Next_Identification := Identification'Succ (Next_Identification);
       --  TODO check of already alllocated ID's
-      while Next_Identification /= Null_Identification loop
+
+      if Next_Identification = Null_Identification then
          Next_Identification := Identification'Succ (Next_Identification);
-      end loop;
+      end if;
 
       return Next_Identification;
    end Next;
+
+
+   function To_JSON (Obj : in Instance) return GNATCOLL.JSON.JSON_Value is
+   begin
+      return View.Call.To_JSON (Obj);
+   end To_JSON;
 
    -----------------
    --  To_String  --

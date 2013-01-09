@@ -29,7 +29,7 @@ package body Client_Notification.Queue is
       return Leave_Header;
    end Header_Name;
 
-   function Join (C : in Call.Call_Type) return Join_Event is
+   function Join (C : in PBX.Call.Instance) return Join_Event is
    begin
       return (Instance with Persistant => False, Call => C);
    end Join;

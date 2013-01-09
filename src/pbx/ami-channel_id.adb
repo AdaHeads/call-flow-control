@@ -122,7 +122,9 @@ package body AMI.Channel_ID is
 
    function Is_Local (Item : in Instance) return Boolean is
    begin
-      if Peer.List.Contains (Peer_ID.Create (To_String (Item.Peer))) then
+      if
+        Peer.List.Contains (Peer_ID.Create ("SIP/" & To_String (Item.Peer)))
+      then
          return True;
       else
          return False;

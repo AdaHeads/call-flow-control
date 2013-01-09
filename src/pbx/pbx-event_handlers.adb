@@ -52,7 +52,7 @@ package body PBX.Event_Handlers is
    procedure Bridge (Packet : in Parser.Packet_Type) is
       Context   : constant String      := "Bridge";
       ID1, ID2  : Call_ID.Call_ID_Type := Null_Call_ID;
-      Some_Call : Call.Call_Type       := Null_Call;
+      Some_Call : Model.Call.Call_Type       := Null_Call;
    begin
       ID1 := Call_ID.Create
         (To_String (Packet.Get_Value (Parser.UniqueID1)));
@@ -198,8 +198,8 @@ package body PBX.Event_Handlers is
         (To_String (Packet.Get_Value (Parser.Channel)));
       Model.Calls.List.Insert (Call);
 
-      Notification.Broadcast
-        (Client_Notification.Queue.Join (C => Call).To_JSON);
+--        Notification.Broadcast
+--          (Client_Notification.Queue.Join (C => Call).To_JSON);
    exception
          when others =>
          System_Messages.Notify
@@ -230,7 +230,7 @@ package body PBX.Event_Handlers is
    ------------------
 
    procedure Parked_Call (Packet : in Parser.Packet_Type) is
-      Call_To_Park : Call.Call_Type := Null_Call;
+      Call_To_Park : Model.Call.Call_Type := Null_Call;
    begin
       Call_To_Park := Calls.List.Get
         (Call_ID.Create (Packet.Get_Value (Parser.UniqueID)));
@@ -413,8 +413,6 @@ package body PBX.Event_Handlers is
    end Queue_Abandon;
 
 begin
---   PBX.Call.Event_Handers.Register_Handlers;
-
    AMI.Observers.Register (Event   => AMI.Event.Bridge,
                            Handler => Bridge'Access);
    AMI.Observers.Register (Event   => AMI.Event.CoreShowChannel,
