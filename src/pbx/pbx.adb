@@ -42,6 +42,10 @@ package body PBX is
    --  Continous reader loop that is reponsible for reading and dispatching
    --  packets. Does not die unless the stop primitive is called.
 
+   task Connect_Task is
+      entry Start;
+   end Connect_Task;
+
    procedure Authenticate;
    --  Wraps the entire authentication mechanism and provides a neat callback
    --  for the On_Connect event in the AMI.Client.
@@ -87,15 +91,11 @@ package body PBX is
    begin
 
       --  TODO: Add cooldown to prevent hammering the Asterisk server.
-      if PBX_Status /= Shutdown then
-         PBX_Status := Connecting;
+      if not Shutdown then
          System_Messages.Notify
            (Information, "PBX.Connect: Connecting");
          Client.Connect (Config.Get (PBX_Host), Config.Get (PBX_Port));
 
-         if Client.Connected then
-            PBX_Status := Running;
-         end if;
       end if;
 
    end Connect;
@@ -140,13 +140,13 @@ package body PBX is
       procedure Parser_Loop is
       begin
          loop
-            exit when PBX_Status = Shutdown;
+            exit when Shutdown;
             Client.Wait_For_Connection;
             Dispatch (Read_Packet (Get_Line'Access));
          end loop;
       exception
          when E : others =>
-            if PBX_Status /= Shutdown then
+            if not Shutdown then
                System_Messages.Notify
                  (Error, "PBX.Reader_Loop: Socket disconnected! ");
                System_Messages.Notify
@@ -155,9 +155,8 @@ package body PBX is
       end Parser_Loop;
 
    begin
-      --  accept Start;
       loop
-         exit when PBX_Status = Shutdown;
+         exit when Shutdown;
          Parser_Loop;
       end loop;
       System_Messages.Notify
@@ -170,27 +169,35 @@ package body PBX is
            (Critical, Ada.Exceptions.Exception_Information (E));
    end Reader_Task;
 
-   procedure Start is
+   task body Connect_Task is
    begin
+      accept Start;
       Client := AMI.Client.Create (On_Connect    => Authenticate'Access,
                                    On_Disconnect => Connect'Access);
       Connect; --  Initial connect.
+   end Connect_Task;
+
+   procedure Start is
+   begin
+      Connect_Task.Start;
       System_Messages.Notify (Information, "PBX Subsystem started");
    end Start;
 
    function Status return PBX_Status_Type is
    begin
-      return PBX_Status;
+      if Shutdown then
+         return Shut_Down;
+      end if;
+      return Running;
    end Status;
 
    procedure Stop is
    begin
       System_Messages.Notify (Debug, "PBX.Shutdown");
-      PBX_Status := Shutting_Down;
+      Shutdown := True;
 
       PBX.Action.Wait_For (PBX.Action.Logoff);
 
       Client.Disconnect;
-      PBX_Status := Shutdown;
    end Stop;
 end PBX;

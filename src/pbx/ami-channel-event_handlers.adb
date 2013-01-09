@@ -77,50 +77,6 @@ package body AMI.Channel.Event_Handlers is
          raise;
    end Attach_Variable;
 
-   ---------------------
-   --  New_Extension  --
-   ---------------------
-
-   procedure New_Extension (Packet : in Parser.Packet_Type) is
-      use Ada.Strings.Unbounded;
-      Context          : constant String := Package_Name & ".Join";
-      Target_Channel   : Channel.Instance := Channel.Empty_Object;
-      Application      : US.Unbounded_String renames
-                           Packet.Get_Value (Parser.Application);
-      Application_Data : US.Unbounded_String renames
-                           Packet.Get_Value (Parser.AppData);
-      Channel_Key      : US.Unbounded_String renames
-                           Packet.Get_Value (Parser.Channel);
-      New_Extension    : US.Unbounded_String renames
-                           Packet.Get_Value (Parser.Extension);
-   begin
-      Target_Channel := Channel.List.Get (Channel_Key);
-
-      Target_Channel.Application := Application;
-
-      if Application_Data = "(NULL)" then
-         Target_Channel.Application_Data := Null_Unbounded_String;
-      else
-         Target_Channel.Application_Data := Application_Data;
-      end if;
-
-      if Target_Channel.Extension /= New_Extension then
-         AMI.Trace.Log (Critical, Context & ": " & To_String (Channel_Key) &
-                          " changed its extension!");
-      end if;
-
-      Channel.List.Update (Key  => Channel_Key,
-                           Item => Target_Channel);
-
-      AMI.Trace.Log (Debug, Context & ": " & To_String (Channel_Key) &
-                    " enters queue " & To_String (Application_Data));
-   exception
-      when Channel.Not_Found =>
-         AMI.Trace.Log (Error, Context & ": Channel not found " &
-                          To_String (Channel_Key));
-         raise;
-   end New_Extension;
-
    ------------------------
    --  New_Account_Code  --
    ------------------------
@@ -211,6 +167,50 @@ package body AMI.Channel.Event_Handlers is
       Channel.List.Insert (Packet.Get_Value (Parser.Channel),
             Channel.Create (Packet => Packet));
    end New_Channel;
+
+   ---------------------
+   --  New_Extension  --
+   ---------------------
+
+   procedure New_Extension (Packet : in Parser.Packet_Type) is
+      use Ada.Strings.Unbounded;
+      Context          : constant String := Package_Name & ".Join";
+      Target_Channel   : Channel.Instance := Channel.Empty_Object;
+      Application      : US.Unbounded_String renames
+                           Packet.Get_Value (Parser.Application);
+      Application_Data : US.Unbounded_String renames
+                           Packet.Get_Value (Parser.AppData);
+      Channel_Key      : US.Unbounded_String renames
+                           Packet.Get_Value (Parser.Channel);
+      New_Extension    : US.Unbounded_String renames
+                           Packet.Get_Value (Parser.Extension);
+   begin
+      Target_Channel := Channel.List.Get (Channel_Key);
+
+      Target_Channel.Application := Application;
+
+      if Application_Data = "(NULL)" then
+         Target_Channel.Application_Data := Null_Unbounded_String;
+      else
+         Target_Channel.Application_Data := Application_Data;
+      end if;
+
+      if Target_Channel.Extension /= New_Extension then
+         AMI.Trace.Log (Critical, Context & ": " & To_String (Channel_Key) &
+                          " changed its extension!");
+      end if;
+
+      Channel.List.Update (Key  => Channel_Key,
+                           Item => Target_Channel);
+
+      AMI.Trace.Log (Debug, Context & ": " & To_String (Channel_Key) &
+                    " enters queue " & To_String (Application_Data));
+   exception
+      when Channel.Not_Found =>
+         AMI.Trace.Log (Error, Context & ": Channel not found " &
+                          To_String (Channel_Key));
+         raise;
+   end New_Extension;
 
    -----------------
    --  New_State  --

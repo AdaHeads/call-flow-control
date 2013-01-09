@@ -25,7 +25,7 @@ package PBX is
 
    Null_Reply : constant Reply_Ticket;
 
-   type PBX_Status_Type is (Shutdown, Shutting_Down, Running, Connecting,
+   type PBX_Status_Type is (Shut_Down, Shutting_Down, Running, Connecting,
                            Failure);
 
    --  TODO: make this private and wrap every call to AMI
@@ -45,6 +45,6 @@ private
    Null_Reply : constant Reply_Ticket := Reply_Ticket (AMI.Null_Action_ID);
 
    Last_Connection_Attempt : Common.Time;
-   Connection_Delay        : Duration        := 1.0;
-   PBX_Status              : PBX_Status_Type := Failure;
+   Connection_Delay        : Duration     := 1.0;
+   Shutdown                : Boolean      := False;
 end PBX;
