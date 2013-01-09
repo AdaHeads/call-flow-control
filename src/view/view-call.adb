@@ -31,6 +31,29 @@ package body View.Call is
       return To_JSON_String (JSON.Write);
    end Status_Message;
 
+   function To_JSON (Call : in PBX.Call.Instance)
+                     return GNATCOLL.JSON.JSON_Value is
+      use PBX.Call;
+      use Ada.Characters.Handling;
+
+      Value : constant JSON_Value := Create_Object;
+   begin
+      if Call.ID /= Null_Identification then
+         Value.Set_Field (View.ID, To_String (Call.ID));
+         Value.Set_Field (View.State_S, To_Lower (Call.State'Img));
+         Value.Set_Field (View.B_Leg, To_String (Call.B_Leg));
+         Value.Set_Field (View.Inbound, Call.Inbound);
+         Value.Set_Field (View.Assigned_To_S, Call.Assigned_To.To_String);
+         Value.Set_Field (View.Channel, To_String (Call.Channel));
+         Value.Set_Field (View.Organization_Id, Natural (Call.Organization));
+         Value.Set_Field (View.Arrival_Time_S, Unix_Timestamp
+                          (Call.Arrival_Time));
+      else
+         Value.Set_Field (View.ID, "<null>");
+      end if;
+      return Value;
+   end To_JSON;
+
    function To_JSON (Call : in Model.Call.Call_Type)
                      return GNATCOLL.JSON.JSON_Value is
       use Model.Call;

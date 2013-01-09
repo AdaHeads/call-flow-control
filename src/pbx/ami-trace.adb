@@ -15,26 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Model.Call;
-with PBX.Call;
+package body AMI.Trace is
 
-with Common;
+   procedure Log (Level : in Kind; Message : in String) is
+   begin
+      System_Messages.Notify (System_Messages.Message_Type (Level), Message);
+   end Log;
 
-with GNATCOLL.JSON;
-
---  This package can return callqueue information and it in JSON format.
-package View.Call is
-   use Common;
-
-   function To_JSON (Call : in Model.Call.Call_Type)
-                     return GNATCOLL.JSON.JSON_Value;
-
-   function To_JSON (Call : in PBX.Call.Instance)
-                     return GNATCOLL.JSON.JSON_Value;
-
-   --  TODO: Move this
-   function Status_Message (Title   : in String;
-                            Message : in String) return JSON_String;
-private
-   --  takes a call and converts it to a JSON object.
-end View.Call;
+end AMI.Trace;

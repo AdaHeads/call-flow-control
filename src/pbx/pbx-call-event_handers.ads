@@ -14,27 +14,13 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
+with AMI.Parser;
 
-with Model.Call;
-with PBX.Call;
+package PBX.Call.Event_Handers is
 
-with Common;
+   Package_Name : constant String := "PBX.Call.Event_Handers";
 
-with GNATCOLL.JSON;
+   procedure Register_Handlers;
+   --  Registers the appropriate event handlers.
 
---  This package can return callqueue information and it in JSON format.
-package View.Call is
-   use Common;
-
-   function To_JSON (Call : in Model.Call.Call_Type)
-                     return GNATCOLL.JSON.JSON_Value;
-
-   function To_JSON (Call : in PBX.Call.Instance)
-                     return GNATCOLL.JSON.JSON_Value;
-
-   --  TODO: Move this
-   function Status_Message (Title   : in String;
-                            Message : in String) return JSON_String;
-private
-   --  takes a call and converts it to a JSON object.
-end View.Call;
+end PBX.Call.Event_Handers;

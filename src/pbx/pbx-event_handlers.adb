@@ -32,7 +32,6 @@ with AMI.Peer_ID;
 with Handlers.Notifications;
 with Client_Notification.Queue;
 with Client_Notification.Call;
-with AMI.Channel.Event_Handlers;
 
 package body PBX.Event_Handlers is
    use Common;
@@ -414,7 +413,7 @@ package body PBX.Event_Handlers is
    end Queue_Abandon;
 
 begin
-   AMI.Channel.Event_Handlers.Register_Handlers;
+--   PBX.Call.Event_Handers.Register_Handlers;
 
    AMI.Observers.Register (Event   => AMI.Event.Bridge,
                            Handler => Bridge'Access);
@@ -430,12 +429,12 @@ begin
                            Handler => Peer_List_Complete'Access);
    AMI.Observers.Register (Event   => AMI.Event.Hangup,
                            Handler => Hangup'Access);
-   AMI.Observers.Register (Event   => AMI.Event.Join,
-                           Handler => Join'Access);
+--     AMI.Observers.Register (Event   => AMI.Event.Join,
+--                             Handler => Join'Access);
    AMI.Observers.Register (Event   => AMI.Event.Leave,
                            Handler => Leave'Access);
-   AMI.Observers.Register (Event   => AMI.Event.Dial,
-                           Handler => Dial'Access);
+--     AMI.Observers.Register (Event   => AMI.Event.Dial,
+--                             Handler => Dial'Access);
    AMI.Observers.Register (Event   => AMI.Event.QueueCallerAbandon,
                            Handler => Queue_Abandon'Access);
    AMI.Observers.Register (Event   => AMI.Event.ParkedCall,

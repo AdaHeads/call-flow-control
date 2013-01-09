@@ -61,6 +61,9 @@ package AMI.Channel_ID is
 
    function Temporary (Item : in Instance) return Boolean;
 
+   function Is_Local (Item : in Instance) return Boolean;
+   --  Reveals whether or not the channel belongs to a local peer.
+
    function "<" (Left  : in Instance;
                  Right : in Instance) return Boolean;
 

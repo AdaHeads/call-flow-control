@@ -19,6 +19,7 @@ with AWS.Net;
 with AWS.Net.Buffered;
 
 with AMI.Response;
+with AMI.Channel.Event_Handlers;
 
 with Common;
 with System_Messages;
@@ -94,6 +95,9 @@ package body AMI.Client is
                    return Client_Type is
       Socket : AWS.Net.Std.Socket_Type;
    begin
+      --  Register the standard handlers.
+      AMI.Channel.Event_Handlers.Register_Handlers;
+
       return (Connected             => False,
               Server_Greeting       => Null_Unbounded_String,
               Authenticated         => False,

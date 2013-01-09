@@ -19,6 +19,9 @@ with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
 
+with AMI.Peer;
+with AMI.Peer_ID;
+
 package body AMI.Channel_ID is
 
    function Value (Item : in String) return Sequence_Number;
@@ -116,6 +119,15 @@ package body AMI.Channel_ID is
 
       return Buffer (4 .. 11);
    end Image;
+
+   function Is_Local (Item : in Instance) return Boolean is
+   begin
+      if Peer.List.Contains (Peer_ID.Create (To_String (Item.Peer))) then
+         return True;
+      else
+         return False;
+      end if;
+   end Is_Local;
 
    function Temporary (Item : in Instance) return Boolean is
    begin

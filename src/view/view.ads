@@ -25,6 +25,7 @@ package View is
    Attributes        : constant String := "attributes";
    Call_S            : constant String := "call";
    Bridged_With      : constant String := "bridged_with";
+   B_Leg             : constant String := "b_leg";
    Call_ID_S         : constant String := "call_Id";
    Channel           : constant String := "channel";
    Contact_Id        : constant String := "contact_id";
