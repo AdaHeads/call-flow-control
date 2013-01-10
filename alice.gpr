@@ -59,7 +59,6 @@ project Alice is
          when "Debug" =>
             for Default_Switches ("Ada") use ("-gnata",
                                               "-gnatwa",
-                                              "-gnata",
                                               "-gnatVa",
                                               "-Wall",
                                               "-O1",
