@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with GNATCOLL.JSON;
+
 package Model.Agent_ID is
 
    Invalid_ID : exception;
@@ -25,6 +27,7 @@ package Model.Agent_ID is
    Null_Agent_ID : constant Agent_ID_Type;
 
    function ID  (Agent_ID : in Agent_ID_Type) return Natural;
+   function To_JSON (Obj : in Agent_ID_Type) return GNATCOLL.JSON.JSON_Value;
 
    function To_String (Agent_ID : in Agent_ID_Type) return String;
    --  Debug-friendly representation of an agent ID

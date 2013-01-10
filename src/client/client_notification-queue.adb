@@ -17,11 +17,19 @@
 
 package body Client_Notification.Queue is
 
+   -------------------
+   --  Header_Name  --
+   -------------------
+
    function Header_Name (O : in Join_Event) return String is
       pragma Unreferenced (O);
    begin
       return Join_Header;
    end Header_Name;
+
+   -------------------
+   --  Header_Name  --
+   -------------------
 
    function Header_Name (O : in Leave_Event) return String is
       pragma Unreferenced (O);
@@ -29,28 +37,44 @@ package body Client_Notification.Queue is
       return Leave_Header;
    end Header_Name;
 
-   function Join (C : in PBX.Call.Instance) return Join_Event is
+   ------------
+   --  Join  --
+   ------------
+
+   function Join (C : in Call.Instance) return Join_Event is
    begin
-      return (Instance with Persistant => False, Call => C);
+      return (Instance with Persistant => False, Joined_Call => C);
    end Join;
 
-   function Leave (C : in Call.Call_Type) return Leave_Event is
+   -------------
+   --  Leave  --
+   -------------
+
+   function Leave (C : in Call.Instance) return Leave_Event is
    begin
-      return (Instance with Persistant => False, Call => C);
+      return (Instance with Persistant => False, Left_Call => C);
    end Leave;
+
+   ---------------
+   --  To_JSON  --
+   ---------------
 
    function To_JSON (O : in Join_Event) return JSON_Value is
       Notification_JSON : constant JSON_Value := O.JSON_Root;
    begin
-      JSON_Append (Notification_JSON, "call", O.Call.To_JSON);
+      JSON_Append (Notification_JSON, "call", O.Joined_Call.To_JSON);
 
       return Notification_JSON;
    end To_JSON;
 
+   ---------------
+   --  To_JSON  --
+   ---------------
+
    function To_JSON (O : in Leave_Event) return JSON_Value is
       Notification_JSON : constant JSON_Value := O.JSON_Root;
    begin
-      JSON_Append (Notification_JSON, "call", O.Call.To_JSON);
+      JSON_Append (Notification_JSON, "call", O.Left_Call.To_JSON);
 
       return Notification_JSON;
    end To_JSON;

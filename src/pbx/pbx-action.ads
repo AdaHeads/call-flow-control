@@ -15,11 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Model.Call_ID;
 with AMI.Packet.Action;
 
+with PBX.Call;
+
 package PBX.Action is
-   use Model;
 
    Timeout : exception;
 
@@ -32,7 +32,7 @@ package PBX.Action is
                     On_Response : in Response_Handler := Ignore)
                   return Reply_Ticket;
 
-   function Hangup (ID : in Call_ID.Call_ID_Type) return Reply_Ticket;
+   function Hangup (ID : in PBX.Call.Identification) return Reply_Ticket;
 
    function Login (Username    : in String;
                    Secret      : in String;

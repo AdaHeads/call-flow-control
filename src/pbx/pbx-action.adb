@@ -72,14 +72,14 @@ package body PBX.Action is
    -- Hangup --
    ------------
 
-   function Hangup (ID : in Call_ID.Call_ID_Type) return Reply_Ticket is
-      use Call_ID;
+   function Hangup (ID : in PBX.Call.Identification) return Reply_Ticket is
+      use PBX.Call;
 
       Hangup_Action : AMI.Packet.Action.Request :=
                         AMI.Packet.Action.Hangup
-                          (Channel => ID.To_String);
+                          (Channel => To_String (Get (ID).Channel));
    begin
-      if ID /= Call_ID.Null_Call_ID then
+      if ID /= Null_Identification then
          PBX.Client.Send (Hangup_Action.To_AMI_Packet);
 
          return Cast (Hangup_Action.Action_ID);

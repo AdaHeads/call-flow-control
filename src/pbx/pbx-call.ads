@@ -31,11 +31,14 @@ package PBX.Call is
    use Common;
    use Model.Agent_ID;
 
-   Not_Found : exception;
+   Not_Found       : exception;
+   Already_Bridged : exception;
 
    type Identification is private;
 
    function To_String (Item : in Identification) return String;
+
+   function Value (Item : String) return Identification;
 
    type Channel_Identification is new AMI.Channel.Channel_Key;
 
@@ -48,7 +51,8 @@ package PBX.Call is
 
    type States is
      (Unknown, Queued, Requeued,
-      Speaking, Dialing, OnHold, Delegated, Ended,
+      Transferring,
+      Speaking, Dialing, Delegated, Ended,
       Parked, Bridged);
    type Priority_Level is (Invalid, Low, Normal, High);
 
@@ -73,7 +77,12 @@ package PBX.Call is
 
    procedure Dial (Obj : in Instance; Destination : in Channel_Identification);
 
+   procedure Dequeue (Obj : in Instance);
+   procedure Enqueue (Obj : in Instance);
+
    procedure End_Dial (Obj : in Instance);
+
+   function Queue_Count return Natural;
 
    procedure For_Each (Process : access procedure (Item : Instance)) is null;
 
@@ -82,6 +91,16 @@ package PBX.Call is
    function Get (Channel : Channel_Identification) return Instance;
 
    function Get (Call : Identification) return Instance;
+
+   function Has (Channel_ID : Channel_Identification) return Boolean;
+
+   function Highest_Prioirity return Instance;
+
+   function Queue_Empty return Boolean;
+   --  Reveals if there are currently calls available for pickup.
+
+   function Remove (ID : in Identification) return Instance;
+   function Remove (Channel_ID : in Channel_Identification) return Instance;
 
    --  Constructors
 
@@ -131,7 +150,7 @@ private
          Organization : Model.Organization_Identifier;
          B_Leg        : Channel_Identification;
          Arrived      : Time := Current_Time;
-         Assigned_To  : Agent_ID_Type := Create ("");
+         Assigned_To  : Agent_ID_Type := Null_Agent_ID;
       end record;
 
    package Call_Storage is new
@@ -146,19 +165,30 @@ private
         Hash           => Ada.Strings.Unbounded.Hash_Case_Insensitive,
         Equivalent_Keys => Ada.Strings.Unbounded."=");
 
-   protected Calls is
-      procedure Insert (Item : Instance);
+   protected Call_List is
+      procedure Insert (Item : in Instance);
+      function Empty return Boolean;
+      function Contains
+        (Channel_ID : in Channel_Identification) return Boolean;
+      procedure Enqueue (ID : in Identification);
+      procedure Dequeue (ID : in Identification);
       function Get (Channel : in Channel_Identification) return Instance;
-      function Get (Call : Identification) return Instance;
-      procedure Remove (Channel : in Channel_Identification);
-      procedure Remove (Call : Identification);
-      procedure Update (Call    : in Identification;
+      function First return Instance;
+
+      function Get (ID : in Identification) return Instance;
+      procedure Link (ID1 : in Identification;
+                      ID2 : in Identification);
+      function Queued return Natural;
+      procedure Remove (Channel_ID : in Channel_Identification);
+      procedure Remove (ID : in Identification);
+      procedure Update (ID : in Identification;
                         Process : not null access procedure
                           (Key     : in     Identification;
                            Element : in out Instance));
    private
       Channel_Lookup_Table : Channel_Lookup_Storage.Map;
       List                 : Call_Storage.Map;
-   end Calls;
+      Number_Queued        : Natural := 0;
+   end Call_List;
 
 end PBX.Call;

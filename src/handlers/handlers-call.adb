@@ -31,6 +31,7 @@ with View.Call;
 
 with PBX;
 with PBX.Action;
+with PBX.Call;
 with Model.Call_ID;
 with System_Messages;
 with System_Message.Critical;
@@ -53,23 +54,13 @@ package body Handlers.Call is
       return AWS.Response.Data
    is
       use Common;
+      use PBX;
 
-      Requested_Call_ID : Call_ID.Call_ID_Type := Call_ID.Null_Call_ID;
       Response_Object   : Response.Object := Response.Factory (Request);
       Ticket            : PBX.Reply_Ticket := PBX.Null_Reply;
+      Requested_Call_ID : String renames Parameters (Request).Get ("call_id");
    begin
-      Requested_Call_ID :=
-        Call_ID.Create (Item => Parameters (Request).Get ("call_id"));
-      --  Will raise exception, if ID is not valid.
-
-      if not Calls.List.Contains (Call_ID => Requested_Call_ID) then
-         Response_Object.HTTP_Status_Code (Not_Found);
-         Response_Object.Content
-              (Status_Message
-                 ("status", "not found"));
-      else
-         Ticket := PBX.Action.Hangup (ID => Requested_Call_ID);
-      end if;
+      Ticket := PBX.Action.Hangup (ID => PBX.Call.Value (Requested_Call_ID));
 
       PBX.Action.Wait_For (Ticket);
 
@@ -80,11 +71,11 @@ package body Handlers.Call is
       return Response_Object.Build;
 
    exception
-      when E : Call_ID.Invalid_ID =>
-         System_Message.Error.Bad_Call_ID_Key
-           (Event           => E,
-            Message         => "Could not lookup call",
-            Response_Object => Response_Object);
+      when PBX.Call.Not_Found =>
+         Response_Object.HTTP_Status_Code (Not_Found);
+         Response_Object.Content
+           (Status_Message
+              ("status", "not found"));
          return Response_Object.Build;
 
       when E : others =>
@@ -238,25 +229,19 @@ package body Handlers.Call is
 
       Call_ID_String    : String renames
                             Parameters (Request).Get (Name => "call_id");
-      Agent_ID_String   : constant String :=
+      Agent_ID_String   : String renames
                             Parameters (Request).Get (Name => "agent_id");
-      Response_Object   : Response.Object := Response.Factory (Request);
-      Agent_ID          : Agent_ID_Type   := Null_Agent_ID;
-      Agent             : Agent_Type      := Null_Agent;
-      Requested_Call    : Call_Type       := Null_Call;
-      Peer              : Peer_Type       := Null_Peer;
+      Response_Object   : Response.Object   := Response.Factory (Request);
+      Agent_ID          : Agent_ID_Type     := Null_Agent_ID;
+      Agent             : Agent_Type        := Null_Agent;
+      Peer              : Peer_Type         := Null_Peer;
+      Assigned_Call     : PBX.Call.Instance;
    begin
       --  We want a valid agent ID, so we let the exception propogate.
       Agent_ID := Create (Agent_ID => Agent_ID_String);
 
-      --  Check valitity of the call. (Will raise exception on invalid.
-      if Parameters (Request).Exist ("call_id") then
-         Requested_Call := Calls.List.Get
-           (Call_ID => Model.Call_ID.Create (Call_ID_String));
-      end if;
-
       --  If we do not have any calls at this point, return HTTP 204.
-      if Calls.List.Is_Empty then
+      if PBX.Call.Queue_Count = 0 then
          Response_Object.HTTP_Status_Code (No_Content);
          return Response_Object.Build;
       end if;
@@ -279,19 +264,25 @@ package body Handlers.Call is
       else
          --  We're good - transfer the call.
          Agent := Model.Agents.Get (Agent_ID => Agent_ID);
-         Calls.List.Assign
-           (Agent => Agent,
-            Call  => Requested_Call);
+
+         if Call_ID_String /= "" then
+            Assigned_Call := PBX.Call.Get
+              (Call => PBX.Call.Value (Call_ID_String));
+            Assigned_Call.Assign (Agent_ID);
+         else
+            Assigned_Call := PBX.Call.Highest_Prioirity;
+            Assigned_Call.Assign (Agent_ID);
+         end if;
 
          PBX.Action.Wait_For
            (PBX.Action.Redirect
-              (Channel     => Requested_Call.Channel.Image,
+              (Channel     => PBX.Call.To_String (Assigned_Call.Channel),
                Extension   => Agent.Extension,
                Context     => "LocalSets"));
 
          Response_Object.HTTP_Status_Code (OK);
          Response_Object.Content
-           ((To_JSON_String (Requested_Call.To_JSON.Write)));
+           ((To_JSON_String (Assigned_Call.To_JSON.Write)));
       end if;
 
       return Response_Object.Build;

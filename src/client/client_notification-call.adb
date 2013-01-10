@@ -16,15 +16,10 @@
 -------------------------------------------------------------------------------
 package body Client_Notification.Call is
 
-   function Park (C : in Model.Call.Call_Type) return Park_Event is
+   function Hangup (C : in PBX.Call.Instance) return Hangup_Event is
    begin
       return (Instance with Persistant => False, Call => C);
-   end Park;
-
-   function Pickup (C : in Model.Call.Call_Type) return Pickup_Event is
-   begin
-      return (Instance with Persistant => False, Call => C);
-   end Pickup;
+   end Hangup;
 
    -----------------------------
    --  Header_Name functions  --
@@ -53,6 +48,18 @@ package body Client_Notification.Call is
    begin
       return Bridge_Header;
    end Header_Name;
+
+   function Park (C : in Model.Call.Call_Type) return Park_Event is
+   begin
+      return (Instance with Persistant => False, Call => C);
+   end Park;
+
+   function Pickup (C : in PBX.Call.Instance;
+                    A : in Model.Agent_ID.Agent_ID_Type) return Pickup_Event
+   is
+   begin
+      return (Instance with Persistant => False, Call => C, Agent_ID => A);
+   end Pickup;
 
    --------------------------
    --  To_JSON for Hangup  --
@@ -88,6 +95,7 @@ package body Client_Notification.Call is
       Notification_JSON : constant JSON_Value := O.JSON_Root;
    begin
       JSON_Append (Notification_JSON, "call", O.Call.To_JSON);
+      JSON_Append (Notification_JSON, "agent_ID", O.Agent_ID.To_JSON);
 
       return Notification_JSON;
 

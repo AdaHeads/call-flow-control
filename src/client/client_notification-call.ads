@@ -15,7 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Model.Agent_ID;
 with Model.Call;
+with PBX.Call;
 
 package Client_Notification.Call is
    use Model;
@@ -23,19 +25,23 @@ package Client_Notification.Call is
    type Pickup_Event is new Client_Notification.Instance
      (Persistant => False) with
       record
-         Call : Model.Call.Call_Type;
+         Call     : PBX.Call.Instance;
+         Agent_ID : Model.Agent_ID.Agent_ID_Type;
       end record;
    function To_JSON (O : in Pickup_Event) return JSON_Value;
    function Header_Name (O : in Pickup_Event) return String;
-   function Pickup (C : in Model.Call.Call_Type) return Pickup_Event;
+   function Pickup (C : in PBX.Call.Instance;
+                    A : in Model.Agent_ID.Agent_ID_Type) return Pickup_Event;
 
    type Hangup_Event is new Client_Notification.Instance
      (Persistant => False) with
       record
-         Call : Model.Call.Call_Type;
+         Call : PBX.Call.Instance;
       end record;
    function To_JSON (O : in Hangup_Event) return JSON_Value;
    function Header_Name (O : in Hangup_Event) return String;
+
+   function Hangup (C : in PBX.Call.Instance) return Hangup_Event;
 
    type Park_Event is new Client_Notification.Instance
      (Persistant => False) with

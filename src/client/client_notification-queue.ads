@@ -15,16 +15,15 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Model.Call;
 with PBX.Call;
 
 package Client_Notification.Queue is
-   use Model;
+   use PBX;
 
    type Join_Event is new Client_Notification.Instance
      (Persistant => False) with
       record
-         Call : PBX.Call.Instance;
+         Joined_Call : Call.Instance;
       end record;
    function To_JSON (O : in Join_Event) return JSON_Value;
    function Header_Name (O : in Join_Event) return String;
@@ -32,14 +31,14 @@ package Client_Notification.Queue is
    type Leave_Event is new Client_Notification.Instance
      (Persistant => False) with
       record
-         Call : Model.Call.Call_Type;
+         Left_Call : Call.Instance;
       end record;
    function To_JSON (O : in Leave_Event) return JSON_Value;
    function Header_Name (O : in Leave_Event) return String;
 
-   function Join (C : in PBX.Call.Instance) return Join_Event;
+   function Join (C : in Call.Instance) return Join_Event;
 
-   function Leave (C : in Call.Call_Type) return Leave_Event;
+   function Leave (C : in Call.Instance) return Leave_Event;
 
 private
 

@@ -19,8 +19,16 @@ with Ada.Strings;
 with Ada.Strings.Fixed;
 with View.Call;
 
-
 package body PBX.Call is
+
+   --------------------
+   --  Arrival_Time  --
+   --------------------
+
+   function Arrival_Time (Obj : in Instance) return Common.Time is
+   begin
+      return Obj.Arrived;
+   end Arrival_Time;
 
    --------------
    --  Assign  --
@@ -30,6 +38,34 @@ package body PBX.Call is
    begin
       null;
    end Assign;
+
+   -------------------
+   --  Assigned_To  --
+   -------------------
+
+   function Assigned_To (Obj : in Instance)
+                         return Model.Agent_ID.Agent_ID_Type is
+   begin
+      return Obj.Assigned_To;
+   end Assigned_To;
+
+   -------------
+   --  B_Leg  --
+   -------------
+
+   function B_Leg (Obj : in Instance) return Channel_Identification is
+   begin
+      return Obj.B_Leg;
+   end B_Leg;
+
+   ---------------
+   --  Channel  --
+   ---------------
+
+   function Channel (Obj : in Instance) return Channel_Identification is
+   begin
+      return Obj.Channel;
+   end Channel;
 
    ------------------------
    -- Create_And_Insert  --
@@ -56,7 +92,7 @@ package body PBX.Call is
                   (Ada.Strings.Unbounded.To_Unbounded_String (B_Leg)),
                 Assigned_To    => Null_Agent_ID);
    begin
-      Calls.Insert (Item => Call);
+      Call_List.Insert (Item => Call);
       return Call;
    end Create_And_Insert;
 
@@ -84,8 +120,17 @@ package body PBX.Call is
                   (Ada.Strings.Unbounded.To_Unbounded_String (B_Leg)),
                 Assigned_To    => Null_Agent_ID);
    begin
-      Calls.Insert (Item => Call);
+      Call_List.Insert (Item => Call);
    end Create_And_Insert;
+
+   ---------------
+   --  Dequeue  --
+   ---------------
+
+   procedure Dequeue (Obj : in Instance) is
+   begin
+      Call_List.Dequeue (Obj.ID);
+   end Dequeue;
 
    ------------
    --  Dial  --
@@ -95,17 +140,17 @@ package body PBX.Call is
      (Obj : in Instance; Destination : in Channel_Identification) is
 
       procedure Update (Key     : in     Identification;
-                             Element : in out Instance);
+                        Element : in out Instance);
 
       procedure Update (Key     : in     Identification;
-                             Element : in out Instance) is
+                        Element : in out Instance) is
          pragma Unreferenced (Key);
       begin
          Element.State := Dialing;
          Element.B_Leg := Destination;
       end Update;
    begin
-      Calls.Update (Obj.ID, Update'Access);
+      Call_List.Update (Obj.ID, Update'Access);
    end Dial;
 
    ---------------
@@ -114,17 +159,26 @@ package body PBX.Call is
 
    procedure End_Dial (Obj : in Instance) is
       procedure Update (Key     : in     Identification;
-                             Element : in out Instance);
+                        Element : in out Instance);
 
       procedure Update (Key     : in     Identification;
-                             Element : in out Instance) is
+                        Element : in out Instance) is
          pragma Unreferenced (Key);
       begin
          Element.State := Ended;
       end Update;
    begin
-      Calls.Update (Obj.ID, Update'Access);
+      Call_List.Update (Obj.ID, Update'Access);
    end End_Dial;
+
+   ---------------
+   --  Enqueue  --
+   ---------------
+
+   procedure Enqueue (Obj : in Instance) is
+   begin
+      Call_List.Enqueue (Obj.ID);
+   end Enqueue;
 
    -----------
    --  Get  --
@@ -132,7 +186,7 @@ package body PBX.Call is
 
    function Get (Call : Identification) return Instance is
    begin
-      return Calls.Get (Call);
+      return Call_List.Get (Call);
    end Get;
 
    -----------
@@ -141,8 +195,43 @@ package body PBX.Call is
 
    function Get (Channel : Channel_Identification) return Instance is
    begin
-      return Calls.Get (Channel);
+      return Call_List.Get (Channel);
    end Get;
+
+   -----------
+   --  Has  --
+   -----------
+
+   function Has (Channel_ID : Channel_Identification) return Boolean is
+   begin
+      return Call_List.Contains (Channel_ID);
+   end Has;
+
+   -------------------------
+   --  Highest_Prioirity  --
+   -------------------------
+   function Highest_Prioirity return Instance is
+   begin
+      return Call_List.First;
+   end Highest_Prioirity;
+
+   ----------
+   --  ID  --
+   ----------
+
+   function ID (Obj : in Instance) return Identification is
+   begin
+      return Obj.ID;
+   end ID;
+
+   ---------------
+   --  Inbound  --
+   ---------------
+
+   function Inbound (Obj : in Instance) return Boolean is
+   begin
+      return Obj.Inbound;
+   end Inbound;
 
    ------------
    --  Next  --
@@ -160,6 +249,73 @@ package body PBX.Call is
       return Next_Identification;
    end Next;
 
+   --------------------
+   --  Organization  --
+   --------------------
+
+   function Organization (Obj : in Instance)
+                          return Model.Organization_Identifier is
+   begin
+      return Obj.Organization;
+   end Organization;
+
+   -------------------
+   --  Queue_Count  --
+   -------------------
+
+   function Queue_Count return Natural is
+   begin
+      return Call_List.Queued;
+   end Queue_Count;
+
+   -------------------
+   --  Queue_Empty  --
+   -------------------
+
+   function Queue_Empty return Boolean is
+   begin
+      if Call_List.Empty then
+         return True;
+      else
+         return Call_List.Queued > 0;
+      end if;
+   end Queue_Empty;
+
+   --------------
+   --  Remove  --
+   --------------
+
+   function Remove (ID : in Identification) return Instance is
+      Removed_Call : Instance;
+   begin
+      --  Make a copy of the call to be able to return it.
+      Removed_Call := Call_List.Get (ID);
+
+      Call_List.Remove (ID);
+      return Removed_Call;
+   end Remove;
+
+   --------------
+   --  Remove  --
+   --------------
+
+   function Remove (Channel_ID : in Channel_Identification) return Instance is
+   begin
+      return Remove (Call_List.Get (Channel_ID).ID);
+   end Remove;
+
+   -------------
+   --  State  --
+   -------------
+
+   function State (Obj : in Instance) return States is
+   begin
+      return Obj.State;
+   end State;
+
+   ---------------
+   --  To_JSON  --
+   ---------------
 
    function To_JSON (Obj : in Instance) return GNATCOLL.JSON.JSON_Value is
    begin
@@ -177,61 +333,87 @@ package body PBX.Call is
                                      Side   => Left);
    end To_String;
 
+   -----------------
+   --  To_String  --
+   -----------------
+
    function To_String (Channel : in Channel_Identification) return String is
    begin
       return Ada.Strings.Unbounded.To_String
         (Ada.Strings.Unbounded.Unbounded_String (Channel));
    end To_String;
 
-   function Value (Item : String) return Channel_Identification is
+   -------------
+   --  Value  --
+   -------------
+
+   function Value (Item : in String) return Channel_Identification is
    begin
       return Channel_Identification
         (Ada.Strings.Unbounded.To_Unbounded_String (Item));
    end Value;
 
-   function ID (Obj : in Instance) return Identification is
-   begin
-      return Obj.ID;
-   end ID;
+   -------------
+   --  Value  --
+   -------------
 
-   function State (Obj : in Instance) return States is
+   function Value (Item : in String) return Identification is
    begin
-      return Obj.State;
-   end State;
+      return Identification (Natural'Value (Item));
+   end Value;
+   -----------------
+   --  Call_List  --
+   -----------------
 
-   function Inbound (Obj : in Instance) return Boolean is
-   begin
-      return Obj.Inbound;
-   end Inbound;
+   protected body Call_List is
 
-   function Channel (Obj : in Instance) return Channel_Identification is
-   begin
-      return Obj.Channel;
-   end Channel;
+      function Contains (Channel_ID : in Channel_Identification)
+                         return Boolean is
+      begin
+         return List.Contains (Channel_Lookup_Table.Element
+                               (AMI.Channel.Channel_Key (Channel_ID)));
+      end Contains;
 
-   function B_Leg (Obj : in Instance) return Channel_Identification is
-   begin
-      return Obj.B_Leg;
-   end B_Leg;
+      procedure Dequeue (ID : in Identification) is
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance);
 
-   function Organization (Obj : in Instance)
-                          return Model.Organization_Identifier is
-   begin
-      return Obj.Organization;
-   end Organization;
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance) is
+            pragma Unreferenced (Key);
+         begin
+            Element.State := Transferring;
+         end Update;
+      begin
+         Call_List.Update (ID, Update'Access);
+         Number_Queued := Number_Queued - 1;
+      end Dequeue;
 
-   function Assigned_To (Obj : in Instance)
-                         return Model.Agent_ID.Agent_ID_Type is
-   begin
-      return Obj.Assigned_To;
-   end Assigned_To;
+      function Empty return Boolean is
+      begin
+         return List.Is_Empty;
+      end Empty;
 
-   function Arrival_Time (Obj : in Instance) return Common.Time is
-   begin
-      return Obj.Arrived;
-   end Arrival_Time;
+      procedure Enqueue (ID : in Identification) is
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance);
 
-   protected body Calls is
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance) is
+            pragma Unreferenced (Key);
+         begin
+            Element.State := Queued;
+         end Update;
+      begin
+         Call_List.Update (ID, Update'Access);
+         Number_Queued := Number_Queued + 1;
+      end Enqueue;
+
+      function First return Instance is
+      begin
+         return List.First_Element;
+      end First;
+
       function Get (Channel : in Channel_Identification) return Instance is
       begin
          return List.Element
@@ -242,12 +424,12 @@ package body PBX.Call is
             raise Not_Found with " channel " & To_String (Channel);
       end Get;
 
-      function Get (Call : Identification) return Instance is
+      function Get (ID : in Identification) return Instance is
       begin
-         return List.Element (Call);
+         return List.Element (ID);
       exception
          when Constraint_Error =>
-            raise Not_Found with " call " & To_String (Call);
+            raise Not_Found with " call " & To_String (ID);
       end Get;
 
       procedure Insert (Item : Instance) is
@@ -263,39 +445,72 @@ package body PBX.Call is
             if List.Contains (Item.ID) then
                List.Delete (Item.ID);
             end if;
-            raise;
+            raise Constraint_Error with
+              " channel " & To_String (Item.Channel)
+              & " ID" & To_String (Item.ID);
       end Insert;
 
-      procedure Remove (Channel : in Channel_Identification) is
+      procedure Link (ID1 : Identification;
+                      ID2 : Identification) is
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance);
+
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance) is
+            pragma Unreferenced (Key);
+         begin
+            if Element.Channel /= Null_Channel_Identification then
+               raise Already_Bridged with To_String (Element.Channel);
+            end if;
+
+            if Element.ID = ID1 then
+               Element.B_Leg := List.Element (ID2).Channel;
+            elsif Element.ID = ID2 then
+               Element.B_Leg := List.Element (ID1).Channel;
+            end if;
+         end Update;
+      begin
+         if ID1 = Null_Identification or ID2 = Null_Identification then
+            raise Constraint_Error with "Null value detected";
+         end if;
+         Call_List.Update (ID1, Update'Access);
+         Call_List.Update (ID2, Update'Access);
+      end Link;
+
+      function Queued return Natural is
+      begin
+         return Number_Queued;
+      end Queued;
+
+      procedure Remove (Channel_ID : in Channel_Identification) is
          Call : Identification := Null_Identification;
       begin
          Call := Channel_Lookup_Table.Element
-           (AMI.Channel.Channel_Key (Channel));
+           (AMI.Channel.Channel_Key (Channel_ID));
          List.Delete (Call);
       exception
          when Constraint_Error =>
-            raise Not_Found with " channel " & To_String (Channel);
+            raise Not_Found with " channel " & To_String (Channel_ID);
       end Remove;
 
-      procedure Remove (Call : Identification) is
+      procedure Remove (ID : in Identification) is
       begin
          Channel_Lookup_Table.Delete
-           (AMI.Channel.Channel_Key (List.Element (Call).Channel));
-         List.Delete (Call);
+           (AMI.Channel.Channel_Key (List.Element (ID).Channel));
+         List.Delete (ID);
       exception
          when Constraint_Error =>
-            raise Not_Found with " call " & To_String (Call);
+            raise Not_Found with " call " & To_String (ID);
       end Remove;
 
-      procedure Update (Call    : in Identification;
+      procedure Update (ID    : in Identification;
                         Process : not null access procedure
                           (Key     : in     Identification;
                            Element : in out Instance)) is
       begin
-         List.Update_Element (Position => List.Find (Call),
+         List.Update_Element (Position => List.Find (ID),
                               Process  => Process);
       end Update;
-
-   end Calls;
+   end Call_List;
 
 end PBX.Call;

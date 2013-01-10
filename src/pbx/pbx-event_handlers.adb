@@ -30,7 +30,6 @@ with AMI.Channel_ID;
 with AMI.Peer;
 with AMI.Peer_ID;
 with Handlers.Notifications;
-with Client_Notification.Queue;
 with Client_Notification.Call;
 
 package body PBX.Event_Handlers is
@@ -64,11 +63,11 @@ package body PBX.Event_Handlers is
 
       --  TODO: Find the Sip peer and attach the current channel
 
-      System_Messages.Notify
-        (Debug, Package_Name & "." & Context & ": " &
-           Client_Notification.Call.Pickup (Some_Call).To_JSON.Write);
-      Notification.Broadcast
-           (Client_Notification.Call.Pickup (Some_Call).To_JSON);
+--        System_Messages.Notify
+--          (Debug, Package_Name & "." & Context & ": " &
+--             Client_Notification.Call.Pickup (Some_Call).To_JSON.Write);
+--        Notification.Broadcast
+--             (Client_Notification.Call.Pickup (Some_Call).To_JSON);
    end Bridge;
 
    -------------------------
@@ -221,8 +220,8 @@ package body PBX.Event_Handlers is
       Call := Model.Calls.List.Get
         (Call_ID => Create (Packet.Get_Value (Parser.UniqueID)));
 
-      Notification.Broadcast
-        (Client_Notification.Queue.Leave (C => Call).To_JSON);
+--        Notification.Broadcast
+--          (Client_Notification.Queue.Leave (C => Call).To_JSON);
    end Leave;
 
    ------------------
@@ -377,19 +376,14 @@ package body PBX.Event_Handlers is
 --                         ID2 => ID2);
 --     end Unlink;
 
-   --  Event: QueueCallerAbandon
-   --  Privilege: agent,all
-   --  Queue: org_id2
-   --  Uniqueid: 1351853779.111
-   --  Position: 1
-   --  OriginalPosition: 1
-   --  HoldTime: 14
    procedure Queue_Abandon (Packet : in Parser.Packet_Type) is
+      Context           : constant String := Package_Name & ".Queue_Abandon";
       Call              : Call_Type := Null_Call;
       Queue             : Unbounded_String := Null_Unbounded_String;
       Position          : Integer := -1;
       Original_Position : Integer := -1;
       Hold_Time         : Integer := -1;
+      Unique_ID         : String renames Packet.Get_Value (Parser.UniqueID);
    begin
       Call.ID := Create
         (To_String (Packet.Get_Value (Parser.UniqueID)));
@@ -405,16 +399,16 @@ package body PBX.Event_Handlers is
       Hold_Time := Integer'Value
         (To_String (Packet.Get_Value (Parser.HoldTime)));
 
-      System_Messages.Notify (Debug, "My.Callbacks.Queue_Abandon: Call_ID " &
-                                To_String (Call.ID) & " left queue " &
+      System_Messages.Notify (Debug, Context & ": Channel with ID" &
+                                Unique_ID & " left queue " &
                                 To_String (Queue) & " after" & Hold_Time'Img &
                                 " seconds. Position:" & Position'Img & "," &
                                 " original position" & Original_Position'Img);
    end Queue_Abandon;
 
 begin
-   AMI.Observers.Register (Event   => AMI.Event.Bridge,
-                           Handler => Bridge'Access);
+--     AMI.Observers.Register (Event   => AMI.Event.Bridge,
+--                             Handler => Bridge'Access);
    AMI.Observers.Register (Event   => AMI.Event.CoreShowChannel,
                            Handler => Core_Show_Channel'Access);
    AMI.Observers.Register (Event   => AMI.Event.CoreShowChannelsComplete,
@@ -425,12 +419,12 @@ begin
                            Handler => Peer_Entry'Access);
    AMI.Observers.Register (Event   => AMI.Event.PeerlistComplete,
                            Handler => Peer_List_Complete'Access);
-   AMI.Observers.Register (Event   => AMI.Event.Hangup,
-                           Handler => Hangup'Access);
+--     AMI.Observers.Register (Event   => AMI.Event.Hangup,
+--                             Handler => Hangup'Access);
 --     AMI.Observers.Register (Event   => AMI.Event.Join,
 --                             Handler => Join'Access);
-   AMI.Observers.Register (Event   => AMI.Event.Leave,
-                           Handler => Leave'Access);
+--     AMI.Observers.Register (Event   => AMI.Event.Leave,
+--                             Handler => Leave'Access);
 --     AMI.Observers.Register (Event   => AMI.Event.Dial,
 --                             Handler => Dial'Access);
    AMI.Observers.Register (Event   => AMI.Event.QueueCallerAbandon,

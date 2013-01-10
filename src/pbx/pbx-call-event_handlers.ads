@@ -15,11 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package PBX.Call.Event_Handers is
+package PBX.Call.Event_Handlers is
 
    Package_Name : constant String := "PBX.Call.Event_Handers";
 
    procedure Register_Handlers;
    --  Registers the appropriate event handlers.
 
-end PBX.Call.Event_Handers;
+end PBX.Call.Event_Handlers;

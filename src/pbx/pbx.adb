@@ -27,8 +27,8 @@ with PBX.Action;
 
 with PBX.Event_Handlers;
 pragma Unreferenced (PBX.Event_Handlers);
-with PBX.Call.Event_Handers;
-
+with PBX.Call.Event_Handlers;
+pragma Unreferenced (PBX.Call.Event_Handlers);
 
 with My_Configuration;
 with System_Messages;

@@ -29,6 +29,11 @@ package body Model.Agent_ID is
       return Agent_ID.ID;
    end ID;
 
+   function To_JSON (Obj : in Agent_ID_Type) return GNATCOLL.JSON.JSON_Value is
+   begin
+      return GNATCOLL.JSON.Create (Obj.ID);
+   end To_JSON;
+
    function To_String (Agent_ID : in Agent_ID_Type) return String is
    begin
       if Agent_ID = Null_Agent_ID then
