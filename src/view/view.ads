@@ -31,7 +31,6 @@ package View is
    Contacts          : constant String := "contacts";
    Full_Name         : constant String := "full_name";
    ID                : constant String := "id";
-   Identifier        : constant String := "identifier";
    Inbound           : constant String := "inbound";
    Is_Human          : constant String := "is_human";
    Organization_Id   : constant String := "organization_id";
@@ -40,5 +39,6 @@ package View is
    Queue             : constant String := "queue";
    State_S           : constant String := "state";
    Status            : constant String := "status";
+   URI               : constant String := "uri";
 
 end View;

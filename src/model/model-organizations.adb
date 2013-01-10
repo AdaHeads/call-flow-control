@@ -157,11 +157,11 @@ package body Model.Organizations is
    begin
       while Cursor.Has_Row loop
          Organization := Create
-           (ID         => Organization_Identifier (Cursor.Integer_Value (3)),
-            Full_Name  => Cursor.Value (0),
-            Identifier => Cursor.Value (1),
-            JSON       => String_To_JSON_Object (Cursor.Json_Text_Value (2)),
-            Mode       => Request_Parameters.Midi);
+           (ID        => Organization_Identifier (Cursor.Integer_Value (3)),
+            Full_Name => Cursor.Value (0),
+            JSON      => String_To_JSON_Object (Cursor.Json_Text_Value (2)),
+            Mode      => Request_Parameters.Midi,
+            URI       => Cursor.Value (1));
 
          A_List.Organizations.Include
            (Key      => Organization.ID,
@@ -188,11 +188,11 @@ package body Model.Organizations is
    begin
       while Cursor.Has_Row loop
          Organization := Create
-           (ID         => Organization_Identifier (Cursor.Integer_Value (2)),
-            Full_Name  => Cursor.Value (0),
-            Identifier => Cursor.Value (1),
-            JSON       => GNATCOLL.JSON.JSON_Null,
-            Mode       => Request_Parameters.Mini);
+           (ID        => Organization_Identifier (Cursor.Integer_Value (2)),
+            Full_Name => Cursor.Value (0),
+            JSON      => GNATCOLL.JSON.JSON_Null,
+            Mode      => Request_Parameters.Mini,
+            URI       => Cursor.Value (1));
 
          A_List.Organizations.Include
            (Key      => Organization.ID,

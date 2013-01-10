@@ -85,19 +85,19 @@ package body Model.Organization is
    function Create
      (ID         : in Organization_Identifier;
       Full_Name  : in String;
-      Identifier : in String;
       JSON       : in GNATCOLL.JSON.JSON_Value;
-      Mode       : in Data_Mode := Request_Parameters.Mini)
+      Mode       : in Data_Mode := Request_Parameters.Mini;
+      URI        : in Organization_URI)
       return Object
    is
       use Common;
    begin
       return (Contact_List => Model.Contacts.Null_List,
-              Full_Name    => U (Full_Name),
-              Identifier   => U (Identifier),
-              JSON         => JSON,
-              Mode         => Mode,
-              ID           => ID);
+              Full_Name => U (Full_Name),
+              JSON      => JSON,
+              Mode      => Mode,
+              ID        => ID,
+              URI       => U (URI));
    end Create;
 
    -----------------
@@ -111,6 +111,57 @@ package body Model.Organization is
    begin
       return To_String (Instance.Full_Name);
    end Full_Name;
+
+   -----------
+   --  Get  --
+   -----------
+
+   function Get
+     (URI  : in Organization_URI;
+      Mode : in Data_Mode := Request_Parameters.Mini)
+      return Object
+   is
+      use GNATCOLL.SQL.Exec;
+
+      procedure Get_Element
+        (Instance : in Object);
+
+      Organization : Object;
+
+      -------------------
+      --  Get_Element  --
+      -------------------
+
+      procedure Get_Element
+        (Instance : in Object)
+      is
+      begin
+         Organization := Instance;
+      end Get_Element;
+
+      Temp       : aliased String := URI;
+      Parameters : constant SQL_Parameters := (1 => +Temp'Access);
+   begin
+      case Mode is
+         when Request_Parameters.Mini =>
+            Process_Select_Query_Mini
+              (Process_Element    => Get_Element'Access,
+               Prepared_Statement => SQL.Organization_URI_Mini_Prepared,
+               Query_Parameters   => Parameters);
+         when Request_Parameters.Midi =>
+            Process_Select_Query_Midi
+              (Process_Element    => Get_Element'Access,
+               Prepared_Statement => SQL.Organization_URI_Midi_Prepared,
+               Query_Parameters   => Parameters);
+         when Request_Parameters.Maxi =>
+            Process_Select_Query_Maxi
+              (Process_Element    => Get_Element'Access,
+               Prepared_Statement => SQL.Organization_URI_Maxi_Prepared,
+               Query_Parameters   => Parameters);
+      end case;
+
+      return Organization;
+   end Get;
 
    -----------
    --  Get  --
@@ -174,18 +225,6 @@ package body Model.Organization is
       return Instance.ID;
    end ID;
 
-   ------------------
-   --  Identifier  --
-   ------------------
-
-   function Identifier
-     (Instance : in Object)
-      return String
-   is
-   begin
-      return To_String (Instance.Identifier);
-   end Identifier;
-
    ------------
    --  JSON  --
    ------------
@@ -227,9 +266,9 @@ package body Model.Organization is
         (Contact_List => Contacts.Null_List,
          Full_Name    => U (Cursor.Value (0)),
          ID           => Organization_Identifier (Cursor.Integer_Value (3)),
-         Identifier   => U (Cursor.Value (1)),
          JSON         => String_To_JSON_Object (Cursor.Json_Text_Value (2)),
-         Mode         => Request_Parameters.Maxi);
+         Mode         => Request_Parameters.Maxi,
+         URI          => U (Cursor.Value (1)));
 
       while Cursor.Has_Row loop
          if not Cursor.Is_Null (4) then
@@ -267,11 +306,11 @@ package body Model.Organization is
       use Common;
    begin
       return (Contact_List => Contacts.Null_List,
-              Full_Name    => U (C.Value (0)),
-              ID           => Organization_Identifier (C.Integer_Value (3)),
-              Identifier   => U (C.Value (1)),
-              JSON         => String_To_JSON_Object (C.Json_Text_Value (2)),
-              Mode         => Request_Parameters.Midi);
+              Full_Name => U (C.Value (0)),
+              ID        => Organization_Identifier (C.Integer_Value (3)),
+              JSON      => String_To_JSON_Object (C.Json_Text_Value (2)),
+              Mode      => Request_Parameters.Midi,
+              URI       => U (C.Value (1)));
    end Organization_Midi_Element;
 
    ---------------------------------
@@ -285,11 +324,11 @@ package body Model.Organization is
       use Common;
    begin
       return (Contact_List => Contacts.Null_List,
-              Full_Name    => U (C.Value (0)),
-              ID           => Organization_Identifier (C.Integer_Value (2)),
-              Identifier   => U (C.Value (1)),
-              JSON         => GNATCOLL.JSON.JSON_Null,
-              Mode         => Request_Parameters.Mini);
+              Full_Name => U (C.Value (0)),
+              ID        => Organization_Identifier (C.Integer_Value (2)),
+              JSON      => GNATCOLL.JSON.JSON_Null,
+              Mode      => Request_Parameters.Mini,
+              URI       => U (C.Value (1)));
    end Organization_Mini_Element;
 
    ----------------------
@@ -303,5 +342,17 @@ package body Model.Organization is
    begin
       return View.Organization.To_JSON_String (Instance);
    end To_JSON_String;
+
+   -----------
+   --  URI  --
+   -----------
+
+   function URI
+     (Instance : in Object)
+      return Organization_URI
+   is
+   begin
+      return To_String (Instance.URI);
+   end URI;
 
 end Model.Organization;

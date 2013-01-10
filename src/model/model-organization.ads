@@ -47,9 +47,9 @@ package Model.Organization is
    function Create
      (ID         : in Organization_Identifier;
       Full_Name  : in String;
-      Identifier : in String;
       JSON       : in GNATCOLL.JSON.JSON_Value;
-      Mode       : in Data_Mode := Request_Parameters.Mini)
+      Mode       : in Data_Mode := Request_Parameters.Mini;
+      URI        : in Organization_URI)
       return Object;
    --  Create an organization object.
 
@@ -57,6 +57,13 @@ package Model.Organization is
      (Instance : in Object)
       return String;
    --  Return the full name of Instance.
+
+   function Get
+     (URI  : in Organization_URI;
+      Mode : in Data_Mode := Request_Parameters.Mini)
+      return Object;
+   --  Get the organization that match URI. The amount of data fetched depends
+   --  on the Mode parameter. See comment for the Data_Mode type.
 
    function Get
      (ID   : in Organization_Identifier;
@@ -69,11 +76,6 @@ package Model.Organization is
      (Instance : in Object)
       return Organization_Identifier;
    --  Return the ID for Instance.
-
-   function Identifier
-     (Instance : in Object)
-      return String;
-   --  Return the unique string identifier for Instance.
 
    function JSON
      (Instance : in Object)
@@ -91,6 +93,11 @@ package Model.Organization is
    --  Convert Instance to a JSON string. This call is convenient wrapper
    --  for the View.Organization.To_JSON_String function.
 
+   function URI
+     (Instance : in Object)
+      return Organization_URI;
+   --  Return the URI for Instance.
+
 private
 
    use Ada.Strings.Unbounded;
@@ -100,17 +107,17 @@ private
          Contact_List : Contacts.List := Contacts.Null_List;
          Full_Name    : Unbounded_String := Null_Unbounded_String;
          ID           : Organization_Identifier := 0;
-         Identifier   : Unbounded_String := Null_Unbounded_String;
          JSON         : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.JSON_Null;
          Mode         : Data_Mode := Request_Parameters.Mini;
+         URI          : Unbounded_String := Null_Unbounded_String;
       end record;
 
    Null_Organization : constant Object
      := (Contact_List => Contacts.Null_List,
          Full_Name    => Null_Unbounded_String,
          ID           => 0,
-         Identifier   => Null_Unbounded_String,
          JSON         => GNATCOLL.JSON.JSON_Null,
-         Mode         => Request_Parameters.Mini);
+         Mode         => Request_Parameters.Mini,
+         URI          => Null_Unbounded_String);
 
 end Model.Organization;

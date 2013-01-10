@@ -152,7 +152,7 @@ package body View.Organization is
 
          J.Set_Field (Full_Name, Instance.Full_Name);
 
-         J.Set_Field (Identifier, Instance.Identifier);
+         J.Set_Field (URI, Instance.URI);
 
          C_Array := Instance.Contact_List.To_JSON_Array;
 
@@ -187,7 +187,7 @@ package body View.Organization is
 
          J.Set_Field (Full_Name, Instance.Full_Name);
 
-         J.Set_Field (Identifier, Instance.Identifier);
+         J.Set_Field (URI, Instance.URI);
       end if;
 
       return J;
@@ -212,7 +212,7 @@ package body View.Organization is
 
          J.Set_Field (Full_Name, Instance.Full_Name);
 
-         J.Set_Field (Identifier, Instance.Identifier);
+         J.Set_Field (URI, Instance.URI);
       end if;
 
       return J;
