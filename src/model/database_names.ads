@@ -24,8 +24,6 @@ package Database_Names is
    N_Full_Name : constant Cst_String_Access := NC_full_name'Access;
    NC_Id : aliased constant String := "id";
    N_Id : constant Cst_String_Access := NC_id'Access;
-   NC_Identifier : aliased constant String := "identifier";
-   N_Identifier : constant Cst_String_Access := NC_identifier'Access;
    NC_Is_Human : aliased constant String := "is_human";
    N_Is_Human : constant Cst_String_Access := NC_is_human'Access;
    NC_Json : aliased constant String := "json";
@@ -38,4 +36,6 @@ package Database_Names is
    N_Organization_Id : constant Cst_String_Access := NC_organization_id'Access;
    NC_Recipient_Id : aliased constant String := "recipient_id";
    N_Recipient_Id : constant Cst_String_Access := NC_recipient_id'Access;
+   NC_Uri : aliased constant String := "uri";
+   N_Uri : constant Cst_String_Access := NC_uri'Access;
 end Database_Names;

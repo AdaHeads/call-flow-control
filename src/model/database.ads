@@ -52,8 +52,8 @@ package Database is
    record
       Full_Name : SQL_Field_Text (Ta_Organization, Instance, N_Full_Name, Index);
       Id : SQL_Field_Integer (Ta_Organization, Instance, N_Id, Index);
-      Identifier : SQL_Field_Text (Ta_Organization, Instance, N_Identifier, Index);
       Json : SQL_Field_Json (Ta_Organization, Instance, N_Json, Index);
+      Uri : SQL_Field_Text (Ta_Organization, Instance, N_Uri, Index);
    end record;
 
    type T_Organization (Instance : Cst_String_Access)

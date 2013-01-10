@@ -19,11 +19,15 @@
 #                                                                             #
 ###############################################################################
 
+ifeq ($(PROCESSORS),)
+PROCESSORS=1
+endif
+
 all:
-	gnatmake -P alice
+	gnatmake -j${PROCESSORS} -P alice
 
 debug:
-	BUILDTYPE=Debug gnatmake -P alice
+	BUILDTYPE=Debug gnatmake -j${PROCESSORS} -P alice
 
 clean: cleanup_messy_temp_files
 	gnatclean -P alice
