@@ -28,26 +28,34 @@ package SQL_Statements.Organization is
 
    Organizations_Mini_Query : constant SQL_Query
      := SQL_Select (Fields =>
-                      DB.Organization.Full_Name &   --  0
-                      DB.Organization.Identifier &  --  1
-                      DB.Organization.Id,           --  2
+                      DB.Organization.Full_Name &  --  0
+                      DB.Organization.Uri &        --  1
+                      DB.Organization.Id,          --  2
                     From   => DB.Organization);
 
    Organizations_Midi_Query : constant SQL_Query
      := SQL_Select (Fields =>
-                      DB.Organization.Full_Name &   --  0
-                      DB.Organization.Identifier &  --  1
-                      DB.Organization.Json &        --  2
-                      DB.Organization.Id,           --  3
+                      DB.Organization.Full_Name &  --  0
+                      DB.Organization.Uri &        --  1
+                      DB.Organization.Json &       --  2
+                      DB.Organization.Id,          --  3
                     From => DB.Organization);
 
    Organization_Midi_Query : constant SQL_Query
      := Where_And (Organizations_Midi_Query,
                    DB.Organization.Id = Integer_Param (1));
 
+   Organization_URI_Midi_Query : constant SQL_Query
+     := Where_And (Organizations_Midi_Query,
+                   DB.Organization.Uri = Text_Param (1));
+
    Organization_Mini_Query : constant SQL_Query
      := Where_And (Organizations_Mini_Query,
                    DB.Organization.Id = Integer_Param (1));
+
+   Organization_URI_Mini_Query : constant SQL_Query
+     := Where_And (Organizations_Mini_Query,
+                   DB.Organization.Uri = Text_Param (1));
 
    Organization_Midi_Prepared : constant Prepared_Statement
      := Prepare (Query         => Organization_Midi_Query,
@@ -55,11 +63,23 @@ package SQL_Statements.Organization is
                  On_Server     => True,
                  Name          => "organization_midi");
 
+   Organization_URI_Midi_Prepared : constant Prepared_Statement
+     := Prepare (Query         => Organization_URI_Midi_Query,
+                 Auto_Complete => True,
+                 On_Server     => True,
+                 Name          => "organization_uri_midi");
+
    Organization_Mini_Prepared : constant Prepared_Statement
      := Prepare (Query         => Organization_Mini_Query,
                  Auto_Complete => True,
                  On_Server     => True,
                  Name          => "organization_mini");
+
+   Organization_URI_Mini_Prepared : constant Prepared_Statement
+     := Prepare (Query         => Organization_URI_Mini_Query,
+                 Auto_Complete => True,
+                 On_Server     => True,
+                 Name          => "organization_uri_mini");
 
    Organizations_Midi_Prepared : constant Prepared_Statement
      := Prepare (Query         => Organizations_Midi_Query,
@@ -96,14 +116,14 @@ package SQL_Statements.Organization is
 
    Org_Contacts_Query : constant SQL_Query
      := SQL_Select (Fields =>
-                      DB.Organization.Full_Name &   --  0
-                      DB.Organization.Identifier &  --  1
-                      DB.Organization.Json &        --  2
-                      DB.Organization.Id &          --  3
-                      DB.Contact.Id &               --  4
-                      DB.Contact.Full_Name &        --  5
-                      DB.Contact.Is_Human &         --  6
-                      DB.Contact_Attributes.Json,   --  7
+                      DB.Organization.Full_Name &  --  0
+                      DB.Organization.Uri &        --  1
+                      DB.Organization.Json &       --  2
+                      DB.Organization.Id &         --  3
+                      DB.Contact.Id &              --  4
+                      DB.Contact.Full_Name &       --  5
+                      DB.Contact.Is_Human &        --  6
+                      DB.Contact_Attributes.Json,  --  7
                     From   => Org_Contacts_Attributes_Left_Join,
                     Where  =>
                       DB.Organization.Id = Integer_Param (1)
@@ -113,10 +133,35 @@ package SQL_Statements.Organization is
                        or Is_Null
                          (DB.Contact_Attributes.Organization_Id)));
 
+   Org_URI_Contacts_Query : constant SQL_Query
+     := SQL_Select (Fields =>
+                      DB.Organization.Full_Name &  --  0
+                      DB.Organization.Uri &        --  1
+                      DB.Organization.Json &       --  2
+                      DB.Organization.Id &         --  3
+                      DB.Contact.Id &              --  4
+                      DB.Contact.Full_Name &       --  5
+                      DB.Contact.Is_Human &        --  6
+                      DB.Contact_Attributes.Json,  --  7
+                    From   => Org_Contacts_Attributes_Left_Join,
+                    Where  =>
+                      DB.Organization.Uri = Text_Param (1)
+                    and
+                      (DB.Contact_Attributes.Organization_Id =
+                                                       DB.Organization.Id
+                       or Is_Null
+                         (DB.Contact_Attributes.Organization_Id)));
+
    Organization_Maxi_Prepared : constant Prepared_Statement
      := Prepare (Query         => Org_Contacts_Query,
                  Auto_Complete => True,
                  On_Server     => True,
                  Name          => "organization_maxi");
+
+   Organization_URI_Maxi_Prepared : constant Prepared_Statement
+     := Prepare (Query         => Org_URI_Contacts_Query,
+                 Auto_Complete => True,
+                 On_Server     => True,
+                 Name          => "organization_uri_maxi");
 
 end SQL_Statements.Organization;
