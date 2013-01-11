@@ -51,6 +51,7 @@ project Alice is
          when "Production" =>
             for Default_Switches ("Ada") use ("-gnata",
                                               "-gnatE",
+                                              "-gnato",
                                               "-gnatwa",
                                               "-gnaty3abcdefhiklmnoprstux",
                                               "-Wall",
@@ -60,6 +61,7 @@ project Alice is
          when "Debug" =>
             for Default_Switches ("Ada") use ("-gnata",
                                               "-gnatE",
+                                              "-gnato",
                                               "-gnatwa",
                                               "-gnatVa",
                                               "-Wall",
