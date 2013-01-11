@@ -49,7 +49,8 @@ project Alice is
    package Compiler is
       case Build is
          when "Production" =>
-            for Default_Switches ("Ada") use ("-gnata",
+            for Default_Switches ("Ada") use ("-fstack-check",
+                                              "-gnata",
                                               "-gnatE",
                                               "-gnatf",
                                               "-gnato",
@@ -61,7 +62,8 @@ project Alice is
                                               "-O2",
                                               "-gnat2012");
          when "Debug" =>
-            for Default_Switches ("Ada") use ("-gnata",
+            for Default_Switches ("Ada") use ("-fstack-check",
+                                              "-gnata",
                                               "-gnatE",
                                               "-gnatf",
                                               "-gnato",
