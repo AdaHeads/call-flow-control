@@ -31,6 +31,8 @@ package body PBX.Call.Event_Handlers is
 
    package Notification renames Handlers.Notifications;
 
+   procedure Bridge (Packet : in Parser.Packet_Type);
+
    procedure Dial (Packet : in Parser.Packet_Type);
 
    procedure Join (Packet : in Parser.Packet_Type);
@@ -52,7 +54,7 @@ package body PBX.Call.Event_Handlers is
       AMI.Trace.Log
         (Debug, Context & ": channel1: " & Packet.Get_Value (Parser.Channel1));
       AMI.Trace.Log
-        (Debug, Context & ": channel2: " & Packet.Get_Value (Parser.Channel2));
+        (Debug, Context & ": channel2: " & Channel2);
       AMI.Trace.Log
         (Debug, Package_Name & "." & Context & ": " &
            Client_Notification.Call.Pickup
@@ -78,7 +80,7 @@ package body PBX.Call.Event_Handlers is
       --  It consists of "Begin" or "End"
       if Sub_Event = "Begin" then
 
-         if not PBX.Call.Has (Value (Channel)) then
+         if not PBX.Call.Has (Channel_ID => Value (Channel)) then
             Create_And_Insert
               (Inbound        => not AMI.Channel_ID.Value (Channel).Is_Local,
                Channel        => Channel,
@@ -93,7 +95,7 @@ package body PBX.Call.Event_Handlers is
 
          end if;
 
-         AMI.Trace.Log (Debug, Context & "Begin: "&  View.Call.To_JSON
+         AMI.Trace.Log (Debug, Context & "Begin: " &  View.Call.To_JSON
                         (Get (Channel => Value (Channel))).Write);
 
       --  When a Dial event ends, the call is over, and must thus be removed

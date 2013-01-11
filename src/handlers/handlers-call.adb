@@ -24,25 +24,21 @@ with Response;
 with Model.Agent;
 with Model.Agents;
 with Model.Agent_ID;
-with Model.Call;
-with Model.Calls;
 with AMI.Peer;
 with View.Call;
 
 with PBX;
 with PBX.Action;
 with PBX.Call;
-with Model.Call_ID;
 with System_Messages;
 with System_Message.Critical;
-with System_Message.Error;
 
 package body Handlers.Call is
    use AWS.Status;
-   use HTTP_Codes;
    use System_Messages;
    use View.Call;
    use Model;
+   package HTTP renames HTTP_Codes;
 
    --------------
    --  Hangup  --
@@ -64,7 +60,7 @@ package body Handlers.Call is
 
       PBX.Action.Wait_For (Ticket);
 
-      Response_Object.HTTP_Status_Code (OK);
+      Response_Object.HTTP_Status_Code (HTTP.OK);
       Response_Object.Content (Status_Message
                                ("Success", "Hangup completed"));
 
@@ -72,7 +68,7 @@ package body Handlers.Call is
 
    exception
       when PBX.Call.Not_Found =>
-         Response_Object.HTTP_Status_Code (Not_Found);
+         Response_Object.HTTP_Status_Code (HTTP.Not_Found);
          Response_Object.Content
            (Status_Message
               ("status", "not found"));
@@ -99,12 +95,11 @@ package body Handlers.Call is
       Response_Object : Response.Object := Response.Factory (Request);
    begin
       --  Only return a call list when there actual calls in it.
-      if not Calls.List.Is_Empty then
-         Response_Object.HTTP_Status_Code (OK);
-         Response_Object.Content
-           (To_JSON_String (Calls.List.To_JSON.Write));
+      if not PBX.Call.List_Empty then
+         Response_Object.HTTP_Status_Code (HTTP.OK);
+         Response_Object.Content (To_JSON_String (PBX.Call.List.Write));
       else
-         Response_Object.HTTP_Status_Code (No_Content);
+         Response_Object.HTTP_Status_Code (HTTP.No_Content);
       end if;
 
       return Response_Object.Build;
@@ -146,7 +141,7 @@ package body Handlers.Call is
             Context     => Originating_Agent.Context,
             Extension   => Extension_String));
 
-      Response_Object.HTTP_Status_Code (OK);
+      Response_Object.HTTP_Status_Code (HTTP.OK);
       Response_Object.Content (Status_Message
                         ("status", "ok"));
       return Response_Object.Build;
@@ -166,39 +161,30 @@ package body Handlers.Call is
 
    function Park (Request : in AWS.Status.Data)
                   return AWS.Response.Data is
+      package Call_List renames PBX.Call;
 
-      Response_Object   : Response.Object      := Response.Factory (Request);
-      Requested_Call    : Model.Call.Call_Type := Model.Call.Null_Call;
-      Fallback_Call     : Model.Call.Call_Type := Model.Call.Null_Call;
-      Call_ID_Parameter : constant String :=
-                            Parameters (Request).Get ("call_id");
+      Response_Object   : Response.Object := Response.Factory (Request);
+      Call_ID           : Call_List.Identification renames
+                            Call_List.Value
+                              (Parameters (Request).Get ("call_id"));
    begin
       --  Fetch the call from the call list.
-      if not Calls.List.Contains (Call_ID.Create (Call_ID_Parameter)) then
-         Response_Object.HTTP_Status_Code (Not_Found);
+      if not Call_List.Has (ID => Call_ID) then
+         Response_Object.HTTP_Status_Code (HTTP.Not_Found);
          Response_Object.Content (Status_Message ("status", "not found"));
       else
-         --  Fetch the call
-         Requested_Call := Calls.List.Get
-           (Call_ID.Create (Call_ID_Parameter));
 
-         Fallback_Call := Calls.List.Get
-           (Requested_Call.Bridged_With);
-
-         PBX.Action.Wait_For
-           (PBX.Action.Park
-              (Channel          => Requested_Call.Channel.Image,
-               Fallback_Channel => Fallback_Call.Channel.Image));
+         PBX.Action.Wait_For (PBX.Action.Park (Call_ID));
 
          --  And let the user know that everything went according to plan.
-         Response_Object.HTTP_Status_Code (OK);
+         Response_Object.HTTP_Status_Code (HTTP.OK);
          Response_Object.Content (Status_Message ("status", "ok"));
       end if;
 
       return Response_Object.Build;
    exception
-      when Call_ID.Invalid_ID =>
-         Response_Object.HTTP_Status_Code (Bad_Request);
+      when Call_List.Invalid_ID =>
+         Response_Object.HTTP_Status_Code (HTTP.Bad_Request);
          Response_Object.Content (Status_Message
                                   ("status", "bad parameter ""Call_ID"""));
          return Response_Object.Build;
@@ -223,8 +209,6 @@ package body Handlers.Call is
 
       use Model.Agent_ID;
       use Model.Agent;
-      use Model.Call;
-      use Model.Call_ID;
       use AMI.Peer;
 
       Call_ID_String    : String renames
@@ -242,7 +226,7 @@ package body Handlers.Call is
 
       --  If we do not have any calls at this point, return HTTP 204.
       if PBX.Call.Queue_Count = 0 then
-         Response_Object.HTTP_Status_Code (No_Content);
+         Response_Object.HTTP_Status_Code (HTTP.No_Content);
          return Response_Object.Build;
       end if;
 
@@ -255,7 +239,7 @@ package body Handlers.Call is
            (Critical, "Get_Call: " &
               "The following agent is unavailable: " &
               Agent_ID.To_String);
-         Response_Object.HTTP_Status_Code (Bad_Request);
+         Response_Object.HTTP_Status_Code (HTTP.Bad_Request);
          Response_Object.Content
            (Status_Message
               ("Bad request", "Agent peer unavailable"));
@@ -280,7 +264,7 @@ package body Handlers.Call is
                Extension   => Agent.Extension,
                Context     => "LocalSets"));
 
-         Response_Object.HTTP_Status_Code (OK);
+         Response_Object.HTTP_Status_Code (HTTP.OK);
          Response_Object.Content
            ((To_JSON_String (Assigned_Call.To_JSON.Write)));
       end if;
@@ -291,14 +275,14 @@ package body Handlers.Call is
       when E : Model.Agent_ID.Invalid_ID =>
          System_Messages.Notify
            (Error, Ada.Exceptions.Exception_Information (E));
-         Response_Object.HTTP_Status_Code (Server_Error);
+         Response_Object.HTTP_Status_Code (HTTP.Server_Error);
          Response_Object.Content
            (Status_Message
               ("Uh-oh", "You don't seem to have a valid agent ID"));
          return Response_Object.Build;
 
-      when Calls.Already_Assigned =>
-         Response_Object.HTTP_Status_Code (Bad_Request);
+      when PBX.Call.Already_Bridged =>
+         Response_Object.HTTP_Status_Code (HTTP.Bad_Request);
          Response_Object.Content
            (Status_Message
               ("Already assigned",
@@ -306,7 +290,7 @@ package body Handlers.Call is
          return Response_Object.Build;
 
       when Peer_Not_Found =>
-         Response_Object.HTTP_Status_Code (Bad_Request);
+         Response_Object.HTTP_Status_Code (HTTP.Bad_Request);
          Response_Object.Content
            (Status_Message
               ("No Parameter", "There exsist no agent by that name"));
@@ -315,7 +299,7 @@ package body Handlers.Call is
       when E : others =>
          System_Messages.Notify
            (Error, Ada.Exceptions.Exception_Information (E));
-         Response_Object.HTTP_Status_Code (Server_Error);
+         Response_Object.HTTP_Status_Code (HTTP.Server_Error);
          Response_Object.Content
            (Status_Message
               ("Woops", "Something went wrong at the server"));
@@ -334,11 +318,28 @@ package body Handlers.Call is
       return AWS.Response.Data
    is
       use Common;
+      package Call_List renames PBX.Call;
 
-      --  Response_Object : Response.Object := Response.Factory (Request);
+      Response_Object : Response.Object := Response.Factory (Request);
    begin
+      --  Only return a call list when there actual calls in it.
+      if not Call_List.List_Empty then
+         Response_Object.HTTP_Status_Code (HTTP.OK);
+         Response_Object.Content (To_JSON_String
+                                  (PBX.Call.Queued_Calls.Write));
+      else
+         Response_Object.HTTP_Status_Code (HTTP.No_Content);
+      end if;
 
-      return List (Request);
+      return Response_Object.Build;
+   exception
+      when E : others =>
+         System_Message.Critical.Response_Exception
+           (Event           => E,
+            Message         => "List failed",
+            Response_Object => Response_Object);
+         return Response_Object.Build;
+
    end Queue;
 
    ----------------
@@ -349,47 +350,46 @@ package body Handlers.Call is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
-      Source_ID_String    : String renames
-                              Parameters (Request).Get ("source");
+      use PBX.Call;
+
+      Source    : PBX.Call.Identification := Null_Identification;
       Agent_ID_String    : String renames
                               Parameters (Request).Get ("agent_id");
       Response_Object     : Response.Object       :=
                               Response.Factory (Request);
-      Source, Destination : Model.Call.Call_Type  :=
-                              Model.Call.Null_Call;
    begin
-      --  Check valitity of the call. (Will raise exception on invalid.
-      if Source_ID_String /= "" or not Call_ID.Validate (Source_ID_String) then
-         Response_Object.HTTP_Status_Code (Bad_Request);
-         Response_Object.Content
-           (Status_Message
-              ("Bad request", "Invalid or no call ID supplied"));
-         return Response_Object.Build;
+      --  Check valitity of the call. (Will raise exception on invalid).
+      Source := Value (Parameters (Request).Get ("source"));
+      if Source = Null_Identification then
+         raise PBX.Call.Invalid_ID;
       end if;
-
-      Source := Calls.List.Get
-        (Call_ID => Model.Call_ID.Create (Source_ID_String));
-      Destination := Calls.List.Get
-        (Call_ID => (Agents.Get
-                     (Agent_ID.Create (Agent_ID_String)).Current_Call));
 
       PBX.Action.Wait_For
         (PBX.Action.Bridge
-           (Channel1 => Source.Channel.Image,
-            Channel2 => Destination.Channel.Image));
+           (Source      => Source,
+            Destination => Agents.Get
+              (Agent_ID.Create (Agent_ID_String)).Current_Call));
 
-      Response_Object.HTTP_Status_Code (OK);
+      Response_Object.HTTP_Status_Code (HTTP.OK);
       Response_Object.Content
            (Status_Message
               ("Success", "Transfer succeeded"));
          return Response_Object.Build;
 
    exception
-      when Calls.Call_Not_Found =>
-         Response_Object.HTTP_Status_Code (Not_Found);
+      when Invalid_ID =>
+         Response_Object.HTTP_Status_Code (HTTP.Bad_Request);
          Response_Object.Content
            (Status_Message
-              ("Not found", "No call found with ID " & Source_ID_String));
+              ("Bad request", "Invalid or no call ID supplied"));
+         return Response_Object.Build;
+
+      when Not_Found =>
+         Response_Object.HTTP_Status_Code (HTTP.Not_Found);
+         Response_Object.Content
+           (Status_Message
+              ("Not found", "No call found with ID " &
+                 Parameters (Request).Get ("source")));
          return Response_Object.Build;
 
       when E : others =>

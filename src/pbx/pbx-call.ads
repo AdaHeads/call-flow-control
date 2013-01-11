@@ -33,6 +33,7 @@ package PBX.Call is
 
    Not_Found       : exception;
    Already_Bridged : exception;
+   Invalid_ID      : exception;
 
    type Identification is private;
 
@@ -84,6 +85,11 @@ package PBX.Call is
 
    function Queue_Count return Natural;
 
+   function List_Empty return Boolean;
+
+   function List return GNATCOLL.JSON.JSON_Value;
+   function Queued_Calls return GNATCOLL.JSON.JSON_Value;
+
    procedure For_Each (Process : access procedure (Item : Instance)) is null;
 
    Null_Identification : constant Identification;
@@ -93,6 +99,8 @@ package PBX.Call is
    function Get (Call : Identification) return Instance;
 
    function Has (Channel_ID : Channel_Identification) return Boolean;
+
+   function Has (ID : Identification) return Boolean;
 
    function Highest_Prioirity return Instance;
 
@@ -170,6 +178,7 @@ private
       function Empty return Boolean;
       function Contains
         (Channel_ID : in Channel_Identification) return Boolean;
+      function Contains (ID : in Identification) return Boolean;
       procedure Enqueue (ID : in Identification);
       procedure Dequeue (ID : in Identification);
       function Get (Channel : in Channel_Identification) return Instance;
@@ -181,6 +190,8 @@ private
       function Queued return Natural;
       procedure Remove (Channel_ID : in Channel_Identification);
       procedure Remove (ID : in Identification);
+      function To_JSON (Only_Queued : Boolean := False)
+                        return GNATCOLL.JSON.JSON_Value;
       procedure Update (ID : in Identification;
                         Process : not null access procedure
                           (Key     : in     Identification;

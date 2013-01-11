@@ -207,6 +207,10 @@ package body PBX.Call is
       return Call_List.Contains (Channel_ID);
    end Has;
 
+   function Has (ID : Identification) return Boolean is
+   begin
+      return Call_List.Contains (ID);
+   end Has;
    -------------------------
    --  Highest_Prioirity  --
    -------------------------
@@ -232,6 +236,24 @@ package body PBX.Call is
    begin
       return Obj.Inbound;
    end Inbound;
+
+   ------------
+   --  List  --
+   ------------
+
+   function List return GNATCOLL.JSON.JSON_Value is
+   begin
+      return Call_List.To_JSON;
+   end List;
+
+   ------------------
+   --  List_Empty  --
+   ------------------
+
+   function List_Empty return Boolean is
+   begin
+      return Call_List.Empty;
+   end List_Empty;
 
    ------------
    --  Next  --
@@ -280,6 +302,15 @@ package body PBX.Call is
          return Call_List.Queued > 0;
       end if;
    end Queue_Empty;
+
+   --------------------
+   --  Queued_Calls  --
+   --------------------
+
+   function Queued_Calls return GNATCOLL.JSON.JSON_Value is
+   begin
+      return Call_List.To_JSON (Only_Queued => True);
+   end Queued_Calls;
 
    --------------
    --  Remove  --
@@ -351,6 +382,9 @@ package body PBX.Call is
    begin
       return Channel_Identification
         (Ada.Strings.Unbounded.To_Unbounded_String (Item));
+   exception
+      when Constraint_Error =>
+         raise Invalid_ID with Item;
    end Value;
 
    -------------
@@ -360,6 +394,9 @@ package body PBX.Call is
    function Value (Item : in String) return Identification is
    begin
       return Identification (Natural'Value (Item));
+   exception
+      when Constraint_Error =>
+         raise Invalid_ID with Item;
    end Value;
    -----------------
    --  Call_List  --
@@ -372,6 +409,12 @@ package body PBX.Call is
       begin
          return List.Contains (Channel_Lookup_Table.Element
                                (AMI.Channel.Channel_Key (Channel_ID)));
+      end Contains;
+
+      function Contains (ID : in Identification)
+                         return Boolean is
+      begin
+         return List.Contains (ID);
       end Contains;
 
       procedure Dequeue (ID : in Identification) is
@@ -470,8 +513,17 @@ package body PBX.Call is
             end if;
          end Update;
       begin
+         --  Sanity checks.
          if ID1 = Null_Identification or ID2 = Null_Identification then
             raise Constraint_Error with "Null value detected";
+         end if;
+
+         if List.Element (ID1).B_Leg /= Null_Channel_Identification
+           or List.Element (ID2).B_Leg /= Null_Channel_Identification then
+            raise Already_Bridged with To_String (List.Element (ID1).Channel) &
+              "<->" & To_String (List.Element (ID1).B_Leg) & "," &
+              To_String (List.Element (ID2).Channel) &
+              "<->" & To_String (List.Element (ID2).B_Leg);
          end if;
          Call_List.Update (ID1, Update'Access);
          Call_List.Update (ID2, Update'Access);
@@ -502,6 +554,27 @@ package body PBX.Call is
          when Constraint_Error =>
             raise Not_Found with " call " & To_String (ID);
       end Remove;
+
+      function To_JSON (Only_Queued : Boolean := False)
+                        return GNATCOLL.JSON.JSON_Value is
+         use GNATCOLL.JSON;
+         Value     : JSON_Value := Create_Object;
+         JSON_List : JSON_Array;
+         Root      : constant JSON_Value := Create_Object;
+      begin
+         for Call of List loop
+            if not Only_Queued then
+               Value := Call.To_JSON;
+               Append (JSON_List, Value);
+            elsif Only_Queued and then Call.State = Queued then
+               Value := Call.To_JSON;
+               Append (JSON_List, Value);
+            end if;
+         end loop;
+
+         Root.Set_Field ("calls", JSON_List);
+         return Root;
+      end To_JSON;
 
       procedure Update (ID    : in Identification;
                         Process : not null access procedure

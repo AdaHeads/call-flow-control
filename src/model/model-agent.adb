@@ -17,11 +17,19 @@
 
 package body Model.Agent is
 
+   --------------
+   --  Assign  --
+   --------------
+
    procedure Assign (Agent : in     Agent_Type;
                      Peer  :    out Peer_Type) is
    begin
       Peer.Agent_ID := Agent.ID;
    end Assign;
+
+   --------------------
+   --  Change_State  --
+   --------------------
 
    procedure Change_State (Agent     :    out Agent_Type;
                            New_State : in     State) is
@@ -29,17 +37,25 @@ package body Model.Agent is
       Agent.Current_State := New_State;
    end Change_State;
 
+   ---------------
+   --  Context  --
+   ---------------
+
    function Context (Agent : in Agent_Type) return String is
    begin
       return To_String (Agent.Context);
    end Context;
+
+   --------------
+   --  Create  --
+   --------------
 
    function Create (ID        : in Agent_ID_Type;
                     Peer_ID   : in Peer_ID_Type;
                     Extension : in String) return Agent_Type is
    begin
       return (ID            => ID,
-              Current_Call  => Model.Call_ID.Null_Call_ID,
+              Current_Call  => PBX.Call.Null_Identification,
               Current_State => Signed_Out,
               Name          => Null_Unbounded_String,
               Context       => Null_Unbounded_String,
@@ -47,26 +63,46 @@ package body Model.Agent is
               Extension     => To_Unbounded_String (Extension));
    end Create;
 
+   --------------------
+   --  Current_Call  --
+   --------------------
+
+   function Current_Call (Agent : in Agent_Type)
+                          return PBX.Call.Identification is
+   begin
+      return Agent.Current_Call;
+   end Current_Call;
+
+   ---------------------
+   --  Current_State  --
+   ---------------------
+
    function Current_State (Agent : in Agent_Type) return State is
    begin
       return Agent.Current_State;
    end Current_State;
 
-   function Current_Call (Agent : in Agent_Type)
-                          return Model.Call_ID.Call_ID_Type is
-   begin
-      return Agent.Current_Call;
-   end Current_Call;
+   -----------------
+   --  Extension  --
+   -----------------
 
    function Extension (Agent : in Agent_Type) return String is
    begin
       return To_String (Agent.Extension);
    end Extension;
 
+   ----------
+   --  ID  --
+   ----------
+
    function ID (Agent : in Agent_Type) return Agent_ID_Type is
    begin
       return Agent.ID;
    end ID;
+
+   ---------------
+   --  Peer_ID  --
+   ---------------
 
    function Peer_ID (Agent : in Agent_Type) return Peer_ID_Type is
    begin

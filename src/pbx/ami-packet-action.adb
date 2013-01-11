@@ -452,7 +452,7 @@ package body AMI.Packet.Action is
      (On_Response : in Response_Handler_Type := Null_Reponse_Handler'Access
      ) return Request is
    begin
-      return Action.Create (Action      => Login,
+      return Action.Create (Action      => Logoff,
                             Fields      => Field.Field_List.Empty_List,
                             On_Response => On_Response);
    end Logoff;

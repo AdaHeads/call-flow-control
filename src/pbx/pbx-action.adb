@@ -16,7 +16,6 @@
 -------------------------------------------------------------------------------
 
 with AMI.Response;
-with AMI.Channel_ID;
 
 package body PBX.Action is
 
@@ -29,27 +28,22 @@ package body PBX.Action is
    --  Bridge  --
    --------------
 
-   function Bridge (Channel1    : in String;
-                    Channel2    : in String;
+   function Bridge (Source      : in PBX.Call.Identification;
+                    Destination : in PBX.Call.Identification;
                     On_Response : in Response_Handler := Ignore)
-                    return Reply_Ticket
+                  return Reply_Ticket
    is
+      use PBX.Call;
       Bridge_Action : AMI.Packet.Action.Request :=
                         AMI.Packet.Action.Bridge
-                          (Channel1    => Channel1,
-                           Channel2    => Channel2,
+                          (Channel1    => To_String (Get (Source).Channel),
+                           Channel2    =>
+                             To_String (Get (Destination).Channel),
                            On_Response => Cast (On_Response));
    begin
-      if
-        Channel_ID.Validate (Channel1)  and
-        Channel_ID.Validate (Channel2)
-      then
-         PBX.Client.Send (Bridge_Action.To_AMI_Packet);
+      PBX.Client.Send (Bridge_Action.To_AMI_Packet);
 
-         return Cast (Bridge_Action.Action_ID);
-      end if;
-
-      return Null_Reply;
+      return Cast (Bridge_Action.Action_ID);
    end Bridge;
 
    --------------------
@@ -176,19 +170,19 @@ package body PBX.Action is
    -- Park --
    ----------
 
-   function Park (Channel          : in String;
-                  Fallback_Channel : in String;
+   function Park (ID               : in Call.Identification;
                   Parking_Lot      : in String := "";
                   On_Response      : in Response_Handler := Ignore)
-                  return Reply_Ticket
-   is
+                  return Reply_Ticket is
+      use PBX.Call;
       Park_Action : AMI.Packet.Action.Request :=
-                      AMI.Packet.Action.Park (Channel     => Channel,
-                                              Channel2    => Fallback_Channel,
-                                              Timeout     => Duration'Last,
-                                              Parkinglot  => Parking_Lot,
-                                              On_Response =>
-                                                Cast (On_Response));
+                      AMI.Packet.Action.Park
+                        (Channel     => To_String (Call.Get (ID).Channel),
+                         Channel2    => To_String (Call.Get (ID).B_Leg),
+                         Timeout     => Duration'Last,
+                         Parkinglot  => Parking_Lot,
+                         On_Response =>
+                           Cast (On_Response));
    begin
       Client.Send (Park_Action);
 

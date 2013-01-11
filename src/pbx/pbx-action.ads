@@ -20,6 +20,7 @@ with AMI.Packet.Action;
 with PBX.Call;
 
 package PBX.Action is
+   use PBX;
 
    Timeout : exception;
 
@@ -27,12 +28,12 @@ package PBX.Action is
 
    Ignore : constant Response_Handler;
 
-   function Bridge (Channel1    : in String;
-                    Channel2    : in String;
+   function Bridge (Source      : in PBX.Call.Identification;
+                    Destination : in PBX.Call.Identification;
                     On_Response : in Response_Handler := Ignore)
                   return Reply_Ticket;
 
-   function Hangup (ID : in PBX.Call.Identification) return Reply_Ticket;
+   function Hangup (ID : in Call.Identification) return Reply_Ticket;
 
    function Login (Username    : in String;
                    Secret      : in String;
@@ -54,8 +55,7 @@ package PBX.Action is
                        On_Response : in Response_Handler := Ignore)
                        return Reply_Ticket;
 
-   function Park (Channel          : in String;
-                  Fallback_Channel : in String;
+   function Park (ID               : in Call.Identification;
                   Parking_Lot      : in String := "";
                   On_Response      : in Response_Handler := Ignore)
                   return Reply_Ticket;

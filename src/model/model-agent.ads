@@ -19,7 +19,7 @@ with Ada.Strings.Unbounded;
 with Model.Agent_ID;
 with AMI.Peer;
 with AMI.Peer_ID;
-with Model.Call_ID;
+with PBX.Call;
 
 package Model.Agent is
    use Ada.Strings.Unbounded;
@@ -45,7 +45,7 @@ package Model.Agent is
    function Current_State (Agent : in Agent_Type) return State;
 
    function Current_Call (Agent : in Agent_Type)
-                          return Model.Call_ID.Call_ID_Type;
+                          return PBX.Call.Identification;
 
    function Extension (Agent : in Agent_Type) return String;
 
@@ -65,12 +65,12 @@ private
          Context       : Unbounded_String;
          Peer_ID       : Peer_ID_Type;
          Extension     : Unbounded_String;
-         Current_Call  : Model.Call_ID.Call_ID_Type;
+         Current_Call  : PBX.Call.Identification;
       end record;
 
    Null_Agent : constant Agent_Type :=
                   (ID            => Null_Agent_ID,
-                   Current_Call  => Model.Call_ID.Null_Call_ID,
+                   Current_Call  => PBX.Call.Null_Identification,
                    Current_State => Signed_Out,
                    Name          => Null_Unbounded_String,
                    Context       => Null_Unbounded_String,
