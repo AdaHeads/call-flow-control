@@ -18,13 +18,12 @@
 with Common;
 with HTTP_Codes;
 with Response;
-with System_Messages;
 with AMI.Peer;
---  with JSON.Peer;
+with Model.Agent;
 
 package body Handlers.Agent is
    use AMI;
---   use JSON.Peer;
+
    -------------
    --  Agent  --
    -------------
@@ -57,16 +56,12 @@ package body Handlers.Agent is
    is
       use Common;
       use HTTP_Codes;
-      use System_Messages;
 
-      JSON            : JSON_String;
       Response_Object : Response.Object := Response.Factory (Request);
    begin
-      Notify (Debug, Peer.List.To_String);
-      JSON := To_JSON_String (Peer.List.To_JSON.Write);
 
       Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content (JSON);
+      Response_Object.Content (To_JSON_String (Model.Agent.To_JSON.Write));
 
       return Response_Object.Build;
    end Agent_List;

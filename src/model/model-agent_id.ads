@@ -24,6 +24,9 @@ package Model.Agent_ID is
 
    type Agent_ID_Type is tagged private;
 
+   function "<" (Left  : in Agent_ID_Type;
+                 Right : in Agent_ID_Type) return Boolean;
+
    Null_Agent_ID : constant Agent_ID_Type;
 
    function ID  (Agent_ID : in Agent_ID_Type) return Natural;
@@ -34,6 +37,8 @@ package Model.Agent_ID is
 
    function Create (Agent_ID : in String) return Agent_ID_Type;
    --  Constructor.
+
+   function Create (Agent_ID : in Natural) return Agent_ID_Type;
 
    function Validate (Item : in String) return Boolean;
    --  Non-exception-raising method for determining ID-valitity of a given

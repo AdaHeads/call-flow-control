@@ -122,6 +122,9 @@ package AMI.Channel is
       procedure Insert (Key  : in Channel_Key;
                         Item : in AMI.Channel.Instance);
       procedure Remove (Key : in Channel_Key);
+      procedure Rename (Old_Name : in Channel_Key;
+                        New_Name : in Channel_Key);
+
       function Get (Key : in Channel_Key) return AMI.Channel.Instance;
       function Length return Natural;
       procedure Put (Key  : in Channel_Key;

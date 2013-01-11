@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Containers.Ordered_Maps;
+
 package body Model.Agent is
 
    --------------
@@ -73,6 +75,15 @@ package body Model.Agent is
       return Agent.Current_Call;
    end Current_Call;
 
+   --------------------
+   --  Current_Call  --
+   --------------------
+
+   procedure Current_Call (Agent :    out Agent_Type;
+                           Call  : in     PBX.Call.Identification) is
+   begin
+      Agent.Current_Call := Call;
+   end Current_Call;
    ---------------------
    --  Current_State  --
    ---------------------
@@ -108,5 +119,126 @@ package body Model.Agent is
    begin
       return Agent.Peer_ID;
    end Peer_ID;
+
+   function To_JSON (Agent : in Agent_Type) return GNATCOLL.JSON.JSON_Value is
+      use GNATCOLL.JSON;
+
+      JSON      : constant JSON_Value := Create_Object;
+      Peer_JSON : constant JSON_Value := Create_Object;
+   begin
+      Peer_JSON.Set_Field ("ID", Agent.ID.To_String);
+      Peer_JSON.Set_Field ("State", Agent.Current_State'Img);
+      Peer_JSON.Set_Field ("Name", Agent.Name);
+      Peer_JSON.Set_Field ("Context", Agent.Context);
+      Peer_JSON.Set_Field ("Peer_ID", To_String (Agent.Peer_ID));
+      Peer_JSON.Set_Field ("extension", Agent.Extension);
+      Peer_JSON.Set_Field ("current_call",
+                           PBX.Call.To_String (Agent.Current_Call));
+      JSON.Set_Field ("peer", Peer_JSON);
+
+      return JSON;
+   end To_JSON;
+
+   package Agent_Storage is new
+     Ada.Containers.Ordered_Maps (Key_Type     => Agent_ID_Type,
+                                  Element_Type => Agent_Type);
+
+   Agent_List : Agent_Storage.Map := Agent_Storage.Empty_Map;
+
+   function Get (Agent_ID : in Agent_ID_Type) return Agent_Type is
+   begin
+      return Agent_List.Element (Agent_ID);
+   end Get;
+
+   --  TODO: Change this to a real database.
+   function Get (Peer_ID : Peer_ID_Type) return Agent_Type is
+
+   begin
+      if Peer_ID.Peername = "softphone1" then
+         return Get (Agent_ID.Create ("1"));
+
+      elsif Peer_ID.Peername = "softphone2" then
+         return Get (Agent_ID.Create ("2"));
+
+      elsif Peer_ID.Peername = "TP-Softphone" then
+         return Get (Agent_ID.Create ("3"));
+
+      elsif Peer_ID.Peername = "JSA-N900" then
+         return Get (Agent_ID.Create ("4"));
+
+      elsif Peer_ID.Peername = "DesireZ" then
+         return Get (Agent_ID.Create ("5"));
+
+      elsif Peer_ID.Peername = "TL-Softphone" then
+         return Get (Agent_ID.Create ("6"));
+
+      elsif Peer_ID.Peername = "uhh" then
+         return Get (Agent_ID.Create ("7"));
+      end if;
+
+      return Null_Agent;
+   end Get;
+
+   function To_JSON return GNATCOLL.JSON.JSON_Value is
+      use GNATCOLL.JSON;
+         JSON_List : JSON_Array;
+         Root      : constant JSON_Value := Create_Object;
+   begin
+      for Agent of Agent_List loop
+         Append (JSON_List, Agent.To_JSON);
+      end loop;
+      Root.Set_Field ("agents", JSON_List);
+      return Root;
+   end To_JSON;
+
+   procedure Update (Agent : in Agent_Type) is
+   begin
+      Agent_List.Replace (Agent.ID, Agent);
+   end Update;
+begin
+
+   Agent_List.Insert
+     (Agent_ID.Create (1),
+      Agent.Create
+        (ID        => Agent_ID.Create (1),
+         Peer_ID   => AMI.Peer_ID.Create ("SIP/softphone1"),
+         Extension => "101"));
+
+   Agent_List.Insert
+     (Agent_ID.Create (2),
+      Agent.Create
+        (ID        => Agent_ID.Create (2),
+         Peer_ID   =>  AMI.Peer_ID.Create ("SIP/softphone1"),
+         Extension => "102"));
+   Agent_List.Insert
+     (Agent_ID.Create (3),
+      Agent.Create
+        (ID        => Agent_ID.Create (3),
+         Peer_ID   =>  AMI.Peer_ID.Create ("SIP/softphone1"),
+         Extension => "103"));
+   Agent_List.Insert
+     (Agent_ID.Create (4),
+      Agent.Create
+        (ID        => Agent_ID.Create (4),
+         Peer_ID   =>  AMI.Peer_ID.Create ("SIP/softphone1"),
+         Extension => "104"));
+   Agent_List.Insert
+     (Agent_ID.Create (5),
+      Agent.Create
+        (ID        => Agent_ID.Create (5),
+         Peer_ID   =>  AMI.Peer_ID.Create ("SIP/softphone1"),
+         Extension => "105"));
+   Agent_List.Insert
+     (Agent_ID.Create (6),
+      Agent.Create
+        (ID        => Agent_ID.Create (6),
+         Peer_ID   =>  AMI.Peer_ID.Create ("SIP/softphone1"),
+         Extension => "106"));
+   Agent_List.Insert
+     (Agent_ID.Create (7),
+      Agent.Create
+        (ID        => Agent_ID.Create (7),
+         Peer_ID   =>  AMI.Peer_ID.Create ("SIP/uhh"),
+         Extension => "107"));
 
 end Model.Agent;

@@ -85,6 +85,16 @@ package body AMI.Channel is
          Protected_List.Delete (Key);
       end Remove;
 
+      procedure Rename (Old_Name : in Channel_Key;
+                        New_Name : in Channel_Key) is
+         Tmp_Channel : Instance := Protected_List.Element (Old_Name);
+      begin
+         Tmp_Channel.ID := Channel_ID.Value (US.To_String (New_Name));
+         Protected_List.Insert (Key      => New_Name,
+                                New_Item => Tmp_Channel);
+         Protected_List.Delete (Old_Name);
+      end Rename;
+
       function To_JSON return GNATCOLL.JSON.JSON_Value is
          use Channel_List_Type;
          use GNATCOLL.JSON;

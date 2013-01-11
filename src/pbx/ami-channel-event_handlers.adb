@@ -24,6 +24,8 @@ package body AMI.Channel.Event_Handlers is
    use AMI;
    use AMI.Trace;
 
+   procedure Masquerade (Packet : in Parser.Packet_Type);
+
    procedure New_Account_Code (Packet : in Parser.Packet_Type);
    --  Occurs whenever a channel changes its account code.
 
@@ -44,6 +46,8 @@ package body AMI.Channel.Event_Handlers is
    procedure New_Extension (Packet : in Parser.Packet_Type);
    --  From the point of view of a channel, a new extension event changes the
    --  application of the channel.
+
+   procedure Rename (Packet : in Parser.Packet_Type);
 
    -----------------------
    --  Attach_Variable  --
@@ -76,6 +80,33 @@ package body AMI.Channel.Event_Handlers is
               " to channel " & US.To_String (Channel_Key));
          raise;
    end Attach_Variable;
+
+   ------------------
+   --  Masquerade  --
+   ------------------
+
+   procedure Masquerade (Packet : in Parser.Packet_Type) is
+      Context      : constant String  := Package_Name & ".Masquerade";
+
+      Clone_Key    : US.Unbounded_String renames
+                       Packet.Get_Value (Parser.Clone);
+      Original_Key : US.Unbounded_String renames
+                       Packet.Get_Value (Parser.Original);
+      Clone        : Channel.Instance := Channel.Empty_Object;
+      Original     : Channel.Instance := Channel.Empty_Object;
+
+   begin
+      Clone    := Channel.List.Get (Clone_Key);
+      Original := Channel.List.Get (Original_Key);
+
+      Clone.ID := Original.ID;
+
+      Channel.List.Update (Key  => Original_Key,
+                           Item => Clone);
+      AMI.Trace.Log (Debug, Context & ": Cloning channel " &
+                       Packet.Get_Value (Parser.Clone) & " to " &
+                       Packet.Get_Value (Parser.Original));
+   end Masquerade;
 
    ------------------------
    --  New_Account_Code  --
@@ -254,6 +285,10 @@ package body AMI.Channel.Event_Handlers is
    procedure Register_Handlers is
    begin
       AMI.Observers.Register
+        (Event   => AMI.Event.Masquerade,
+         Handler => Masquerade'Access);
+
+      AMI.Observers.Register
         (Event   => AMI.Event.Newexten,
          Handler => New_Extension'Access);
 
@@ -276,6 +311,15 @@ package body AMI.Channel.Event_Handlers is
       AMI.Observers.Register
         (Event   => AMI.Event.Newstate,
          Handler => New_State'Access);
+
+      AMI.Observers.Register
+        (Event   => AMI.Event.Rename,
+         Handler => Rename'Access);
    end Register_Handlers;
 
+   procedure Rename (Packet : in Parser.Packet_Type) is
+   begin
+      Channel.List.Rename (Old_Name => Packet.Get_Value (Parser.Channel),
+                           New_Name => Packet.Get_Value (Parser.Newname));
+   end Rename;
 end AMI.Channel.Event_Handlers;

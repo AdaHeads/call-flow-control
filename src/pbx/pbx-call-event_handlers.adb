@@ -22,7 +22,6 @@ with AMI.Parser;
 with AMI.Trace;
 with View.Call;
 with Model.Agent;
-with Model.Agents;
 
 with Handlers.Notifications;
 with Client_Notification.Queue;
@@ -51,18 +50,22 @@ package body PBX.Call.Event_Handlers is
    --------------
 
    procedure Bridge (Packet : in Parser.Packet_Type) is
+      use PBX;
       Context   : constant String      := Package_Name & ".Bridge";
       Channel1  : Channel_Identification renames
                     Value (Packet.Get_Value (Parser.Channel1));
       Channel2  : String renames Packet.Get_Value (Parser.Channel2);
       Agent     : Agent_Type := Null_Agent;
    begin
-      Agent := Model.Agents.Get (Get (Channel1).Assigned_To);
+      Agent := Model.Agent.Get (Get (Channel1).Assigned_To);
 
       if Agent = Null_Agent then
          AMI.Trace.Log
            (Error, Context & ": null agent detected!");
       end if;
+
+      Agent.Current_Call (Call => Call.Get (Channel1).ID);
+      Model.Agent.Update (Agent => Agent);
 
       Get (Channel1).Change_State (New_State => Speaking);
       AMI.Trace.Log
@@ -91,6 +94,12 @@ package body PBX.Call.Event_Handlers is
    begin
       --  There is a sequence to a Dial event represented by a SubEvent.
       --  It consists of "Begin" or "End"
+      if Channel_ID.Value (Packet.Get_Value (Parser.Channel)).Temporary then
+         AMI.Trace.Log (Debug, Context & "Ignoring temporary call with " &
+                          "channel " & Packet.Get_Value (Parser.Channel));
+         return;
+      end if;
+
       if Sub_Event = "Begin" then
          if not PBX.Call.Has (Channel_ID => Channel) then
             AMI.Trace.Log (Debug, Context & "creating call:");
@@ -141,6 +150,12 @@ package body PBX.Call.Event_Handlers is
       Context : constant String := Package_Name & ".Hangup";
       Channel : String renames Packet.Get_Value (Parser.Channel);
    begin
+      if Channel_ID.Value (Packet.Get_Value (Parser.Channel)).Temporary then
+         AMI.Trace.Log (Debug, Context & "Ignoring temporary call with " &
+                          "channel " & Packet.Get_Value (Parser.Channel));
+         return;
+      end if;
+
       Notification.Broadcast
         (Client_Notification.Call.Hangup
            (Remove (Channel_ID => Value (Channel))).To_JSON);
@@ -179,10 +194,16 @@ package body PBX.Call.Event_Handlers is
    -------------
 
    procedure Leave (Packet : in Parser.Packet_Type) is
-      --  Context : constant String := Package_Name & ".Leave";
+      Context : constant String := Package_Name & ".Leave";
       Channel     : Channel_Identification renames
                       Value (Packet.Get_Value (Parser.Channel));
    begin
+      if Channel_ID.Value (Packet.Get_Value (Parser.Channel)).Temporary then
+         AMI.Trace.Log (Debug, Context & "Ignoring temporary call with " &
+                          "channel " & Packet.Get_Value (Parser.Channel));
+         return;
+      end if;
+
       Get (Channel => Channel).Change_State (New_State => Transferring);
 
       Notification.Broadcast
@@ -195,6 +216,12 @@ package body PBX.Call.Event_Handlers is
       Channel : Channel_Identification renames
                   Value (Packet.Get_Value (Parser.Channel));
    begin
+      if Channel_ID.Value (Packet.Get_Value (Parser.Channel)).Temporary then
+         AMI.Trace.Log (Debug, Context & "Ignoring temporary call with " &
+                          "channel " & Packet.Get_Value (Parser.Channel));
+         return;
+      end if;
+
       Get (Channel).Change_State (New_State => Parked);
       --  Broadcast it.
       Notification.Broadcast

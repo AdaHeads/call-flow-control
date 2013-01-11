@@ -22,7 +22,6 @@ with HTTP_Codes;
 with Response;
 
 with Model.Agent;
-with Model.Agents;
 with Model.Agent_ID;
 with AMI.Peer;
 with View.Call;
@@ -133,7 +132,7 @@ package body Handlers.Call is
 
    begin
       Originating_Agent :=
-        Model.Agents.Get (Model.Agent_ID.Create (Agent_ID_String));
+        Model.Agent.Get (Model.Agent_ID.Create (Agent_ID_String));
 
       PBX.Action.Wait_For
         (PBX.Action.Originate
@@ -232,7 +231,7 @@ package body Handlers.Call is
 
       --  Lookup the peer from the agent_id.
       Peer := AMI.Peer.List.Get
-        (Model.Agents.Get (Agent_ID => Agent_ID).Peer_ID);
+        (Model.Agent.Get (Agent_ID => Agent_ID).Peer_ID);
 
       if not Peer.Available then
          System_Messages.Notify
@@ -247,7 +246,7 @@ package body Handlers.Call is
          return Response_Object.Build;
       else
          --  We're good - transfer the call.
-         Agent := Model.Agents.Get (Agent_ID => Agent_ID);
+         Agent := Model.Agent.Get (Agent_ID => Agent_ID);
 
          if Call_ID_String /= "" then
             Assigned_Call := PBX.Call.Get
@@ -352,11 +351,9 @@ package body Handlers.Call is
    is
       use PBX.Call;
 
-      Source    : PBX.Call.Identification := Null_Identification;
-      Agent_ID_String    : String renames
-                              Parameters (Request).Get ("agent_id");
-      Response_Object     : Response.Object       :=
-                              Response.Factory (Request);
+      Source          : PBX.Call.Identification := Null_Identification;
+      Response_Object : Response.Object :=
+                          Response.Factory (Request);
    begin
       --  Check valitity of the call. (Will raise exception on invalid).
       Source := Value (Parameters (Request).Get ("source"));
@@ -367,8 +364,8 @@ package body Handlers.Call is
       PBX.Action.Wait_For
         (PBX.Action.Bridge
            (Source      => Source,
-            Destination => Agents.Get
-              (Agent_ID.Create (Agent_ID_String)).Current_Call));
+            Destination => Agent.Get
+              (PBX.Call.Get (Source).Assigned_To).Current_Call));
 
       Response_Object.HTTP_Status_Code (HTTP.OK);
       Response_Object.Content
@@ -384,7 +381,7 @@ package body Handlers.Call is
               ("Bad request", "Invalid or no call ID supplied"));
          return Response_Object.Build;
 
-      when Not_Found =>
+      when PBX.Call.Not_Found =>
          Response_Object.HTTP_Status_Code (HTTP.Not_Found);
          Response_Object.Content
            (Status_Message

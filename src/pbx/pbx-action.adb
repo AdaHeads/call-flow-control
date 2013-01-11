@@ -179,7 +179,7 @@ package body PBX.Action is
                       AMI.Packet.Action.Park
                         (Channel     => To_String (Call.Get (ID).Channel),
                          Channel2    => To_String (Call.Get (ID).B_Leg),
-                         Timeout     => Duration'Last,
+                         Timeout     => 7200.0,
                          Parkinglot  => Parking_Lot,
                          On_Response =>
                            Cast (On_Response));

@@ -16,12 +16,27 @@
 -------------------------------------------------------------------------------
 
 package body Model.Agent_ID is
+
+   function "<" (Left  : in Agent_ID_Type;
+                 Right : in Agent_ID_Type) return Boolean is
+   begin
+      return Left.ID < Right.ID;
+   end "<";
+
    function Create (Agent_ID : in String) return Agent_ID_Type is
    begin
       return (ID => Natural'Value (Agent_ID));
    exception
       when Constraint_Error =>
          raise Invalid_ID with "Bad value: " & Agent_ID;
+   end Create;
+
+   function Create (Agent_ID : in Natural) return Agent_ID_Type is
+   begin
+      return (ID => Agent_ID);
+   exception
+      when Constraint_Error =>
+         raise Invalid_ID with "Bad value:" & Agent_ID'img;
    end Create;
 
    function ID (Agent_ID : in Agent_ID_Type) return Natural is

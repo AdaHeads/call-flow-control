@@ -20,6 +20,7 @@ with Model.Agent_ID;
 with AMI.Peer;
 with AMI.Peer_ID;
 with PBX.Call;
+with GNATCOLL.JSON;
 
 package Model.Agent is
    use Ada.Strings.Unbounded;
@@ -46,6 +47,8 @@ package Model.Agent is
 
    function Current_Call (Agent : in Agent_Type)
                           return PBX.Call.Identification;
+   procedure Current_Call (Agent :    out Agent_Type;
+                           Call  : in     PBX.Call.Identification);
 
    function Extension (Agent : in Agent_Type) return String;
 
@@ -53,9 +56,20 @@ package Model.Agent is
 
    function Peer_ID (Agent : in Agent_Type) return Peer_ID_Type;
 
+   function To_JSON (Agent : in Agent_Type) return GNATCOLL.JSON.JSON_Value;
+
    Null_Agent : constant Agent_Type;
    --   function Get (Agent_ID : in Agent_ID_Type) return Agent_Type;
 
+   function Get (Agent_ID : in Agent_ID_Type) return Agent_Type;
+   --  Locate an agent by Agent_ID
+
+   function Get (Peer_ID : Peer_ID_Type) return Agent_Type;
+   --  Locate an agent by Peer_ID
+
+   procedure Update (Agent : in Agent_Type);
+
+   function To_JSON return GNATCOLL.JSON.JSON_Value;
 private
    type Agent_Type is tagged
       record
