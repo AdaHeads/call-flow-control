@@ -19,8 +19,13 @@ abstract project Shared is
    for Source_Dirs use ();
 
    package Compiler is
-      for Default_Switches ("Ada") use ("-gnatwa",
-					"-gnatf",
+      for Default_Switches ("Ada") use ("-fstack-check",
+                                        "-gnata",
+                                        "-gnatE",
+                                        "-gnatf",
+                                        "-gnato",
+                                        "-gnatv",
+                                        "-gnatwa",
                                         "-gnaty3abcdefhiklmnoprstux",
                                         "-Wall",
                                         "-pipe",

@@ -16,6 +16,8 @@
 -------------------------------------------------------------------------------
 
 package SIGHUP is
+   pragma Elaborate_Body;
+
    type Callback is access procedure;
 
    procedure Register (Handler : in     Callback);
