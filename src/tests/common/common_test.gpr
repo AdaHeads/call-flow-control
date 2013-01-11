@@ -16,6 +16,7 @@
 -------------------------------------------------------------------------------
 
 with "../shared.gpr";
+with "gnatcoll";
 
 project Common_Test is
    for Main use ("common_test");
