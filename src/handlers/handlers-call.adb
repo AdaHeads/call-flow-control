@@ -225,7 +225,7 @@ package body Handlers.Call is
       Agent_ID := Create (Agent_ID => Agent_ID_String);
 
       --  If we do not have any calls at this point, return HTTP 204.
-      if PBX.Call.Queue_Count = 0 then
+      if PBX.Call.List_Empty then
          Response_Object.HTTP_Status_Code (HTTP.No_Content);
          return Response_Object.Build;
       end if;

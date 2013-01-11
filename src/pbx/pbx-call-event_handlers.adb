@@ -21,6 +21,8 @@ with AMI.Event;
 with AMI.Parser;
 with AMI.Trace;
 with View.Call;
+with Model.Agent;
+with Model.Agents;
 
 with Handlers.Notifications;
 with Client_Notification.Queue;
@@ -28,6 +30,7 @@ with Client_Notification.Call;
 
 package body PBX.Call.Event_Handlers is
    use AMI.Trace;
+   use Model.Agent;
 
    package Notification renames Handlers.Notifications;
 
@@ -41,6 +44,8 @@ package body PBX.Call.Event_Handlers is
 
    procedure Hangup (Packet : in Parser.Packet_Type);
 
+   procedure Parked_Call (Packet : in Parser.Packet_Type);
+
    --------------
    --  Bridge  --
    --------------
@@ -50,20 +55,27 @@ package body PBX.Call.Event_Handlers is
       Channel1  : Channel_Identification renames
                     Value (Packet.Get_Value (Parser.Channel1));
       Channel2  : String renames Packet.Get_Value (Parser.Channel2);
+      Agent     : Agent_Type := Null_Agent;
    begin
+      Agent := Model.Agents.Get (Get (Channel1).Assigned_To);
+
+      if Agent = Null_Agent then
+         AMI.Trace.Log
+           (Error, Context & ": null agent detected!");
+      end if;
+
+      Get (Channel1).Change_State (New_State => Speaking);
       AMI.Trace.Log
         (Debug, Context & ": channel1: " & Packet.Get_Value (Parser.Channel1));
       AMI.Trace.Log
         (Debug, Context & ": channel2: " & Channel2);
       AMI.Trace.Log
-        (Debug, Package_Name & "." & Context & ": " &
+        (Debug, Context & ": " &
            Client_Notification.Call.Pickup
-           (C => Get (Channel1),
-            A => Get (Channel1).Assigned_To).To_JSON.Write);
+           (C => Get (Channel1)).To_JSON.Write);
+
       Notification.Broadcast
-        (Client_Notification.Call.Pickup
-           (Get (Channel1),
-            Get (Channel1).Assigned_To).To_JSON);
+        (Client_Notification.Call.Pickup (Get (Channel1)).To_JSON);
    end Bridge;
 
    ------------
@@ -74,37 +86,46 @@ package body PBX.Call.Event_Handlers is
       Context   : constant String := Package_Name & ".Dial";
 
       Sub_Event   : String renames Packet.Get_Value (Parser.SubEvent);
-      Channel     : String renames Packet.Get_Value (Parser.Channel);
+      Channel     : Channel_Identification renames
+                      Value (Packet.Get_Value (Parser.Channel));
    begin
       --  There is a sequence to a Dial event represented by a SubEvent.
       --  It consists of "Begin" or "End"
       if Sub_Event = "Begin" then
-
-         if not PBX.Call.Has (Channel_ID => Value (Channel)) then
+         if not PBX.Call.Has (Channel_ID => Channel) then
+            AMI.Trace.Log (Debug, Context & "creating call:");
             Create_And_Insert
-              (Inbound        => not AMI.Channel_ID.Value (Channel).Is_Local,
+              (Inbound        => not AMI.Channel_ID.Value
+                 (To_String (Channel)).Is_Local,
                Channel        => Channel,
                State          => Dialing,
-               B_Leg          => Packet.Get_Value (Parser.Destination));
+               B_Leg          =>
+                 Value (Packet.Get_Value (Parser.Destination)));
          else
+            AMI.Trace.Log (Debug, Context & "found call:");
             --  The call should already exist, just update the B_Leg and
             --  set state to dialing
 
-            Get (Channel => Value (Channel)).Dial
+            Get (Channel => Channel).Dial
               (Value (Packet.Get_Value (Parser.Destination)));
 
          end if;
 
-         AMI.Trace.Log (Debug, Context & "Begin: " &  View.Call.To_JSON
-                        (Get (Channel => Value (Channel))).Write);
+         if not Get (Channel => Channel).Inbound then
+            Get (Channel => Channel).Assign
+              (Model.Agent_ID.Create ("1"));
+         end if;
 
-      --  When a Dial event ends, the call is over, and must thus be removed
-      --  From the call list.
+         AMI.Trace.Log (Debug, Context & "Begin: " &  View.Call.To_JSON
+                        (Get (Channel => Channel)).Write);
+
+         --  When a Dial event ends, the call is over, and must thus be removed
+         --  From the call list.
       elsif Sub_Event = "End" then
-         Get (Channel => Value (Channel)).End_Dial;
+         Get (Channel => Channel).End_Dial;
 
          AMI.Trace.Log (Debug, Context & "End: " & View.Call.To_JSON
-                        (Get (Channel => Value (Channel))).Write);
+                        (Get (Channel => Channel)).Write);
       else
          AMI.Trace.Log
            (Error, Context & ": " &
@@ -112,7 +133,7 @@ package body PBX.Call.Event_Handlers is
       end if;
    end Dial;
 
-   --------------
+      --------------
    --  Hangup  --
    --------------
 
@@ -138,18 +159,19 @@ package body PBX.Call.Event_Handlers is
 
    procedure Join (Packet : in Parser.Packet_Type) is
       --  Context   : constant String := Package_Name & ".Join";
-      Channel     : String renames Packet.Get_Value (Parser.Channel);
+      Channel     : Channel_Identification renames
+                      Value (Packet.Get_Value (Parser.Channel));
    begin
       Create_And_Insert
         (Inbound        => True,
          Channel        => Channel,
          State          => Queued);
 
-      Get (Channel => Value (Channel)).Enqueue;
+      Get (Channel => Channel).Change_State (New_State => Queued);
 
       Notification.Broadcast
         (Client_Notification.Queue.Join
-           (Get (Channel => Value (Channel))).To_JSON);
+           (Get (Channel => Channel)).To_JSON);
    end Join;
 
    -------------
@@ -158,14 +180,28 @@ package body PBX.Call.Event_Handlers is
 
    procedure Leave (Packet : in Parser.Packet_Type) is
       --  Context : constant String := Package_Name & ".Leave";
-      Channel     : String renames Packet.Get_Value (Parser.Channel);
+      Channel     : Channel_Identification renames
+                      Value (Packet.Get_Value (Parser.Channel));
    begin
-      Get (Channel => Value (Channel)).Dequeue;
+      Get (Channel => Channel).Change_State (New_State => Transferring);
 
       Notification.Broadcast
         (Client_Notification.Queue.Leave
-           (Get (Channel => Value (Channel))).To_JSON);
+           (Get (Channel => Channel)).To_JSON);
    end Leave;
+
+   procedure Parked_Call (Packet : in Parser.Packet_Type) is
+      Context : constant String := Package_Name & ".Parked_Call";
+      Channel : Channel_Identification renames
+                  Value (Packet.Get_Value (Parser.Channel));
+   begin
+      Get (Channel).Change_State (New_State => Parked);
+      --  Broadcast it.
+      Notification.Broadcast
+        (Client_Notification.Call.Park (C => Get (Channel)).To_JSON);
+      AMI.Trace.Log (Debug, Client_Notification.Call.Park
+                              (Get (Channel)).To_JSON.Write);
+   end Parked_Call;
 
    procedure Register_Handlers is
    begin
@@ -179,6 +215,8 @@ package body PBX.Call.Event_Handlers is
                               Handler => Leave'Access);
       AMI.Observers.Register (Event   => AMI.Event.Hangup,
                               Handler => Hangup'Access);
+      AMI.Observers.Register (Event   => AMI.Event.ParkedCall,
+                              Handler => Parked_Call'Access);
    end Register_Handlers;
 
 begin

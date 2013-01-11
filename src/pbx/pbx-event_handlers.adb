@@ -239,10 +239,10 @@ package body PBX.Event_Handlers is
       Calls.List.Put (Call_To_Park);
 
       --  Broadcast it.
-      Notification.Broadcast
-        (Client_Notification.Call.Park (C => Call_To_Park).To_JSON);
-      System_Messages.Notify (Debug, Client_Notification.Call.Park
-                              (C => Call_To_Park).To_JSON.Write);
+--        Notification.Broadcast
+--          (Client_Notification.Call.Park (C => Call_To_Park).To_JSON);
+--        System_Messages.Notify (Debug, Client_Notification.Call.Park
+--                                (C => Call_To_Park).To_JSON.Write);
    end Parked_Call;
 
    ----------------
@@ -429,6 +429,6 @@ begin
 --                             Handler => Dial'Access);
    AMI.Observers.Register (Event   => AMI.Event.QueueCallerAbandon,
                            Handler => Queue_Abandon'Access);
-   AMI.Observers.Register (Event   => AMI.Event.ParkedCall,
-                           Handler => Parked_Call'Access);
+--     AMI.Observers.Register (Event   => AMI.Event.ParkedCall,
+--                             Handler => Parked_Call'Access);
 end PBX.Event_Handlers;

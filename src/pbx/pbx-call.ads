@@ -79,9 +79,16 @@ package PBX.Call is
    procedure Dial (Obj : in Instance; Destination : in Channel_Identification);
 
    procedure Dequeue (Obj : in Instance);
+   pragma Obsolescent (Dequeue);
    procedure Enqueue (Obj : in Instance);
+   pragma Obsolescent (Enqueue);
 
    procedure End_Dial (Obj : in Instance);
+   pragma Obsolescent (End_Dial);
+   procedure Park (Obj : in Instance);
+   pragma Obsolescent (Park);
+
+   procedure Change_State (Obj : in Instance; New_State : in States);
 
    function Queue_Count return Natural;
 
@@ -114,18 +121,20 @@ package PBX.Call is
 
    function Create_And_Insert
      (Inbound         : in Boolean;
-      Channel         : in String;
+      Channel         : in Channel_Identification;
       State           : in States := Unknown;
       Organization_ID : in Natural := 0;
-      B_Leg           : in String := "")
+      B_Leg           : in Channel_Identification :=
+        Null_Channel_Identification)
       return Instance;
 
    procedure Create_And_Insert
      (Inbound         : in Boolean;
-      Channel         : in String;
+      Channel         : in Channel_Identification;
       State           : in States := Unknown;
       Organization_ID : in Natural := 0;
-      B_Leg           : in String := "");
+      B_Leg           : in Channel_Identification :=
+        Null_Channel_Identification);
 
    function To_JSON (Obj : in Instance) return GNATCOLL.JSON.JSON_Value;
 
@@ -174,13 +183,19 @@ private
         Equivalent_Keys => Ada.Strings.Unbounded."=");
 
    protected Call_List is
+      procedure Assign_To (ID       : in Identification;
+                           Agent_ID : in Agent_ID_Type);
       procedure Insert (Item : in Instance);
       function Empty return Boolean;
+      procedure Change_State (ID        : in Identification;
+                              New_State : in States);
       function Contains
         (Channel_ID : in Channel_Identification) return Boolean;
       function Contains (ID : in Identification) return Boolean;
       procedure Enqueue (ID : in Identification);
+      pragma Obsolescent (Enqueue);
       procedure Dequeue (ID : in Identification);
+      pragma Obsolescent (Dequeue);
       function Get (Channel : in Channel_Identification) return Instance;
       function First return Instance;
 

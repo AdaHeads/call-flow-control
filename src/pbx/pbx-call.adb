@@ -19,6 +19,8 @@ with Ada.Strings;
 with Ada.Strings.Fixed;
 with View.Call;
 
+with AMI.Trace;
+
 package body PBX.Call is
 
    --------------------
@@ -36,7 +38,8 @@ package body PBX.Call is
 
    procedure Assign (Obj : in Instance; To : in Agent_ID_Type) is
    begin
-      null;
+      Call_List.Assign_To (ID       => Obj.ID,
+                           Agent_ID => To);
    end Assign;
 
    -------------------
@@ -58,6 +61,15 @@ package body PBX.Call is
       return Obj.B_Leg;
    end B_Leg;
 
+   --------------------
+   --  Change_State  --
+   --------------------
+
+   procedure Change_State (Obj : in Instance; New_State : in States) is
+   begin
+      Call_List.Change_State (Obj.ID, New_State);
+   end Change_State;
+
    ---------------
    --  Channel  --
    ---------------
@@ -73,23 +85,22 @@ package body PBX.Call is
 
    function Create_And_Insert
      (Inbound         : in Boolean;
-      Channel         : in String;
+      Channel         : in Channel_Identification;
       State           : in States := Unknown;
       Organization_ID : in Natural := 0;
-      B_Leg           : in String := "")
+      B_Leg           : in Channel_Identification :=
+        Null_Channel_Identification)
       return Instance
    is
       Call : constant Instance :=
                (ID             => Next,
                 Inbound        => Inbound,
-                Channel        => Channel_Identification
-                  (Ada.Strings.Unbounded.To_Unbounded_String (Channel)),
+                Channel        => Channel,
                 State          => State,
                 Organization   =>
                   Model.Organization_Identifier (Organization_ID),
                 Arrived        => Current_Time,
-                B_Leg          => Channel_Identification
-                  (Ada.Strings.Unbounded.To_Unbounded_String (B_Leg)),
+                B_Leg          => B_Leg,
                 Assigned_To    => Null_Agent_ID);
    begin
       Call_List.Insert (Item => Call);
@@ -102,22 +113,21 @@ package body PBX.Call is
 
    procedure Create_And_Insert
      (Inbound         : in Boolean;
-      Channel         : in String;
+      Channel         : in Channel_Identification;
       State           : in States := Unknown;
       Organization_ID : in Natural := 0;
-      B_Leg           : in String := "")
+      B_Leg           : in Channel_Identification :=
+        Null_Channel_Identification)
    is
       Call : constant Instance :=
                (ID             => Next,
                 Inbound        => Inbound,
-                Channel        => Channel_Identification
-                  (Ada.Strings.Unbounded.To_Unbounded_String (Channel)),
+                Channel        => Channel,
                 State          => State,
                 Organization   =>
                   Model.Organization_Identifier (Organization_ID),
                 Arrived        => Current_Time,
-                B_Leg          => Channel_Identification
-                  (Ada.Strings.Unbounded.To_Unbounded_String (B_Leg)),
+                B_Leg          => B_Leg,
                 Assigned_To    => Null_Agent_ID);
    begin
       Call_List.Insert (Item => Call);
@@ -281,6 +291,14 @@ package body PBX.Call is
       return Obj.Organization;
    end Organization;
 
+   ------------
+   --  Park  --
+   ------------
+   procedure Park (Obj : in Instance) is
+   begin
+      Call_List.Change_State (Obj.ID, Parked);
+   end Park;
+
    -------------------
    --  Queue_Count  --
    -------------------
@@ -404,11 +422,44 @@ package body PBX.Call is
 
    protected body Call_List is
 
+      procedure Assign_To (ID       : in Identification;
+                           Agent_ID : in Agent_ID_Type) is
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance);
+
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance) is
+            pragma Unreferenced (Key);
+         begin
+            Element.Assigned_To := Agent_ID;
+         end Update;
+      begin
+         Call_List.Update (ID, Update'Access);
+      end Assign_To;
+
+      procedure Change_State (ID        : in Identification;
+                              New_State : in States) is
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance);
+
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance) is
+            pragma Unreferenced (Key);
+         begin
+            Element.State := New_State;
+         end Update;
+      begin
+         Call_List.Update (ID, Update'Access);
+      end Change_State;
+
       function Contains (Channel_ID : in Channel_Identification)
                          return Boolean is
       begin
-         return List.Contains (Channel_Lookup_Table.Element
-                               (AMI.Channel.Channel_Key (Channel_ID)));
+         return
+           Channel_Lookup_Table.Contains
+             (AMI.Channel.Channel_Key (Channel_ID)) and then
+           List.Contains (Channel_Lookup_Table.Element
+                          (AMI.Channel.Channel_Key (Channel_ID)));
       end Contains;
 
       function Contains (ID : in Identification)
@@ -429,7 +480,12 @@ package body PBX.Call is
          end Update;
       begin
          Call_List.Update (ID, Update'Access);
-         Number_Queued := Number_Queued - 1;
+         if Number_Queued = 0 then
+            AMI.Trace.Log (AMI.Trace.Error, "Tried to decrement number of " &
+                             "Queued calls below 0");
+         else
+            Number_Queued := Number_Queued - 1;
+         end if;
       end Dequeue;
 
       function Empty return Boolean is
