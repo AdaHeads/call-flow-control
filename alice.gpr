@@ -51,23 +51,18 @@ project Alice is
          when "Production" =>
             for Default_Switches ("Ada") use ("-fstack-check",
                                               "-gnata",
-                                              "-gnatE",
                                               "-gnatf",
                                               "-gnato",
-                                              "-gnatv",
                                               "-gnatwa",
                                               "-gnaty3abcdefhiklmnoprstux",
                                               "-Wall",
-                                              "-pipe",
                                               "-O2",
                                               "-gnat2012");
          when "Debug" =>
             for Default_Switches ("Ada") use ("-fstack-check",
                                               "-gnata",
-                                              "-gnatE",
                                               "-gnatf",
                                               "-gnato",
-                                              "-gnatv",
                                               "-gnatwa",
                                               "-gnatVa",
                                               "-Wall",
