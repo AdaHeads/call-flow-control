@@ -16,15 +16,14 @@
 -------------------------------------------------------------------------------
 
 with Ada.Command_Line;
---  with PBX;
+with PBX;
 
 procedure  Asterisk_AMI_Test is
    use Ada.Command_Line;
 begin
-   --  PBX.Start;
-   --  delay 5.0;
-   --  PBX.Stop;
-   --  Commented out because the test locks up randomly.
+   PBX.Start;
+   delay 5.0;
+   PBX.Stop;
 
    Set_Exit_Status (Success);
 exception

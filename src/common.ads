@@ -24,6 +24,12 @@ package Common is
 
    subtype Time is Ada.Calendar.Time;
 
+   Null_Time : constant Time := Ada.Calendar.Time_Of
+     (Year    => 1901,
+      Month   => 1,
+      Day     => 1,
+      Seconds => 0.0);
+
    function Current_Time
      return Ada.Calendar.Time
      renames Ada.Calendar.Clock;

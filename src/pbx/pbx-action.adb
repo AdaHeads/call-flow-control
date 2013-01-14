@@ -147,17 +147,16 @@ package body PBX.Action is
       return Cast (List_Peers_Action.Action_ID);
    end Logoff;
 
-   function Originate (Peer        : in String;
-                       Context     : in String;
+   function Originate (Agent       : in Model.Agent.Agent_Type;
                        Extension   : in String;
                        On_Response : in Response_Handler := Ignore)
                        return Reply_Ticket
    is
       Originate_Action : AMI.Packet.Action.Request :=
                             AMI.Packet.Action.Originate
-                             (Channel     => Peer,
+                             (Channel     => Agent.Peer_ID.To_String,
                               Extension   => Extension,
-                              Context     => Context,
+                              Context     => Agent.Context,
                               Priority    => 1,
                               On_Response => Cast (On_Response));
    begin

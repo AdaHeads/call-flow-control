@@ -65,6 +65,11 @@ package body AMI.Channel_ID is
       return False;
    end  "=";
 
+   function Image (Item : in Peer_Name) return String is
+   begin
+      return To_String (Item);
+   end Image;
+
    function Image (Item : in Instance) return String is
       use Ada.Strings.Unbounded;
       Buffer : Unbounded_String := Null_Unbounded_String;
@@ -135,6 +140,25 @@ package body AMI.Channel_ID is
    begin
       return Item.Transition /= None or Item.Volatile /= None;
    end Temporary;
+
+   --------------
+   -- Validate --
+   --------------
+
+   function Validate (Item : in String) return Boolean is
+      Dummy_Channel_ID : Channel_ID.Instance := Empty_Channel;
+      pragma Unreferenced (Dummy_Channel_ID);
+   begin
+      if Item'Length < 3 then
+         return False;
+      end if;
+
+      Dummy_Channel_ID := Create (Item);
+      return True;
+   exception
+      when Invalid_ID =>
+         return False;
+   end Validate;
 
    function Value (Item : in String) return Sequence_Number is
    begin
@@ -238,24 +262,5 @@ package body AMI.Channel_ID is
       when Constraint_Error =>
          return (Is_Null => True);
    end Value;
-
-   --------------
-   -- Validate --
-   --------------
-
-   function Validate (Item : in String) return Boolean is
-      Dummy_Channel_ID : Channel_ID.Instance := Empty_Channel;
-      pragma Unreferenced (Dummy_Channel_ID);
-   begin
-      if Item'Length < 3 then
-         return False;
-      end if;
-
-      Dummy_Channel_ID := Create (Item);
-      return True;
-   exception
-      when Invalid_ID =>
-         return False;
-   end Validate;
 
 end AMI.Channel_ID;

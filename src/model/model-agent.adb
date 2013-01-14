@@ -19,6 +19,13 @@ with Ada.Containers.Ordered_Maps;
 
 package body Model.Agent is
 
+   --  TODO: Change this to a real database.
+   package Agent_Storage is new
+     Ada.Containers.Ordered_Maps (Key_Type     => Agent_ID_Type,
+                                  Element_Type => Agent_Type);
+
+   Agent_List : Agent_Storage.Map := Agent_Storage.Empty_Map;
+
    --------------
    --  Assign  --
    --------------
@@ -102,6 +109,46 @@ package body Model.Agent is
       return To_String (Agent.Extension);
    end Extension;
 
+   -----------
+   --  Get  --
+   -----------
+
+   function Get (Agent_ID : in Agent_ID_Type) return Agent_Type is
+   begin
+      return Agent_List.Element (Agent_ID);
+   end Get;
+
+   -----------
+   --  Get  --
+   -----------
+
+   function Get (Peer_ID : Peer_ID_Type) return Agent_Type is
+   begin
+      if Peer_ID.Peername = "softphone1" then
+         return Get (Agent_ID.Create ("1"));
+
+      elsif Peer_ID.Peername = "softphone2" then
+         return Get (Agent_ID.Create ("2"));
+
+      elsif Peer_ID.Peername = "TP-Softphone" then
+         return Get (Agent_ID.Create ("3"));
+
+      elsif Peer_ID.Peername = "JSA-N900" then
+         return Get (Agent_ID.Create ("4"));
+
+      elsif Peer_ID.Peername = "DesireZ" then
+         return Get (Agent_ID.Create ("5"));
+
+      elsif Peer_ID.Peername = "TL-Softphone" then
+         return Get (Agent_ID.Create ("6"));
+
+      elsif Peer_ID.Peername = "uhh" then
+         return Get (Agent_ID.Create ("7"));
+      end if;
+
+      return Null_Agent;
+   end Get;
+
    ----------
    --  ID  --
    ----------
@@ -133,51 +180,11 @@ package body Model.Agent is
       Peer_JSON.Set_Field ("Peer_ID", To_String (Agent.Peer_ID));
       Peer_JSON.Set_Field ("extension", Agent.Extension);
       Peer_JSON.Set_Field ("current_call",
-                           PBX.Call.To_String (Agent.Current_Call));
-      JSON.Set_Field ("peer", Peer_JSON);
+                           PBX.Call.Get (Agent.Current_Call).To_JSON);
+      JSON.Set_Field ("agent", Peer_JSON);
 
       return JSON;
    end To_JSON;
-
-   package Agent_Storage is new
-     Ada.Containers.Ordered_Maps (Key_Type     => Agent_ID_Type,
-                                  Element_Type => Agent_Type);
-
-   Agent_List : Agent_Storage.Map := Agent_Storage.Empty_Map;
-
-   function Get (Agent_ID : in Agent_ID_Type) return Agent_Type is
-   begin
-      return Agent_List.Element (Agent_ID);
-   end Get;
-
-   --  TODO: Change this to a real database.
-   function Get (Peer_ID : Peer_ID_Type) return Agent_Type is
-
-   begin
-      if Peer_ID.Peername = "softphone1" then
-         return Get (Agent_ID.Create ("1"));
-
-      elsif Peer_ID.Peername = "softphone2" then
-         return Get (Agent_ID.Create ("2"));
-
-      elsif Peer_ID.Peername = "TP-Softphone" then
-         return Get (Agent_ID.Create ("3"));
-
-      elsif Peer_ID.Peername = "JSA-N900" then
-         return Get (Agent_ID.Create ("4"));
-
-      elsif Peer_ID.Peername = "DesireZ" then
-         return Get (Agent_ID.Create ("5"));
-
-      elsif Peer_ID.Peername = "TL-Softphone" then
-         return Get (Agent_ID.Create ("6"));
-
-      elsif Peer_ID.Peername = "uhh" then
-         return Get (Agent_ID.Create ("7"));
-      end if;
-
-      return Null_Agent;
-   end Get;
 
    function To_JSON return GNATCOLL.JSON.JSON_Value is
       use GNATCOLL.JSON;

@@ -29,8 +29,6 @@ with AMI.Channel;
 with AMI.Channel_ID;
 with AMI.Peer;
 with AMI.Peer_ID;
-with Handlers.Notifications;
-with Client_Notification.Call;
 
 package body PBX.Event_Handlers is
    use Common;
@@ -42,16 +40,12 @@ package body PBX.Event_Handlers is
    use Model.Call_ID;
    use AMI.Peer;
 
-   package Notification renames Handlers.Notifications;
-
    --------------
    --  Bridge  --
    --------------
 
    procedure Bridge (Packet : in Parser.Packet_Type) is
-      Context   : constant String      := "Bridge";
       ID1, ID2  : Call_ID.Call_ID_Type := Null_Call_ID;
-      Some_Call : Model.Call.Call_Type       := Null_Call;
    begin
       ID1 := Call_ID.Create
         (To_String (Packet.Get_Value (Parser.UniqueID1)));
@@ -59,7 +53,6 @@ package body PBX.Event_Handlers is
         (To_String (Packet.Get_Value (Parser.UniqueID2)));
       Calls.List.Link (ID1 => ID1,
                        ID2 => ID2);
-      Some_Call := Calls.List.Get (ID1);
 
       --  TODO: Find the Sip peer and attach the current channel
 
@@ -378,15 +371,15 @@ package body PBX.Event_Handlers is
 
    procedure Queue_Abandon (Packet : in Parser.Packet_Type) is
       Context           : constant String := Package_Name & ".Queue_Abandon";
-      Call              : Call_Type := Null_Call;
+--      Call              : Call_Type := Null_Call;
       Queue             : Unbounded_String := Null_Unbounded_String;
       Position          : Integer := -1;
       Original_Position : Integer := -1;
       Hold_Time         : Integer := -1;
       Unique_ID         : String renames Packet.Get_Value (Parser.UniqueID);
    begin
-      Call.ID := Create
-        (To_String (Packet.Get_Value (Parser.UniqueID)));
+--        Call.ID := Create
+--          (To_String (Packet.Get_Value (Parser.UniqueID)));
 
       Position := Integer'Value
         (To_String (Packet.Get_Value (Parser.Position)));

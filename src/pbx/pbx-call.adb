@@ -18,7 +18,7 @@
 with Ada.Strings;
 with Ada.Strings.Fixed;
 with View.Call;
-
+with Model.Agent;
 with AMI.Trace;
 
 package body PBX.Call is
@@ -79,15 +79,27 @@ package body PBX.Call is
       return Obj.Channel;
    end Channel;
 
+   ---------------
+   --  Channel  --
+   ---------------
+
+   procedure Channel (Obj        : in Instance;
+                      Channel_ID : in Channel_Identification) is
+   begin
+      Call_List.Set_Channel (ID => Obj.ID, Channel_ID => Channel_ID);
+   end Channel;
+
    ------------------------
    -- Create_And_Insert  --
    ------------------------
 
    function Create_And_Insert
      (Inbound         : in Boolean;
-      Channel         : in Channel_Identification;
+      Channel         : in Channel_Identification :=
+        Null_Channel_Identification;
       State           : in States := Unknown;
       Organization_ID : in Natural := 0;
+      Assigned_To     : in Agent_ID_Type := Null_Agent_ID;
       B_Leg           : in Channel_Identification :=
         Null_Channel_Identification)
       return Instance
@@ -101,7 +113,7 @@ package body PBX.Call is
                   Model.Organization_Identifier (Organization_ID),
                 Arrived        => Current_Time,
                 B_Leg          => B_Leg,
-                Assigned_To    => Null_Agent_ID);
+                Assigned_To    => Assigned_To);
    begin
       Call_List.Insert (Item => Call);
       return Call;
@@ -113,9 +125,11 @@ package body PBX.Call is
 
    procedure Create_And_Insert
      (Inbound         : in Boolean;
-      Channel         : in Channel_Identification;
+      Channel         : in Channel_Identification :=
+        Null_Channel_Identification;
       State           : in States := Unknown;
       Organization_ID : in Natural := 0;
+      Assigned_To     : in Agent_ID_Type := Null_Agent_ID;
       B_Leg           : in Channel_Identification :=
         Null_Channel_Identification)
    is
@@ -128,7 +142,7 @@ package body PBX.Call is
                   Model.Organization_Identifier (Organization_ID),
                 Arrived        => Current_Time,
                 B_Leg          => B_Leg,
-                Assigned_To    => Null_Agent_ID);
+                Assigned_To    => Assigned_To);
    begin
       Call_List.Insert (Item => Call);
    end Create_And_Insert;
@@ -291,14 +305,6 @@ package body PBX.Call is
       return Obj.Organization;
    end Organization;
 
-   ------------
-   --  Park  --
-   ------------
-   procedure Park (Obj : in Instance) is
-   begin
-      Call_List.Change_State (Obj.ID, Parked);
-   end Park;
-
    -------------------
    --  Queue_Count  --
    -------------------
@@ -392,6 +398,11 @@ package body PBX.Call is
         (Ada.Strings.Unbounded.Unbounded_String (Channel));
    end To_String;
 
+--     procedure Unlink (Packet : in Parser.Packet_Type) is
+--     begin
+--        null;
+--     end Unlink;
+
    -------------
    --  Value  --
    -------------
@@ -433,8 +444,14 @@ package body PBX.Call is
          begin
             Element.Assigned_To := Agent_ID;
          end Update;
+
+         Agent : Model.Agent.Agent_Type := Model.Agent.Null_Agent;
       begin
          Call_List.Update (ID, Update'Access);
+
+         Agent  := Model.Agent.Get (Agent_ID);
+         Agent.Current_Call (Call => ID);
+         Model.Agent.Update (Agent);
       end Assign_To;
 
       procedure Change_State (ID        : in Identification;
@@ -515,9 +532,15 @@ package body PBX.Call is
 
       function Get (Channel : in Channel_Identification) return Instance is
       begin
-         return List.Element
-           (Channel_Lookup_Table.Element
-              (AMI.Channel.Channel_Key (Channel)));
+         if not
+           Channel_Lookup_Table.Contains (AMI.Channel.Channel_Key (Channel))
+         then
+            return Null_Instance;
+         else
+            return List.Element
+              (Channel_Lookup_Table.Element
+                 (AMI.Channel.Channel_Key (Channel)));
+         end if;
       exception
          when Constraint_Error =>
             raise Not_Found with " channel " & To_String (Channel);
@@ -525,19 +548,41 @@ package body PBX.Call is
 
       function Get (ID : in Identification) return Instance is
       begin
-         return List.Element (ID);
+         if not List.Contains (ID) then
+            return Null_Instance;
+         else
+            return List.Element (ID);
+         end if;
       exception
          when Constraint_Error =>
             raise Not_Found with " call " & To_String (ID);
       end Get;
 
       procedure Insert (Item : Instance) is
+         Agent : Model.Agent.Agent_Type := Model.Agent.Null_Agent;
       begin
+         if
+           Item.Assigned_To = Null_Agent_ID and
+           Item.Channel = Null_Channel_Identification
+         then
+            raise Constraint_Error with
+              "Both agent ID and channel cannot be null";
+         end if;
+
          List.Insert (Key      => Item.ID,
                       New_Item => Item);
-         Channel_Lookup_Table.Insert
-           (Key      => AMI.Channel.Channel_Key (Item.Channel),
-            New_Item => Item.ID);
+
+         if Item.Channel /= Null_Channel_Identification then
+            Channel_Lookup_Table.Insert
+              (Key      => AMI.Channel.Channel_Key (Item.Channel),
+               New_Item => Item.ID);
+         elsif Item.Assigned_To /= Model.Agent_ID.Null_Agent_ID then
+            --  Update the agent.
+            Agent := Model.Agent.Get (Item.Assigned_To);
+
+            Agent.Current_Call (Call => Item.ID);
+            Model.Agent.Update (Agent);
+         end if;
       exception
          when Constraint_Error =>
             --  Roll back, if applicable.
@@ -610,6 +655,30 @@ package body PBX.Call is
          when Constraint_Error =>
             raise Not_Found with " call " & To_String (ID);
       end Remove;
+
+      procedure Set_Channel (ID         : in Identification;
+                             Channel_ID : in Channel_Identification) is
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance);
+
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance) is
+            pragma Unreferenced (Key);
+         begin
+            Element.Channel := Channel_ID;
+         end Update;
+      begin
+         Channel_Lookup_Table.Insert
+           (Key      => AMI.Channel.Channel_Key (Channel_ID),
+            New_Item => ID);
+         Call_List.Update (ID, Update'Access);
+      exception
+         when Constraint_Error =>
+            --  Roll back.
+            Channel_Lookup_Table.Delete
+              (AMI.Channel.Channel_Key (Channel_ID));
+            raise;
+      end Set_Channel;
 
       function To_JSON (Only_Queued : Boolean := False)
                         return GNATCOLL.JSON.JSON_Value is

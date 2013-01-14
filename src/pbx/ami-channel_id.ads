@@ -33,6 +33,8 @@ package AMI.Channel_ID is
    type Peer_Name       is new Ada.Strings.Unbounded.Unbounded_String;
    type Sequence_Number is mod 16 ** 8;
 
+   function Image (Item : in Peer_Name) return String;
+
    function Image (Item : in Sequence_Number) return String;
 
    --  function Value (Item : in String) return Sequence_Number;

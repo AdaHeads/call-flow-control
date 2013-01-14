@@ -51,10 +51,10 @@ package PBX.Call is
    function To_String (Channel : in Channel_Identification) return String;
 
    type States is
-     (Unknown, Queued, Requeued,
+     (Unknown, Pending, Queued,
       Transferring,
       Speaking, Dialing, Delegated, Ended,
-      Parked, Bridged);
+      Parked, Transferred);
    type Priority_Level is (Invalid, Low, Normal, High);
 
    type Instance is tagged private;
@@ -76,6 +76,9 @@ package PBX.Call is
 
    procedure Assign (Obj : in Instance; To : in Agent_ID_Type);
 
+   procedure Channel (Obj        : in Instance;
+                      Channel_ID : in Channel_Identification);
+
    procedure Dial (Obj : in Instance; Destination : in Channel_Identification);
 
    procedure Dequeue (Obj : in Instance);
@@ -85,8 +88,6 @@ package PBX.Call is
 
    procedure End_Dial (Obj : in Instance);
    pragma Obsolescent (End_Dial);
-   procedure Park (Obj : in Instance);
-   pragma Obsolescent (Park);
 
    procedure Change_State (Obj : in Instance; New_State : in States);
 
@@ -121,18 +122,22 @@ package PBX.Call is
 
    function Create_And_Insert
      (Inbound         : in Boolean;
-      Channel         : in Channel_Identification;
+      Channel         : in Channel_Identification :=
+        Null_Channel_Identification;
       State           : in States := Unknown;
       Organization_ID : in Natural := 0;
+      Assigned_To     : in Agent_ID_Type := Null_Agent_ID;
       B_Leg           : in Channel_Identification :=
         Null_Channel_Identification)
       return Instance;
 
    procedure Create_And_Insert
      (Inbound         : in Boolean;
-      Channel         : in Channel_Identification;
+      Channel         : in Channel_Identification :=
+        Null_Channel_Identification;
       State           : in States := Unknown;
       Organization_ID : in Natural := 0;
+      Assigned_To     : in Agent_ID_Type := Null_Agent_ID;
       B_Leg           : in Channel_Identification :=
         Null_Channel_Identification);
 
@@ -151,11 +156,12 @@ package PBX.Call is
    --        end case;
    --     end record;
 
+   Null_Instance : constant Instance;
+
 private
    type Identification is mod 2 ** 32;
 
    Null_Identification : constant Identification := Identification'First;
-
    Next_Identification : Identification := Null_Identification;
 
    type Instance is tagged
@@ -169,6 +175,16 @@ private
          Arrived      : Time := Current_Time;
          Assigned_To  : Agent_ID_Type := Null_Agent_ID;
       end record;
+
+   Null_Instance : constant Instance :=
+                     (ID           => Null_Identification,
+                      State        => States'First,
+                      Inbound      => False,
+                      Channel      => Null_Channel_Identification,
+                      Organization => Model.Organization_Identifier (0),
+                      B_Leg        => Null_Channel_Identification,
+                      Arrived      => Common.Null_Time,
+                      Assigned_To  => Null_Agent_ID);
 
    package Call_Storage is new
      Ada.Containers.Indefinite_Ordered_Maps
@@ -205,6 +221,9 @@ private
       function Queued return Natural;
       procedure Remove (Channel_ID : in Channel_Identification);
       procedure Remove (ID : in Identification);
+
+      procedure Set_Channel (ID         : in Identification;
+                             Channel_ID : in Channel_Identification);
       function To_JSON (Only_Queued : Boolean := False)
                         return GNATCOLL.JSON.JSON_Value;
       procedure Update (ID : in Identification;

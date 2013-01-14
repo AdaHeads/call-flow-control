@@ -18,6 +18,7 @@
 with AMI.Packet.Action;
 
 with PBX.Call;
+with Model.Agent;
 
 package PBX.Action is
    use PBX;
@@ -49,8 +50,7 @@ package PBX.Action is
    function List_SIP_Peers (On_Response : in Response_Handler :=
                               Ignore) return Reply_Ticket;
 
-   function Originate (Peer        : in String;
-                       Context     : in String;
+   function Originate (Agent       : in Model.Agent.Agent_Type;
                        Extension   : in String;
                        On_Response : in Response_Handler := Ignore)
                        return Reply_Ticket;
@@ -69,6 +69,6 @@ package PBX.Action is
    procedure Wait_For (Ticket : in Reply_Ticket);
 private
    Ignore : constant Response_Handler :=
-               AMI.Packet.Action.Null_Reponse_Handler'Access;
+              AMI.Packet.Action.Null_Reponse_Handler'Access;
 
 end PBX.Action;

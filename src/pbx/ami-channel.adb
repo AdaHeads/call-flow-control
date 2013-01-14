@@ -30,14 +30,12 @@ package body AMI.Channel is
 
       function Get (Key : in Channel_Key)
                     return AMI.Channel.Instance is
-         Item : constant AMI.Channel.Instance :=
-           Protected_List.Element (Key => Key);
       begin
-         if Item = AMI.Channel.Null_Object then
-            raise Not_Found;
-         end if;
+         return Protected_List.Element (Key => Key);
 
-         return Item;
+      exception
+         when Constraint_Error =>
+            raise Not_Found with US.To_String (Key);
       end Get;
 
       --  Places the Channel in the map.

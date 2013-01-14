@@ -72,6 +72,7 @@ package AMI.Event is
       AlarmClear,
       DNDState,
       LogChannel,
+      ParkedCallGiveUp,
       PeerStatus,
       PeerEntry,
       PeerlistComplete,

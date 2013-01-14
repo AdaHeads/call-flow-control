@@ -122,6 +122,7 @@ package body Handlers.Call is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data is
       use Common;
+      use PBX.Call;
 
       Agent_ID_String   : String renames
                             Parameters (Request).Get ("agent_id");
@@ -134,11 +135,16 @@ package body Handlers.Call is
       Originating_Agent :=
         Model.Agent.Get (Model.Agent_ID.Create (Agent_ID_String));
 
+--        PBX.Call.Create_And_Insert
+--          (Inbound      => False,
+--           Channel      => Null_Channel_Identification,
+--           State        => Pending,
+--           Assigned_To  => Originating_Agent.ID);
+
       PBX.Action.Wait_For
         (PBX.Action.Originate
-           (Peer        => Originating_Agent.Peer_ID.To_String,
-            Context     => Originating_Agent.Context,
-            Extension   => Extension_String));
+           (Agent     => Originating_Agent,
+            Extension => Extension_String));
 
       Response_Object.HTTP_Status_Code (HTTP.OK);
       Response_Object.Content (Status_Message
