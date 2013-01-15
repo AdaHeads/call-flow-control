@@ -20,6 +20,9 @@ exe/session/*
 # Do not track Nano temporary files
 .#*#
 
+# Do not track Vi(m) temporary files
+.*.swp
+
 # Local files @krc
 TODO
 
