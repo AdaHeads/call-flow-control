@@ -19,8 +19,7 @@
                            | callee
                            | caller " >
 
-<!ELEMENT conditions                  ( not | (%condition.group) ) ,
-                                      ( not | (%condition.group) )* >
+<!ELEMENT conditions                  ( ( not | (%condition.group) )+ ) >
 
 <!ELEMENT not                         (%condition.group) >
 
