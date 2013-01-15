@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!DOCTYPE doc SYSTEM "dial-plan.dtd">
+
+<dial-plan title="Example 1: Checking opening hours">
+	<start do="Start"/>
+
+	<decision-tree title="Start">
+		<branch>
+			<conditions>
+				<DK-bankdag/>
+				<day-of-week is="Thursday"/>
+				<clock from="10:00" to="18:00"/>
+			</conditions>
+			<action do="Open"/>
+		</branch>
+		<branch>
+			<conditions>
+				<DK-bankdag/>
+				<day-of-week is="Monday,Tuesday,Wednesday,Friday"/>
+				<clock from="09:00" to="17:00"/>
+			</conditions>
+			<action do="Open"/>
+		</branch>
+		<fall-back do="Closed"/>
+	</decision-tree>
+
+	<end-point title="Open">
+		<queue id="common"/>
+	</end-point>
+
+	<end-point title="Closed">
+		<voice-mail send-to="reception@example.com"/>
+	</end-point>
+</dial-plan>
