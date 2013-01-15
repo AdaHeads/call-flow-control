@@ -19,9 +19,9 @@
                            | callee
                            | caller " >
 
-<!ELEMENT conditions                  ( ( not | (%condition.group) )+ ) >
+<!ELEMENT conditions                  ( ( not | (%condition.group;) )+ ) >
 
-<!ELEMENT not                         (%condition.group) >
+<!ELEMENT not                         (%condition.group;) >
 
 <!ELEMENT clock                       EMPTY >
 <!ATTLIST clock                       from          CDATA  #REQUIRED
@@ -53,7 +53,7 @@
                            | voice-mail
                            | busy-signal " >
 
-<!ELEMENT end-point                   (%end-point.group) >
+<!ELEMENT end-point                   (%end-point.group;) >
 <!ATTLIST end-point                   title         ID     #REQUIRED >
 
 <!ELEMENT hang-up                     EMPTY >
