@@ -1,0 +1,59 @@
+<!ENTITY % end-point.group " hang-up
+                           | queue
+                           | redirect
+                           | interactive-voice-response
+                           | voice-mail
+                           | busy-signal " >
+
+<!ELEMENT dial-plan     ( start ,
+                          ( decision-tree | (%end-point.group) )* ,
+                          (%end-point.group) ,
+                          ( decision-tree | (%end-point.group) )* ) >
+<!ATTLIST dial-plan     title         ID     #REQUIRED >
+
+<!ELEMENT start         EMPTY >
+<!ATTLIST start         action        CDATA  #REQUIRED >
+
+<!ELEMENT decision-tree ( ( branch )* , fall-back ) >
+<!ATTLIST decision-tree title         ID     #REQUIRED >
+
+<!ELEMENT branch        ( conditions , action ) >
+
+<!ENTITY % condition.group " clock
+                           | day-of-week
+                           | DK-bankdag
+                           | DK-helligdag
+                           | callee
+                           | caller " >
+
+<!ELEMENT conditions    ( not | (%condition.group) ) ,
+                        ( not | (%condition.group) )* >
+
+<!ELEMENT not           (%condition.group) >
+
+<!ELEMENT clock         EMPTY >
+<!ATTLIST clock         from          CDATA  #REQUIRED
+                        to            CDATA  #REQUIRED >
+
+<!ELEMENT day-of-week   EMPTY >
+<!ATTLIST day-of-week   list          CDATA  #REQUIRED >
+
+<!ELEMENT DK-bankdag    EMPTY >
+
+<!ELEMENT DK-helligdag  EMPTY >
+
+<!ELEMENT callee        EMPTY >
+<!ATTLIST callee        number        CDATA  #REQUIRED >
+
+<!ELEMENT caller        EMPTY >
+<!ATTLIST caller        number        CDATA  #REQUIRED >
+
+<!ELEMENT action        EMPTY >
+<!ATTLIST action        action        CDATA  #REQUIRED >
+
+<!ELEMENT fall-back     EMPTY >
+<!ATTLIST fall-back     action        CDATA  #REQUIRED >
+
+<!ELEMENT end-point     EMPTY >
+<!ATTLIST end-point     title         ID     #REQUIRED
+                        command       CDATA  #REQUIRED >
