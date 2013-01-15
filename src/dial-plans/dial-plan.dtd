@@ -29,7 +29,7 @@
                                       to            CDATA  #REQUIRED >
 
 <!ELEMENT day-of-week                 EMPTY >
-<!ATTLIST day-of-week                 list          CDATA  #REQUIRED >
+<!ATTLIST day-of-week                 is            CDATA  #REQUIRED >
 
 <!ELEMENT DK-bankdag                  EMPTY >
 
