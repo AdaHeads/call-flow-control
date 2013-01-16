@@ -17,7 +17,6 @@
                            | day-of-week
                            | month
                            | DK-bankdag
-                           | DK-grundlovsdag
                            | DK-helligdag
                            | DK-første-bankdag-i-måneden
                            | DK-første-bankdag-i-ugen
@@ -45,8 +44,6 @@
 <!ATTLIST month                       is            CDATA  #REQUIRED >
 
 <!ELEMENT DK-bankdag                  EMPTY >
-
-<!ELEMENT DK-grundlovsdag             EMPTY >
 
 <!ELEMENT DK-helligdag                EMPTY >
 
