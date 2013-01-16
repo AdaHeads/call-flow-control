@@ -29,6 +29,7 @@
 	</end-point>
 
 	<end-point title="Closed">
-		<voice-mail send-to="reception@example.com"/>
+		<voice-mail play="example-1-closed"
+			    send-to="reception@example.com"/>
 	</end-point>
 </dial-plan>
