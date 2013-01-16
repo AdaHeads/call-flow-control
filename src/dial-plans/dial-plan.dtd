@@ -1,14 +1,14 @@
 <!ELEMENT dial-plan     ( start ,
-                          ( decision-tree | end-point )* ,
+                          decision-tree* ,
                           end-point ,
                           ( decision-tree | end-point )* ) >
-<!ATTLIST dial-plan     title         ID     #REQUIRED >
+<!ATTLIST dial-plan     title         CDATA  #REQUIRED >
 
 <!ELEMENT start         EMPTY >
 <!ATTLIST start                       do            CDATA  #REQUIRED >
 
-<!ELEMENT decision-tree               ( ( branch )* , fall-back ) >
-<!ATTLIST decision-tree               title         ID     #REQUIRED >
+<!ELEMENT decision-tree               ( branch* , fall-back ) >
+<!ATTLIST decision-tree               title         CDATA  #REQUIRED >
 
 <!ELEMENT branch                      ( conditions , action ) >
 
@@ -54,7 +54,7 @@
                            | busy-signal " >
 
 <!ELEMENT end-point                   (%end-point.group;) >
-<!ATTLIST end-point                   title         ID     #REQUIRED >
+<!ATTLIST end-point                   title         CDATA  #REQUIRED >
 
 <!ELEMENT hang-up                     EMPTY >
 
