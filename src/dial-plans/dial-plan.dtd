@@ -1,10 +1,10 @@
-<!ELEMENT dial-plan     ( start ,
-                          decision-tree* ,
-                          end-point ,
-                          ( decision-tree | end-point )* ) >
-<!ATTLIST dial-plan     title         CDATA  #REQUIRED >
+<!ELEMENT dial-plan                   ( start ,
+                                        decision-tree* ,
+                                        end-point ,
+                                        ( decision-tree | end-point )* ) >
+<!ATTLIST dial-plan                   title         CDATA  #REQUIRED >
 
-<!ELEMENT start         EMPTY >
+<!ELEMENT start                       EMPTY >
 <!ATTLIST start                       do            CDATA  #REQUIRED >
 
 <!ELEMENT decision-tree               ( branch* , fall-back ) >
