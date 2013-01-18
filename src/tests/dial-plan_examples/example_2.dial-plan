@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!DOCTYPE dial-plan SYSTEM "../../dial-plans/dial-plan.dtd">
+
+<dial-plan title="Example 2: Checking opening hours">
+	<start do="Start"/>
+
+	<decision-tree title="Start">
+		<branch>
+			<conditions>
+			        <month is="January"/>
+				<DK-første-bankdag-i-måneden/>
+				<clock from="0800" to="1800"/>
+			</conditions>
+			<action do="Inventory day"/>
+		</branch>
+
+		<branch> <!-- Grundlovsdag -->
+			<conditions>
+			        <DK-bankdag/>
+			        <month is="June"/>
+				<day-of-month is="05"/>
+			</conditions>
+			<action do="Lukker klokken tolv"/>
+		</branch>
+
+		<branch>
+			<conditions>
+				<DK-sidste-bankdag-i-måneden/>
+				<clock from="0800" to="1800"/>
+			</conditions>
+			<action do="Open"/>
+		</branch>
+
+		<branch>
+			<conditions>
+			        <DK-bankdag/>
+				<day-of-week is="Monday,Tuesday,Wednesday,Thursday,Friday"/>
+				<clock from="1000" to="1600"/>
+			</conditions>
+			<action do="Open"/>
+		</branch>
+
+		<branch>
+			<conditions>
+			        <not><DK-helligdag/></not>
+				<day-of-week is="Saturday"/>
+				<clock from="1000" to="1400"/>
+			</conditions>
+			<action do="Open"/>
+		</branch>
+
+		<fall-back do="Closed"/>
+	</decision-tree>
+
+	<decision-tree title="Lukker klokken tolv">
+		<branch>
+			<conditions>
+				<clock from="0800" to="1200"/>
+			</conditions>
+			<action do="Open"/>
+		</branch>
+
+		<fall-back do="Closed"/>
+	</decision-tree>
+
+	<end-point title="Open">
+		<queue id="common"/>
+	</end-point>
+
+	<end-point title="Inventory day">
+		<voice-mail play="example-2-inventory-day"
+			    send-to="reception@two.example.com"/>
+	</end-point>
+
+	<end-point title="Closed">
+		<voice-mail play="example-2-closed"
+			    send-to="reception@two.example.com"/>
+	</end-point>
+</dial-plan>
