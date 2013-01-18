@@ -151,7 +151,8 @@ package body AMI.Client is
    procedure Send (Client : in out Client_Type;
                    Item   : in     AMI.Packet.Action.Request) is
    begin
-      AMI.Response.Subscribe (Item);
+         AMI.Response.Subscribe_Handler (Item);
+
       Client.Send (String (Item.To_AMI_Packet));
    end Send;
 
@@ -159,6 +160,16 @@ package body AMI.Client is
                    Item   : in     AMI.Packet.AMI_Packet) is
    begin
       Client.Send (String (Item));
+   end Send;
+
+   function Send (Client : in out Client_Type;
+                  Item   : in     AMI.Packet.Action.Request)
+                  return AMI.Parser.Packet_Type is
+   begin
+      AMI.Response.Subscribe_Response (Action_ID => Item.Action_ID);
+      Client.Send (String (Item.To_AMI_Packet));
+
+      return AMI.Response.Wait_For (Action_ID => Item.Action_ID);
    end Send;
 
    procedure Set_Connection_State (Client    : in out Client_Type;

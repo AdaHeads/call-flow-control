@@ -284,6 +284,16 @@ package body PBX.Call.Event_Handlers is
                               Handler => Parked_Call'Access);
    end Register_Handlers;
 
+   --------------
+   --  Unlink  --
+   --------------
+
+   procedure Unlink (Packet : in Parser.Packet_Type) is
+      Context : constant String := Package_Name & ".Parked_Call";
+   begin
+      raise Program_Error with "Not impemented: " &Context;
+   end Unlink;
+
 begin
    Register_Handlers;
 end PBX.Call.Event_Handlers;

@@ -312,16 +312,16 @@ package body PBX.Event_Handlers is
 
       --  Update fields
       Peer.Seen; --  Bump timstamp.
-      if Packet.Fields.Contains (AMI.Parser.Address) then
+      if Packet.Has_Value (Parser.Address) then
          Peer.Address := Packet.Get_Value (Parser.Address);
       end if;
 
-      if Packet.Fields.Contains (AMI.Parser.Port) then
+      if Packet.Has_Value (AMI.Parser.Port) then
          Peer.Port := Packet.Get_Value (Parser.Port);
       end if;
 
       --  Setting the State - registered or not.
-      if Packet.Fields.Contains (AMI.Parser.PeerStatus) then
+      if Packet.Has_Value (AMI.Parser.PeerStatus) then
          --  Save the previous state.
          Peer.Last_State := Peer.State;
          if To_String (Packet.Get_Value (Parser.PeerStatus)) =

@@ -141,10 +141,9 @@ package body Handlers.Call is
 --           State        => Pending,
 --           Assigned_To  => Originating_Agent.ID);
 
-      PBX.Action.Wait_For
-        (PBX.Action.Originate
-           (Agent     => Originating_Agent,
-            Extension => Extension_String));
+      PBX.Action.Originate
+           (Agent       => Originating_Agent,
+            Extension   => Extension_String);
 
       Response_Object.HTTP_Status_Code (HTTP.OK);
       Response_Object.Content (Status_Message

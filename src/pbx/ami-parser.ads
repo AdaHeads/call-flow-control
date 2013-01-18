@@ -220,10 +220,7 @@ package AMI.Parser is
       Hash            => Hash_Function,
       Equivalent_Keys => Hash_Equivalent_Keys);
 
-   type Packet_Type is tagged record
-      Header : Pair_Type := Null_Pair;
-      Fields : Pair_List_Type.Map;
-   end record;
+   type Packet_Type is tagged private;
    --  Every AMI event/response has the same basic format ... not counting
    --  The ones with "text" format.
 
@@ -239,6 +236,10 @@ package AMI.Parser is
    function Has_Value (Packet   : in Packet_Type;
                        Key      : in AMI_Key_Type) return Boolean;
 
+   function Header (Packet : in Packet_Type) return Pair_Type;
+
+   function Header_Value (Packet : in Packet_Type) return String;
+
    function Image (Packet : in Packet_Type) return String;
 
    function Read_Packet (Get_Line : Get_Line_Procedure)
@@ -246,9 +247,7 @@ package AMI.Parser is
    --  Continously calls Read_Line and Parse_Line untill a complete packet has
    --  been assembled.
 
-   New_Packet : constant Packet_Type :=
-     (Header => Null_Pair,
-      Fields => Pair_List_Type.Empty_Map);
+   New_Packet : constant Packet_Type;
    --  Fresh new packet without any data
 
    function Parse_Line (Line : in String) return Pair_Type;
@@ -266,4 +265,13 @@ package AMI.Parser is
 
    function Image (Item : in Pair_Type) return String;
 
+private
+   type Packet_Type is tagged record
+      Header : Pair_Type := Null_Pair;
+      Fields : Pair_List_Type.Map;
+   end record;
+
+      New_Packet : constant Packet_Type :=
+     (Header => Null_Pair,
+      Fields => Pair_List_Type.Empty_Map);
 end AMI.Parser;

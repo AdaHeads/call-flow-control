@@ -128,7 +128,7 @@ package body AGI.Callbacks is
       is
          use Ada.Strings.Unbounded;
       begin
-         return To_String (Packet.Header.Value);
+         return Packet.Header_Value;
       end Event;
 
       ------------------------
@@ -213,7 +213,7 @@ package body AGI.Callbacks is
       is
          use Ada.Strings.Unbounded;
       begin
-         return AWS.URL.Decode (To_String (Packet.Fields.Element (Key)));
+         return AWS.URL.Decode (Packet.Get_Value (Key));
       exception
          when Constraint_Error =>
             AMI.Trace.Log

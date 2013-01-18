@@ -23,6 +23,29 @@ with AMI.Trace;
 
 package body PBX.Call is
 
+   function Next return Identification;
+
+   ----------------
+   --  Allocate  --
+   ----------------
+
+   function Allocate
+     (Assigned_To : in Agent_ID_Type) return Identification is
+      Call : constant Instance :=
+               (ID             => Next,
+                Inbound        => False,
+                Channel        => Null_Channel_Identification,
+                State          => Pending,
+                Organization   =>
+                  Model.Organization_Identifier (0),
+                Arrived        => Current_Time,
+                B_Leg          => Null_Channel_Identification,
+                Assigned_To    => Assigned_To);
+   begin
+      Call_List.Insert (Item => Call);
+      return Call.ID;
+   end Allocate;
+
    --------------------
    --  Arrival_Time  --
    --------------------
@@ -88,6 +111,29 @@ package body PBX.Call is
    begin
       Call_List.Set_Channel (ID => Obj.ID, Channel_ID => Channel_ID);
    end Channel;
+
+   ---------------------------
+   --  Complete_And_Insert  --
+   ---------------------------
+
+   procedure Complete
+     (ID              : in Identification;
+      Channel         : in Channel_Identification;
+      Assigned_To     : in Agent_ID_Type) is
+
+      Call : constant Instance :=
+               (ID             => ID,
+                Inbound        => False,
+                Channel        => Channel,
+                State          => Dialing,
+                Organization   =>
+                  Model.Organization_Identifier (0),
+                Arrived        => Current_Time,
+                B_Leg          => Null_Channel_Identification,
+                Assigned_To    => Assigned_To);
+   begin
+      Call_List.Insert (Item => Call);
+   end Complete;
 
    ------------------------
    -- Create_And_Insert  --
@@ -359,6 +405,15 @@ package body PBX.Call is
       return Remove (Call_List.Get (Channel_ID).ID);
    end Remove;
 
+   -----------------
+   --  Reservate  --
+   -----------------
+
+   function Reservate return Identification is
+   begin
+      return Next;
+   end Reservate;
+
    -------------
    --  State  --
    -------------
@@ -397,11 +452,6 @@ package body PBX.Call is
       return Ada.Strings.Unbounded.To_String
         (Ada.Strings.Unbounded.Unbounded_String (Channel));
    end To_String;
-
---     procedure Unlink (Packet : in Parser.Packet_Type) is
---     begin
---        null;
---     end Unlink;
 
    -------------
    --  Value  --

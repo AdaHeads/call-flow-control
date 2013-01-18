@@ -141,9 +141,17 @@ package PBX.Call is
       B_Leg           : in Channel_Identification :=
         Null_Channel_Identification);
 
+   procedure Complete
+     (ID              : in Identification;
+      Channel         : in Channel_Identification;
+      Assigned_To     : in Agent_ID_Type);
+
+   function Allocate
+     (Assigned_To : in Agent_ID_Type) return Identification;
+
    function To_JSON (Obj : in Instance) return GNATCOLL.JSON.JSON_Value;
 
-   function Next return Identification;
+   function Reservate return Identification;
 
    --    type Subscribeable_Event is (Join_Queue, Leave_Queue);
 

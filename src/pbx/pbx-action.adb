@@ -16,7 +16,7 @@
 -------------------------------------------------------------------------------
 
 with AMI.Response;
-
+with System_Messages; use System_Messages;
 package body PBX.Action is
 
    function Cast (Handler : Response_Handler)
@@ -147,9 +147,39 @@ package body PBX.Action is
       return Cast (List_Peers_Action.Action_ID);
    end Logoff;
 
+   -----------------
+   --  Originate  --
+   -----------------
+
+   procedure Originate (Agent       : in Model.Agent.Agent_Type;
+                        Extension   : in String) is
+      Originate_Action : AMI.Packet.Action.Request :=
+                        AMI.Packet.Action.Originate
+                             (Channel     => Agent.Peer_ID.To_String,
+                              Extension   => Extension,
+                              Context     => Agent.Context,
+                              Priority    => 1,
+                              On_Response => Cast (Ignore));
+      Packet           : AMI.Parser.Packet_Type;
+   begin
+      Packet := Client.Send (Originate_Action);
+
+      if Packet.Header_Value /= "Success" then
+         raise Error with Packet.Get_Value (AMI.Parser.Message);
+      end if;
+
+      System_Messages.Notify (Level   => Debug,
+                              Message => "Originate returns with packet:" &
+                             Packet.Image);
+
+   end Originate;
+
+   -----------------
+   --  Originate  --
+   -----------------
+
    function Originate (Agent       : in Model.Agent.Agent_Type;
-                       Extension   : in String;
-                       On_Response : in Response_Handler := Ignore)
+                       Extension   : in String)
                        return Reply_Ticket
    is
       Originate_Action : AMI.Packet.Action.Request :=
@@ -158,7 +188,7 @@ package body PBX.Action is
                               Extension   => Extension,
                               Context     => Agent.Context,
                               Priority    => 1,
-                              On_Response => Cast (On_Response));
+                              On_Response => Cast (Ignore));
    begin
       Client.Send (Originate_Action);
 
@@ -217,6 +247,11 @@ package body PBX.Action is
    procedure Wait_For (Ticket : in Reply_Ticket) is
    begin
       AMI.Response.Wait_For (Action_ID => Action_ID_Type (Ticket));
+   end Wait_For;
+
+   function Wait_For (Ticket : in Reply_Ticket) return Response is
+   begin
+      return AMI.Response.Wait_For (Action_ID => Action_ID_Type (Ticket));
    end Wait_For;
 
 end PBX.Action;

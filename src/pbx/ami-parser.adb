@@ -49,6 +49,16 @@ package body AMI.Parser is
          raise Key_Not_In_Packet with "No pair with key " & Key'Img;
    end Get_Value;
 
+   function Header_Value (Packet : in Packet_Type) return String is
+   begin
+      return To_String (Packet.Header.Value);
+   end Header_Value;
+
+   function Header (Packet : in Packet_Type) return Pair_Type is
+   begin
+      return Packet.Header;
+   end Header;
+
    function Has_Value (Packet   : in Packet_Type;
                        Key      : in AMI_Key_Type) return Boolean is
    begin

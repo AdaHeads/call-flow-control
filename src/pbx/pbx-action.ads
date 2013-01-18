@@ -16,6 +16,7 @@
 -------------------------------------------------------------------------------
 
 with AMI.Packet.Action;
+with AMI.Parser;
 
 with PBX.Call;
 with Model.Agent;
@@ -24,8 +25,10 @@ package PBX.Action is
    use PBX;
 
    Timeout : exception;
+   Error   : exception;
 
    type Response_Handler is new AMI.Packet.Action.Response_Handler_Type;
+   subtype Response is AMI.Parser.Packet_Type;
 
    Ignore : constant Response_Handler;
 
@@ -51,9 +54,12 @@ package PBX.Action is
                               Ignore) return Reply_Ticket;
 
    function Originate (Agent       : in Model.Agent.Agent_Type;
-                       Extension   : in String;
-                       On_Response : in Response_Handler := Ignore)
+                       Extension   : in String)
                        return Reply_Ticket;
+
+   procedure Originate (Agent       : in Model.Agent.Agent_Type;
+                        Extension   : in String);
+   --  Synchronous originate.
 
    function Park (ID               : in Call.Identification;
                   Parking_Lot      : in String := "";
@@ -67,6 +73,9 @@ package PBX.Action is
       On_Response  : in Response_Handler := Ignore) return Reply_Ticket;
 
    procedure Wait_For (Ticket : in Reply_Ticket);
+   --  Blocking call that waits until a reply for an action is received.
+
+   function Wait_For (Ticket : in Reply_Ticket) return Response;
 private
    Ignore : constant Response_Handler :=
               AMI.Packet.Action.Null_Reponse_Handler'Access;
