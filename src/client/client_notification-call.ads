@@ -56,9 +56,34 @@ package Client_Notification.Call is
    function To_JSON (O : in Bridge_Event) return JSON_Value;
    function Header_Name (O : in Bridge_Event) return String;
 
+   type Originate_Success_Event is new Client_Notification.Instance
+     (Persistant => False) with
+      record
+         Call  : PBX.Call.Instance;
+      end record;
+   function To_JSON (O : in Originate_Success_Event) return JSON_Value;
+   function Header_Name (O : in Originate_Success_Event) return String;
+
+   function Originate_Success (C : in PBX.Call.Instance)
+                               return Originate_Success_Event;
+
+   type Originate_Failed_Event is new Client_Notification.Instance
+     (Persistant => False) with
+      record
+         Call  : PBX.Call.Instance;
+      end record;
+   function To_JSON (O : in Originate_Failed_Event) return JSON_Value;
+   function Header_Name (O : in Originate_Failed_Event) return String;
+
+   function Originate_Failed (C : in PBX.Call.Instance)
+                               return Originate_Failed_Event;
+
 private
-   Pickup_Header : constant String := "call_pickup";
-   Hangup_Header : constant String := "call_hangup";
-   Park_Header   : constant String := "call_park";
-   Bridge_Header : constant String := "call_bridge";
+   Pickup_Header            : constant String := "call_pickup";
+   Hangup_Header            : constant String := "call_hangup";
+   Park_Header              : constant String := "call_park";
+   Bridge_Header            : constant String := "call_bridge";
+   Originate_Failed_Header  : constant String := "originate_failed";
+   Originate_Success_Header : constant String := "originate_success";
+
 end Client_Notification.Call;

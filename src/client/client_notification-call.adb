@@ -49,10 +49,50 @@ package body Client_Notification.Call is
       return Bridge_Header;
    end Header_Name;
 
+   function Header_Name (O : in Originate_Success_Event) return String is
+      pragma Unreferenced (O);
+   begin
+      return Originate_Success_Header;
+   end Header_Name;
+
+   function Header_Name (O : in Originate_Failed_Event) return String is
+      pragma Unreferenced (O);
+   begin
+      return Originate_Failed_Header;
+   end Header_Name;
+
+   ------------------------
+   --  Originate_Failed  --
+   ------------------------
+
+   function Originate_Failed (C : in PBX.Call.Instance)
+                              return Originate_Failed_Event is
+   begin
+      return (Instance with Persistant => False, Call => C);
+   end Originate_Failed;
+
+   -------------------------
+   --  Originate_Success  --
+   -------------------------
+
+   function Originate_Success (C : in PBX.Call.Instance)
+                               return Originate_Success_Event is
+   begin
+      return (Instance with Persistant => False, Call => C);
+   end Originate_Success;
+
+   ------------
+   --  Park  --
+   ------------
+
    function Park (C : in PBX.Call.Instance) return Park_Event is
    begin
       return (Instance with Persistant => False, Call => C);
    end Park;
+
+   --------------
+   --  Pickup  --
+   --------------
 
    function Pickup (C : in PBX.Call.Instance) return Pickup_Event
    is
@@ -73,6 +113,29 @@ package body Client_Notification.Call is
 
    end To_JSON;
 
+   ------------------------------------
+   --  To_JSON for Orignate_Success  --
+   ------------------------------------
+
+   function To_JSON (O : in Originate_Success_Event) return JSON_Value is
+      Notification_JSON : constant JSON_Value := O.JSON_Root;
+   begin
+      JSON_Append (Notification_JSON, "call", O.Call.To_JSON);
+
+      return Notification_JSON;
+   end To_JSON;
+
+   -----------------------------------
+   --  To_JSON for Orignate_Failed  --
+   -----------------------------------
+
+   function To_JSON (O : in Originate_Failed_Event) return JSON_Value is
+      Notification_JSON : constant JSON_Value := O.JSON_Root;
+   begin
+      JSON_Append (Notification_JSON, "call", O.Call.To_JSON);
+
+      return Notification_JSON;
+   end To_JSON;
    ------------------------
    --  To_JSON for Park  --
    ------------------------

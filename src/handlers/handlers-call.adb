@@ -135,12 +135,6 @@ package body Handlers.Call is
       Originating_Agent :=
         Model.Agent.Get (Model.Agent_ID.Create (Agent_ID_String));
 
---        PBX.Call.Create_And_Insert
---          (Inbound      => False,
---           Channel      => Null_Channel_Identification,
---           State        => Pending,
---           Assigned_To  => Originating_Agent.ID);
-
       PBX.Action.Originate
            (Agent       => Originating_Agent,
             Extension   => Extension_String);
@@ -150,6 +144,12 @@ package body Handlers.Call is
                         ("status", "ok"));
       return Response_Object.Build;
    exception
+      when E : PBX.Action.Error =>
+         System_Message.Critical.Response_Exception
+           (Event           => E,
+            Message         => Ada.Exceptions.Exception_Message (E),
+            Response_Object => Response_Object);
+         return Response_Object.Build;
       when E : others =>
          System_Message.Critical.Response_Exception
            (Event           => E,
@@ -366,11 +366,21 @@ package body Handlers.Call is
          raise PBX.Call.Invalid_ID;
       end if;
 
+      if
+        PBX.Call.Get
+          (Agent.Get
+               (PBX.Call.Get (Source).Assigned_To).Current_Call).Inbound
+      then
+         raise PBX.Call.Invalid_ID with "Cannot transfer with an inbound call "
+           & "as destination " & To_String
+           (Agent.Get (PBX.Call.Get (Source).Assigned_To).Current_Call);
+      end if;
+
       PBX.Action.Wait_For
         (PBX.Action.Bridge
-           (Source      => Source,
-            Destination => Agent.Get
-              (PBX.Call.Get (Source).Assigned_To).Current_Call));
+           (Source      => PBX.Call.Get (Source).Channel,
+            Destination => PBX.Call.Get (Agent.Get
+              (PBX.Call.Get (Source).Assigned_To).Current_Call).B_Leg));
 
       Response_Object.HTTP_Status_Code (HTTP.OK);
       Response_Object.Content

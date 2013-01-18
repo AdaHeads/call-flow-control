@@ -19,10 +19,12 @@ with AMI.Channel_ID;
 with AMI.Observers;
 with AMI.Event;
 with AMI.Parser;
-with AMI.Peer_ID;
+--  with AMI.Peer_ID;
 with AMI.Trace;
 with View.Call;
-with Model.Agent;
+with PBX.Action;
+with PBX.Call;
+--  with Model.Agent;
 
 with Handlers.Notifications;
 with Client_Notification.Queue;
@@ -30,7 +32,7 @@ with Client_Notification.Call;
 
 package body PBX.Call.Event_Handlers is
    use AMI.Trace;
-   use Model.Agent;
+--   use Model.Agent;
 
    package Notification renames Handlers.Notifications;
 
@@ -48,6 +50,8 @@ package body PBX.Call.Event_Handlers is
 
    procedure Parked_Call (Packet : in Parser.Packet_Type);
 
+   procedure Unlink (Packet : in Parser.Packet_Type);
+
    --------------
    --  Bridge  --
    --------------
@@ -58,13 +62,7 @@ package body PBX.Call.Event_Handlers is
       Channel1  : Channel_Identification renames
                     Value (Packet.Get_Value (Parser.Channel1));
       Channel2  : String renames Packet.Get_Value (Parser.Channel2);
-      Agent     : Agent_Type := Null_Agent;
    begin
-
-      if Agent = Null_Agent then
-         AMI.Trace.Log
-           (Error, Context & ": null agent detected!");
-      end if;
 
       Get (Channel1).Change_State (New_State => Speaking);
       AMI.Trace.Log
@@ -223,20 +221,32 @@ package body PBX.Call.Event_Handlers is
 
    procedure Originate_Response (Packet : in Parser.Packet_Type) is
       Context : constant String := Package_Name & ".Originate_Response";
-      Channel : String renames
-                  Packet.Get_Value (Parser.Channel);
-      Agent   : Model.Agent.Agent_Type := Null_Agent;
+      Channel : Channel_Identification renames
+                  Value (Packet.Get_Value (Parser.Channel));
+      Call_ID : PBX.Call.Identification renames
+                  PBX.Action.Origination_Request
+                    (PBX.Action.Value (Packet.Action_ID));
    begin
-      Agent := Model.Agent.Get
-        (Peer_ID => AMI.Peer_ID.Create
-           ("SIP/" & Channel_ID.Image (Channel_ID.Value (Channel).Peer)));
+      if Packet.Get_Value (Parser.Response) /= "Success" then
+         AMI.Trace.Log (Error, Context & ": Originate failed, removing call " &
+                          To_String (Call_ID));
 
-      AMI.Trace.Log (Debug, Context & "creating call:" &
-                       Create_And_Insert
-                       (Inbound        => False,
-                        Channel        => Value (Channel),
-                        State          => Dialing,
-                        Assigned_To    => Agent.ID).To_JSON.Write);
+         Notification.Broadcast
+           (Client_Notification.Call.Originate_Failed
+              (C => PBX.Call.Remove (ID => Call_ID)).To_JSON);
+
+      else
+         PBX.Call.Confirm
+           (ID          => Call_ID,
+            Channel     => Channel);
+         AMI.Trace.Log (Debug, Context & "creating call:" &
+                          PBX.Call.Get (Call => Call_ID).To_JSON.Write);
+
+         Notification.Broadcast
+           (Client_Notification.Call.Originate_Success
+              (C => PBX.Call.Remove (ID => Call_ID)).To_JSON);
+      end if;
+
    end Originate_Response;
 
    -------------------
@@ -282,6 +292,8 @@ package body PBX.Call.Event_Handlers is
                               Handler => Originate_Response'Access);
       AMI.Observers.Register (Event   => AMI.Event.ParkedCall,
                               Handler => Parked_Call'Access);
+      AMI.Observers.Register (Event   => AMI.Event.Unlink,
+                              Handler => Unlink'Access);
    end Register_Handlers;
 
    --------------

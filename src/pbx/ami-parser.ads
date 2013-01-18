@@ -224,10 +224,14 @@ package AMI.Parser is
    --  Every AMI event/response has the same basic format ... not counting
    --  The ones with "text" format.
 
+   function Action_ID (Packet : in Packet_Type) return Action_ID_Type;
+   --  Conveniently return the Action_ID of a packet without the cast.
+
    function Get_Value (Packet   : in Packet_Type;
                        Key      : in AMI_Key_Type;
                        Required : in Boolean := True) return String;
-   --  Extracts a value from a packet.
+   --  Extracts a value from a packet. Raises exception when the Required flag
+   --  is set and a value is not found for the key.
 
    function Get_Value (Packet   : in Packet_Type;
                        Key      : in AMI_Key_Type;
@@ -237,8 +241,10 @@ package AMI.Parser is
                        Key      : in AMI_Key_Type) return Boolean;
 
    function Header (Packet : in Packet_Type) return Pair_Type;
+      --  returns the entire header key/value pair.
 
    function Header_Value (Packet : in Packet_Type) return String;
+      --  Returns the value of the header.
 
    function Image (Packet : in Packet_Type) return String;
 
@@ -251,15 +257,9 @@ package AMI.Parser is
    --  Fresh new packet without any data
 
    function Parse_Line (Line : in String) return Pair_Type;
+   --  Tokenizes a line into a key-value Pair_Type.
    --  Takes a line of text, with key-value pairs structured:
    --  Key: Value<CRLF>
-
-   function Try_Get
-     (List  : in Pair_List_Type.Map;
-      Key   : in AMI_Key_Type;
-      Value : out Unbounded_String)
-      return  Boolean;
-   --  Wraps the contains and element operations of a hashed map
 
    function Image (List : in Pair_List_Type.Map) return String;
 

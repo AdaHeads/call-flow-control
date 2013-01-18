@@ -112,28 +112,16 @@ package body PBX.Call is
       Call_List.Set_Channel (ID => Obj.ID, Channel_ID => Channel_ID);
    end Channel;
 
-   ---------------------------
-   --  Complete_And_Insert  --
-   ---------------------------
+   ---------------
+   --  Confirm  --
+   ---------------
 
-   procedure Complete
-     (ID              : in Identification;
-      Channel         : in Channel_Identification;
-      Assigned_To     : in Agent_ID_Type) is
-
-      Call : constant Instance :=
-               (ID             => ID,
-                Inbound        => False,
-                Channel        => Channel,
-                State          => Dialing,
-                Organization   =>
-                  Model.Organization_Identifier (0),
-                Arrived        => Current_Time,
-                B_Leg          => Null_Channel_Identification,
-                Assigned_To    => Assigned_To);
+   procedure Confirm
+     (ID      : in Identification;
+      Channel : in Channel_Identification) is
    begin
-      Call_List.Insert (Item => Call);
-   end Complete;
+      Call_List.Set_Channel (ID, Channel);
+   end Confirm;
 
    ------------------------
    -- Create_And_Insert  --
@@ -483,6 +471,10 @@ package body PBX.Call is
 
    protected body Call_List is
 
+      -----------------
+      --  Assign_To  --
+      -----------------
+
       procedure Assign_To (ID       : in Identification;
                            Agent_ID : in Agent_ID_Type) is
          procedure Update (Key     : in     Identification;
@@ -504,6 +496,10 @@ package body PBX.Call is
          Model.Agent.Update (Agent);
       end Assign_To;
 
+      --------------------
+      --  Change_State  --
+      --------------------
+
       procedure Change_State (ID        : in Identification;
                               New_State : in States) is
          procedure Update (Key     : in     Identification;
@@ -519,6 +515,10 @@ package body PBX.Call is
          Call_List.Update (ID, Update'Access);
       end Change_State;
 
+      ----------------
+      --  Contains  --
+      ----------------
+
       function Contains (Channel_ID : in Channel_Identification)
                          return Boolean is
       begin
@@ -529,11 +529,19 @@ package body PBX.Call is
                           (AMI.Channel.Channel_Key (Channel_ID)));
       end Contains;
 
+      ----------------
+      --  Contains  --
+      ----------------
+
       function Contains (ID : in Identification)
                          return Boolean is
       begin
          return List.Contains (ID);
       end Contains;
+
+      ---------------
+      --  Dequeue  --
+      ---------------
 
       procedure Dequeue (ID : in Identification) is
          procedure Update (Key     : in     Identification;
@@ -555,10 +563,18 @@ package body PBX.Call is
          end if;
       end Dequeue;
 
+      -------------
+      --  Empty  --
+      -------------
+
       function Empty return Boolean is
       begin
          return List.Is_Empty;
       end Empty;
+
+      ---------------
+      --  Enqueue  --
+      ---------------
 
       procedure Enqueue (ID : in Identification) is
          procedure Update (Key     : in     Identification;
@@ -575,10 +591,18 @@ package body PBX.Call is
          Number_Queued := Number_Queued + 1;
       end Enqueue;
 
+      -------------
+      --  First  --
+      -------------
+
       function First return Instance is
       begin
          return List.First_Element;
       end First;
+
+      -----------
+      --  Get  --
+      -----------
 
       function Get (Channel : in Channel_Identification) return Instance is
       begin
@@ -596,6 +620,10 @@ package body PBX.Call is
             raise Not_Found with " channel " & To_String (Channel);
       end Get;
 
+      -----------
+      --  Get  --
+      -----------
+
       function Get (ID : in Identification) return Instance is
       begin
          if not List.Contains (ID) then
@@ -607,6 +635,10 @@ package body PBX.Call is
          when Constraint_Error =>
             raise Not_Found with " call " & To_String (ID);
       end Get;
+
+      --------------
+      --  Insert  --
+      --------------
 
       procedure Insert (Item : Instance) is
          Agent : Model.Agent.Agent_Type := Model.Agent.Null_Agent;
@@ -644,6 +676,10 @@ package body PBX.Call is
               & " ID" & To_String (Item.ID);
       end Insert;
 
+      ------------
+      --  Link  --
+      ------------
+
       procedure Link (ID1 : Identification;
                       ID2 : Identification) is
          procedure Update (Key     : in     Identification;
@@ -680,10 +716,18 @@ package body PBX.Call is
          Call_List.Update (ID2, Update'Access);
       end Link;
 
+      --------------
+      --  Queued  --
+      --------------
+
       function Queued return Natural is
       begin
          return Number_Queued;
       end Queued;
+
+      --------------
+      --  Remove  --
+      --------------
 
       procedure Remove (Channel_ID : in Channel_Identification) is
          Call : Identification := Null_Identification;
@@ -696,15 +740,29 @@ package body PBX.Call is
             raise Not_Found with " channel " & To_String (Channel_ID);
       end Remove;
 
+      --------------
+      --  Remove  --
+      --------------
+
       procedure Remove (ID : in Identification) is
       begin
-         Channel_Lookup_Table.Delete
-           (AMI.Channel.Channel_Key (List.Element (ID).Channel));
+         if not
+           (List.Element (ID).Channel = Null_Channel_Identification and
+              List.Element (ID).State = Pending)
+         then
+            Channel_Lookup_Table.Delete
+              (AMI.Channel.Channel_Key (List.Element (ID).Channel));
+         end if;
+
          List.Delete (ID);
       exception
          when Constraint_Error =>
             raise Not_Found with " call " & To_String (ID);
       end Remove;
+
+      -------------------
+      --  Set_Channel  --
+      -------------------
 
       procedure Set_Channel (ID         : in Identification;
                              Channel_ID : in Channel_Identification) is
@@ -730,6 +788,10 @@ package body PBX.Call is
             raise;
       end Set_Channel;
 
+      ---------------
+      --  To_JSON  --
+      ---------------
+
       function To_JSON (Only_Queued : Boolean := False)
                         return GNATCOLL.JSON.JSON_Value is
          use GNATCOLL.JSON;
@@ -751,6 +813,10 @@ package body PBX.Call is
          return Root;
       end To_JSON;
 
+      --------------
+      --  Update  --
+      --------------
+
       procedure Update (ID    : in Identification;
                         Process : not null access procedure
                           (Key     : in     Identification;
@@ -760,5 +826,4 @@ package body PBX.Call is
                               Process  => Process);
       end Update;
    end Call_List;
-
 end PBX.Call;

@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+--  This is our PBX-boundry layer that (hopefully)
+
 with AMI.Packet.Action;
 with AMI.Parser;
 
@@ -24,20 +26,29 @@ with Model.Agent;
 package PBX.Action is
    use PBX;
 
-   Timeout : exception;
-   Error   : exception;
+   --  TODO add a cleanup task or housekeeping hook.
+
+   Timeout   : exception;
+   Error     : exception;
+
+   function Value (ID : AMI.Action_ID_Type)
+                  return Reply_Ticket;
 
    type Response_Handler is new AMI.Packet.Action.Response_Handler_Type;
    subtype Response is AMI.Parser.Packet_Type;
 
    Ignore : constant Response_Handler;
+   --  Standard null-body handler for ignoring responses.
 
-   function Bridge (Source      : in PBX.Call.Identification;
-                    Destination : in PBX.Call.Identification;
+   function Bridge (Source      : in PBX.Call.Channel_Identification;
+                    Destination : in PBX.Call.Channel_Identification;
                     On_Response : in Response_Handler := Ignore)
-                  return Reply_Ticket;
+                    return Reply_Ticket;
+   --  Bridges two channels. The caller must explicitly specify which legs are
+   --  bridged. Raises Null_Channel if either channel is null.
 
    function Hangup (ID : in Call.Identification) return Reply_Ticket;
+   --  Request a hangup on a given call.
 
    function Login (Username    : in String;
                    Secret      : in String;
@@ -59,7 +70,15 @@ package PBX.Action is
 
    procedure Originate (Agent       : in Model.Agent.Agent_Type;
                         Extension   : in String);
-   --  Synchronous originate.
+   --  Synchronous originate. Raises Timeout or Error when either occurs.
+   --  When successful it allocated a call within the call list and
+   --  Creates a link between the ticket and the allocated call.
+   --  It can later be retrieved by calling "Origination_Request".
+
+   function Origination_Request (Ticket : in Reply_Ticket)
+                                 return Call.Identification;
+   --  Breaks and returns the link between a reply ticket and an allocated
+   --  call. Raises Not_Found when not link is present.
 
    function Park (ID               : in Call.Identification;
                   Parking_Lot      : in String := "";

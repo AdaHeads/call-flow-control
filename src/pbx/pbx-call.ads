@@ -32,6 +32,8 @@ package PBX.Call is
    use Model.Agent_ID;
 
    Not_Found       : exception;
+   Null_Channel    : exception;
+   Null_ID         : exception;
    Already_Bridged : exception;
    Invalid_ID      : exception;
 
@@ -51,7 +53,9 @@ package PBX.Call is
    function To_String (Channel : in Channel_Identification) return String;
 
    type States is
-     (Unknown, Pending, Queued,
+     (Unknown, Pending,
+      Created,
+      Queued,
       Transferring,
       Speaking, Dialing, Delegated, Ended,
       Parked, Transferred);
@@ -141,28 +145,19 @@ package PBX.Call is
       B_Leg           : in Channel_Identification :=
         Null_Channel_Identification);
 
-   procedure Complete
+   procedure Confirm
      (ID              : in Identification;
-      Channel         : in Channel_Identification;
-      Assigned_To     : in Agent_ID_Type);
+      Channel         : in Channel_Identification);
+   --  Confirms a previously allocated call by giving it a channel.
 
    function Allocate
      (Assigned_To : in Agent_ID_Type) return Identification;
+   --  Allocates a call without a channel but assigning it to an agent, and
+   --  giving it a call ID.
 
    function To_JSON (Obj : in Instance) return GNATCOLL.JSON.JSON_Value;
 
    function Reservate return Identification;
-
-   --    type Subscribeable_Event is (Join_Queue, Leave_Queue);
-
-   --     type Event (Kind : Subscribeable_Event) is record
-   --        case Kind is
-   --           when Join_Queue =>
-   --              New_Call : Model.Call.Call_Type;
-   --           when others =>
-   --              null;
-   --        end case;
-   --     end record;
 
    Null_Instance : constant Instance;
 

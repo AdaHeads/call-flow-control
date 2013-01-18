@@ -21,6 +21,7 @@ with Common;
 package PBX is
    use AMI;
 
+   --  TODO: Move this.
    type Reply_Ticket is new AMI.Action_ID_Type;
 
    Null_Reply : constant Reply_Ticket;

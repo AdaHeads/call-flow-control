@@ -15,52 +15,71 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AMI.Response;
-with System_Messages; use System_Messages;
-package body PBX.Action is
+with Ada.Containers.Hashed_Maps;
 
-   function Cast (Handler : Response_Handler)
+with AMI.Response;
+
+package body PBX.Action is
+   use type PBX.Call.Identification;
+
+   function Value (Handler : Response_Handler)
                   return AMI.Packet.Action.Response_Handler_Type;
-   function Cast (ID : AMI.Action_ID_Type)
-                  return Reply_Ticket;
+
+   function Hash (Item : in PBX.Reply_Ticket)
+                  return Ada.Containers.Hash_Type;
+
+   function Equivalent_Keys (Left, Right : in PBX.Reply_Ticket)
+                             return Boolean;
+
+   package Origination_Request_Storage is new
+     Ada.Containers.Hashed_Maps
+       (Key_Type        => PBX.Reply_Ticket,
+        Element_Type    => PBX.Call.Identification,
+        Hash            => Hash,
+        Equivalent_Keys => Equivalent_Keys);
+
+   Origination_Requests : Origination_Request_Storage.Map :=
+                           Origination_Request_Storage.Empty_Map;
 
    --------------
    --  Bridge  --
    --------------
 
-   function Bridge (Source      : in PBX.Call.Identification;
-                    Destination : in PBX.Call.Identification;
+   function Bridge (Source      : in PBX.Call.Channel_Identification;
+                    Destination : in PBX.Call.Channel_Identification;
                     On_Response : in Response_Handler := Ignore)
                   return Reply_Ticket
    is
       use PBX.Call;
       Bridge_Action : AMI.Packet.Action.Request :=
                         AMI.Packet.Action.Bridge
-                          (Channel1    => To_String (Get (Source).Channel),
-                           Channel2    =>
-                             To_String (Get (Destination).Channel),
-                           On_Response => Cast (On_Response));
+                          (Channel1    => To_String (Source),
+                           Channel2    => To_String (Destination),
+                           On_Response => Value (On_Response));
    begin
+      if
+        Source      = Call.Null_Channel_Identification or
+        Destination = Call.Null_Channel_Identification
+      then
+         raise Call.Null_Channel with
+           "Source "     & To_String (Source) & " " &
+           "Destination" & To_String (Destination);
+      end if;
+
       PBX.Client.Send (Bridge_Action.To_AMI_Packet);
 
-      return Cast (Bridge_Action.Action_ID);
+      return Value (Bridge_Action.Action_ID);
    end Bridge;
 
-   --------------------
-   -- Cast functions --
-   --------------------
+   -----------------------
+   --  Equivalent_Keys  --
+   -----------------------
 
-   function Cast (Handler : Response_Handler)
-                  return AMI.Packet.Action.Response_Handler_Type is
+   function Equivalent_Keys (Left, Right : in PBX.Reply_Ticket)
+                             return Boolean is
    begin
-      return AMI.Packet.Action.Response_Handler_Type (Handler);
-   end Cast;
-
-   function Cast (ID : AMI.Action_ID_Type)
-                  return Reply_Ticket is
-   begin
-      return Reply_Ticket (ID);
-   end Cast;
+      return Left = Right;
+   end Equivalent_Keys;
 
    ------------
    -- Hangup --
@@ -76,12 +95,22 @@ package body PBX.Action is
       if ID /= Null_Identification then
          PBX.Client.Send (Hangup_Action.To_AMI_Packet);
 
-         return Cast (Hangup_Action.Action_ID);
+         return Value (Hangup_Action.Action_ID);
       end if;
 
       return Null_Reply;
 
    end Hangup;
+
+   ------------
+   --  Hash  --
+   ------------
+
+   function Hash (Item : in PBX.Reply_Ticket)
+                  return Ada.Containers.Hash_Type is
+   begin
+      return PBX.Reply_Ticket'Pos (Item);
+   end Hash;
 
    -------------------
    -- List_Channels --
@@ -92,11 +121,11 @@ package body PBX.Action is
    is
       List_Channels_Action  : AMI.Packet.Action.Request :=
                                 AMI.Packet.Action.Core_Show_Channels
-                                  (On_Response => Cast (On_Response));
+                                  (On_Response => Value (On_Response));
    begin
       Client.Send (List_Channels_Action);
 
-      return Cast (List_Channels_Action.Action_ID);
+      return Value (List_Channels_Action.Action_ID);
    end List_Channels;
 
    ---------------------
@@ -107,11 +136,11 @@ package body PBX.Action is
                                Ignore) return Reply_Ticket is
       List_Peers_Action : AMI.Packet.Action.Request :=
                             AMI.Packet.Action.SIP_Peers
-                              (On_Response => Cast (On_Response));
+                              (On_Response => Value (On_Response));
    begin
       Client.Send (List_Peers_Action);
 
-      return Cast (List_Peers_Action.Action_ID);
+      return Value (List_Peers_Action.Action_ID);
    end List_SIP_Peers;
 
    -----------
@@ -126,10 +155,10 @@ package body PBX.Action is
                        AMI.Packet.Action.Login
                          (Username    => Username,
                           Secret      => Secret,
-                          On_Response => Cast (On_Response));
+                          On_Response => Value (On_Response));
    begin
       Client.Send (Login_Action);
-      return Cast (Login_Action.Action_ID);
+      return Value (Login_Action.Action_ID);
    end Login;
 
    ------------
@@ -140,11 +169,11 @@ package body PBX.Action is
                       Ignore) return Reply_Ticket is
       List_Peers_Action : AMI.Packet.Action.Request :=
                             AMI.Packet.Action.Logoff
-                              (On_Response => Cast (On_Response));
+                              (On_Response => Value (On_Response));
    begin
       Client.Send (List_Peers_Action);
 
-      return Cast (List_Peers_Action.Action_ID);
+      return Value (List_Peers_Action.Action_ID);
    end Logoff;
 
    -----------------
@@ -159,19 +188,23 @@ package body PBX.Action is
                               Extension   => Extension,
                               Context     => Agent.Context,
                               Priority    => 1,
-                              On_Response => Cast (Ignore));
+                              On_Response => Value (Ignore));
       Packet           : AMI.Parser.Packet_Type;
    begin
+      --  Outline the call. This is done prior to sending the action to assure
+      --  that a request exist in the list when the action completes, thus
+      --  avoiding the race condition.
+      Origination_Requests.Insert
+        (Key      => Value (Originate_Action.Action_ID),
+         New_Item => PBX.Call.Allocate (Assigned_To => Agent.ID));
+
       Packet := Client.Send (Originate_Action);
 
       if Packet.Header_Value /= "Success" then
+         --  Remove the allocated call if the request fails.
+         Origination_Requests.Delete (Value (Originate_Action.Action_ID));
          raise Error with Packet.Get_Value (AMI.Parser.Message);
       end if;
-
-      System_Messages.Notify (Level   => Debug,
-                              Message => "Originate returns with packet:" &
-                             Packet.Image);
-
    end Originate;
 
    -----------------
@@ -188,12 +221,26 @@ package body PBX.Action is
                               Extension   => Extension,
                               Context     => Agent.Context,
                               Priority    => 1,
-                              On_Response => Cast (Ignore));
+                              On_Response => Value (Ignore));
    begin
       Client.Send (Originate_Action);
 
-      return Cast (Originate_Action.Action_ID);
+      return Value (Originate_Action.Action_ID);
    end Originate;
+
+   ---------------------------
+   --  Origination_Request  --
+   ---------------------------
+
+   function Origination_Request (Ticket : in Reply_Ticket)
+                                 return Call.Identification is
+      ID : Call.Identification := Call.Null_Identification;
+   begin
+      ID := Origination_Requests.Element (Ticket);
+      Origination_Requests.Delete (Ticket);
+
+      return ID;
+   end Origination_Request;
 
    ----------
    -- Park --
@@ -211,11 +258,11 @@ package body PBX.Action is
                          Timeout     => 7200.0,
                          Parkinglot  => Parking_Lot,
                          On_Response =>
-                           Cast (On_Response));
+                           Value (On_Response));
    begin
       Client.Send (Park_Action);
 
-      return Cast (Park_Action.Action_ID);
+      return Value (Park_Action.Action_ID);
    end Park;
 
    --------------
@@ -233,12 +280,28 @@ package body PBX.Action is
                             (Channel      => Channel,
                              Extension    => Extension,
                              Context      => Context,
-                             On_Response  => Cast (On_Response));
+                             On_Response  => Value (On_Response));
    begin
       Client.Send (Redirect_Action);
 
-      return Cast (Redirect_Action.Action_ID);
+      return Value (Redirect_Action.Action_ID);
    end Redirect;
+
+   ---------------------
+   -- Value functions --
+   ---------------------
+
+   function Value (Handler : Response_Handler)
+                  return AMI.Packet.Action.Response_Handler_Type is
+   begin
+      return AMI.Packet.Action.Response_Handler_Type (Handler);
+   end Value;
+
+   function Value (ID : AMI.Action_ID_Type)
+                  return Reply_Ticket is
+   begin
+      return Reply_Ticket (ID);
+   end Value;
 
    --------------
    -- Wait_For --

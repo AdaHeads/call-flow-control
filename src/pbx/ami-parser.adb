@@ -23,12 +23,29 @@ with System_Messages;   use System_Messages;
 
 package body AMI.Parser is
 
+   -----------------
+   --  Action_ID  --
+   -----------------
+
+   function Action_ID (Packet : in Packet_Type) return Action_ID_Type is
+   begin
+      return Action_ID_Type'Value (Packet.Get_Value (ActionID));
+   end Action_ID;
+
+   -----------------
+   --  Get_Value  --
+   -----------------
+
    function Get_Value (Packet   : in Packet_Type;
                        Key      : in AMI_Key_Type;
                        Required : in Boolean := True) return String is
    begin
       return To_String (Packet.Get_Value (Key, Required));
    end Get_Value;
+
+   -----------------
+   --  Get_Value  --
+   -----------------
 
    function Get_Value (Packet   : in Packet_Type;
                        Key      : in AMI_Key_Type;
@@ -49,15 +66,9 @@ package body AMI.Parser is
          raise Key_Not_In_Packet with "No pair with key " & Key'Img;
    end Get_Value;
 
-   function Header_Value (Packet : in Packet_Type) return String is
-   begin
-      return To_String (Packet.Header.Value);
-   end Header_Value;
-
-   function Header (Packet : in Packet_Type) return Pair_Type is
-   begin
-      return Packet.Header;
-   end Header;
+   -----------------
+   --  Has_Value  --
+   -----------------
 
    function Has_Value (Packet   : in Packet_Type;
                        Key      : in AMI_Key_Type) return Boolean is
@@ -65,11 +76,19 @@ package body AMI.Parser is
       return Packet.Fields.Contains (Key);
    end Has_Value;
 
+   ----------------------------
+   --  Hash_Equivalent_Keys  --
+   ----------------------------
+
    function Hash_Equivalent_Keys (Left, Right : in AMI_Key_Type)
                                   return Boolean is
    begin
       return Left = Right;
    end Hash_Equivalent_Keys;
+
+   ---------------------
+   --  Hash_Function  --
+   ---------------------
 
    function Hash_Function (Key : in AMI_Key_Type)
                            return Ada.Containers.Hash_Type
@@ -78,10 +97,36 @@ package body AMI.Parser is
       return AMI_Key_Type'Pos (Key);
    end Hash_Function;
 
+   --------------
+   --  Header  --
+   --------------
+
+   function Header (Packet : in Packet_Type) return Pair_Type is
+   begin
+      return Packet.Header;
+   end Header;
+
+   --------------------
+   --  Header_Value  --
+   --------------------
+
+   function Header_Value (Packet : in Packet_Type) return String is
+   begin
+      return To_String (Packet.Header.Value);
+   end Header_Value;
+
+   -------------
+   --  Image  --
+   -------------
+
    function Image (Packet : in Packet_Type) return String is
    begin
       return "Header:" & Image (Packet.Header) & Image (Packet.Fields);
    end Image;
+
+   -------------
+   --  Image  --
+   -------------
 
    function Image (List : in Pair_List_Type.Map) return String is
       package Latin_1 renames Ada.Characters.Latin_1;
@@ -100,13 +145,20 @@ package body AMI.Parser is
       return To_String (Buffer);
    end Image;
 
+   -------------
+   --  Image  --
+   -------------
+
    function Image (Item : in Pair_Type) return String is
    begin
       return "[" & AMI_Key_Type'Image (Item.Key) &
         "] => [" & To_String (Item.Value) & "]";
    end Image;
 
-   --  Tokenizes a line into a key-value Pair_Type
+   ------------------
+   --  Parse_Line  --
+   ------------------
+
    function Parse_Line (Line : in String) return Pair_Type is
       Underscore_Map : constant Ada.Strings.Maps.Character_Mapping
         := Ada.Strings.Maps.To_Mapping ("-", "_");
@@ -155,6 +207,10 @@ package body AMI.Parser is
          return Bad_Line;
    end Parse_Line;
 
+   -------------------
+   --  Read_Packet  --
+   -------------------
+
    function Read_Packet (Get_Line : Get_Line_Procedure)
                          return Packet_Type is
       Current_Pair   : Pair_Type   := Null_Pair;
@@ -183,18 +239,4 @@ package body AMI.Parser is
       end loop;
    end Read_Packet;
 
-   function Try_Get (List  : in     Pair_List_Type.Map;
-                     Key   : in     AMI_Key_Type;
-                     Value :    out Unbounded_String) return Boolean is
-   begin
-      if
-        List.Contains (Key => Key)
-      then
-         Value :=  List.Element (Key);
-         return True;
-      else
-         Value := Null_Unbounded_String;
-         return False;
-      end if;
-   end Try_Get;
 end AMI.Parser;
