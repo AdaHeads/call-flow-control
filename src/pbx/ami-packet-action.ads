@@ -56,6 +56,8 @@ package AMI.Packet.Action is
 
    procedure Null_Reponse_Handler (Packet : AMI.Parser.Packet_Type) is null;
 
+   Ignore : constant Response_Handler_Type := Null_Reponse_Handler'Access;
+
    type Request (Asynchronous : Boolean)
      is tagged limited private;
    --  A request and it's primities

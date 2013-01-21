@@ -29,14 +29,9 @@ package body AMI.Observers is
 
    Callbacks : array (AMI.Event.Event_Type) of Callback_Collections.Vector;
 
-   procedure Register (Event   : in     AMI.Event.Event_Type;
-                       Handler : in     AMI.Event.Event_Callback) is
-   begin
-      System_Messages.Notify (Debug, "registering handler for " & Event'Img);
-      if not Callbacks (Event).Contains (Handler) then
-         Callbacks (Event).Append (Handler);
-      end if;
-   end Register;
+   --------------
+   --  Notify  --
+   --------------
 
    procedure Notify (Event  : in     AMI.Event.Event_Type;
                      Packet : in     AMI.Parser.Packet_Type) is
@@ -51,4 +46,18 @@ package body AMI.Observers is
          Callback (Packet);
       end loop;
    end Notify;
+
+   ----------------
+   --  Register  --
+   ----------------
+
+   procedure Register (Event   : in     AMI.Event.Event_Type;
+                       Handler : in     AMI.Event.Event_Callback) is
+   begin
+      System_Messages.Notify (Debug, "registering handler for " & Event'Img);
+      if not Callbacks (Event).Contains (Handler) then
+         Callbacks (Event).Append (Handler);
+      end if;
+   end Register;
+
 end AMI.Observers;

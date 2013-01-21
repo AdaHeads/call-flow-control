@@ -18,6 +18,7 @@
 with Ada.Containers.Hashed_Maps;
 
 with AMI.Response;
+with AMI.Trace;
 
 package body PBX.Action is
    use type PBX.Call.Identification;
@@ -38,8 +39,44 @@ package body PBX.Action is
         Hash            => Hash,
         Equivalent_Keys => Equivalent_Keys);
 
-   Origination_Requests : Origination_Request_Storage.Map :=
+   protected Origination_Requests is
+      procedure Link (Ticket  : in Reply_Ticket;
+                      Call_ID : in Call.Identification);
+
+      procedure Unlink (Ticket  : in Reply_Ticket);
+
+      procedure Unlink (Ticket  : in     Reply_Ticket;
+                        Call_ID :    out Call.Identification);
+   private
+      Origination_List : Origination_Request_Storage.Map :=
                            Origination_Request_Storage.Empty_Map;
+   end Origination_Requests;
+
+   protected body Origination_Requests is
+      procedure Link (Ticket  : in Reply_Ticket;
+                      Call_ID : in Call.Identification) is
+      begin
+         Origination_List.Insert
+           (Key      => Ticket,
+            New_Item => Call_ID);
+      end Link;
+
+      procedure Unlink (Ticket  : in     Reply_Ticket;
+                        Call_ID :    out Call.Identification) is
+      begin
+         Call_ID := Call.Remove (Origination_List.Element (Ticket)).ID;
+         Origination_List.Delete (Ticket);
+      end Unlink;
+
+      procedure Unlink (Ticket : in Reply_Ticket) is
+         Dummy_ID : Call.Identification;
+         pragma Unreferenced (Dummy_ID);
+      begin
+         Dummy_ID := Call.Remove (Origination_List.Element (Ticket)).ID;
+         Origination_List.Delete (Ticket);
+      end Unlink;
+
+   end Origination_Requests;
 
    --------------
    --  Bridge  --
@@ -182,6 +219,7 @@ package body PBX.Action is
 
    procedure Originate (Agent       : in Model.Agent.Agent_Type;
                         Extension   : in String) is
+      Context          : constant String := Package_Name & ".Originate";
       Originate_Action : AMI.Packet.Action.Request :=
                         AMI.Packet.Action.Originate
                              (Channel     => Agent.Peer_ID.To_String,
@@ -194,15 +232,20 @@ package body PBX.Action is
       --  Outline the call. This is done prior to sending the action to assure
       --  that a request exist in the list when the action completes, thus
       --  avoiding the race condition.
-      Origination_Requests.Insert
-        (Key      => Value (Originate_Action.Action_ID),
-         New_Item => PBX.Call.Allocate (Assigned_To => Agent.ID));
+      Origination_Requests.Link
+        (Ticket  => Value (Originate_Action.Action_ID),
+         Call_ID => PBX.Call.Allocate (Assigned_To => Agent.ID));
 
+      AMI.Trace.Debug
+        (Message => "Sending Originate request with ticket " &
+          Originate_Action.Action_ID'Img,
+         Context => Context,
+         Level   => 1);
       Packet := Client.Send (Originate_Action);
 
       if Packet.Header_Value /= "Success" then
+         Origination_Requests.Unlink (Value (Originate_Action.Action_ID));
          --  Remove the allocated call if the request fails.
-         Origination_Requests.Delete (Value (Originate_Action.Action_ID));
          raise Error with Packet.Get_Value (AMI.Parser.Message);
       end if;
    end Originate;
@@ -234,12 +277,20 @@ package body PBX.Action is
 
    function Origination_Request (Ticket : in Reply_Ticket)
                                  return Call.Identification is
+      Context : constant String := Package_Name & ".Origination_Request";
       ID : Call.Identification := Call.Null_Identification;
    begin
-      ID := Origination_Requests.Element (Ticket);
-      Origination_Requests.Delete (Ticket);
+      Origination_Requests.Unlink (Ticket  => Ticket,
+                                   Call_ID => ID);
 
       return ID;
+   exception
+      when Constraint_Error =>
+         AMI.Trace.Error (Message => "No request found for origination with " &
+                            "ID" & Ticket'Img,
+                          Context => Context);
+         raise Constraint_Error with "No request found for origination with " &
+                            "ID" & Ticket'Img;
    end Origination_Request;
 
    ----------
@@ -309,12 +360,12 @@ package body PBX.Action is
 
    procedure Wait_For (Ticket : in Reply_Ticket) is
    begin
-      AMI.Response.Wait_For (Action_ID => Action_ID_Type (Ticket));
+      AMI.Response.Wait_For (Ticket => Action_ID_Type (Ticket));
    end Wait_For;
 
    function Wait_For (Ticket : in Reply_Ticket) return Response is
    begin
-      return AMI.Response.Wait_For (Action_ID => Action_ID_Type (Ticket));
+      return AMI.Response.Claim (Ticket => Action_ID_Type (Ticket));
    end Wait_For;
 
 end PBX.Action;

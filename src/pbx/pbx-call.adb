@@ -31,6 +31,7 @@ package body PBX.Call is
 
    function Allocate
      (Assigned_To : in Agent_ID_Type) return Identification is
+      Context : constant String := Package_Name & ".Allocate";
       Call : constant Instance :=
                (ID             => Next,
                 Inbound        => False,
@@ -42,6 +43,10 @@ package body PBX.Call is
                 B_Leg          => Null_Channel_Identification,
                 Assigned_To    => Assigned_To);
    begin
+      AMI.Trace.Debug (Message => "Inserting call with ID " &
+                         To_String (Call.ID),
+                       Context => Context,
+                       Level   => 1);
       Call_List.Insert (Item => Call);
       return Call.ID;
    end Allocate;
@@ -375,8 +380,13 @@ package body PBX.Call is
    --------------
 
    function Remove (ID : in Identification) return Instance is
-      Removed_Call : Instance;
+      Context : constant String := Package_Name & ".Remove";
+      Removed_Call : Instance := Null_Instance;
    begin
+      AMI.Trace.Debug (Message => "Removing call with ID " & To_String (ID),
+                       Context => Context,
+                       Level   => 1);
+
       --  Make a copy of the call to be able to return it.
       Removed_Call := Call_List.Get (ID);
 

@@ -31,6 +31,8 @@ package PBX.Call is
    use Common;
    use Model.Agent_ID;
 
+   Package_Name : constant String := "PBX.Call";
+
    Not_Found       : exception;
    Null_Channel    : exception;
    Null_ID         : exception;
@@ -166,6 +168,7 @@ private
 
    Null_Identification : constant Identification := Identification'First;
    Next_Identification : Identification := Null_Identification;
+   pragma Atomic (Next_Identification);
 
    type Instance is tagged
       record

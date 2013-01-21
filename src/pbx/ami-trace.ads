@@ -18,7 +18,35 @@
 with System_Messages;
 
 package AMI.Trace is
+
    type Kind is new System_Messages.Message_Type;
 
+   type Debug_Threshold_Levels is range 0 .. 32;
+
+   No_Debug_Information : constant Debug_Threshold_Levels;
+
+   All_Debug_Information : constant Debug_Threshold_Levels;
+
    procedure Log (Level : in Kind; Message : in String);
+
+   procedure Debug (Message : in String;
+                    Context : in String := "";
+                    Level   : in Debug_Threshold_Levels :=
+                      Debug_Threshold_Levels'Last);
+
+   procedure Error (Message : in String;
+                    Context : in String := "");
+
+   procedure Set_Debug_Threshold (New_Threshold : in Debug_Threshold_Levels);
+
+private
+
+   No_Debug_Information : constant Debug_Threshold_Levels :=
+                            Debug_Threshold_Levels'First;
+
+   All_Debug_Information : constant Debug_Threshold_Levels :=
+                             Debug_Threshold_Levels'Last;
+
+   Current_Debug_Threshold : Debug_Threshold_Levels := All_Debug_Information;
+
 end AMI.Trace;

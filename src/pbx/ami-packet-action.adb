@@ -37,8 +37,8 @@ package body AMI.Packet.Action is
    function Create (Action : in Valid_Action;
                     Fields : in Field_List.List :=
                       Field_List.Empty_List;
-                    On_Response : in Response_Handler_Type :=
-                      Null_Reponse_Handler'Access) return Request;
+                    On_Response : in Response_Handler_Type := Ignore)
+                    return Request;
    --  Private constructor for intializing an basic object
 
    ----------------------
@@ -368,8 +368,8 @@ package body AMI.Packet.Action is
    function Create (Action : in Valid_Action;
                     Fields : in Field_List.List :=
                       Field_List.Empty_List;
-                    On_Response : in Response_Handler_Type :=
-                      Null_Reponse_Handler'Access) return Request is
+                    On_Response : in Response_Handler_Type := Ignore)
+                    return Request is
    begin
       return (Asynchronous => True,
               Action       => Action,

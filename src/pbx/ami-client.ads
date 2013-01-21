@@ -31,8 +31,6 @@ package AMI.Client is
 
    type Autenticated_Type is (Unknown, No_Reply,
                               Authenticated, Not_Authenticated);
-   --   type Client_Type is limited private;
-   --  TODO: Move to private.
    --  type Socket_Type is new AWS.Net.Std.Socket_Type with null record;
 
    type Connection_Event_Handler is not null access procedure;

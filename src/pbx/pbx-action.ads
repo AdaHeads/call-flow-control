@@ -15,7 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  This is our PBX-boundry layer that (hopefully)
+--  This is our PBX-boundry layer. It levels out the differences between
+--  various PBX communication protocols.
 
 with AMI.Packet.Action;
 with AMI.Parser;
@@ -25,6 +26,8 @@ with Model.Agent;
 
 package PBX.Action is
    use PBX;
+
+   Package_Name : constant String := "PBX.Action";
 
    --  TODO add a cleanup task or housekeeping hook.
 

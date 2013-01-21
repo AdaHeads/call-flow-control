@@ -233,7 +233,7 @@ package body PBX.Call.Event_Handlers is
 
          Notification.Broadcast
            (Client_Notification.Call.Originate_Failed
-              (C => PBX.Call.Remove (ID => Call_ID)).To_JSON);
+              (C => PBX.Call.Get (Call => Call_ID)).To_JSON);
 
       else
          PBX.Call.Confirm
@@ -244,7 +244,7 @@ package body PBX.Call.Event_Handlers is
 
          Notification.Broadcast
            (Client_Notification.Call.Originate_Success
-              (C => PBX.Call.Remove (ID => Call_ID)).To_JSON);
+              (C => PBX.Call.Get (Call => Call_ID)).To_JSON);
       end if;
 
    end Originate_Response;

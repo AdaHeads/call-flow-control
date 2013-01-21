@@ -31,4 +31,5 @@ package AMI.Packet is
 
 private
    Current_Action_ID : Action_ID_Type := Action_ID_Type'First;
+   pragma Atomic (Current_Action_ID);
 end AMI.Packet;

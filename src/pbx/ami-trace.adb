@@ -17,9 +17,59 @@
 
 package body AMI.Trace is
 
+   -------------
+   --  Debug  --
+   -------------
+
+   procedure Debug (Message : in String;
+                    Context : in String := "";
+                    Level   : in Debug_Threshold_Levels :=
+                      Debug_Threshold_Levels'Last) is
+   begin
+      if Level <= Current_Debug_Threshold then
+         if Context = "" then
+            System_Messages.Notify (System_Messages.Debug, Message);
+         else
+            System_Messages.Notify (System_Messages.Debug,
+                                    Context & ": " & Message);
+
+         end if;
+      end if;
+   end Debug;
+
+   -------------
+   --  Error  --
+   -------------
+
+   procedure Error (Message : in String;
+                    Context : in String := "") is
+   begin
+      if Context = "" then
+         System_Messages.Notify (System_Messages.Error, Message);
+      else
+         System_Messages.Notify (System_Messages.Error,
+                                 Context & ": " & Message);
+
+      end if;
+   end Error;
+
+   -----------
+   --  Log  --
+   -----------
+
    procedure Log (Level : in Kind; Message : in String) is
    begin
       System_Messages.Notify (System_Messages.Message_Type (Level), Message);
    end Log;
+   pragma Obsolescent (Log);
+
+   ---------------------------
+   --  Set_Debug_Threshold  --
+   ---------------------------
+
+   procedure Set_Debug_Threshold (New_Threshold : in Debug_Threshold_Levels) is
+   begin
+      Current_Debug_Threshold := New_Threshold;
+   end Set_Debug_Threshold;
 
 end AMI.Trace;

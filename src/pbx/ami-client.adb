@@ -22,11 +22,11 @@ with AMI.Response;
 with AMI.Channel.Event_Handlers;
 
 with Common;
-with System_Messages;
+with AMI.Trace;
 
 package body AMI.Client is
    use Ada.Strings.Unbounded;
-   use System_Messages;
+   use AMI.Trace;
    use Common;
 
    procedure Connect (Client   : in out Client_Type;
@@ -40,7 +40,7 @@ package body AMI.Client is
       Client.Connected := False;
       Client.Authenticated := False;
 
-      System_Messages.Notify (Debug, "Connecting to " &
+      AMI.Trace.Log (Debug, "Connecting to " &
                                 Hostname & ":" &
                                 Positive'Image (Port));
       AWS.Net.Std.Connect (Socket => Client.Socket,
@@ -57,7 +57,7 @@ package body AMI.Client is
       end loop Wait_For_Connection;
 
       if Client.Connected then
-         System_Messages.Notify (Information, "Connected to " &
+         AMI.Trace.Log (Information, "Connected to " &
                                    Hostname & ":" &
                                    Positive'Image (Port));
 
@@ -65,12 +65,12 @@ package body AMI.Client is
          Client.Server_Greeting :=
            To_Unbounded_String (AWS.Net.Buffered.Get_Line
                                   (Socket => Client.Socket));
-         System_Messages.Notify (Debug, "Connect: Server greeted me with:" &
+         AMI.Trace.Log (Debug, "Connect: Server greeted me with:" &
                                    To_String (Client.Server_Greeting));
          --  Call the On_Connect handler
          Client.On_Connect_Handler.all;
       else
-         System_Messages.Notify
+         AMI.Trace.Log
            (Information, "Connection timed out connecting to " &
                                    Hostname & ":" &
                                    Positive'Image (Port));
@@ -142,7 +142,6 @@ package body AMI.Client is
    begin
       AWS.Net.Buffered.Put (Client.Socket, Item);
       AWS.Net.Buffered.Flush (Client.Socket);
-      System_Messages.Notify (Debug, "Send: Sent " & Item);
    exception
       when others =>
          Client.On_Disconnect_Handler.all;
@@ -151,7 +150,7 @@ package body AMI.Client is
    procedure Send (Client : in out Client_Type;
                    Item   : in     AMI.Packet.Action.Request) is
    begin
-         AMI.Response.Subscribe_Handler (Item);
+      AMI.Response.Subscribe (Item);
 
       Client.Send (String (Item.To_AMI_Packet));
    end Send;
@@ -166,10 +165,10 @@ package body AMI.Client is
                   Item   : in     AMI.Packet.Action.Request)
                   return AMI.Parser.Packet_Type is
    begin
-      AMI.Response.Subscribe_Response (Action_ID => Item.Action_ID);
+      AMI.Response.Subscribe (Item);
       Client.Send (String (Item.To_AMI_Packet));
 
-      return AMI.Response.Wait_For (Action_ID => Item.Action_ID);
+      return AMI.Response.Claim (Ticket => Item.Action_ID);
    end Send;
 
    procedure Set_Connection_State (Client    : in out Client_Type;
