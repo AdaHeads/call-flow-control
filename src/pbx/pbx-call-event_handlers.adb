@@ -43,6 +43,9 @@ package body PBX.Call.Event_Handlers is
    procedure Join (Packet : in Parser.Packet_Type);
 
    procedure Leave (Packet : in Parser.Packet_Type);
+   --  A Leave event occurs when a channel leaves a Queue for any reason.
+   --  E.g. hangup or pickup. This procedure is responsible for changing the
+   --  state of the to transferring and broadcasts the event.
 
    procedure Hangup (Packet : in Parser.Packet_Type);
 

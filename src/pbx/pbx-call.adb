@@ -274,6 +274,7 @@ package body PBX.Call is
    begin
       return Call_List.Contains (ID);
    end Has;
+
    -------------------------
    --  Highest_Prioirity  --
    -------------------------
@@ -402,15 +403,6 @@ package body PBX.Call is
    begin
       return Remove (Call_List.Get (Channel_ID).ID);
    end Remove;
-
-   -----------------
-   --  Reservate  --
-   -----------------
-
-   function Reservate return Identification is
-   begin
-      return Next;
-   end Reservate;
 
    -------------
    --  State  --

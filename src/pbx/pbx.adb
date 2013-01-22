@@ -47,6 +47,8 @@ package body PBX is
    task Connect_Task is
       entry Start;
    end Connect_Task;
+   --  The sole purpose of the connect task is to ensure that we return to the
+   --  main context, and don't get caught in an infinite reconnect loop.
 
    procedure Authenticate;
    --  Wraps the entire authentication mechanism and provides a neat callback
@@ -170,6 +172,10 @@ package body PBX is
            (Critical, Ada.Exceptions.Exception_Information (E));
    end Reader_Task;
 
+   --------------------
+   --  Connect_Task  --
+   --------------------
+
    task body Connect_Task is
    begin
       accept Start;
@@ -197,8 +203,12 @@ package body PBX is
       System_Messages.Notify (Debug, "PBX.Shutdown");
       Shutdown := True;
 
-      PBX.Action.Wait_For (PBX.Action.Logoff);
+      if Client.Connected then
+         PBX.Action.Wait_For (PBX.Action.Logoff);
+      end if;
 
       Client.Disconnect;
+      System_Messages.Notify (Debug, "PBX.Shutdown complete");
+
    end Stop;
 end PBX;
