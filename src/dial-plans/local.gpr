@@ -1,0 +1,13 @@
+with "xmlada";
+
+project Local is
+   for Main use ("load_dial_plan",
+                 "receptions-dial_plan",
+                 "receptions-end_points-hang_up",
+                 "receptions-end_points-queue",
+                 "receptions-end_points-redirect",
+                 "receptions-end_points-interactive_voice_response",
+                 "receptions-end_points-voice_mail",
+                 "receptions-end_points-busy_signal",
+                 "receptions-decision_tree");
+end Local;

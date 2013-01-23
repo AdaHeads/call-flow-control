@@ -1,0 +1,4 @@
+*.ali
+*.o
+
+load_dial_plan
