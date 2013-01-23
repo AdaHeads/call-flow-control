@@ -20,7 +20,7 @@ with GNATCOLL.JSON;
 package Client_Notification is
    use GNATCOLL.JSON;
 
-   type Instance (Persistant : Boolean) is abstract tagged private;
+   type Instance (Persistent : Boolean) is abstract tagged private;
 
    function JSON_Root (O : in Instance'Class) return JSON_Value;
    --  Class-wide operation that returns the root of the notification
@@ -38,6 +38,6 @@ package Client_Notification is
    --  Mandatory header name.
 
 private
-   type Instance (Persistant : Boolean) is abstract tagged null record;
+   type Instance (Persistent : Boolean) is abstract tagged null record;
 
 end Client_Notification;

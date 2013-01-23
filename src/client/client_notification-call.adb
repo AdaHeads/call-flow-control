@@ -18,7 +18,7 @@ package body Client_Notification.Call is
 
    function Hangup (C : in PBX.Call.Instance) return Hangup_Event is
    begin
-      return (Instance with Persistant => False, Call => C);
+      return (Instance with Persistent => False, Call => C);
    end Hangup;
 
    -----------------------------
@@ -68,7 +68,7 @@ package body Client_Notification.Call is
    function Originate_Failed (C : in PBX.Call.Instance)
                               return Originate_Failed_Event is
    begin
-      return (Instance with Persistant => False, Call => C);
+      return (Instance with Persistent => False, Call => C);
    end Originate_Failed;
 
    -------------------------
@@ -78,7 +78,7 @@ package body Client_Notification.Call is
    function Originate_Success (C : in PBX.Call.Instance)
                                return Originate_Success_Event is
    begin
-      return (Instance with Persistant => False, Call => C);
+      return (Instance with Persistent => False, Call => C);
    end Originate_Success;
 
    ------------
@@ -87,7 +87,7 @@ package body Client_Notification.Call is
 
    function Park (C : in PBX.Call.Instance) return Park_Event is
    begin
-      return (Instance with Persistant => False, Call => C);
+      return (Instance with Persistent => False, Call => C);
    end Park;
 
    --------------
@@ -97,7 +97,7 @@ package body Client_Notification.Call is
    function Pickup (C : in PBX.Call.Instance) return Pickup_Event
    is
    begin
-      return (Instance with Persistant => False, Call => C);
+      return (Instance with Persistent => False, Call => C);
    end Pickup;
 
    --------------------------

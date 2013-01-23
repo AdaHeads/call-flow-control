@@ -33,7 +33,7 @@ package body Client_Notification is
       Root_JSON         : constant JSON_Value := Create_Object;
       Notification_JSON : constant JSON_Value := Create_Object;
    begin
-      Notification_JSON.Set_Field ("persistent", To_Lower (O.Persistant'Img));
+      Notification_JSON.Set_Field ("persistent", To_Lower (O.Persistent'Img));
       Notification_JSON.Set_Field ("event", O.Header_Name);
 
       Root_JSON.Set_Field ("timestamp", Common.Unix_Timestamp

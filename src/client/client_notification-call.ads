@@ -20,7 +20,7 @@ with PBX.Call;
 package Client_Notification.Call is
 
    type Pickup_Event is new Client_Notification.Instance
-     (Persistant => False) with
+     (Persistent => False) with
       record
          Call     : PBX.Call.Instance;
       end record;
@@ -29,7 +29,7 @@ package Client_Notification.Call is
    function Pickup (C : in PBX.Call.Instance) return Pickup_Event;
 
    type Hangup_Event is new Client_Notification.Instance
-     (Persistant => False) with
+     (Persistent => False) with
       record
          Call : PBX.Call.Instance;
       end record;
@@ -39,7 +39,7 @@ package Client_Notification.Call is
    function Hangup (C : in PBX.Call.Instance) return Hangup_Event;
 
    type Park_Event is new Client_Notification.Instance
-     (Persistant => False) with
+     (Persistent => False) with
       record
          Call : PBX.Call.Instance;
       end record;
@@ -49,7 +49,7 @@ package Client_Notification.Call is
    function Park (C : in PBX.Call.Instance) return Park_Event;
 
    type Bridge_Event is new Client_Notification.Instance
-     (Persistant => False) with
+     (Persistent => False) with
       record
          Call  : PBX.Call.Instance;
       end record;
@@ -57,7 +57,7 @@ package Client_Notification.Call is
    function Header_Name (O : in Bridge_Event) return String;
 
    type Originate_Success_Event is new Client_Notification.Instance
-     (Persistant => False) with
+     (Persistent => False) with
       record
          Call  : PBX.Call.Instance;
       end record;
@@ -68,7 +68,7 @@ package Client_Notification.Call is
                                return Originate_Success_Event;
 
    type Originate_Failed_Event is new Client_Notification.Instance
-     (Persistant => False) with
+     (Persistent => False) with
       record
          Call  : PBX.Call.Instance;
       end record;

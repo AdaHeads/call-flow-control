@@ -21,7 +21,7 @@ package Client_Notification.Queue is
    use PBX;
 
    type Join_Event is new Client_Notification.Instance
-     (Persistant => False) with
+     (Persistent => False) with
       record
          Joined_Call : Call.Instance;
       end record;
@@ -29,7 +29,7 @@ package Client_Notification.Queue is
    function Header_Name (O : in Join_Event) return String;
 
    type Leave_Event is new Client_Notification.Instance
-     (Persistant => False) with
+     (Persistent => False) with
       record
          Left_Call : Call.Instance;
       end record;

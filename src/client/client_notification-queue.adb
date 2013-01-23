@@ -43,7 +43,7 @@ package body Client_Notification.Queue is
 
    function Join (C : in Call.Instance) return Join_Event is
    begin
-      return (Instance with Persistant => False, Joined_Call => C);
+      return (Instance with Persistent => False, Joined_Call => C);
    end Join;
 
    -------------
@@ -52,7 +52,7 @@ package body Client_Notification.Queue is
 
    function Leave (C : in Call.Instance) return Leave_Event is
    begin
-      return (Instance with Persistant => False, Left_Call => C);
+      return (Instance with Persistent => False, Left_Call => C);
    end Leave;
 
    ---------------
