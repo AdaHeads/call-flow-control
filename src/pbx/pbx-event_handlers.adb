@@ -28,7 +28,6 @@ with AMI.Peer_ID;
 with Model.Agent;
 
 package body PBX.Event_Handlers is
-   use Common;
    use System_Messages;
    use Ada.Strings.Unbounded;
    use PBX;

@@ -17,6 +17,7 @@
 
 with Ada.Strings.Unbounded;
 with Ada.Exceptions;
+with Ada.Calendar;
 
 with AMI.Event;
 with AMI.Observers;
@@ -37,8 +38,11 @@ with System_Messages;
 package body PBX is
    use Ada.Strings.Unbounded;
    use AMI.Parser;
+   use Ada.Calendar;
    use System_Messages;
    use My_Configuration;
+
+   Next_Reconnect : Ada.Calendar.Time := Clock;
 
    task type Reader_Task;
    --  Continous reader loop that is reponsible for reading and dispatching
@@ -76,25 +80,31 @@ package body PBX is
                                   On_Response => Check_Login'Access);
 
       System_Messages.Notify (Debug, "waiting for " & Ticket'Img);
-      PBX.Action.Wait_For (Ticket);
 
       --  Reload the state;
-      PBX.Action.Wait_For (PBX.Action.List_Channels);
-      --  AMI.Action.Core_Show_Channels (Client => Client_Access);
-      PBX.Action.Wait_For (PBX.Action.List_SIP_Peers);
-      --  AMI.Action.SIP_Peers (Client => Client_Access);
+      Ticket := PBX.Action.List_Channels;
+      Ticket := PBX.Action.List_SIP_Peers;
 
    end Authenticate;
+
+   -------------------
+   --  Check_Login  --
+   -------------------
 
    procedure Check_Login (Packet : in AMI.Parser.Packet_Type) is
    begin
       null;
    end Check_Login;
 
+   ---------------
+   --  Connect  --
+   ---------------
+
    procedure Connect is
    begin
+      delay until Next_Reconnect;
+      Next_Reconnect := Clock + 3.0;
 
-      --  TODO: Add cooldown to prevent hammering the Asterisk server.
       if not Shutdown then
          System_Messages.Notify
            (Information, "PBX.Connect: Connecting");

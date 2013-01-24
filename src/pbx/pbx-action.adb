@@ -23,6 +23,26 @@ with AMI.Trace;
 package body PBX.Action is
    use type PBX.Call.Identification;
 
+   function Remote_End (ID : in Call.Identification) return String is
+      use PBX.Call;
+   begin
+      if Call.Get (ID).Inbound then
+         return To_String (Call.Get (ID).Channel);
+      else
+         return To_String (Call.Get (ID).B_Leg);
+      end if;
+   end Remote_End;
+
+   function Local_End (ID : in Call.Identification) return String is
+      use PBX.Call;
+   begin
+      if Call.Get (ID).Inbound then
+         return To_String (Call.Get (ID).B_Leg);
+      else
+         return To_String (Call.Get (ID).Channel);
+      end if;
+   end Local_End;
+
    function Value (Handler : Response_Handler)
                   return AMI.Packet.Action.Response_Handler_Type;
 
@@ -64,7 +84,7 @@ package body PBX.Action is
       procedure Unlink (Ticket  : in     Reply_Ticket;
                         Call_ID :    out Call.Identification) is
       begin
-         Call_ID := Call.Remove (Origination_List.Element (Ticket)).ID;
+         Call_ID := Call.Get (Origination_List.Element (Ticket)).ID;
          Origination_List.Delete (Ticket);
       end Unlink;
 
@@ -304,8 +324,8 @@ package body PBX.Action is
       use PBX.Call;
       Park_Action : AMI.Packet.Action.Request :=
                       AMI.Packet.Action.Park
-                        (Channel     => To_String (Call.Get (ID).Channel),
-                         Channel2    => To_String (Call.Get (ID).B_Leg),
+                        (Channel     => Remote_End (ID),
+                         Channel2    => Local_End (ID),
                          Timeout     => 7200.0,
                          Parkinglot  => Parking_Lot,
                          On_Response =>

@@ -28,6 +28,7 @@ package AMI.Client is
    CONNECT_FAILED  : exception;
    GET_LINE_FAILED : exception;
    SEND_FAILED     : exception;
+   Dispach_Failed  : exception;
 
    type Autenticated_Type is (Unknown, No_Reply,
                               Authenticated, Not_Authenticated);
