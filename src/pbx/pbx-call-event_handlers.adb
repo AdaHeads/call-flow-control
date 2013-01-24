@@ -43,6 +43,9 @@ package body PBX.Call.Event_Handlers is
    procedure Join (Packet : in Parser.Packet_Type);
 
    procedure Leave (Packet : in Parser.Packet_Type);
+   --  A Leave event occurs when a channel leaves a Queue for any reason.
+   --  E.g. hangup or pickup. This procedure is responsible for changing the
+   --  state of the to transferring and broadcasts the event.
 
    procedure Hangup (Packet : in Parser.Packet_Type);
 
@@ -154,6 +157,7 @@ package body PBX.Call.Event_Handlers is
       end if;
 
       if PBX.Call.Has (Channel_ID => Channel) then
+         AMI.Trace.Debug (Context, "Hanging up call");
          Notification.Broadcast
            (Client_Notification.Call.Hangup
               (Remove (Channel_ID => Channel)).To_JSON);
@@ -180,11 +184,14 @@ package body PBX.Call.Event_Handlers is
       --  Context   : constant String := Package_Name & ".Join";
       Channel     : Channel_Identification renames
                       Value (Packet.Get_Value (Parser.Channel));
+      Org_ID      : Natural renames
+                      Natural'Value (Packet.Get_Value (Parser.Queue));
    begin
       Create_And_Insert
-        (Inbound        => True,
-         Channel        => Channel,
-         State          => Queued);
+        (Inbound         => True,
+         Channel         => Channel,
+         State           => Queued,
+         Organization_ID => Org_ID);
 
       Get (Channel => Channel).Change_State (New_State => Queued);
 
@@ -231,9 +238,10 @@ package body PBX.Call.Event_Handlers is
          AMI.Trace.Log (Error, Context & ": Originate failed, removing call " &
                           To_String (Call_ID));
 
+         AMI.Trace.Debug (PBX.Call.Get (Call => Call_ID).To_JSON.Write);
          Notification.Broadcast
            (Client_Notification.Call.Originate_Failed
-              (C => PBX.Call.Get (Call => Call_ID)).To_JSON);
+              (C => PBX.Call.Remove (ID => Call_ID)).To_JSON);
 
       else
          PBX.Call.Confirm

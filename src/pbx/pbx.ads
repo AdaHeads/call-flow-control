@@ -16,7 +16,6 @@
 -------------------------------------------------------------------------------
 
 with AMI.Client;
-with Common;
 
 package PBX is
    use AMI;
@@ -45,7 +44,6 @@ package PBX is
 private
    Null_Reply : constant Reply_Ticket := Reply_Ticket (AMI.Null_Action_ID);
 
-   Last_Connection_Attempt : Common.Time;
    Connection_Delay        : Duration     := 1.0;
    Shutdown                : Boolean      := False;
 end PBX;

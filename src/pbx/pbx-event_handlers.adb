@@ -16,52 +16,33 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
-with Common;
 with System_Messages;
 
 with AMI.Event;
+with AMI.Parser;
 with AMI.Observers;
-with Model.Agent;
-with Model.Call;
-with Model.Call_ID;
-with Model.Calls;
 with AMI.Channel;
-with AMI.Channel_ID;
 with AMI.Peer;
 with AMI.Peer_ID;
 
+with Model.Agent;
+
 package body PBX.Event_Handlers is
-   use Common;
    use System_Messages;
    use Ada.Strings.Unbounded;
    use PBX;
    use Model;
-   use Model.Call;
-   use Model.Call_ID;
    use AMI.Peer;
 
-   --------------
-   --  Bridge  --
-   --------------
+   procedure Peer_Status (Packet : in Parser.Packet_Type);
+   procedure Core_Show_Channel (Packet : in Parser.Packet_Type);
+   procedure Core_Show_Channels_Complete (Packet : in Parser.Packet_Type);
 
-   procedure Bridge (Packet : in Parser.Packet_Type) is
-      ID1, ID2  : Call_ID.Call_ID_Type := Null_Call_ID;
-   begin
-      ID1 := Call_ID.Create
-        (To_String (Packet.Get_Value (Parser.UniqueID1)));
-      ID2 := Call_ID.Create
-        (To_String (Packet.Get_Value (Parser.UniqueID2)));
-      Calls.List.Link (ID1 => ID1,
-                       ID2 => ID2);
+   procedure Queue_Abandon (Packet : in Parser.Packet_Type);
 
-      --  TODO: Find the Sip peer and attach the current channel
+   procedure Peer_Entry (Packet : in Parser.Packet_Type);
 
---        System_Messages.Notify
---          (Debug, Package_Name & "." & Context & ": " &
---             Client_Notification.Call.Pickup (Some_Call).To_JSON.Write);
---        Notification.Broadcast
---             (Client_Notification.Call.Pickup (Some_Call).To_JSON);
-   end Bridge;
+   procedure Peer_List_Complete (Packet : in Parser.Packet_Type);
 
    -------------------------
    --  Core_Show_Channel  --
@@ -92,151 +73,6 @@ package body PBX.Event_Handlers is
                                 "Channel list inconsistent!");
       end if;
    end Core_Show_Channels_Complete;
-
-   procedure Default_Callback (Packet : in Parser.Packet_Type) is
-      --  Context : constant String := "Default_Callback";
-   begin
-      null;
-      --  System_Messages.Notify (Debug, Package_Name & "." & Context & ": " &
-      --                          To_String (Packet.Header.Value));
-   end Default_Callback;
-
-   ------------
-   --  Dial  --
-   ------------
-
-   procedure Dial (Packet : in Parser.Packet_Type) is
-      Context : constant String := "Dial";
-      Call    : Call_Type       := Null_Call;
-   begin
-      --  There is a sequence to a Dial event represented by a SubEvent.
-      --  It consists of "Begin" or "End"
-      if To_String (Packet.Get_Value (Parser.SubEvent)) = "Begin" then
-         System_Messages.Notify (Debug, Package_Name & "." & Context & ": " &
-                                   "Dial Begin");
-         Call.ID := Model.Call_ID.Create
-           (To_String (Packet.Get_Value (Parser.DestUniqueID)));
-         Call.Channel := Channel_ID.Value
-           (To_String (Packet.Get_Value (Parser.Destination)));
-         Call.Inbound := False; --  A dial event implies outbound.
-         Call.Arrived := Current_Time;
-
-         Model.Calls.List.Insert (Call => Call);
-
-      --  When a Dial event ends, the call is over, and must thus be removed
-      --  From the call list.
-      elsif To_String (Packet.Get_Value (Parser.SubEvent)) = "End" then
-         System_Messages.Notify (Debug, Package_Name & "." & Context & ": " &
-                                   "Dial End");
-         Call.ID := Model.Call_ID.Create (Packet.Get_Value (Parser.UniqueID));
-      else
-         System_Messages.Notify
-           (Error, Package_Name & "." & Context & ": " &
-              "unknown SubEvent: " &
-              To_String (Packet.Get_Value (Parser.SubEvent)));
-      end if;
-   end Dial;
-
-   --------------
-   --  Hangup  --
-   --------------
-
-   procedure Hangup (Packet : in Parser.Packet_Type)
-   is
-      Context        : constant String      := Package_Name & ".Hangup";
-      Call           : Call_ID.Call_ID_Type := Call_ID.Null_Call_ID;
-   begin
-      Call := Call_ID.Create (Packet.Get_Value (Parser.UniqueID));
-
-      Channel.List.Remove (Packet.Get_Value (Parser.Channel));
-
-      Model.Calls.List.Remove (Call);
-
-      System_Messages.Notify
-        (Debug, Package_Name & ".Hangup: Removed channel " &
-         Packet.Get_Value (Parser.Channel) & " and call " & Call.To_String);
-
-   exception
-      when Calls.Call_Not_Found =>
-         System_Messages.Notify
-           (Error, Context & ": Call not found" & Call.To_String);
-      when Channel.Not_Found =>
-         System_Messages.Notify (Error, Context & ": " &
-                                   Packet.Get_Value (Parser.Channel));
-   end Hangup;
-
-   ------------
-   --  Join  --
-   ------------
-
-   procedure Join (Packet : in Parser.Packet_Type) is
-      Call         : Call_Type := Null_Call;
-      Temp_Value   : Unbounded_String;
-   begin
-      Call.ID := Call_ID.Create (Packet.Get_Value (Parser.UniqueID));
-      Call.Inbound := True;  --  Join implies an inbound call.
-
-      --  See if the call already exists
-      if Model.Calls.List.Contains (Call_ID => Call.ID) then
-         Call := Model.Calls.List.Get (Call.ID);
-         Call.State := Requeued;
-      else
-         Call.State := Newly_Arrived;
-         Call.Arrived := Current_Time;
-      end if;
-
-      Call.Queue := Packet.Get_Value (Parser.Queue);
-      Call.Channel := Channel_ID.Value
-        (To_String (Packet.Get_Value (Parser.Channel)));
-      Model.Calls.List.Insert (Call);
-
---        Notification.Broadcast
---          (Client_Notification.Queue.Join (C => Call).To_JSON);
-   exception
-         when others =>
-         System_Messages.Notify
-           (Error,
-            "My_Callbacks.Join: Got a Join event, " &
-              "on a channel there is not in the channel list. " &
-              "Channel: " &
-                 To_String (Temp_Value));
-   end Join;
-
-   -------------
-   --  Leave  --
-   -------------
-
-   procedure Leave (Packet : in Parser.Packet_Type) is
-      --  Context : constant String := "My_Callbacks.Leave";
-      Call    : Call_Type       := Null_Call;
-   begin
-      Call := Model.Calls.List.Get
-        (Call_ID => Create (Packet.Get_Value (Parser.UniqueID)));
-
---        Notification.Broadcast
---          (Client_Notification.Queue.Leave (C => Call).To_JSON);
-   end Leave;
-
-   ------------------
-   -- Parked_Call --
-   ------------------
-
-   procedure Parked_Call (Packet : in Parser.Packet_Type) is
-      Call_To_Park : Model.Call.Call_Type := Null_Call;
-   begin
-      Call_To_Park := Calls.List.Get
-        (Call_ID.Create (Packet.Get_Value (Parser.UniqueID)));
-
-      Call_To_Park.State := Parked;
-      Call_To_Park.Bridged_With := Null_Call_ID;
-      Calls.List.Put (Call_To_Park);
-
-      --  Broadcast it.
---        Notification.Broadcast
---          (Client_Notification.Call.Park (C => Call_To_Park).To_JSON);
---        System_Messages.Notify (Debug, Client_Notification.Call.Park
---                                (C => Call_To_Park).To_JSON.Write);
-   end Parked_Call;
 
    ----------------
    -- Peer_Entry --
@@ -399,29 +235,22 @@ package body PBX.Event_Handlers is
                                 " original position" & Original_Position'Img);
    end Queue_Abandon;
 
+   procedure Register_Handlers is
+   begin
+      AMI.Observers.Register (Event   => AMI.Event.CoreShowChannel,
+                              Handler => Core_Show_Channel'Access);
+      AMI.Observers.Register (Event   => AMI.Event.CoreShowChannelsComplete,
+                              Handler => Core_Show_Channels_Complete'Access);
+      AMI.Observers.Register (Event   => AMI.Event.PeerStatus,
+                              Handler => Peer_Status'Access);
+      AMI.Observers.Register (Event   => AMI.Event.PeerEntry,
+                              Handler => Peer_Entry'Access);
+      AMI.Observers.Register (Event   => AMI.Event.PeerlistComplete,
+                              Handler => Peer_List_Complete'Access);
+      AMI.Observers.Register (Event   => AMI.Event.QueueCallerAbandon,
+                              Handler => Queue_Abandon'Access);
+   end Register_Handlers;
 begin
---     AMI.Observers.Register (Event   => AMI.Event.Bridge,
---                             Handler => Bridge'Access);
-   AMI.Observers.Register (Event   => AMI.Event.CoreShowChannel,
-                           Handler => Core_Show_Channel'Access);
-   AMI.Observers.Register (Event   => AMI.Event.CoreShowChannelsComplete,
-                           Handler => Core_Show_Channels_Complete'Access);
-   AMI.Observers.Register (Event   => AMI.Event.PeerStatus,
-                           Handler => Peer_Status'Access);
-   AMI.Observers.Register (Event   => AMI.Event.PeerEntry,
-                           Handler => Peer_Entry'Access);
-   AMI.Observers.Register (Event   => AMI.Event.PeerlistComplete,
-                           Handler => Peer_List_Complete'Access);
---     AMI.Observers.Register (Event   => AMI.Event.Hangup,
---                             Handler => Hangup'Access);
---     AMI.Observers.Register (Event   => AMI.Event.Join,
---                             Handler => Join'Access);
---     AMI.Observers.Register (Event   => AMI.Event.Leave,
---                             Handler => Leave'Access);
---     AMI.Observers.Register (Event   => AMI.Event.Dial,
---                             Handler => Dial'Access);
-   AMI.Observers.Register (Event   => AMI.Event.QueueCallerAbandon,
-                           Handler => Queue_Abandon'Access);
---     AMI.Observers.Register (Event   => AMI.Event.ParkedCall,
---                             Handler => Parked_Call'Access);
+   Register_Handlers;
+
 end PBX.Event_Handlers;

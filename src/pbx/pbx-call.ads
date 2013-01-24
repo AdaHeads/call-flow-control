@@ -38,34 +38,44 @@ package PBX.Call is
    Null_ID         : exception;
    Already_Bridged : exception;
    Invalid_ID      : exception;
+   --  Appropriately named exceptions.
 
    type Identification is private;
+   --  Call identification.
 
    function To_String (Item : in Identification) return String;
+   function Image (Item : in Identification) return String renames To_String;
+   --  Image function.
 
    function Value (Item : String) return Identification;
+   --  Conversion.
 
    type Channel_Identification is new AMI.Channel.Channel_Key;
+   --  PBX channel identification, or call leg.
 
    function Value (Item : String) return Channel_Identification;
-
-   Null_Channel_Identification : constant Channel_Identification
-     := Channel_Identification (Ada.Strings.Unbounded.Null_Unbounded_String);
+   --  Conversion.
 
    function To_String (Channel : in Channel_Identification) return String;
+   function Image (Channel : in Channel_Identification) return String
+                   renames To_String;
+   --  Image function.
 
    type States is
      (Unknown, Pending,
       Created,
       Queued,
+      IVR,
       Transferring,
       Speaking, Dialing, Delegated, Ended,
       Parked, Transferred);
+   --  Valid states for the call.
+
    type Priority_Level is (Invalid, Low, Normal, High);
+   --  Priority level inherited from the base organization priority.
 
    type Instance is tagged private;
-
-   --  Accessor methods
+   --  Call instance.
 
    function ID (Obj : in Instance) return Identification;
    function State (Obj : in Instance) return States;
@@ -77,8 +87,7 @@ package PBX.Call is
    function Assigned_To (Obj : in Instance)
                          return Model.Agent_ID.Agent_ID_Type;
    function Arrival_Time (Obj : in Instance) return Common.Time;
-
-   --  Mutator methods
+   --  Accessor methods
 
    procedure Assign (Obj : in Instance; To : in Agent_ID_Type);
 
@@ -97,34 +106,34 @@ package PBX.Call is
 
    procedure Change_State (Obj : in Instance; New_State : in States);
 
-   function Queue_Count return Natural;
+   --  Mutator methods.
 
    function List_Empty return Boolean;
-
    function List return GNATCOLL.JSON.JSON_Value;
    function Queued_Calls return GNATCOLL.JSON.JSON_Value;
-
    procedure For_Each (Process : access procedure (Item : Instance)) is null;
-
-   Null_Identification : constant Identification;
+   function Queue_Count return Natural;
 
    function Get (Channel : Channel_Identification) return Instance;
-
    function Get (Call : Identification) return Instance;
 
    function Has (Channel_ID : Channel_Identification) return Boolean;
-
    function Has (ID : Identification) return Boolean;
 
    function Highest_Prioirity return Instance;
 
-   function Queue_Empty return Boolean;
-   --  Reveals if there are currently calls available for pickup.
-
    function Remove (ID : in Identification) return Instance;
    function Remove (Channel_ID : in Channel_Identification) return Instance;
 
-   --  Constructors
+   function Queue_Empty return Boolean;
+   --  Reveals if there are currently calls available for pickup.
+
+   --  ^Collection operations.
+
+   Null_Instance               : constant Instance;
+   Null_Identification         : constant Identification;
+   Null_Channel_Identification : constant Channel_Identification;
+   --  ^Explicit null values.
 
    function Create_And_Insert
      (Inbound         : in Boolean;
@@ -147,21 +156,20 @@ package PBX.Call is
       B_Leg           : in Channel_Identification :=
         Null_Channel_Identification);
 
-   procedure Confirm
-     (ID              : in Identification;
-      Channel         : in Channel_Identification);
-   --  Confirms a previously allocated call by giving it a channel.
-
    function Allocate
      (Assigned_To : in Agent_ID_Type) return Identification;
    --  Allocates a call without a channel but assigning it to an agent, and
    --  giving it a call ID.
 
+   --  ^Constructors
+
+   procedure Confirm
+     (ID              : in Identification;
+      Channel         : in Channel_Identification);
+   --  Confirms a previously allocated call by giving it a channel.
+
    function To_JSON (Obj : in Instance) return GNATCOLL.JSON.JSON_Value;
-
-   function Reservate return Identification;
-
-   Null_Instance : constant Instance;
+   --  TODO: Move this to the view package.
 
 private
    type Identification is mod 2 ** 32;
@@ -169,6 +177,9 @@ private
    Null_Identification : constant Identification := Identification'First;
    Next_Identification : Identification := Null_Identification;
    pragma Atomic (Next_Identification);
+
+   Null_Channel_Identification : constant Channel_Identification
+     := Channel_Identification (Ada.Strings.Unbounded.Null_Unbounded_String);
 
    type Instance is tagged
       record

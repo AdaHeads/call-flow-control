@@ -43,11 +43,10 @@ package body PBX.Call is
                 B_Leg          => Null_Channel_Identification,
                 Assigned_To    => Assigned_To);
    begin
-      AMI.Trace.Debug (Message => "Inserting call with ID " &
-                         To_String (Call.ID),
+      Call_List.Insert (Item => Call);
+      AMI.Trace.Debug (Message => "Inserted call " & Get (Call.ID).To_JSON.Write,
                        Context => Context,
                        Level   => 1);
-      Call_List.Insert (Item => Call);
       return Call.ID;
    end Allocate;
 
@@ -274,6 +273,7 @@ package body PBX.Call is
    begin
       return Call_List.Contains (ID);
    end Has;
+
    -------------------------
    --  Highest_Prioirity  --
    -------------------------
@@ -402,15 +402,6 @@ package body PBX.Call is
    begin
       return Remove (Call_List.Get (Channel_ID).ID);
    end Remove;
-
-   -----------------
-   --  Reservate  --
-   -----------------
-
-   function Reservate return Identification is
-   begin
-      return Next;
-   end Reservate;
 
    -------------
    --  State  --

@@ -106,6 +106,10 @@ package body AMI.Client is
               On_Disconnect_Handler => On_Disconnect);
    end Create;
 
+   ------------------
+   --  Disconnect  --
+   ------------------
+
    procedure Disconnect (Client : in out Client_Type) is
    begin
       AWS.Net.Buffered.Shutdown (Client.Socket);
@@ -117,8 +121,15 @@ package body AMI.Client is
         (Socket => Client.Socket);
    exception
       when others =>
-         Client.On_Disconnect_Handler.all;
+         declare
+         begin
+            Client.On_Disconnect_Handler.all;
+         exception
+            when others =>
+               raise Dispach_Failed;
+         end;
          raise GET_LINE_FAILED;
+
    end Get_Line;
 
    function Is_Connected (Client  : in out Client_Type) return Boolean is

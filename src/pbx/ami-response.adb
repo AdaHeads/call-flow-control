@@ -144,9 +144,9 @@ package body AMI.Response is
 
       Deadline : constant Ada.Calendar.Time := Current_Time + Timeout;
    begin
+      AMI.Trace.Debug (Message => "Waiting",
+                       Context => Context);
       loop
-         AMI.Trace.Debug (Message => "Waiting",
-                             Context => Context);
          exit when Current_Time > Deadline;
          if Responses.Reply_Received (Ticket) then
             AMI.Trace.Debug (Message => "Got reply",
@@ -156,6 +156,9 @@ package body AMI.Response is
 
          delay 0.1;
       end loop;
+      AMI.Trace.Debug (Message => "No reply received",
+                       Context => Context);
+
       raise AMI.Response.Timeout;
    end Wait_For;
 

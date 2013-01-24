@@ -23,14 +23,23 @@ with AMI.Trace;
 package body PBX.Action is
    use type PBX.Call.Identification;
 
+   function Remote_End (ID : in Call.Identification) return String;
+   --  Determines which end of a call is the remote end.
+
+   function Local_End (ID : in Call.Identification) return String;
+   --  Determines which end of a call is the local end.
+
    function Value (Handler : Response_Handler)
                   return AMI.Packet.Action.Response_Handler_Type;
+   --  Cast function.
 
    function Hash (Item : in PBX.Reply_Ticket)
                   return Ada.Containers.Hash_Type;
+   --  For origination requests.
 
    function Equivalent_Keys (Left, Right : in PBX.Reply_Ticket)
                              return Boolean;
+   --  For origination requests.
 
    package Origination_Request_Storage is new
      Ada.Containers.Hashed_Maps
@@ -38,6 +47,7 @@ package body PBX.Action is
         Element_Type    => PBX.Call.Identification,
         Hash            => Hash,
         Equivalent_Keys => Equivalent_Keys);
+   --  Storage container for origination requests.
 
    protected Origination_Requests is
       procedure Link (Ticket  : in Reply_Ticket;
@@ -51,8 +61,20 @@ package body PBX.Action is
       Origination_List : Origination_Request_Storage.Map :=
                            Origination_Request_Storage.Empty_Map;
    end Origination_Requests;
+   --  Origination requests a temporary storage that keeps track on which
+   --  calls the agents have originated, and links them with their
+   --  corresponding Action_ID/Ticket.
+
+   ----------------------------
+   --  Origination_Requests  --
+   ----------------------------
 
    protected body Origination_Requests is
+
+      ------------
+      --  Link  --
+      ------------
+
       procedure Link (Ticket  : in Reply_Ticket;
                       Call_ID : in Call.Identification) is
       begin
@@ -61,12 +83,20 @@ package body PBX.Action is
             New_Item => Call_ID);
       end Link;
 
+      --------------
+      --  Unlink  --
+      --------------
+
       procedure Unlink (Ticket  : in     Reply_Ticket;
                         Call_ID :    out Call.Identification) is
       begin
-         Call_ID := Call.Remove (Origination_List.Element (Ticket)).ID;
+         Call_ID := Call.Get (Origination_List.Element (Ticket)).ID;
          Origination_List.Delete (Ticket);
       end Unlink;
+
+      --------------
+      --  Unlink  --
+      --------------
 
       procedure Unlink (Ticket : in Reply_Ticket) is
          Dummy_ID : Call.Identification;
@@ -179,6 +209,20 @@ package body PBX.Action is
 
       return Value (List_Peers_Action.Action_ID);
    end List_SIP_Peers;
+
+   -----------------
+   --  Local_End  --
+   -----------------
+
+   function Local_End (ID : in Call.Identification) return String is
+      use PBX.Call;
+   begin
+      if Call.Get (ID).Inbound then
+         return To_String (Call.Get (ID).B_Leg);
+      else
+         return To_String (Call.Get (ID).Channel);
+      end if;
+   end Local_End;
 
    -----------
    -- Login --
@@ -304,8 +348,8 @@ package body PBX.Action is
       use PBX.Call;
       Park_Action : AMI.Packet.Action.Request :=
                       AMI.Packet.Action.Park
-                        (Channel     => To_String (Call.Get (ID).Channel),
-                         Channel2    => To_String (Call.Get (ID).B_Leg),
+                        (Channel     => Remote_End (ID),
+                         Channel2    => Local_End (ID),
                          Timeout     => 7200.0,
                          Parkinglot  => Parking_Lot,
                          On_Response =>
@@ -337,6 +381,20 @@ package body PBX.Action is
 
       return Value (Redirect_Action.Action_ID);
    end Redirect;
+
+   ------------------
+   --  Remote_End  --
+   ------------------
+
+   function Remote_End (ID : in Call.Identification) return String is
+      use PBX.Call;
+   begin
+      if Call.Get (ID).Inbound then
+         return To_String (Call.Get (ID).Channel);
+      else
+         return To_String (Call.Get (ID).B_Leg);
+      end if;
+   end Remote_End;
 
    ---------------------
    -- Value functions --

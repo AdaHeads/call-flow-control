@@ -14,7 +14,6 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with AMI.Parser;
 
 package PBX.Event_Handlers is
 
@@ -22,30 +21,6 @@ package PBX.Event_Handlers is
 
    Not_Implemented : exception;
 
-   procedure Peer_Status (Packet : in Parser.Packet_Type);
-   procedure Core_Show_Channel (Packet : in Parser.Packet_Type);
-   procedure Core_Show_Channels_Complete (Packet : in Parser.Packet_Type);
-   procedure Default_Callback (Packet : in Parser.Packet_Type);
-
-   procedure Dial (Packet : in Parser.Packet_Type);
-   --  A dial event occurs when a peer actively dials an extension.
-
-   procedure Hangup        (Packet : in Parser.Packet_Type);
-   procedure Join          (Packet : in Parser.Packet_Type);
-
-   procedure Leave         (Packet : in Parser.Packet_Type);
-   --  A Leave event occurs when a channel leaves a Queue for any reason.
-   --  E.g. hangup or pickup. This is responsible tagging calls as picked up,
-   --  but does not touch the channel.
-
-   procedure Queue_Abandon (Packet : in Parser.Packet_Type);
-   --  procedure Unlink_Callback     (Event_List : in Event_List_Type.Map);
-
-   procedure Parked_Call (Packet : in Parser.Packet_Type);
-   procedure Peer_Entry (Packet : in Parser.Packet_Type);
-
-   procedure Peer_List_Complete (Packet : in Parser.Packet_Type);
-
-   procedure Bridge (Packet : in Parser.Packet_Type);
+   procedure Register_Handlers;
 
 end PBX.Event_Handlers;
