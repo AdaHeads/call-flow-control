@@ -108,6 +108,11 @@ package PBX.Call is
 
    --  Mutator methods.
 
+   procedure Link (Call    : in Instance;
+                   Channel : in Channel_Identification);
+
+   procedure Unlink (Call : in Instance);
+
    function List_Empty return Boolean;
    function List return GNATCOLL.JSON.JSON_Value;
    function Queued_Calls return GNATCOLL.JSON.JSON_Value;
@@ -233,8 +238,9 @@ private
       function First return Instance;
 
       function Get (ID : in Identification) return Instance;
-      procedure Link (ID1 : in Identification;
-                      ID2 : in Identification);
+      procedure Link (Channel1 : in Channel_Identification;
+                      Channel2 : in Channel_Identification);
+      procedure Unlink (ID : in Identification);
       function Queued return Natural;
       procedure Remove (Channel_ID : in Channel_Identification);
       procedure Remove (ID : in Identification);

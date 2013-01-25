@@ -44,7 +44,8 @@ package body PBX.Call is
                 Assigned_To    => Assigned_To);
    begin
       Call_List.Insert (Item => Call);
-      AMI.Trace.Debug (Message => "Inserted call " & Get (Call.ID).To_JSON.Write,
+      AMI.Trace.Debug (Message => "Inserted call " &
+                         Get (Call.ID).To_JSON.Write,
                        Context => Context,
                        Level   => 1);
       return Call.ID;
@@ -301,6 +302,16 @@ package body PBX.Call is
    end Inbound;
 
    ------------
+   --  Link  --
+   ------------
+
+   procedure Link (Call    : in Instance;
+                   Channel : in Channel_Identification) is
+   begin
+      Call_List.Link (Call.Channel, Channel);
+   end Link;
+
+   ------------
    --  List  --
    ------------
 
@@ -441,6 +452,15 @@ package body PBX.Call is
       return Ada.Strings.Unbounded.To_String
         (Ada.Strings.Unbounded.Unbounded_String (Channel));
    end To_String;
+
+   --------------
+   --  Unlink  --
+   --------------
+
+   procedure Unlink (Call : in Instance) is
+   begin
+      Call_List.Unlink (Call.ID);
+   end Unlink;
 
    -------------
    --  Value  --
@@ -681,8 +701,10 @@ package body PBX.Call is
       --  Link  --
       ------------
 
-      procedure Link (ID1 : Identification;
-                      ID2 : Identification) is
+      --  TODO: tidy up this function.
+
+      procedure Link (Channel1 : in Channel_Identification;
+                      Channel2 : in Channel_Identification) is
          procedure Update (Key     : in     Identification;
                            Element : in out Instance);
 
@@ -690,31 +712,43 @@ package body PBX.Call is
                            Element : in out Instance) is
             pragma Unreferenced (Key);
          begin
-            if Element.Channel /= Null_Channel_Identification then
-               raise Already_Bridged with To_String (Element.Channel);
-            end if;
 
-            if Element.ID = ID1 then
-               Element.B_Leg := List.Element (ID2).Channel;
-            elsif Element.ID = ID2 then
-               Element.B_Leg := List.Element (ID1).Channel;
+            if Element.Channel = Channel1 then
+               Element.B_Leg := Channel2;
+            elsif Element.Channel = Channel2 then
+               Element.B_Leg := Channel1;
             end if;
          end Update;
       begin
          --  Sanity checks.
-         if ID1 = Null_Identification or ID2 = Null_Identification then
+         if
+           Channel1 = Null_Channel_Identification or
+           Channel2 = Null_Channel_Identification
+         then
             raise Constraint_Error with "Null value detected";
          end if;
 
-         if List.Element (ID1).B_Leg /= Null_Channel_Identification
-           or List.Element (ID2).B_Leg /= Null_Channel_Identification then
-            raise Already_Bridged with To_String (List.Element (ID1).Channel) &
-              "<->" & To_String (List.Element (ID1).B_Leg) & "," &
-              To_String (List.Element (ID2).Channel) &
-              "<->" & To_String (List.Element (ID2).B_Leg);
+         if not
+           Channel_Lookup_Table.Contains (AMI.Channel.Channel_Key (Channel2))
+         then
+            Call_List.Update
+              (Channel_Lookup_Table.Element
+                 (AMI.Channel.Channel_Key (Channel1)), Update'Access);
+         elsif not
+           Channel_Lookup_Table.Contains (AMI.Channel.Channel_Key (Channel1))
+         then
+            Call_List.Update
+              (Channel_Lookup_Table.Element
+                 (AMI.Channel.Channel_Key (Channel2)), Update'Access);
+         else
+            Call_List.Update
+              (Channel_Lookup_Table.Element
+                 (AMI.Channel.Channel_Key (Channel1)), Update'Access);
+            Call_List.Update
+              (Channel_Lookup_Table.Element
+                 (AMI.Channel.Channel_Key (Channel2)), Update'Access);
          end if;
-         Call_List.Update (ID1, Update'Access);
-         Call_List.Update (ID2, Update'Access);
+
       end Link;
 
       --------------
@@ -813,6 +847,33 @@ package body PBX.Call is
          Root.Set_Field ("calls", JSON_List);
          return Root;
       end To_JSON;
+
+      --------------
+      --  Unlink  --
+      --------------
+
+      procedure Unlink (ID : in Identification) is
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance);
+
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance) is
+            pragma Unreferenced (Key);
+         begin
+            Element.B_Leg := Null_Channel_Identification;
+         end Update;
+      begin
+         if
+           Channel_Lookup_Table.Contains
+             ((AMI.Channel.Channel_Key (List.Element (ID).B_Leg)))
+         then
+            Call_List.Update (Channel_Lookup_Table.Element
+              (AMI.Channel.Channel_Key
+                 (List.Element (ID).B_Leg)), Update'Access);
+         end if;
+
+         Call_List.Update (ID, Update'Access);
+      end Unlink;
 
       --------------
       --  Update  --
