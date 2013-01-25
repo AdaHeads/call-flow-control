@@ -18,6 +18,7 @@
 with Handlers.Contact;
 with Handlers.Agent;
 with Handlers.Call;
+with Handlers.Configuration;
 with Handlers.Debug;
 with Handlers.Notifications;
 with Handlers.Organization;
@@ -135,6 +136,11 @@ package body My_Handlers is
          URI        => "/call/pickup",
          Action     => Create
            (Callback => Call.Pickup'Access));
+
+      AWS.Services.Dispatchers.URI.Register
+        (Dispatcher => RH,
+         URI        => "/configuration",
+         Action     => Configuration.Callback);
 
       AWS.Services.Dispatchers.URI.Register
         (Dispatcher => RH,
