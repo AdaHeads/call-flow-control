@@ -1,0 +1,29 @@
+{
+    "Standard_Greeting": "Velkommen til...",
+    "Enable_Polling": false,
+    "SIP_PBX": "asterisk1.adaheads.com",
+    "Agent_ID": 1,
+    "Websocket": {
+        "Reconnect": false,
+        "Reconnect_Interval": 1000,
+        "URI": "ws://alice.adaheads.com:4242/notifications"
+    },
+    "PJSUA_HTTPD_URI": "http://localhost:30200",
+    "System_Console": {
+        "Max_Items": 15
+    },
+    "Event_Log": {
+        "Max_Items": 20
+    },
+    "Debug_Enabled": true,
+    "SIP_Password": "12345",
+    "SIP_Username": 1,
+    "Alice_URI": "http://alice.adaheads.com:4242/",
+    "SIP_Account": {
+        "Domain": "asterisk1.adaheads.com",
+        "Password": "12345",
+        "Username": "softphone1"
+    },
+    "Organizations_List_View": "midi",
+    "Polling_Interval": 2000
+}
