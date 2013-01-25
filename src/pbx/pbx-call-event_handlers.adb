@@ -64,18 +64,27 @@ package body PBX.Call.Event_Handlers is
       Context   : constant String      := Package_Name & ".Bridge";
       Channel1  : Channel_Identification renames
                     Value (Packet.Get_Value (Parser.Channel1));
-      Channel2  : String renames Packet.Get_Value (Parser.Channel2);
+      Channel2  : Channel_Identification renames
+                    Value (Packet.Get_Value (Parser.Channel2));
    begin
 
-      Get (Channel1).Change_State (New_State => Speaking);
       AMI.Trace.Log
-        (Debug, Context & ": channel1: " & Packet.Get_Value (Parser.Channel1));
+        (Debug, Context & ": channel1: " & To_String (Channel1));
       AMI.Trace.Log
-        (Debug, Context & ": channel2: " & Channel2);
+        (Debug, Context & ": channel2: " & To_String (Channel2));
       AMI.Trace.Log
         (Debug, Context & ": " &
            Client_Notification.Call.Pickup
            (C => Get (Channel1)).To_JSON.Write);
+
+      --  Either side should be represented.
+      if Call.Has (Channel1) then
+         Get (Channel1).Link (Channel => Channel2);
+         Get (Channel1).Change_State (New_State => Speaking);
+      else
+         Get (Channel2).Change_State (New_State => Speaking);
+         Get (Channel2).Link (Channel => Channel1);
+      end if;
 
       Notification.Broadcast
         (Client_Notification.Call.Pickup (Get (Channel1)).To_JSON);
@@ -310,8 +319,18 @@ package body PBX.Call.Event_Handlers is
 
    procedure Unlink (Packet : in Parser.Packet_Type) is
       Context : constant String := Package_Name & ".Parked_Call";
+      Channel     : Channel_Identification renames
+                      Value (Packet.Get_Value (Parser.Channel1));
    begin
-      raise Program_Error with "Not impemented: " &Context;
+      --  Ignore temporary channels
+      if Channel_ID.Value (To_String (Channel)).Temporary then
+         AMI.Trace.Log (Debug, Context & "Ignoring temporary call with " &
+                          "channel " & To_String (Channel));
+         return;
+      end if;
+
+      Call.Get (Channel).Unlink;
+
    end Unlink;
 
 begin
