@@ -19,13 +19,15 @@ with Ada.Characters.Latin_1;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Task_Attributes;
+
 with GNATCOLL.SQL.Postgres;
-with My_Configuration;
+
+with Alice_Configuration;
 with System_Message.Critical;
 
 package body Storage is
 
-   use My_Configuration;
+   use Alice_Configuration;
 
    Database_Error : exception;
 

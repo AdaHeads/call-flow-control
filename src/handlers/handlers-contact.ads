@@ -16,9 +16,10 @@
 -------------------------------------------------------------------------------
 
 with AWS.Dispatchers.Callback;
+
+with Alice_Configuration;
 with Common;
 with Model;
-with My_Configuration;
 with Response.Cached;
 with Yolk.Cache.Discrete_Keys;
 
@@ -30,7 +31,7 @@ package Handlers.Contact is
 
 private
 
-   use My_Configuration;
+   use Alice_Configuration;
 
    package Cache is new Yolk.Cache.Discrete_Keys
      (Key_Type        => Model.Contact_Identifier,

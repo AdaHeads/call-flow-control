@@ -16,8 +16,9 @@
 -------------------------------------------------------------------------------
 
 with AWS.Dispatchers.Callback;
+
+with Alice_Configuration;
 with Common;
-with My_Configuration;
 with Request_Parameters;
 with Response.Cached;
 with Yolk.Cache.Discrete_Keys;
@@ -30,7 +31,7 @@ package Handlers.Organization_List is
 
 private
 
-   use My_Configuration;
+   use Alice_Configuration;
 
    package Cache is new Yolk.Cache.Discrete_Keys
      (Key_Type        => Request_Parameters.List_View,

@@ -30,7 +30,7 @@ with AWS.Net.WebSocket.Registry;
 
 with Yolk.Static_Content;
 
-package body My_Handlers is
+package body Alice_Handlers is
 
    use Handlers;
 
@@ -220,4 +220,4 @@ package body My_Handlers is
       return RH;
    end Get;
 
-end My_Handlers;
+end Alice_Handlers;

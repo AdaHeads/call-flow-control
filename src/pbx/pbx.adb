@@ -31,7 +31,7 @@ pragma Unreferenced (PBX.Event_Handlers);
 with PBX.Call.Event_Handlers;
 pragma Unreferenced (PBX.Call.Event_Handlers);
 
-with My_Configuration;
+with Alice_Configuration;
 with System_Messages;
 
 --  TODO: Cover all branches on status.
@@ -40,7 +40,7 @@ package body PBX is
    use AMI.Parser;
    use Ada.Calendar;
    use System_Messages;
-   use My_Configuration;
+   use Alice_Configuration;
 
    Next_Reconnect : Ada.Calendar.Time := Clock;
 

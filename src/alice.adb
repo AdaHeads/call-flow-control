@@ -18,7 +18,7 @@
 with AGI.Callbacks; --  Initializes with a call to AMI.Observers.Register.
 pragma Unreferenced (AGI.Callbacks);
 
-with My_Handlers;
+with Alice_Handlers;
 with PBX;
 with System_Message.Critical;
 with System_Message.Info;
@@ -38,7 +38,7 @@ procedure Alice is
      (Unexpected => Unexpected_Exception.Callback);
 begin
    PBX.Start;
-   Web_Server.Start (Dispatchers => My_Handlers.Get);
+   Web_Server.Start (Dispatchers => Alice_Handlers.Get);
 
    Info.Alice_Start (Message => "Server version " & Alice_Version);
 

@@ -20,7 +20,7 @@ with Common;
 with Yolk.Command_Line;
 with Yolk.Config_File_Parser;
 
-package My_Configuration is
+package Alice_Configuration is
 
    use Ada.Strings.Unbounded;
    use Common;
@@ -84,4 +84,4 @@ package My_Configuration is
                                 Default   =>
                                 "configuration/alice_config.ini"));
 
-end My_Configuration;
+end Alice_Configuration;
