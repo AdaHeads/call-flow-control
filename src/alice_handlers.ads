@@ -17,12 +17,12 @@
 
 --  Application specific resource handlers.
 
-with AWS.Services.Dispatchers.URI;
+with AWS.Services.Dispatchers.Method;
 
 package Alice_Handlers is
 
    function Get
-     return AWS.Services.Dispatchers.URI.Handler;
+     return AWS.Services.Dispatchers.Method.Handler;
    --  Register content dispatchers for the server.
    --  TODO: Move the websocket stuff out of this function.
 
