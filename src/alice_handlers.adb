@@ -34,58 +34,24 @@ with Yolk.Static_Content;
 
 package body Alice_Handlers is
 
-   use Handlers;
+   procedure Set_GET_URI_Dispatchers
+     (Dispatcher : out AWS.Services.Dispatchers.URI.Handler);
+   --  Add all URI dispatchers for GET requests.
+
+   procedure Set_POST_URI_Dispatchers
+     (Dispatcher : in out AWS.Services.Dispatchers.URI.Handler);
+   --  Add all URI dispatchers for POST requests.
 
    -----------
    --  Set  --
    -----------
-
---     procedure Set
---       (RH : out AWS.Services.Dispatchers.Method.Handler)
---     is
---        POST, GET : AWS.Services.Dispatchers.URI.Handler;
---     begin
---        -- 404
---        Register_Default_Callback
---          (Dispatcher => POST,
---          Action     => Create (Callback => Yolk.Not_Found.Generate'Access));
---        Register_Default_Callback
---          (Dispatcher => GET,
---          Action     => Create (Callback => Yolk.Not_Found.Generate'Access));
---
---        AWS.Services.Dispatchers.URI.Register
---          (Dispatcher => GET,
---           URI        => Config.Get (Handler_Call_Hangup),
---           Action     => Create
---             (Callback => Call.Hangup'Access));
---
---        AWS.Services.Dispatchers.URI.Register
---          (Dispatcher => POST,
---           URI        => Config.Get (Handler_Organization_List),
---           Action     => Organization_List.Callback);
---        AWS.Services.Dispatchers.URI.Register
---          (Dispatcher => GET,
---           URI        => Config.Get (Handler_Organization_List),
---           Action     => Organization_List.Callback);
---
---        -- ...
---
---        AWS.Services.Dispatchers.Method.Register (Dispatcher => RH,
---                                                  Method     => POST,
---                                                  Action     => POST)
---        AWS.Services.Dispatchers.Method.Register (Dispatcher => RH,
---                                                  Method     => GET,
---                                                  Action     => GET)
---        AWS.Services.Dispatchers.Method.Register (Dispatcher => RH,
---                                                  Method     => others,
---                                                  Action     => Not_Found)
---     end;
 
    function Get
      return AWS.Services.Dispatchers.Method.Handler
    is
       use AWS.Dispatchers;
       use AWS.Services;
+      use Handlers;
 
       Method_Dispatcher   : Dispatchers.Method.Handler;
       URI_GET_Dispatcher  : Dispatchers.URI.Handler;
@@ -96,11 +62,16 @@ package body Alice_Handlers is
       -----------------------------------------
 
       Method_Dispatcher.Register_Default_Callback
-        (Action => URI_GET_Dispatcher);
+        (Action => Not_Found.Callback);
       --  If no request methods has been set in the request we treat the
-      --  request as a GET request.
+      --  request as failed and return a 404 Not Found.
 
       URI_GET_Dispatcher.Register_Default_Callback
+        (Action => Not_Found.Callback);
+      --  Returns a 404 to the user if no callback is found for the requested
+      --  resource.
+
+      URI_POST_Dispatcher.Register_Default_Callback
         (Action => Not_Found.Callback);
       --  Returns a 404 to the user if no callback is found for the requested
       --  resource.
@@ -123,126 +94,26 @@ package body Alice_Handlers is
       --  serverside caching of files is necessary, consider using an actual
       --  proxy / cache server like varnish in front of Alice.
 
-      ----------------------
-      --  GET Dispatchers --
-      ----------------------
+      ---------------------------
+      --  Set URI dispatchers  --
+      ---------------------------
 
-      Dispatchers.URI.Register
-        (Dispatcher => URI_GET_Dispatcher,
-         URI        => "/agent",
-         Action     => Callback.Create
-           (Callback => Agent.Agent'Access));
-
-      Dispatchers.URI.Register
-        (Dispatcher => URI_GET_Dispatcher,
-         URI        => "/agent/list",
-         Action     => Callback.Create
-           (Callback => Agent.Agent_List'Access));
-
-      Dispatchers.URI.Register
-        (Dispatcher => URI_GET_Dispatcher,
-         URI        => "/call/list",
-         Action     => Callback.Create
-           (Callback => Call.List'Access));
-
-      Dispatchers.URI.Register
-        (Dispatcher => URI_GET_Dispatcher,
-         URI        => "/call/queue",
-         Action     => Callback.Create
-           (Callback => Call.Queue'Access));
-
-      Dispatchers.URI.Register
-        (Dispatcher => URI_GET_Dispatcher,
-         URI        => "/configuration",
-         Action     => Configuration.Callback);
-
-      Dispatchers.URI.Register
-        (Dispatcher => URI_GET_Dispatcher,
-         URI        => "/contact",
-         Action     => Contact.Callback);
-
-      Dispatchers.URI.Register
-        (Dispatcher => URI_GET_Dispatcher,
-         URI        => "/debug/channel/list",
-         Action     => Callback.Create
-           (Callback => Handlers.Debug.Channel_List'Access));
-
-      Dispatchers.URI.Register
-        (Dispatcher => URI_GET_Dispatcher,
-         URI        => "/debug/peer/list",
-         Action     => Callback.Create
-           (Callback => Handlers.Debug.Peer_List'Access));
-
-      Dispatchers.URI.Register
-        (Dispatcher => URI_GET_Dispatcher,
-         URI        => "/organization",
-         Action     => Organization.Callback);
-
-      Dispatchers.URI.Register
-        (Dispatcher => URI_GET_Dispatcher,
-         URI        => "/organization/list",
-         Action     => Organization_List.Callback);
-
-      -----------------------
-      --  POST Dispatchers --
-      -----------------------
-
-      Dispatchers.URI.Register
-        (Dispatcher => URI_POST_Dispatcher,
-         URI        => "/call/hangup",
-         Action     => Callback.Create
-           (Callback => Call.Hangup'Access));
-
-      Dispatchers.URI.Register
-        (Dispatcher => URI_POST_Dispatcher,
-         URI        => "/call/park",
-         Action     => Callback.Create
-           (Callback => Call.Park'Access));
-
-      Dispatchers.URI.Register
-        (Dispatcher => URI_POST_Dispatcher,
-         URI        => "/call/pickup",
-         Action     => Callback.Create
-           (Callback => Call.Pickup'Access));
-
-      Dispatchers.URI.Register
-        (Dispatcher => URI_POST_Dispatcher,
-         URI        => "/call/transfer",
-         Action     => Callback.Create
-           (Callback => Call.Transfer'Access));
-
-      Dispatchers.URI.Register
-        (Dispatcher => URI_POST_Dispatcher,
-         URI        => "/call/originate",
-         Action     => Callback.Create
-           (Callback => Handlers.Call.Originate'Access));
+      Set_GET_URI_Dispatchers (Dispatcher => URI_GET_Dispatcher);
+      Set_POST_URI_Dispatchers (Dispatcher => URI_POST_Dispatcher);
 
       -----------------------
       --  Method handlers  --
       -----------------------
 
---        AWS.Services.Dispatchers.Method.Register
---          (Dispatcher => GET,
---           Method     => AWS.Status.GET,
---           Action     => GET_URI);
---
---        AWS.Services.Dispatchers.Method.Register
---          (Dispatcher => POST,
---           Method     => AWS.Status.POST,
---           Action     => POST_URI);
+      Method_Dispatcher.Register
+        (Method => AWS.Status.GET,
+         Action => URI_GET_Dispatcher);
+      --  Add all the GET URI's to the GET method dispatcher.
 
-      Dispatchers.Method.Register
-        (Dispatcher => Method_Dispatcher,
-         Method     => AWS.Status.GET,
-         Action     => URI_GET_Dispatcher);
-
-      Dispatchers.Method.Register
-        (Dispatcher => Method_Dispatcher,
-         Method     => AWS.Status.POST,
-         Action     => URI_POST_Dispatcher);
-      --        AWS.Services.Dispatchers.URI.Register (Dispatcher => RH,
---                                               Method     => others,
---                                               Action     => Not_Found);
+      Method_Dispatcher.Register
+        (Method => AWS.Status.POST,
+         Action => URI_POST_Dispatcher);
+      --  Add all the POST URI's to the POST method dispatcher.
 
       --------------------------
       --  WebSocket handlers  --
@@ -254,5 +125,100 @@ package body Alice_Handlers is
 
       return Method_Dispatcher;
    end Get;
+
+   -------------------------------
+   --  Set_GET_URI_Dispatchers  --
+   -------------------------------
+
+   procedure Set_GET_URI_Dispatchers
+     (Dispatcher : out AWS.Services.Dispatchers.URI.Handler)
+   is
+      use AWS.Dispatchers;
+      use AWS.Services;
+      use Handlers;
+   begin
+      Dispatcher.Register
+        (URI    => "/agent",
+         Action => Callback.Create
+           (Callback => Agent.Agent'Access));
+
+      Dispatcher.Register
+        (URI    => "/agent/list",
+         Action => Callback.Create
+           (Callback => Agent.Agent_List'Access));
+
+      Dispatcher.Register
+        (URI    => "/call/list",
+         Action => Callback.Create
+           (Callback => Call.List'Access));
+
+      Dispatcher.Register
+        (URI    => "/call/queue",
+         Action => Callback.Create
+           (Callback => Call.Queue'Access));
+
+      Dispatcher.Register
+        (URI    => "/configuration",
+         Action => Configuration.Callback);
+
+      Dispatcher.Register
+        (URI    => "/contact",
+         Action => Contact.Callback);
+
+      Dispatcher.Register
+        (URI    => "/debug/channel/list",
+         Action => Callback.Create
+           (Callback => Handlers.Debug.Channel_List'Access));
+
+      Dispatcher.Register
+        (URI    => "/debug/peer/list",
+         Action => Callback.Create
+           (Callback => Handlers.Debug.Peer_List'Access));
+
+      Dispatcher.Register
+        (URI    => "/organization",
+         Action => Organization.Callback);
+
+      Dispatcher.Register
+        (URI    => "/organization/list",
+         Action => Organization_List.Callback);
+   end Set_GET_URI_Dispatchers;
+
+   --------------------------------
+   --  Set_POST_URI_Dispatchers  --
+   --------------------------------
+
+   procedure Set_POST_URI_Dispatchers
+     (Dispatcher : in out AWS.Services.Dispatchers.URI.Handler)
+   is
+      use AWS.Dispatchers;
+      use AWS.Services;
+      use Handlers;
+   begin
+      Dispatcher.Register
+        (URI    => "/call/hangup",
+         Action => Callback.Create
+           (Callback => Call.Hangup'Access));
+
+      Dispatcher.Register
+        (URI    => "/call/park",
+         Action => Callback.Create
+           (Callback => Call.Park'Access));
+
+      Dispatcher.Register
+        (URI    => "/call/pickup",
+         Action => Callback.Create
+           (Callback => Call.Pickup'Access));
+
+      Dispatcher.Register
+        (URI    => "/call/transfer",
+         Action => Callback.Create
+           (Callback => Call.Transfer'Access));
+
+      Dispatcher.Register
+        (URI    => "/call/originate",
+         Action => Callback.Create
+           (Callback => Handlers.Call.Originate'Access));
+   end Set_POST_URI_Dispatchers;
 
 end Alice_Handlers;

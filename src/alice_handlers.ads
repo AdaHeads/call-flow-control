@@ -24,6 +24,5 @@ package Alice_Handlers is
    function Get
      return AWS.Services.Dispatchers.Method.Handler;
    --  Register content dispatchers for the server.
-   --  TODO: Move the websocket stuff out of this function.
 
 end Alice_Handlers;
