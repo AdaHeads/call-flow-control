@@ -1,0 +1,48 @@
+#! /bin/bash
+#-----------------------------------------------------------------------------
+#--  Set current working directory:
+
+if cd "$(dirname "$0")"; then
+   true
+else
+   echo "Could not make '$(dirname "$0")' the current working directory." 1>&2
+   exit 1
+fi
+
+#-----------------------------------------------------------------------------
+#--  Temporary storage:
+
+generated_units=$(mktemp)
+source_units=$(mktemp)
+
+#-----------------------------------------------------------------------------
+#--  List generated files:
+
+\ls *.ali *.o \
+  | perl -lpe 's/[.](ali|o)$//;' \
+  | LANG=C sort -u \
+  > ${generated_units}
+
+#-----------------------------------------------------------------------------
+#--  List source files:
+
+\ls ../../dial-plans/*.ad[sb] \
+  | perl -lpe 's|^.+/||; s|[.]ad[sb]$||;' \
+  | LANG=C sort -u \
+  > ${source_units}
+
+#-----------------------------------------------------------------------------
+
+if diff ${generated_units} ${source_units} 1>/dev/null; then
+   result=0
+else
+   echo "Untested dial-plan units:"
+   diff ${generated_units} ${source_units} | grep '^> '
+   result=1
+fi
+
+rm -f ${generated_units} ${source_units}
+
+exit ${result}
+
+#-----------------------------------------------------------------------------
