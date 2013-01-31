@@ -34,5 +34,6 @@ begin
       Dial_Plan         : Node := Get_Element (Doc);
       Seen_An_End_Point : Boolean := False;
    begin
+      null; -- TODO!
    end;
 end Load_Dial_Plan;
