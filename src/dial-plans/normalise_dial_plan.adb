@@ -36,8 +36,6 @@ begin
       Write (Stream       => Stream (Standard_Output),
              N            => Doc,
              Pretty_Print => True);
-
-      Free (Reader);
    else
       Put_Line (Standard_Error, "Usage:");
       Put_Line (Standard_Error, "   " & Command_Name & " <dial-plan_file>");
