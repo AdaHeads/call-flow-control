@@ -435,6 +435,10 @@ package body Response is
                   Validate
                     (Model.Contact_Identifier'Value
                        (Param_List.Get (To_String (Elem.Name))));
+               when Request_Parameters.Non_Empty_String =>
+                  if Param_List.Get (To_String (Elem.Name))'Length < 1 then
+                     raise Constraint_Error;
+                  end if;
                when Request_Parameters.Organization_Identifier =>
                   Validate
                     (Model.Organization_Identifier'Value
@@ -452,7 +456,7 @@ package body Response is
       end loop;
 
       Instance.Valid_Request_Parameters := True;
-      --  If we reach this point, the reqeust parameters are valid, even if
+      --  If we reach this point, the request parameters are valid, even if
       --  there aren't any at all.
    exception
       when Constraint_Error =>

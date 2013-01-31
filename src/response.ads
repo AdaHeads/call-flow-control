@@ -81,10 +81,12 @@ package Response is
    function Parameter
      (Instance : in Object;
       Name     : in String)
-      return String
-   with Pre => Instance.Valid_Request_Parameters;
+      return String;
    --  Return the Name request parameter. Return empty string if Name does not
-   --  exist.
+   --  exist. Note that this does _NOT_ take validation into account. Calling
+   --  this prior to Validate_Request_Parameters will return whatever value
+   --  that might be associated with the Name key or empty String if Name does
+   --  not exist.
 
    function Parameter_Count
      (Instance : in Object)
@@ -144,7 +146,9 @@ package Response is
    procedure Validate_Request_Parameters
      (Instance : in out Object)
    with Pre => Instance.Has_Status_Data;
-   --  Validate the registered request parameters.
+   --  Validate the registered request parameters. If the validation fails,
+   --  the Instance response object is updated to reflect the problem and
+   --  Valid_Request_Parameters will remain false.
 
 private
 
