@@ -20,6 +20,7 @@ with Handlers.Agent;
 with Handlers.Call;
 with Handlers.Configuration;
 with Handlers.Debug;
+with Handlers.Log;
 with Handlers.Notifications;
 with Handlers.Organization;
 with Handlers.Organization_List;
@@ -219,6 +220,18 @@ package body Alice_Handlers is
         (URI    => "/call/originate",
          Action => Callback.Create
            (Callback => Handlers.Call.Originate'Access));
+
+      Dispatcher.Register
+        (URI    => "/log/critical",
+         Action => Log.Callback_Critical);
+
+      Dispatcher.Register
+        (URI    => "/log/error",
+         Action => Log.Callback_Error);
+
+      Dispatcher.Register
+        (URI    => "/log/info",
+         Action => Log.Callback_Info);
    end Set_POST_URI_Dispatchers;
 
 end Alice_Handlers;

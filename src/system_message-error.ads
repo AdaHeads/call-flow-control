@@ -31,6 +31,12 @@ package System_Message.Error is
       Status      => "bad request",
       Status_Code => HTTP_Codes.Bad_Request);
 
+   procedure Client_Error is new Log_And_Respond
+     (Description => "",
+      Log_Trace   => Yolk.Log.Error,
+      Status      => "Client log entry",
+      Status_Code => HTTP_Codes.No_Content);
+
    procedure Generic_Constraint_Error is new Log_And_Respond
      (Description => "a constraint was violated",
       Log_Trace   => Yolk.Log.Error,

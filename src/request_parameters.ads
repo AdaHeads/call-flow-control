@@ -18,6 +18,7 @@
 package Request_Parameters is
 
    type Kind  is (Contact_Identifier,
+                  Non_Empty_String,
                   Organization_Identifier,
                   Organization_List_View);
 

@@ -17,7 +17,10 @@
 
 with Ada.Exceptions.Is_Null_Occurrence;
 with Ada.Strings.Unbounded;
+
 with Common;
+with HTTP_Codes;
+
 with GNATCOLL.JSON;
 
 package body System_Message is
@@ -146,6 +149,9 @@ package body System_Message is
       Message         : in     String := "";
       Response_Object : in out Response.Object)
    is
+      use AWS.Messages;
+      use Common;
+
       New_Msg : constant String := Construct_Message (Event, Message);
    begin
       Write_To_Log (Description => Description,
@@ -153,12 +159,17 @@ package body System_Message is
                     Tail        => New_Msg,
                     Log_Trace   => Log_Trace);
 
-      Build_Response_Object
-        (Description     => Description,
-         Response_Object => Response_Object,
-         Status          => Status,
-         Status_Code     => Status_Code,
-         Tail            => New_Msg);
+      if Status_Code = HTTP_Codes.No_Content then
+         Response_Object.HTTP_Status_Code (Status_Code);
+         Response_Object.Content (To_JSON_String (""));
+      else
+         Build_Response_Object
+           (Description     => Description,
+            Response_Object => Response_Object,
+            Status          => Status,
+            Status_Code     => Status_Code,
+            Tail            => New_Msg);
+      end if;
    end Log_And_Respond;
 
    --------------
@@ -185,14 +196,22 @@ package body System_Message is
       Message         : in     String := "";
       Response_Object : in out Response.Object)
    is
+      use AWS.Messages;
+      use Common;
+
       New_Msg : constant String := Construct_Message (Event, Message);
    begin
-      Build_Response_Object
-        (Description     => Description,
-         Response_Object => Response_Object,
-         Status          => Status,
-         Status_Code     => Status_Code,
-         Tail            => New_Msg);
+      if Status_Code = HTTP_Codes.No_Content then
+         Response_Object.HTTP_Status_Code (Status_Code);
+         Response_Object.Content (To_JSON_String (""));
+      else
+         Build_Response_Object
+           (Description     => Description,
+            Response_Object => Response_Object,
+            Status          => Status,
+            Status_Code     => Status_Code,
+            Tail            => New_Msg);
+      end if;
    end Responder;
 
    --------------------

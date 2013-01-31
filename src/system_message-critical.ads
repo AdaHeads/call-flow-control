@@ -23,6 +23,12 @@ package System_Message.Critical is
      (Log_Trace => Yolk.Log.Critical,
       Status    => "Shutting down Alice due to unhandled exception");
 
+   procedure Client_Critical is new Log_And_Respond
+     (Description => "",
+      Log_Trace   => Yolk.Log.Critical,
+      Status      => "Client log entry",
+      Status_Code => HTTP_Codes.No_Content);
+
    procedure Lost_Database_Connection is new Logger
      (Log_Trace => Yolk.Log.Critical,
       Status    => "Lost connection to database");

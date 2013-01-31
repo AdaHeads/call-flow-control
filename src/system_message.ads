@@ -16,8 +16,11 @@
 -------------------------------------------------------------------------------
 
 with Ada.Exceptions;
+
 with AWS.Messages;
+
 with Response;
+
 with Yolk.Log;
 
 package System_Message is
@@ -44,6 +47,8 @@ package System_Message is
    --  Log Description and Status to Log_Trace.
    --  Respond to user with Description, Status and Status_Code.
    --  Append Event and/or Message to both log and response, if given.
+   --  If Status_Code is No_Content (204), then the response will be empty, no
+   --  matter the contents of Status and Description.
 
    generic
       Description : String;
@@ -55,5 +60,7 @@ package System_Message is
       Response_Object : in out Response.Object);
    --  Respond to user with Description, Status and Status_Code. Append Event
    --  and / or Message, if given.
+   --  If Status_Code is No_Content (204), then the response will be empty, no
+   --  matter the contents of Status and Description.
 
 end System_Message;

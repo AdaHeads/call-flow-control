@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with HTTP_Codes;
+
 package System_Message.Info is
 
    procedure Alice_Start is new Logger
@@ -24,6 +26,12 @@ package System_Message.Info is
    procedure Alice_Stop is new Logger
      (Log_Trace => Yolk.Log.Info,
       Status    => "Alice controlled shutdown. Goodbye");
+
+   procedure Client_Info is new Log_And_Respond
+     (Description => "",
+      Log_Trace   => Yolk.Log.Info,
+      Status      => "Client log entry",
+      Status_Code => HTTP_Codes.No_Content);
 
    procedure Notifications_WebSocket_Created is new Logger
      (Log_Trace => Yolk.Log.Info,
