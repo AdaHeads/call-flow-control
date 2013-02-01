@@ -25,5 +25,6 @@
         "Username": "softphone1"
     },
     "Organizations_List_View": "midi",
-    "Polling_Interval": 2000
+    "Polling_Interval": 2000,
+    "logLevel":"info"
 }
