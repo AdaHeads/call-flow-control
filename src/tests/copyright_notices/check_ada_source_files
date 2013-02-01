@@ -1,0 +1,51 @@
+#! /bin/bash
+#-----------------------------------------------------------------------------
+#--  Temporary storage:
+
+source_files=$(mktemp)
+files_with_copyright_notice=$(mktemp)
+files_without_copyright_notice=$(mktemp)
+
+#-----------------------------------------------------------------------------
+#--  List of excepted source files:
+
+cd "$(dirname "$0")"
+
+exceptions="$(pwd)/exceptions"
+
+#-----------------------------------------------------------------------------
+#--  Find source files:
+
+cd ../../..
+
+find src -type f \( -name '*.ads' -o -name '*.adb' \) \
+  | LANG=C sort \
+  > ${source_files}
+
+xargs egrep -l 'Copyright [(]C[)] 201[123]-, AdaHeads K/S' \
+  < ${source_files} \
+  | LANG=C sort \
+  > ${files_with_copyright_notice}
+
+diff ${source_files} ${files_with_copyright_notice} \
+  | egrep '^[<>] ' \
+  | cut -c3- \
+  > ${files_without_copyright_notice}
+
+if LANG=C sort "${exceptions}" | diff - ${files_without_copyright_notice} 1>/dev/null; then
+   echo "All source files have a proper copyright notice."
+   result=0
+else
+   echo "These source files are missing a proper copyright notice:"
+   LANG=C sort "${exceptions}" \
+     | diff - ${files_without_copyright_notice} \
+     | egrep '^[<>] ' \
+     | perl -lpe 's|^[<>] |   |;'
+   result=1
+fi
+
+rm -f ${source_files} ${files_with_copyright_notice} ${files_without_copyright_notice}
+
+exit ${result}
+
+#-----------------------------------------------------------------------------
