@@ -26,5 +26,22 @@
     },
     "Organizations_List_View": "midi",
     "Polling_Interval": 2000,
-    "logLevel":"info"
+    "logLevel": "info",
+    "dart": {
+        "standardGreeting": "Velkommen til...",
+        "aliceBaseUrl": "http://alice.adaheads.com:4242",
+        "notificationSocket": {
+            "interface": "ws://alice.adaheads.com:4242/notifications",
+            "reconnectInterval": 1000
+        },
+        "agentID": 1,
+        "serverLog": {
+            "level": "info",
+            "interface": {
+                "critical": "/log/critical",
+                "error": "/log/error",
+                "info": "/log/info"
+            }
+        }
+    }
 }
