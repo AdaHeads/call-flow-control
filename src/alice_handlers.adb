@@ -15,6 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with CORS_Preflight;
 with Handlers.Contact;
 with Handlers.Agent;
 with Handlers.Call;
@@ -44,7 +45,7 @@ package body Alice_Handlers is
    --  Add all URI dispatchers for POST requests.
 
    -----------
-   --  Set  --
+   --  Get  --
    -----------
 
    function Get
@@ -115,6 +116,11 @@ package body Alice_Handlers is
         (Method => AWS.Status.POST,
          Action => URI_POST_Dispatcher);
       --  Add all the POST URI's to the POST method dispatcher.
+
+      Method_Dispatcher.Register
+        (Method => AWS.Status.OPTIONS,
+         Action => CORS_Preflight.Callback);
+      --  This is for CORS preflight requests.
 
       --------------------------
       --  WebSocket handlers  --

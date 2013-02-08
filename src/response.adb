@@ -89,6 +89,14 @@ package body Response is
          Set.Add_Header (D     => Response,
                          Name  => Access_Control_Allow_Credentials_Token,
                          Value => "true");
+
+         Set.Add_Header (D     => Response,
+                         Name  => Access_Control_Allow_Headers_Token,
+                         Value => "POST, GET");
+
+         Set.Add_Header (D     => Response,
+                         Name  => Access_Control_Max_Age_Token,
+                         Value => "86400");
       end if;
    end Add_CORS_Headers;
 
