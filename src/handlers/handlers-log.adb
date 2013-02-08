@@ -27,7 +27,9 @@ package body Handlers.Log is
    function Get_Message
      (Instance : in out Response.Object)
       return String;
-   --  TODO: Write comment.
+   --  Return the POST msg value. Return empty string if msg does not validate
+   --  as a non-empty string. Note that pre- and postfixed whitespace is
+   --  trimmed before validation.
 
    -------------------------
    --  Callback_Critical  --

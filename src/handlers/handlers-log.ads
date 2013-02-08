@@ -37,26 +37,29 @@ private
 
    procedure Critical_Log
      (Instance : in out Response.Object);
-   --  TODO: write comment
+   --  Write client log data to the CRITICAL log.
 
    function Critical_Response is new Response.Not_Cached.Generate_Response
      (Generate_Document => Critical_Log);
-   --  Generate the AWS.Response.Data that ultimately is delivered to the user.
+   --  Generate response to user. This will return a 204 on success or a 400
+   --  for requests with no msg POST data or missing msg POST parameter.
 
    procedure Error_Log
      (Instance : in out Response.Object);
-   --  TODO: write comment
+   --  Write client log data to the ERROR log.
 
    function Error_Response is new Response.Not_Cached.Generate_Response
      (Generate_Document => Error_Log);
-   --  Generate the AWS.Response.Data that ultimately is delivered to the user.
+   --  Generate response to user. This will return a 204 on success or a 400
+   --  for requests with no msg POST data or missing msg POST parameter.
 
    procedure Info_Log
      (Instance : in out Response.Object);
-   --  TODO: write comment
+   --  Write client log data to the INFO log.
 
    function Info_Response is new Response.Not_Cached.Generate_Response
      (Generate_Document => Info_Log);
-   --  Generate the AWS.Response.Data that ultimately is delivered to the user.
+   --  Generate response to user. This will return a 204 on success or a 400
+   --  for requests with no msg POST data or missing msg POST parameter.
 
 end Handlers.Log;
