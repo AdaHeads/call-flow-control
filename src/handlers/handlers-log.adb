@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Fixed;
+
 with Request_Parameters;
 with System_Message.Critical;
 with System_Message.Error;
@@ -102,6 +104,7 @@ package body Handlers.Log is
      (Instance : in out Response.Object)
       return String
    is
+      use Ada.Strings.Fixed;
    begin
       Instance.Register_Request_Parameter
         (Mode           => Request_Parameters.Required,
@@ -111,7 +114,7 @@ package body Handlers.Log is
       Instance.Validate_Request_Parameters;
 
       if Instance.Valid_Request_Parameters then
-         return Instance.Parameter ("msg");
+         return Trim (Instance.Parameter ("msg"), Ada.Strings.Both);
       else
          return "";
       end if;

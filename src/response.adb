@@ -425,6 +425,7 @@ package body Response is
    procedure Validate_Request_Parameters
      (Instance : in out Object)
    is
+      use Ada.Strings.Fixed;
       use AWS.Parameters;
       use AWS.Status;
       use Common;
@@ -444,7 +445,9 @@ package body Response is
                     (Model.Contact_Identifier'Value
                        (Param_List.Get (To_String (Elem.Name))));
                when Request_Parameters.Non_Empty_String =>
-                  if Param_List.Get (To_String (Elem.Name))'Length < 1 then
+                  if Trim (Param_List.Get (To_String (Elem.Name)),
+                           Ada.Strings.Both)'Length < 1
+                  then
                      raise Constraint_Error;
                   end if;
                when Request_Parameters.Organization_Identifier =>

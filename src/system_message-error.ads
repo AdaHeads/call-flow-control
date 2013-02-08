@@ -34,7 +34,7 @@ package System_Message.Error is
    procedure Client_Error is new Log_And_Respond
      (Description => "",
       Log_Trace   => Yolk.Log.Error,
-      Status      => "Client log entry",
+      Status      => "Client log",
       Status_Code => HTTP_Codes.No_Content);
 
    procedure Generic_Constraint_Error is new Log_And_Respond

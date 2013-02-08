@@ -30,7 +30,7 @@ package System_Message.Info is
    procedure Client_Info is new Log_And_Respond
      (Description => "",
       Log_Trace   => Yolk.Log.Info,
-      Status      => "Client log entry",
+      Status      => "Client log",
       Status_Code => HTTP_Codes.No_Content);
 
    procedure Notifications_WebSocket_Created is new Logger

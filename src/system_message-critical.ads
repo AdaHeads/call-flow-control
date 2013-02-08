@@ -26,7 +26,7 @@ package System_Message.Critical is
    procedure Client_Critical is new Log_And_Respond
      (Description => "",
       Log_Trace   => Yolk.Log.Critical,
-      Status      => "Client log entry",
+      Status      => "Client log",
       Status_Code => HTTP_Codes.No_Content);
 
    procedure Lost_Database_Connection is new Logger
