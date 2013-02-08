@@ -73,8 +73,10 @@ package body Handlers.Log is
 
       Msg : constant String := Get_Message (Instance);
    begin
-      Critical.Client_Critical (Message         => Msg,
-                                Response_Object => Instance);
+      if Msg'Length > 0 then
+         Critical.Client_Critical (Message         => Msg,
+                                   Response_Object => Instance);
+      end if;
    end Critical_Log;
 
    -----------------
@@ -88,8 +90,10 @@ package body Handlers.Log is
 
       Msg : constant String := Get_Message (Instance);
    begin
-      Error.Client_Error (Message         => Msg,
-                          Response_Object => Instance);
+      if Msg'Length > 0 then
+         Error.Client_Error (Message         => Msg,
+                             Response_Object => Instance);
+      end if;
    end Error_Log;
 
    -------------------
@@ -127,8 +131,10 @@ package body Handlers.Log is
 
       Msg : constant String := Get_Message (Instance);
    begin
-      Info.Client_Info (Message         => Msg,
-                        Response_Object => Instance);
+      if Msg'Length > 0 then
+         Info.Client_Info (Message         => Msg,
+                           Response_Object => Instance);
+      end if;
    end Info_Log;
 
 end Handlers.Log;
