@@ -35,6 +35,6 @@ private
      (Generate_Document => Generate_Document);
    --  Generate the AWS.Response.Data that ultimately is delivered to the user.
    --  In the case of a CORS preflight request all we return is an empty JSON
-   -- string, ie. {}.
+   --  string, ie. {}.
 
 end CORS_Preflight;
