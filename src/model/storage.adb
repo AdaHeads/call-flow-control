@@ -199,7 +199,6 @@ package body Storage is
    is
       use Ada.Exceptions;
       use GNATCOLL.SQL.Exec;
-      use Storage;
       use System_Message;
 
       C              : Database_Cursor;
@@ -219,8 +218,8 @@ package body Storage is
 
             exit Fetch_Data;
          else
-            Storage.Failed_Query (Connection_Pool => DB_Connections,
-                                  Connection_Type => K);
+            Failed_Query (Connection_Pool => DB_Connections,
+                          Connection_Type => K);
          end if;
       end loop Fetch_Data;
    exception
