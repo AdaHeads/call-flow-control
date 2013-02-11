@@ -20,6 +20,8 @@ pragma Unreferenced (AGI.Callbacks);
 
 with Alice_Handlers;
 with PBX;
+with SIGHUP;
+with SIGHUP_Handler;
 with System_Message.Critical;
 with System_Message.Info;
 with Unexpected_Exception;
@@ -37,6 +39,7 @@ procedure Alice is
    Web_Server : HTTP := Create
      (Unexpected => Unexpected_Exception.Callback);
 begin
+   SIGHUP.Register (Handler => SIGHUP_Handler.Caught_Signal'Access);
    PBX.Start;
    Web_Server.Start (Dispatchers => Alice_Handlers.Get);
 
@@ -47,6 +50,7 @@ begin
 
    Web_Server.Stop;
    PBX.Stop;
+   SIGHUP.Stop;
 
    Info.Alice_Stop;
 exception

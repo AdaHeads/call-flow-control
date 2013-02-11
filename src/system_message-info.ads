@@ -45,4 +45,16 @@ package System_Message.Info is
      (Log_Trace => Yolk.Log.Info,
       Status    => "Closed a /notifications WebSocket");
 
+   procedure SIGHUP_Caught is new Logger
+     (Log_Trace => Yolk.Log.Info,
+      Status    => "Caught SIGHUP signal");
+
+   procedure SIGHUP_Watcher_Start is new Logger
+     (Log_Trace => Yolk.Log.Info,
+      Status    => "Starting SIGHUP watcher");
+
+   procedure SIGHUP_Watcher_Stop is new Logger
+     (Log_Trace => Yolk.Log.Info,
+      Status    => "Stopping SIGHUP watcher");
+
 end System_Message.Info;
