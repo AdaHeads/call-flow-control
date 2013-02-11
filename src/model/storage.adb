@@ -25,6 +25,8 @@ with GNATCOLL.SQL.Postgres;
 with Alice_Configuration;
 with System_Message.Critical;
 
+with Storage.Connections;
+
 package body Storage is
 
    use Alice_Configuration;

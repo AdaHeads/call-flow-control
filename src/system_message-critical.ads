@@ -46,6 +46,10 @@ package System_Message.Critical is
       Status      => "unhandled exception",
       Status_Code => HTTP_Codes.Server_Error);
 
+   procedure Connection_Maintenance_Error is new Logger
+     (Log_Trace   => Yolk.Log.Critical,
+      Status      => "Connection maintenance task terminated by an unhandled exception");
+
    procedure Unknown_User is new Logger
      (Log_Trace => Yolk.Log.Critical,
       Status    => "Cannot change user for process");
