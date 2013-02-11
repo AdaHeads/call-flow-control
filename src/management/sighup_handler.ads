@@ -15,19 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package SIGHUP is
+package SIGHUP_Handler is
 
-   pragma Elaborate_Body;
+   procedure Caught_Signal;
+   --  Log a caught SIGHUP signal message to INFO.
 
-   type Callback is access procedure;
-
-   procedure Register
-     (Handler : in Callback);
-   --  Register a SIGHUP handler. All handlers are autonomous, so if a SIGHUP
-   --  signal is caught, they will all fire "at the same time". Also not that
-   --  no more than 20 handlers can be registered.
-
-   procedure Stop;
-   --  Stop all SIGHUP handlers.
-
-end SIGHUP;
+end SIGHUP_Handler;

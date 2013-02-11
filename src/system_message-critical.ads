@@ -39,6 +39,14 @@ package System_Message.Critical is
       Status      => "server error",
       Status_Code => HTTP_Codes.Server_Error);
 
+   procedure SIGHUP_Handler_Exception is new Logger
+     (Log_Trace => Yolk.Log.Critical,
+      Status    => "Error in SIGHUP handler");
+
+   procedure SIGHUP_Register_Handler is new Logger
+     (Log_Trace => Yolk.Log.Critical,
+      Status    => "Too many SIGHUP handlers registered");
+
    procedure Unhandled_Exception is new Log_And_Respond
      (Description =>
       "This is a disaster and should be fixed by someone soon",

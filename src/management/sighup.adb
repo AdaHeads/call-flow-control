@@ -15,56 +15,66 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Ada.Exceptions,
-  Ada.Interrupts.Names;
-with
-  System_Messages;
+with Ada.Interrupts.Names;
+with Ada.Strings.Fixed;
+
+with System_Message.Info;
+with System_Message.Critical;
 
 package body SIGHUP is
+
    type Handler_Count is range 0 .. 20;
    subtype Handler_Indices is Handler_Count range 1 .. Handler_Count'Last;
    type Handler_States is array (Handler_Indices) of Boolean;
 
    protected Queue is
       procedure HUP;
+      --  Activate all SIGHUP handlers.
+
       pragma Attach_Handler (HUP, Ada.Interrupts.Names.SIGHUP);
+      --  Attaches HUP to SIGHUP signals.
+
+      procedure Register
+        (Handler_Index : out Handler_Indices);
+      --  Register a handler.
 
       procedure Stop;
+      --  Stop all registered SIGHUP handlers.
 
-      entry Wait (Handler_Indices) (Stop :    out Boolean);
-
-      procedure Register (Handler_Index :    out Handler_Indices);
+      entry Wait (Handler_Indices)
+        (Stop : out Boolean);
+      --  All Watcher tasks hang here as long as HUP hasn't been called.
    private
       Handle     : Handler_States := (others => False);
       Registered : Handler_Count := 0;
       Stopping   : Boolean := False;
    end Queue;
 
+   -------------
+   --  Queue  --
+   -------------
+
    protected body Queue is
-      procedure HUP is
+
+      -----------
+      --  HUP  --
+      -----------
+
+      procedure HUP
+      is
       begin
          for H of Handle (1 .. Registered) loop
             H := True;
          end loop;
       end HUP;
 
-      procedure Stop is
-      begin
-         Stopping := True;
-         for H of Handle (1 .. Registered) loop
-            H := True;
-         end loop;
-      end Stop;
+      ----------------
+      --  Register  --
+      ----------------
 
-      entry Wait (for Handler in Handler_Indices) (Stop :    out Boolean)
-        when Handle (Handler) is
-      begin
-         Handle (Handler) := False;
-         Stop := Stopping;
-      end Wait;
-
-      procedure Register (Handler_Index :    out Handler_Indices) is
+      procedure Register
+        (Handler_Index : out Handler_Indices)
+      is
       begin
          if Registered < Handler_Indices'Last then
             Registered := Registered + 1;
@@ -73,19 +83,52 @@ package body SIGHUP is
             raise Constraint_Error;
          end if;
       end Register;
+
+      ------------
+      --  Stop  --
+      ------------
+
+      procedure Stop
+      is
+      begin
+         Stopping := True;
+         for H of Handle (1 .. Registered) loop
+            H := True;
+         end loop;
+      end Stop;
+
+      ------------
+      --  Wait  --
+      ------------
+
+      entry Wait (for Handler in Handler_Indices) (Stop : out Boolean)
+      when Handle (Handler)
+      is
+      begin
+         Handle (Handler) := False;
+         Stop := Stopping;
+      end Wait;
    end Queue;
 
-   task type Watcher (Index : Handler_Indices;
-                      Call  : Callback);
+   task type Watcher
+     (Index : Handler_Indices;
+      Call  : Callback);
+   --  A SIGHUP watcher. Call is called when a SIGHUP signal is caught.
+
    type Watcher_Reference is access Watcher;
 
+   ---------------
+   --  Watcher  --
+   ---------------
+
    task body Watcher is
+      use Ada.Strings.Fixed;
+      use System_Message;
+
       Stop : Boolean := False;
    begin
-      System_Messages.Notify
-        (Level   => System_Messages.Information,
-         Message => "SIGHUP watcher " & Handler_Indices'Image (Index) &
-                    " starting.");
+      Info.SIGHUP_Watcher_Start
+        (Message => Trim (Handler_Indices'Image (Index), Ada.Strings.Both));
 
       loop
          begin
@@ -94,38 +137,47 @@ package body SIGHUP is
             Call.all;
          exception
             when E : others =>
-               System_Messages.Notify
-                 (Level   => System_Messages.Error,
-                  Message => "SIGHUP handler " &
-                             Handler_Indices'Image (Index) &
-                             " raised the exception " &
-                             Ada.Exceptions.Exception_Name (E) &
-                             " with the message '" &
-                             Ada.Exceptions.Exception_Message (E) & "'.");
+               Critical.SIGHUP_Handler_Exception
+                 (Event   => E,
+                  Message => Trim
+                    (Handler_Indices'Image (Index), Ada.Strings.Both));
          end;
       end loop;
 
-      System_Messages.Notify
-        (Level   => System_Messages.Information,
-         Message => "SIGHUP watcher " & Handler_Indices'Image (Index) &
-                    " shutting down.");
+      Info.SIGHUP_Watcher_Stop
+        (Message => Trim (Handler_Indices'Image (Index), Ada.Strings.Both));
    end Watcher;
 
-   procedure Register (Handler : in     Callback) is
-      Index       : Handler_Indices;
+   ----------------
+   --  Register  --
+   ----------------
+
+   procedure Register
+     (Handler : in Callback)
+   is
+      use Ada.Strings.Fixed;
+      use System_Message;
+
+      Index       : Handler_Indices := 1;
       New_Watcher : Watcher_Reference;
+      pragma Unreferenced (New_Watcher);
    begin
       Queue.Register (Handler_Index => Index);
       New_Watcher := new Watcher (Index => Index,
                                   Call  => Handler);
    exception
       when Constraint_Error =>
-         raise Constraint_Error
-           with "Attempted to register too many handlers for SIGHUP.";
+         Critical.SIGHUP_Register_Handler
+           (Message => Trim (Handler_Indices'Image (Index), Ada.Strings.Both));
    end Register;
+
+   ------------
+   --  Stop  --
+   ------------
 
    procedure Stop is
    begin
       Queue.Stop;
    end Stop;
+
 end SIGHUP;

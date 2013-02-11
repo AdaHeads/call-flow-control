@@ -15,19 +15,19 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package SIGHUP is
+with System_Message.Info;
 
-   pragma Elaborate_Body;
+package body SIGHUP_Handler is
 
-   type Callback is access procedure;
+   ---------------------
+   --  Caught_Signal  --
+   ---------------------
 
-   procedure Register
-     (Handler : in Callback);
-   --  Register a SIGHUP handler. All handlers are autonomous, so if a SIGHUP
-   --  signal is caught, they will all fire "at the same time". Also not that
-   --  no more than 20 handlers can be registered.
+   procedure Caught_Signal
+   is
+      use System_Message;
+   begin
+      Info.SIGHUP_Caught (Message => "No action taken");
+   end Caught_Signal;
 
-   procedure Stop;
-   --  Stop all SIGHUP handlers.
-
-end SIGHUP;
+end SIGHUP_Handler;
