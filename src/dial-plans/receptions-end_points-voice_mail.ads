@@ -23,12 +23,23 @@ with Ada.Strings.Unbounded;
 package Receptions.End_Points.Voice_Mail is
    type Instance is new End_Point.Instance with private;
 
+   not overriding
+   function Create (Title   : in     String;
+                    Play    : in     String;
+                    Send_To : in     String) return Instance;
+
+   overriding
+   function Title (Item : in     Instance) return String;
+
+   not overriding
    function Play (Item : in     Instance) return String;
 
+   not overriding
    function Send_To (Item : in     Instance) return String;
 private
    type Instance is new End_Point.Instance with
       record
+         Title   : Ada.Strings.Unbounded.Unbounded_String;
          Play    : Ada.Strings.Unbounded.Unbounded_String;
          Send_To : Ada.Strings.Unbounded.Unbounded_String;
       end record;

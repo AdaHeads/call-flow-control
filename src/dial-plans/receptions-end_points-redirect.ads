@@ -23,10 +23,19 @@ with Ada.Strings.Unbounded;
 package Receptions.End_Points.Redirect is
    type Instance is new End_Point.Instance with private;
 
+   not overriding
+   function Create (Title : in     String;
+                    To    : in     String) return Instance;
+
+   overriding
+   function Title (Item : in     Instance) return String;
+
+   not overriding
    function To (Item : in     Instance) return String;
 private
    type Instance is new End_Point.Instance with
       record
-         To : Ada.Strings.Unbounded.Unbounded_String;
+         Title : Ada.Strings.Unbounded.Unbounded_String;
+         To    : Ada.Strings.Unbounded.Unbounded_String;
       end record;
 end Receptions.End_Points.Redirect;

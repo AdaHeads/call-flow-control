@@ -22,17 +22,12 @@ private
 with Ada.Strings.Unbounded;
 
 package Receptions.Action is
-   type Instance is abstract tagged private;
+   type Instance is abstract tagged null record;
    subtype Class is Instance'Class;
 
-   function Title (Item : in     Class) return String;
+   function Title (Item : in     Instance) return String is abstract;
 
    function Application (Item : access Instance;
                          Call : in     Channel_ID) return
 			 access Receptions.End_Point.Instance'Class is abstract;
-private
-   type Instance is abstract tagged
-      record
-         Title : Ada.Strings.Unbounded.Unbounded_String;
-      end record;
 end Receptions.Action;

@@ -16,6 +16,21 @@
 -------------------------------------------------------------------------------
 
 package body Receptions.End_Points.Redirect is
+   not overriding
+   function Create (Title : in     String;
+                    To    : in     String) return Instance is
+   begin
+      return (Title => Ada.Strings.Unbounded.To_Unbounded_String (Title),
+              To    => Ada.Strings.Unbounded.To_Unbounded_String (To));
+   end Create;
+
+   overriding
+   function Title (Item : in     Instance) return String is
+   begin
+      return Ada.Strings.Unbounded.To_String (Item.Title);
+   end Title;
+
+   not overriding
    function To (Item : in     Instance) return String is
    begin
       return Ada.Strings.Unbounded.To_String (Item.To);

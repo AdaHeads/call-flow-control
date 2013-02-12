@@ -16,6 +16,21 @@
 -------------------------------------------------------------------------------
 
 package body Receptions.End_Points.Queue is
+   not overriding
+   function Create (Title : in     String;
+                    ID    : in     String) return Instance is
+   begin
+      return (Title => Ada.Strings.Unbounded.To_Unbounded_String (Title),
+              ID    => Ada.Strings.Unbounded.To_Unbounded_String (ID));
+   end Create;
+
+   overriding
+   function Title (Item : in     Instance) return String is
+   begin
+      return Ada.Strings.Unbounded.To_String (Item.Title);
+   end Title;
+
+   not overriding
    function ID (Item : in     Instance) return String is
    begin
       return Ada.Strings.Unbounded.To_String (Item.ID);

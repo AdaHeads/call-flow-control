@@ -17,6 +17,20 @@
 
 with Receptions.End_Point;
 
+private
+with Ada.Strings.Unbounded;
+
 package Receptions.End_Points.Interactive_Voice_Response is
-   type Instance is new End_Point.Instance with null record;
+   type Instance is new End_Point.Instance with private;
+
+   not overriding
+   function Create (Title : in     String) return Instance;
+
+   overriding
+   function Title (Item : in     Instance) return String;
+private
+   type Instance is new End_Point.Instance with
+      record
+         Title : Ada.Strings.Unbounded.Unbounded_String;
+      end record;
 end Receptions.End_Points.Interactive_Voice_Response;

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2012-, AdaHeads K/S                    --
+--                      Copyright (C) 2013-, AdaHeads K/S                    --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,9 +15,16 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package body Receptions.Action is
-   function Title (Item : in     Class) return String is
+package body Receptions.End_Points.Hang_Up is
+   not overriding
+   function Create (Title : in     String) return Instance is
+   begin
+      return (Title => Ada.Strings.Unbounded.To_Unbounded_String (Title));
+   end Create;
+
+   overriding
+   function Title (Item : in     Instance) return String is
    begin
       return Ada.Strings.Unbounded.To_String (Item.Title);
    end Title;
-end Receptions.Action;
+end Receptions.End_Points.Hang_Up;

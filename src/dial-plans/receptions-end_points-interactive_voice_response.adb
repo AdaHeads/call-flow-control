@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2012-, AdaHeads K/S                    --
+--                      Copyright (C) 2013-, AdaHeads K/S                    --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,15 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package body Receptions.End_Points.Voice_Mail is
+package body Receptions.End_Points.Interactive_Voice_Response is
    not overriding
-   function Create (Title   : in     String;
-                    Play    : in     String;
-                    Send_To : in     String) return Instance is
+   function Create (Title : in     String) return Instance is
    begin
-      return (Title   => Ada.Strings.Unbounded.To_Unbounded_String (Title),
-              Play    => Ada.Strings.Unbounded.To_Unbounded_String (Play),
-              Send_To => Ada.Strings.Unbounded.To_Unbounded_String (Send_To));
+      return (Title => Ada.Strings.Unbounded.To_Unbounded_String (Title));
    end Create;
 
    overriding
@@ -31,16 +27,4 @@ package body Receptions.End_Points.Voice_Mail is
    begin
       return Ada.Strings.Unbounded.To_String (Item.Title);
    end Title;
-
-   not overriding
-   function Play (Item : in     Instance) return String is
-   begin
-      return Ada.Strings.Unbounded.To_String (Item.Play);
-   end Play;
-
-   not overriding
-   function Send_To (Item : in     Instance) return String is
-   begin
-      return Ada.Strings.Unbounded.To_String (Item.Send_To);
-   end Send_To;
-end Receptions.End_Points.Voice_Mail;
+end Receptions.End_Points.Interactive_Voice_Response;
