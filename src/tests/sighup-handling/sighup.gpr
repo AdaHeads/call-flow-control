@@ -17,6 +17,8 @@
 
 with "../shared.gpr";
 with "gnatcoll";
+with "aws";
+with "yolk";
 
 project SIGHUP is
    for Main use ("sighup-test");

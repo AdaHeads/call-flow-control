@@ -34,7 +34,7 @@ begin
       Ada.Text_IO.Put_Line ("None of the demonstration handlers were called.");
    end if;
 
-   if Ada.Command_Line.Argument_Count = 0 or else
+   if Ada.Command_Line.Argument_Count = 2 or else
         SIGHUP.Demonstration_Handlers.Called then
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Success);
    else
