@@ -23,18 +23,6 @@ package body Non_Blocking_Stack is
 
    protected body Instance is
 
-      ------------
-      --  Push  --
-      ------------
-
-      procedure Push
-        (Item : in Element_Type)
-      is
-      begin
-         Data.Append (Item);
-         Empty := False;
-      end Push;
-
       -----------
       --  Get  --
       -----------
@@ -63,6 +51,18 @@ package body Non_Blocking_Stack is
       begin
          return Empty;
       end Is_Empty;
+
+      ------------
+      --  Push  --
+      ------------
+
+      procedure Push
+        (Item : in Element_Type)
+      is
+      begin
+         Data.Append (Item);
+         Empty := False;
+      end Push;
 
    end Instance;
 
