@@ -87,7 +87,6 @@ begin
       end;
 
       declare
-         use Ada.Text_IO;
          Child : Node := First_Child (Dial_Plan);
       begin
          loop
