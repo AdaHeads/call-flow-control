@@ -22,35 +22,51 @@ with GNATCOLL.SQL.Postgres;
 with Alice_Configuration;
 
 separate (Storage.Connections)
-function Build_Connection (As : Connected_Mode) return Instance is
-   function Port_String (Port : in Natural) return String;
-   function Port_String (Port : in Natural) return String is
+
+-----------------------------------
+--  Build_Connection_PostgreSQL  --
+-----------------------------------
+
+function Build_Connection
+  (As : Connected_Mode)
+   return Instance
+is
+   package AC renames Alice_Configuration;
+
+   function Port_String
+     (Port : in Natural)
+      return String;
+
+   function Port_String
+     (Port : in Natural)
+      return String
+   is
       use Ada.Strings;
    begin
       return " port=" & Fixed.Trim (Natural'Image (Port), Both);
    end Port_String;
 
-   use Alice_Configuration;
-
    Primary_Server : constant GNATCOLL.SQL.Exec.Database_Description :=
-     GNATCOLL.SQL.Postgres.Setup
-            (Database      => Config.Get (DB_Name),
-             User          => Config.Get (DB_User),
-             Host          => Config.Get (DB_Host) &
-                                Port_String (Config.Get (DB_Port)),
-             Password      => Config.Get (DB_Password),
-             SSL           => GNATCOLL.SQL.Postgres.Allow,
-             Cache_Support => True);
+                      GNATCOLL.SQL.Postgres.Setup
+                        (Database      => AC.Config.Get (AC.DB_Name),
+                         User          => AC.Config.Get (AC.DB_User),
+                         Host          =>
+                           AC.Config.Get (AC.DB_Host) & Port_String
+                         (AC.Config.Get (AC.DB_Port)),
+                         Password      => AC.Config.Get (AC.DB_Password),
+                         SSL           => GNATCOLL.SQL.Postgres.Allow,
+                         Cache_Support => True);
 
    Secondary_Server : constant GNATCOLL.SQL.Exec.Database_Description :=
-     GNATCOLL.SQL.Postgres.Setup
-          (Database      => Config.Get (DB2_Name),
-           User          => Config.Get (DB2_User),
-           Host          => Config.Get (DB2_Host) &
-                              Port_String (Config.Get (DB2_Port)),
-           Password      => Config.Get (DB2_Password),
-           SSL           => GNATCOLL.SQL.Postgres.Allow,
-           Cache_Support => True);
+                        GNATCOLL.SQL.Postgres.Setup
+                          (Database      => AC.Config.Get (AC.DB2_Name),
+                           User          => AC.Config.Get (AC.DB2_User),
+                           Host          =>
+                             AC.Config.Get (AC.DB2_Host) & Port_String
+                           (AC.Config.Get (AC.DB2_Port)),
+                           Password      => AC.Config.Get (AC.DB2_Password),
+                           SSL           => GNATCOLL.SQL.Postgres.Allow,
+                           Cache_Support => True);
 begin
    case As is
       when Read_Only =>

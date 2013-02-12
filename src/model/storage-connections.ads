@@ -17,9 +17,11 @@
 
 with GNATCOLL.SQL.Exec;
 
-private
-package Storage.Connections is
-   type Mode is (Off_Line, Read_Only, Read_Write); -- Ordered by capability!
+private package Storage.Connections is
+
+   type Mode is (Off_Line, Read_Only, Read_Write);
+   --  Ordered by capability! Do not re-arrange these.
+
    subtype Connected_Mode is Mode range Read_Only .. Read_Write;
 
    type Instance (State : Mode := Off_Line) is
@@ -32,9 +34,16 @@ package Storage.Connections is
          end case;
       end record;
 
-   function Get (As : in Connected_Mode) return Instance;
+   function Get
+     (As : in Connected_Mode)
+      return Instance;
+   --  TODO write comment
 
-   procedure Queue_Failed (Connection : in out Instance);
+   procedure Queue_Failed
+     (Connection : in out Instance);
+   --  TODO write comment
 
    procedure Stop_Maintenance_Task;
+   --  TODO write comment
+
 end Storage.Connections;

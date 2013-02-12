@@ -18,18 +18,31 @@
 with Ada.Containers.Vectors;
 
 generic
+
    type Element_Type is private;
+
 package Non_Blocking_Stack is
-   package Vectors is new Ada.Containers.Vectors (Index_Type   => Positive,
-                                                  Element_Type => Element_Type);
+
+   package Vectors is new Ada.Containers.Vectors
+     (Index_Type   => Positive,
+      Element_Type => Element_Type);
 
    protected type Instance is
-      procedure Push (Item : in     Element_Type);
+      procedure Push
+        (Item : in Element_Type);
+      --  TODO write comment
 
-      procedure Get (Item    :    out Element_Type;
-                     Default : in     Element_Type);
+      procedure Get
+        (Item    :    out Element_Type;
+         Default : in     Element_Type);
+      --  TODO write comment
+
+      function Is_Empty
+        return Boolean;
+      --  TODO write comment
    private
       Data  : Vectors.Vector;
       Empty : Boolean := True;
    end Instance;
+
 end Non_Blocking_Stack;

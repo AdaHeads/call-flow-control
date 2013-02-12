@@ -16,15 +16,33 @@
 -------------------------------------------------------------------------------
 
 package body Non_Blocking_Stack is
-   protected body Instance is
-      procedure Push (Item : in     Element_Type) is
-      begin                                     
-         Data.Append (Item);
-         Empty := False;    
-      end Push; 
 
-      procedure Get (Item    :    out Element_Type;
-                     Default : in     Element_Type) is
+   ----------------
+   --  Instance  --
+   ----------------
+
+   protected body Instance is
+
+      ------------
+      --  Push  --
+      ------------
+
+      procedure Push
+        (Item : in Element_Type)
+      is
+      begin
+         Data.Append (Item);
+         Empty := False;
+      end Push;
+
+      -----------
+      --  Get  --
+      -----------
+
+      procedure Get
+        (Item    :    out Element_Type;
+         Default : in     Element_Type)
+      is
       begin
          if Empty then
             Item := Default;
@@ -34,5 +52,18 @@ package body Non_Blocking_Stack is
             Empty := Data.Is_Empty;
          end if;
       end Get;
+
+      ----------------
+      --  Is_Empty  --
+      ----------------
+
+      function Is_Empty
+        return Boolean
+      is
+      begin
+         return Empty;
+      end Is_Empty;
+
    end Instance;
+
 end Non_Blocking_Stack;

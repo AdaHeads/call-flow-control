@@ -15,37 +15,58 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Synchronized_Queue_Interfaces,
-     Ada.Containers.Unbounded_Synchronized_Queues;
+with Ada.Containers.Synchronized_Queue_Interfaces;
+with Ada.Containers.Unbounded_Synchronized_Queues;
 
-with Non_Blocking_Stack,
-     System_Message.Critical;
+with Non_Blocking_Stack;
+with System_Message.Critical;
+
+with Yolk.Configuration;
 
 package body Storage.Connections is
-   package Connection_Queue_Interface is
-     new Ada.Containers.Synchronized_Queue_Interfaces
-           (Element_Type => Instance);
-   package Connection_Queues is
-     new Ada.Containers.Unbounded_Synchronized_Queues
-           (Queue_Interfaces => Connection_Queue_Interface);
 
-   package Connection_Stacks is
-     new Non_Blocking_Stack (Element_Type => Instance);
+   use Ada.Containers;
+   use Yolk.Configuration;
 
-   function Build_Connection (As : Connected_Mode) return Instance;
-   function Build_Connection (As : Connected_Mode) return Instance is separate;
+   package Connection_Queue_Interface is new Synchronized_Queue_Interfaces
+     (Element_Type => Instance);
 
-   function Is_Active (Connection : in Instance) return Boolean;
-   function Is_Active (Connection : in Instance) return Boolean is
-   begin
-      return GNATCOLL.SQL.Exec.Check_Connection (Connection.Connection);
-   end Is_Active;
+   package Connection_Queues is new Unbounded_Synchronized_Queues
+     (Queue_Interfaces => Connection_Queue_Interface);
+
+   package Connection_Stacks is new Non_Blocking_Stack
+     (Element_Type => Instance);
 
    Working : array (Connected_Mode) of Connection_Stacks.Instance;
    Failed  : Connection_Queues.Queue;
 
-   procedure Generate (Count : in Positive;
-                       As    : in Connected_Mode);
+   function Build_Connection
+     (As : in Connected_Mode)
+      return Instance;
+   --  TODO write comment
+
+   procedure Generate
+     (Count : in Positive;
+      As    : in Connected_Mode);
+   --  TODO write comment
+
+   function Is_Active
+     (Connection : in Instance)
+      return Boolean;
+   --  TODO write comment
+
+   ------------------------
+   --  Build_Connection  --
+   ------------------------
+
+   function Build_Connection
+     (As : in Connected_Mode)
+      return Instance is separate;
+
+   ----------------
+   --  Generate  --
+   ----------------
+
    procedure Generate (Count : in Positive;
                        As    : in Connected_Mode) is
       Connection : Instance;
@@ -60,7 +81,14 @@ package body Storage.Connections is
       end loop;
    end Generate;
 
-   function Get (As : in Connected_Mode) return Instance is
+   -----------
+   --  Get  --
+   -----------
+
+   function Get
+     (As : in Connected_Mode)
+      return Instance
+   is
    begin
       return Result : Instance do
          for State in reverse As .. Connected_Mode'Last loop
@@ -68,16 +96,30 @@ package body Storage.Connections is
                                  Default => (State => Off_Line));
             exit when Result.State /= Off_Line;
          end loop;
+
+         --  TODO check for empty failed list and log critical if empty
+
       end return;
    end Get;
 
-   procedure Queue_Failed (Connection : in out Instance) is
+   -----------------
+   --  Is_Active  --
+   -----------------
+
+   function Is_Active
+     (Connection : in Instance)
+      return Boolean
+   is
    begin
-      Failed.Enqueue (Connection);
-      Connection := (State => Off_Line);
-   end Queue_Failed;
+      return GNATCOLL.SQL.Exec.Check_Connection (Connection.Connection);
+   end Is_Active;
 
    task Maintenance;
+   --  TODO write comment
+
+   -------------------
+   --  Maintenance  --
+   -------------------
 
    task body Maintenance is
       Connection : Instance;
@@ -99,11 +141,31 @@ package body Storage.Connections is
          System_Message.Critical.Connection_Maintenance_Error (Event => E);
    end Maintenance;
 
-   procedure Stop_Maintenance_Task is
+   --------------------
+   --  Queue_Failed  --
+   --------------------
+
+   procedure Queue_Failed
+     (Connection : in out Instance)
+   is
+   begin
+      Failed.Enqueue (Connection);
+      Connection := (State => Off_Line);
+   end Queue_Failed;
+
+   -----------------------------
+   --  Stop_Maintenance_Task  --
+   -----------------------------
+
+   procedure Stop_Maintenance_Task
+   is
    begin
       abort Maintenance;
    end Stop_Maintenance_Task;
+
 begin
-   Generate (Count => 10, As => Read_Only);  -- TODO: Should match number of AWS worker tasks.
-   Generate (Count => 10, As => Read_Write);
+
+   Generate (Count => Config.Get (Max_Connection) + 1, As => Read_Only);
+   Generate (Count => Config.Get (Max_Connection) + 1, As => Read_Write);
+
 end Storage.Connections;

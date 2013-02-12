@@ -23,9 +23,8 @@ with Ada.Task_Attributes;
 with GNATCOLL.SQL.Postgres;
 
 with Alice_Configuration;
-with System_Message.Critical;
-
 with Storage.Connections;
+with System_Message.Critical;
 
 package body Storage is
 
