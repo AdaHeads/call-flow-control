@@ -87,22 +87,74 @@ begin
       end;
 
       declare
-         Child : Node := First_Child (Dial_Plan);
+         Start : Node := First_Child (Dial_Plan);
       begin
          loop
-            exit when Child = null;
-            exit when Node_Type (Child) = Element_Node;
-            Child := Next_Sibling (Child);
+            exit when Start = null;
+            exit when Node_Type (Start) = Element_Node;
+            Start := Next_Sibling (Start);
          end loop;
 
-         Check (Element => Child, Name => "start");
+         Check (Element => Start, Name => "start");
 
          declare
             use Ada.Strings.Unbounded;
-            Do_Attribute : not null Node := Get_Named_Item (Nodes.Attributes (Child), "do");
+            Do_Attribute : not null Node := Get_Named_Item (Nodes.Attributes (Start), "do");
          begin
             Start_Action_Title := To_Unbounded_String (Node_Value (Do_Attribute));
          end;
+      end;
+
+      declare
+         End_Point : Node := First_Child (Dial_Plan);
+      begin
+         Find_End_Points:
+         loop
+            Next_End_Point:
+            loop
+               exit Find_End_Points when End_Point = null;
+               exit Next_End_Point when Node_Type (End_Point) = Element_Node and then
+                                        Node_Name (End_Point) = "end-point";
+               End_Point := Next_Sibling (End_Point);
+            end loop Next_End_Point;
+
+            Check (Element => End_Point, Name => "end-point");
+
+            declare
+               use Ada.Strings.Unbounded, Ada.Text_IO;
+               Title_Attribute : not null Node := Get_Named_Item (Nodes.Attributes (End_Point), "title");
+            begin
+               declare
+                  End_Point_Action : not null Node := First_Child (End_Point);
+               begin
+                  loop
+                     exit when End_Point_Action = null;
+                     exit when Node_Type (End_Point_Action) = Element_Node;
+                     End_Point_Action := Next_Sibling (End_Point_Action);
+                  end loop;
+
+                  if Node_Name (End_Point_Action) = "hang-up" then
+                     Put_Line ("End-point type:        hang-up");
+                  elsif Node_Name (End_Point_Action) = "queue" then
+                     Put_Line ("End-point type:        queue");
+                  elsif Node_Name (End_Point_Action) = "redirect" then
+                     Put_Line ("End-point type:        redirect");
+                  elsif Node_Name (End_Point_Action) = "interactive-voice-response" then
+                     Put_Line ("End-point type:        interactive-voice-response");
+                  elsif Node_Name (End_Point_Action) = "voice-mail" then
+                     Put_Line ("End-point type:        voice-mail");
+                  elsif Node_Name (End_Point_Action) = "busy-signal" then
+                     Put_Line ("End-point type:        busy-signal");
+                  else
+                     raise Constraint_Error with "<end-point> element contains illegal element <" & Node_Name (End_Point_Action) & ">.";
+                  end if;
+               end;
+
+               Put_Line ("End-point title:       """ & Node_Value (Title_Attribute) & """");
+            end;
+
+            End_Point := Next_Sibling (End_Point);
+         end loop Find_End_Points;
       end;
    end;
 
