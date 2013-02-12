@@ -15,8 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Command_Line;         use Ada.Command_Line;
-with Ada.Text_IO;              use Ada.Text_IO;
+with Ada.Command_Line,
+     Ada.Strings.Unbounded,
+     Ada.Text_IO;
 
 with Input_Sources.File;       use Input_Sources.File;
 with Sax.Readers;              use Sax.Readers;
@@ -26,12 +27,44 @@ with DOM.Core.Documents;       use DOM.Core.Documents;
 with DOM.Core.Nodes;           use DOM.Core.Nodes;
 
 procedure Load_Dial_Plan is
+   procedure Check (Element : in     Node;
+                    Name    : in     String) is
+   begin
+      if Element = null then
+         raise Constraint_Error with "No element.";
+      elsif Node_Type (Element) /= Element_Node then
+         raise Constraint_Error with "Not an element.";
+      elsif Node_Name (Element) /= Name then
+         raise Constraint_Error with "Not an <" & Name & "> element.";
+      end if;
+   end Check;
+
    Input  : File_Input;
    Reader : Tree_Reader;
    Doc    : Document;
+
+   Dial_Plan_Title    : Ada.Strings.Unbounded.Unbounded_String;
+   Start_Action_Title : Ada.Strings.Unbounded.Unbounded_String;
 begin
-   Set_Public_Id (Input, "Dial-plan");
-   Open (Argument (1), Input);
+   Set_Public_ID (Input, "dial-plan");
+
+   Open_Source_File:
+   declare
+      use Ada.Command_Line, Ada.Text_IO;
+   begin
+      if Argument_Count = 1 then
+         Open (Argument (1), Input);
+      else
+         Put_Line (Standard_Error, "Usage:");
+         Put_Line (Standard_Error, "   " & Command_Name & " <dial-plan file>");
+         Set_Exit_Status (Failure);
+         return;
+      end if;
+   exception
+      when others =>
+         Set_Exit_Status (Failure);
+         return;
+   end Open_Source_File;
 
    Set_Feature (Reader, Validation_Feature, True);
    Set_Feature (Reader, Namespace_Feature, False);
@@ -42,12 +75,42 @@ begin
    Doc := Get_Tree (Reader); 
 
    declare
-      Dial_Plan         : Node := Get_Element (Doc);
-      Attributes        : Named_Node_Map := Nodes.Attributes (Dial_Plan);
-      Title             : Node := Get_Named_Item (Attributes, "title");
-      Seen_An_End_Point : Boolean := False;
+      Dial_Plan : Node := Get_Element (Doc);
    begin
-      Put_Line ("Dial-plan title: """ & Node_Value (Title) & """");
-      Put_Line ("Needs <start> element too.");
+      Check (Element => Dial_Plan, Name => "dial-plan");
+
+      declare
+         use Ada.Strings.Unbounded;
+         Title_Attribute : not null Node := Get_Named_Item (Nodes.Attributes (Dial_Plan), "title");
+      begin
+         Dial_Plan_Title := To_Unbounded_String (Node_Value (Title_Attribute));
+      end;
+
+      declare
+         use Ada.Text_IO;
+         Child : Node := First_Child (Dial_Plan);
+      begin
+         loop
+            exit when Child = null;
+            exit when Node_Type (Child) = Element_Node;
+            Child := Next_Sibling (Child);
+         end loop;
+
+         Check (Element => Child, Name => "start");
+
+         declare
+            use Ada.Strings.Unbounded;
+            Do_Attribute : not null Node := Get_Named_Item (Nodes.Attributes (Child), "do");
+         begin
+            Start_Action_Title := To_Unbounded_String (Node_Value (Do_Attribute));
+         end;
+      end;
+   end;
+
+   declare
+      use Ada.Strings.Unbounded, Ada.Text_IO;
+   begin
+      Put_Line ("Dial-plan title:       """ & To_String (Dial_Plan_Title) & """");
+      Put_Line ("Title of first action: """ & To_String (Start_Action_Title) & """");
    end;
 end Load_Dial_Plan;
