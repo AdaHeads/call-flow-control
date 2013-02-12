@@ -30,16 +30,17 @@ package Non_Blocking_Stack is
    protected type Instance is
       procedure Push
         (Item : in Element_Type);
-      --  TODO write comment
+      --  Append Item to the stack.
 
       procedure Get
         (Item    :    out Element_Type;
          Default : in     Element_Type);
-      --  TODO write comment
+      --  Get Item from the stack. Get Default if there are no elements in the
+      --  stack.
 
       function Is_Empty
         return Boolean;
-      --  TODO write comment
+      --  Return True if the stack is empty.
    private
       Data  : Vectors.Vector;
       Empty : Boolean := True;

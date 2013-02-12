@@ -33,6 +33,10 @@ package System_Message.Info is
       Status      => "Client log",
       Status_Code => HTTP_Codes.No_Content);
 
+   procedure Database_Connection_Manager_Stop is new Logger
+     (Log_Trace => Yolk.Log.Info,
+      Status    => "Stopping database connection maintenance task");
+
    procedure Notifications_WebSocket_Created is new Logger
      (Log_Trace => Yolk.Log.Info,
       Status    => "Created a /notifications WebSocket");

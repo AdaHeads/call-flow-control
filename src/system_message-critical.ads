@@ -29,6 +29,15 @@ package System_Message.Critical is
       Status      => "Client log",
       Status_Code => HTTP_Codes.No_Content);
 
+   procedure Connection_Maintenance_Error is new Logger
+     (Log_Trace => Yolk.Log.Critical,
+      Status    => "Storage.Connections.Maintenance task terminated by an" &
+        " unhandled exception");
+
+   procedure Get_Storage_Connection_Error is new Logger
+     (Log_Trace => Yolk.Log.Critical,
+      Status    => "Excessive call to Storage.Connections.Get");
+
    procedure Lost_Database_Connection is new Logger
      (Log_Trace => Yolk.Log.Critical,
       Status    => "Lost connection to database");
@@ -53,11 +62,6 @@ package System_Message.Critical is
       Log_Trace   => Yolk.Log.Critical,
       Status      => "unhandled exception",
       Status_Code => HTTP_Codes.Server_Error);
-
-   procedure Connection_Maintenance_Error is new Logger
-     (Log_Trace => Yolk.Log.Critical,
-      Status    => "Storage.Connections.Maintenance task terminated by an" &
-        " unhandled exception");
 
    procedure Unknown_User is new Logger
      (Log_Trace => Yolk.Log.Critical,

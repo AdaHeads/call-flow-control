@@ -36,4 +36,7 @@ package Storage is
    --  Hand every Element created by Cursor_To_Element to the Process_Element
    --  procedure.
 
+   procedure Stop_Connection_Maintenance_Task;
+   --  Stop the database connection maintenance task.
+
 end Storage;
