@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared.gpr";
+with "../tests/shared";
 with "xmlada";
 
 project Local is

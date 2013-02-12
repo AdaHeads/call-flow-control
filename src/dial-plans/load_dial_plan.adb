@@ -16,7 +16,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Command_Line;         use Ada.Command_Line;
-with Ada.Text_IO.Text_Streams; use Ada.Text_IO, Ada.Text_IO.Text_Streams;
+with Ada.Text_IO;              use Ada.Text_IO;
 
 with Input_Sources.File;       use Input_Sources.File;
 with Sax.Readers;              use Sax.Readers;
@@ -43,8 +43,11 @@ begin
 
    declare
       Dial_Plan         : Node := Get_Element (Doc);
+      Attributes        : Named_Node_Map := Nodes.Attributes (Dial_Plan);
+      Title             : Node := Get_Named_Item (Attributes, "title");
       Seen_An_End_Point : Boolean := False;
    begin
-      null; -- TODO!
+      Put_Line ("Dial-plan title: """ & Node_Value (Title) & """");
+      Put_Line ("Needs <start> element too.");
    end;
 end Load_Dial_Plan;
