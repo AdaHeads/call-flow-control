@@ -28,6 +28,9 @@ project Alice is
    type Build_Type is ("Debug", "Production");
    Build : Build_Type := External ("BUILDTYPE", "Production");
 
+   type Databases is ("PostgreSQL", "SQLite");
+   Database : Databases := External ("DATABASE", "PostgreSQL");
+
    Source_Options := ("src/**");
    for Source_Dirs use Source_Options;
 
@@ -72,4 +75,15 @@ project Alice is
 
       end case;
    end Compiler;
+
+   package Naming is
+      case Database is
+         when "PostgreSQL" =>
+            for Body ("Storage.Connections.Build_Connection") use
+                      "storage-connections-build_connection_postgresql.adb";
+         when "SQLite" =>
+            for Body ("Storage.Connections.Build_Connection") use
+                      "storage-connections-build_connection_sqlite.adb";
+      end case;
+   end Naming;
 end Alice;
