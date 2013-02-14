@@ -34,7 +34,7 @@ private package Storage.Connections is
          end case;
       end record;
 
-   Null_Instance : constant Instance := (State => Off_Line);
+   Off_Line_Instance : constant Instance := (State => Off_Line);
 
    function Get
      (As : in Connected_Mode)

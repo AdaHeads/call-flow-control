@@ -36,7 +36,7 @@ package System_Message.Critical is
 
    procedure Get_Storage_Connection_Error is new Logger
      (Log_Trace => Yolk.Log.Critical,
-      Status    => "Excessive call to Storage.Connections.Get");
+      Status    => "Database connection not available");
 
    procedure Lost_Database_Connection is new Logger
      (Log_Trace => Yolk.Log.Critical,

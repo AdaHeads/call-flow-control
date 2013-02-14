@@ -96,14 +96,16 @@ package body Storage.Connections is
       use System_Message;
    begin
       return Result : Instance do
-         if Working (As).Is_Empty then
-            Critical.Get_Storage_Connection_Error
-              (Message => Connected_Mode'Image (As));
-         end if;
+         for Mode in Connected_Mode loop
+            if Working (Mode).Is_Empty then
+               Critical.Get_Storage_Connection_Error
+                 (Message => Connected_Mode'Image (Mode));
+            end if;
+         end loop;
 
          for State in reverse As .. Connected_Mode'Last loop
             Working (State).Get (Item    => Result,
-                                 Default => (State => Off_Line));
+                                 Default => Off_Line_Instance);
             exit when Result.State /= Off_Line;
          end loop;
       end return;
@@ -158,17 +160,19 @@ package body Storage.Connections is
      (Connection : in out Instance)
    is
    begin
-      Failed.Enqueue (Connection);
+      if Connection.State /= Off_Line then
+         Failed.Enqueue (Connection);
 
-      --  If we still have some connetions in the Working queue, then fail
-      --  those as well. It stands to reason that if one Connection.State
-      --  connection doesn't work, then the rest are dead also. We do not want
-      --  to hand out these dead connections to AWS tasks.
-      while not Working (Connection.State).Is_Empty loop
-         Failed.Enqueue (Get (As => Connection.State));
-      end loop;
+         --  If we still have some connetions in the Working queue, then fail
+         --  those as well. It stands to reason that if one Connection.State
+         --  connection doesn't work, then the rest are dead also. We do not
+         --  want to hand out these dead connections to AWS tasks.
+         while not Working (Connection.State).Is_Empty loop
+            Failed.Enqueue (Get (As => Connection.State));
+         end loop;
+      end if;
 
-      Connection := (State => Off_Line);
+      Connection := Off_Line_Instance;
    end Queue_Failed;
 
    -----------------------------
@@ -185,7 +189,7 @@ package body Storage.Connections is
 
 begin
 
-   Generate (Count => Config.Get (Max_Connection) + 1, As => Read_Only);
-   Generate (Count => Config.Get (Max_Connection) + 1, As => Read_Write);
+   Generate (Count => Config.Get (Max_Connection), As => Read_Only);
+   Generate (Count => Config.Get (Max_Connection), As => Read_Write);
 
 end Storage.Connections;
