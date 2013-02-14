@@ -22,7 +22,6 @@ with Input_Sources.File;       use Input_Sources.File;
 with Sax.Readers;              use Sax.Readers;
 with DOM.Readers;              use DOM.Readers;
 with DOM.Core;                 use DOM.Core;
-with DOM.Core.Documents;       use DOM.Core.Documents;
 with DOM.Core.Nodes;           use DOM.Core.Nodes;
 
 procedure Normalise_Dial_Plan is
@@ -37,7 +36,9 @@ begin
          Open (Argument (1), Input);
       exception
          when others =>
-            Put_Line (Standard_Error, Command_Name & " failed to open '" & Argument (1) & "'.");
+            Put_Line (File => Standard_Error,
+                      Item => Command_Name & " failed to open '" &
+                              Argument (1) & "'.");
             Set_Exit_Status (Failure);
             return;
       end;
@@ -48,7 +49,7 @@ begin
       Parse (Reader, Input);
       Close (Input);
 
-      Doc := Get_Tree (Reader); 
+      Doc := Get_Tree (Reader);
 
       Write (Stream       => Stream (Standard_Output),
              N            => Doc,
