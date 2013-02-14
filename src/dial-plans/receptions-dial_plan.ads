@@ -15,17 +15,23 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Receptions.End_Point;
+with Receptions.Decision_Tree_Collection,
+     Receptions.End_Point,
+     Receptions.End_Point_Collection;
 
 private
 with Ada.Strings.Unbounded;
 
-private
-with Receptions.Decision_Tree_Collection,
-     Receptions.End_Point_Collection;
 
 package Receptions.Dial_Plan is
-   type Instance is private;
+   type Instance is tagged private;
+   subtype Class is Instance'Class;
+
+   function Create (Title          : in     String;
+                    Start_At       : in     String;
+                    End_Points     : in     Receptions.End_Point_Collection.Map;
+                    Decision_Trees : in     Receptions.Decision_Tree_Collection.Map) return Instance
+     with Precondition => (not End_Points.Is_Empty);
 
    function Title (Item : in     Instance) return String;
 
@@ -36,11 +42,11 @@ package Receptions.Dial_Plan is
    Dead_End : exception;
    Circular : exception;
 private
-   type Instance is
+   type Instance is tagged
       record
          Title          : Ada.Strings.Unbounded.Unbounded_String;
          Start_At       : Ada.Strings.Unbounded.Unbounded_String;
-         Decision_Trees : Receptions.Decision_Tree_Collection.Map;
          End_Points     : Receptions.End_Point_Collection.Map;
+         Decision_Trees : Receptions.Decision_Tree_Collection.Map;
       end record;
 end Receptions.Dial_Plan;

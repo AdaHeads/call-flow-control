@@ -16,6 +16,18 @@
 -------------------------------------------------------------------------------
 
 package body Receptions.Dial_Plan is
+   function Create (Title          : in     String;
+                    Start_At       : in     String;
+                    End_Points     : in     Receptions.End_Point_Collection.Map;
+                    Decision_Trees : in     Receptions.Decision_Tree_Collection.Map) return Instance is
+      use Ada.Strings.Unbounded;
+   begin
+      return (Title          => To_Unbounded_String (Title),
+              Start_At       => To_Unbounded_String (Start_At),
+              End_Points     => End_Points,
+              Decision_Trees => Decision_Trees);
+   end Create;
+
    function Title (Item : in     Instance) return String is
    begin
       return Ada.Strings.Unbounded.To_String (Item.Title);
