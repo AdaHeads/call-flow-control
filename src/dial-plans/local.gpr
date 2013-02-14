@@ -31,4 +31,6 @@ project Local is
                  "receptions-end_points-busy_signal",
                  "receptions-decision_tree_collection",
                  "receptions-decision_tree");
+
+   package Compiler renames Shared.Compiler;
 end Local;
