@@ -26,6 +26,8 @@ with DOM.Core;                 use DOM.Core;
 with DOM.Core.Documents;       use DOM.Core.Documents;
 with DOM.Core.Nodes;           use DOM.Core.Nodes;
 
+with Receptions.End_Points.Queue;
+
 procedure Load_Dial_Plan is
    procedure Check (Element : in     Node;
                     Name    : in     String) is
@@ -123,6 +125,7 @@ begin
             declare
                use Ada.Strings.Unbounded, Ada.Text_IO;
                Title_Attribute : not null Node := Get_Named_Item (Nodes.Attributes (End_Point), "title");
+               Title           : constant String := Node_Value (Title_Attribute);
             begin
                declare
                   End_Point_Action : not null Node := First_Child (End_Point);
@@ -137,6 +140,17 @@ begin
                      Put_Line ("End-point type:        hang-up");
                   elsif Node_Name (End_Point_Action) = "queue" then
                      Put_Line ("End-point type:        queue");
+
+                     declare
+                        use Receptions.End_Points.Queue;
+
+                        ID_Attribute : not null Node := Get_Named_Item (Nodes.Attributes (End_Point_Action),
+                                                                        "id");
+                        Queue : Receptions.End_Points.Queue.Instance;
+                     begin
+                        Queue := Create (Title => Title,
+                                         ID    => Node_Value (ID_Attribute));
+                     end;
                   elsif Node_Name (End_Point_Action) = "redirect" then
                      Put_Line ("End-point type:        redirect");
                   elsif Node_Name (End_Point_Action) = "interactive-voice-response" then
@@ -146,7 +160,8 @@ begin
                   elsif Node_Name (End_Point_Action) = "busy-signal" then
                      Put_Line ("End-point type:        busy-signal");
                   else
-                     raise Constraint_Error with "<end-point> element contains illegal element <" & Node_Name (End_Point_Action) & ">.";
+                     raise Constraint_Error with "<end-point> element contains illegal element <" &
+                                                 Node_Name (End_Point_Action) & ">.";
                   end if;
                end;
 
