@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2013-, AdaHeads K/S                    --
+--                      Copyright (C) 2012-, AdaHeads K/S                    --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,19 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../tests/shared";
-with "xmlada";
+with Ada.Containers.Indefinite_Hashed_Maps,
+     Ada.Strings.Hash;
 
-project Local is
-   for Main use ("load_dial_plan",
-                 "normalise_dial_plan",
-                 "receptions-action_collection",
-                 "receptions-dial_plan",
-                 "receptions-end_points-hang_up",
-                 "receptions-end_points-queue",
-                 "receptions-end_points-redirect",
-                 "receptions-end_points-interactive_voice_response",
-                 "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal",
-                 "receptions-decision_tree");
-end Local;
+with Receptions.Action;
+
+package Receptions.Action_Collection is
+  new Ada.Containers.Indefinite_Hashed_Maps (Key_Type        => String,
+                                             Element_Type    => Receptions.Action.Class,
+                                             Hash            => Ada.Strings.Hash,
+                                             Equivalent_Keys => "=",
+                                             "="             => Receptions.Action."=");
