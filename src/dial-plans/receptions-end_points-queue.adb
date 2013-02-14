@@ -30,6 +30,14 @@ package body Receptions.End_Points.Queue is
       return Ada.Strings.Unbounded.To_String (Item.Title);
    end Title;
 
+   overriding
+   function Value (Item : in Instance) return String is
+   begin
+      return "Queue'(Title => """ &
+             Ada.Strings.Unbounded.To_String (Item.Title) & """, ID => """ &
+             Ada.Strings.Unbounded.To_String (Item.ID) & """)";
+   end Value;
+
    not overriding
    function ID (Item : in     Instance) return String is
    begin

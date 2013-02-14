@@ -27,4 +27,11 @@ package body Receptions.End_Points.Busy_Signal is
    begin
       return Ada.Strings.Unbounded.To_String (Item.Title);
    end Title;
+
+   overriding
+   function Value (Item : in Instance) return String is
+   begin
+      return "Busy_Signal'(Title => """ &
+             Ada.Strings.Unbounded.To_String (Item.Title) & """)";
+   end Value;
 end Receptions.End_Points.Busy_Signal;

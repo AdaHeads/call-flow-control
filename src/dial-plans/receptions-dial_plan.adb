@@ -15,8 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Receptions.Action;
-
 package body Receptions.Dial_Plan is
    function Title (Item : in     Instance) return String is
    begin
@@ -25,9 +23,25 @@ package body Receptions.Dial_Plan is
 
    function Application (Item : in     Instance;
                          Call : in     Channel_ID) return
-			 access Receptions.End_Point.Instance'Class is
-      use Receptions.Action;
+			 Receptions.End_Point.Class is
+
+      function "+" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
+        renames Ada.Strings.Unbounded.To_String;
+      function "+" (Item : in String) return Ada.Strings.Unbounded.Unbounded_String
+        renames Ada.Strings.Unbounded.To_Unbounded_String;
+
+      Next_Action : Ada.Strings.Unbounded.Unbounded_String := Item.Start_At;
    begin
-      return Application (Item.Start, Call);
+      for Jumps in 0 .. Item.Decision_Trees.Length loop
+         if Item.End_Points.Contains (+ Next_Action) then
+            return Item.End_Points.Element (+ Next_Action);
+         elsif Item.Decision_Trees.Contains (+ Next_Action) then
+            Next_Action := + Item.Decision_Trees.Element (+ Next_Action).Branch (Call);
+         else
+            raise Dead_End;
+         end if;
+      end loop;
+
+      raise Circular;
    end Application;
 end Receptions.Dial_Plan;

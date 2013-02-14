@@ -28,6 +28,9 @@ package Receptions.End_Points.Hang_Up is
 
    overriding
    function Title (Item : in     Instance) return String;
+
+   overriding
+   function Value (Item : in Instance) return String;
 private
    type Instance is new End_Point.Instance with
       record

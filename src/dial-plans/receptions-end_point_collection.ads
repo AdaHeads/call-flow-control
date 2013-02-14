@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2012-, AdaHeads K/S                    --
+--                      Copyright (C) 2013-, AdaHeads K/S                    --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,19 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-limited
+with Ada.Containers.Indefinite_Hashed_Maps,
+     Ada.Strings.Hash;
+
 with Receptions.End_Point;
 
-private
-with Ada.Strings.Unbounded;
-
-package Receptions.Action is
-   type Instance is abstract tagged null record;
-   subtype Class is Instance'Class;
-
-   function Title (Item : in     Instance) return String is abstract;
-
-   function Application (Item : access Instance;
-                         Call : in     Channel_ID) return
-			 access Receptions.End_Point.Instance'Class is abstract;
-end Receptions.Action;
+package Receptions.End_Point_Collection is
+  new Ada.Containers.Indefinite_Hashed_Maps (Key_Type        => String,
+                                             Element_Type    => Receptions.End_Point.Class,
+                                             Hash            => Ada.Strings.Hash,
+                                             Equivalent_Keys => "=",
+                                             "="             => Receptions.End_Point."=");

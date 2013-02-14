@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2012-, AdaHeads K/S                    --
+--                      Copyright (C) 2013-, AdaHeads K/S                    --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,12 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package body Receptions.End_Point is
-   overriding
-   function Application (Item : access Instance;
-                         Call : in     Channel_ID) return
-			 access Receptions.End_Point.Instance'Class is
-   begin
-      return Item;
-   end Application;
-end Receptions.End_Point;
+with Ada.Containers.Indefinite_Hashed_Maps,
+     Ada.Strings.Hash;
+
+with Receptions.Decision_Tree;
+
+package Receptions.Decision_Tree_Collection is
+  new Ada.Containers.Indefinite_Hashed_Maps (Key_Type        => String,
+                                             Element_Type    => Receptions.Decision_Tree.Class,
+                                             Hash            => Ada.Strings.Hash,
+                                             Equivalent_Keys => "=",
+                                             "="             => Receptions.Decision_Tree."=");

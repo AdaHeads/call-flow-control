@@ -16,11 +16,9 @@
 -------------------------------------------------------------------------------
 
 package body Receptions.Decision_Tree is
-   overriding
-   function Application (Item : access Instance;
-                         Call : in     Channel_ID) return
-			 access Receptions.End_Point.Instance'Class is
+   function Branch (Item : in     Instance;
+                    Call : in     Channel_ID) return String is
    begin
-      return Item.Fall_Back.Application (Call);
-   end Application;
+      return Ada.Strings.Unbounded.To_String (Item.Fall_Back);
+   end Branch;
 end Receptions.Decision_Tree;

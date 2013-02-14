@@ -15,14 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Receptions.Action;
-
 package Receptions.End_Point is
-   type Instance is abstract new Action.Instance with null record;
+   type Instance is abstract tagged null record;
    subtype Class is Instance'Class;
 
-   overriding
-   function Application (Item : access Instance;
-                         Call : in     Channel_ID) return
-			 access Receptions.End_Point.Instance'Class;
+   function Title (Item : in     Instance) return String is abstract;
+
+   function Value (Item : in Instance) return String is abstract;
 end Receptions.End_Point;

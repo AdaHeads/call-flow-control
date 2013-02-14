@@ -15,14 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-limited
 with Receptions.End_Point;
 
 private
 with Ada.Strings.Unbounded;
 
 private
-with Receptions.Action;
+with Receptions.Decision_Tree_Collection,
+     Receptions.End_Point_Collection;
 
 package Receptions.Dial_Plan is
    type Instance is private;
@@ -31,11 +31,16 @@ package Receptions.Dial_Plan is
 
    function Application (Item : in     Instance;
                          Call : in     Channel_ID) return
-			 access Receptions.End_Point.Instance'Class;
+			 Receptions.End_Point.Class;
+
+   Dead_End : exception;
+   Circular : exception;
 private
    type Instance is
       record
-         Title : Ada.Strings.Unbounded.Unbounded_String;
-         Start : access Receptions.Action.Class;
+         Title          : Ada.Strings.Unbounded.Unbounded_String;
+         Start_At       : Ada.Strings.Unbounded.Unbounded_String;
+         Decision_Trees : Receptions.Decision_Tree_Collection.Map;
+         End_Points     : Receptions.End_Point_Collection.Map;
       end record;
 end Receptions.Dial_Plan;

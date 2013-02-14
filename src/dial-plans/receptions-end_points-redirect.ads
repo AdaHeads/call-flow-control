@@ -30,6 +30,9 @@ package Receptions.End_Points.Redirect is
    overriding
    function Title (Item : in     Instance) return String;
 
+   overriding
+   function Value (Item : in Instance) return String;
+
    not overriding
    function To (Item : in     Instance) return String;
 private

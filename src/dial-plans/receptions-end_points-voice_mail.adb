@@ -32,6 +32,15 @@ package body Receptions.End_Points.Voice_Mail is
       return Ada.Strings.Unbounded.To_String (Item.Title);
    end Title;
 
+   overriding
+   function Value (Item : in Instance) return String is
+   begin
+      return "Voice_Mail'(Title => """ &
+             Ada.Strings.Unbounded.To_String (Item.Title) & """, Play => """ &
+             Ada.Strings.Unbounded.To_String (Item.Play) & """, Send_To => """ &
+             Ada.Strings.Unbounded.To_String (Item.Send_To) & """)";
+   end Value;
+
    not overriding
    function Play (Item : in     Instance) return String is
    begin

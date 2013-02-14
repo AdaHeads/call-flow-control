@@ -30,6 +30,14 @@ package body Receptions.End_Points.Redirect is
       return Ada.Strings.Unbounded.To_String (Item.Title);
    end Title;
 
+   overriding
+   function Value (Item : in Instance) return String is
+   begin
+      return "Redirect'(Title => """ &
+             Ada.Strings.Unbounded.To_String (Item.Title) & """, To => """ &
+             Ada.Strings.Unbounded.To_String (Item.To) & """)";
+   end Value;
+
    not overriding
    function To (Item : in     Instance) return String is
    begin
