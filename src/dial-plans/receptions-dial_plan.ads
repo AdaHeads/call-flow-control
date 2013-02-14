@@ -36,8 +36,7 @@ package Receptions.Dial_Plan is
    function Title (Item : in     Instance) return String;
 
    function Application (Item : in     Instance;
-                         Call : in     Channel_ID) return
-			 Receptions.End_Point.Class;
+                         Call : in     Channel_ID) return Receptions.End_Point.Class;
 
    Dead_End : exception;
    Circular : exception;

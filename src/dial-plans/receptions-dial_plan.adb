@@ -34,8 +34,7 @@ package body Receptions.Dial_Plan is
    end Title;
 
    function Application (Item : in     Instance;
-                         Call : in     Channel_ID) return
-			 Receptions.End_Point.Class is
+                         Call : in     Channel_ID) return Receptions.End_Point.Class is
 
       function "+" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
         renames Ada.Strings.Unbounded.To_String;
