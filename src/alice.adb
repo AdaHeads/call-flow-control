@@ -22,6 +22,7 @@ with Alice_Handlers;
 with PBX;
 with SIGHUP;
 with SIGHUP_Handler;
+with Storage;
 with System_Message.Critical;
 with System_Message.Info;
 with Unexpected_Exception;
@@ -51,6 +52,7 @@ begin
    Web_Server.Stop;
    PBX.Stop;
    SIGHUP.Stop;
+   Storage.Stop_Connection_Maintenance_Task;
 
    Info.Alice_Stop;
 exception

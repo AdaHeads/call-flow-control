@@ -34,16 +34,21 @@ private package Storage.Connections is
          end case;
       end record;
 
+   Off_Line_Instance : constant Instance := (State => Off_Line);
+
    function Get
      (As : in Connected_Mode)
       return Instance;
-   --  TODO write comment
+   --  Get a connection Instance. This will either be null or an actual
+   --  GNATColl Database_Connection object. If it is null then it means the
+   --  connection Maintenance task could not connect to the database defined
+   --  by Mode (primary DB for Read_Write, secondary DB for Read_Only).
 
    procedure Queue_Failed
      (Connection : in out Instance);
-   --  TODO write comment
+   --  Put the Connection in the failed queue and set its state to Off_Line.
 
    procedure Stop_Maintenance_Task;
-   --  TODO write comment
+   --  Kill the connection maintenance task.
 
 end Storage.Connections;

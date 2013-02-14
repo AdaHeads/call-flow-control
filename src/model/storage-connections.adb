@@ -20,6 +20,7 @@ with Ada.Containers.Unbounded_Synchronized_Queues;
 
 with Non_Blocking_Stack;
 with System_Message.Critical;
+with System_Message.Info;
 
 with Yolk.Configuration;
 
@@ -43,17 +44,18 @@ package body Storage.Connections is
    function Build_Connection
      (As : in Connected_Mode)
       return Instance;
-   --  TODO write comment
+   --  Build the GNATCOLL Database_Connection.
 
    procedure Generate
      (Count : in Positive;
       As    : in Connected_Mode);
-   --  TODO write comment
+   --  Generate Count connections to the database according to the As
+   --  Connected_Mode.
 
    function Is_Active
      (Connection : in Instance)
       return Boolean;
-   --  TODO write comment
+   --  Return True of the Connection is connected to the database.
 
    ------------------------
    --  Build_Connection  --
@@ -67,8 +69,10 @@ package body Storage.Connections is
    --  Generate  --
    ----------------
 
-   procedure Generate (Count : in Positive;
-                       As    : in Connected_Mode) is
+   procedure Generate
+     (Count : in Positive;
+      As    : in Connected_Mode)
+   is
       Connection : Instance;
    begin
       for I in 1 .. Count loop
@@ -89,16 +93,21 @@ package body Storage.Connections is
      (As : in Connected_Mode)
       return Instance
    is
+      use System_Message;
    begin
       return Result : Instance do
-         for State in reverse As .. Connected_Mode'Last loop
-            Working (State).Get (Item    => Result,
-                                 Default => (State => Off_Line));
-            exit when Result.State /= Off_Line;
+         for Mode in Connected_Mode loop
+            if Working (Mode).Is_Empty then
+               Critical.Get_Storage_Connection_Error
+                 (Message => Connected_Mode'Image (Mode));
+            end if;
          end loop;
 
-         --  TODO check for empty failed list and log critical if empty
-
+         for State in reverse As .. Connected_Mode'Last loop
+            Working (State).Get (Item    => Result,
+                                 Default => Off_Line_Instance);
+            exit when Result.State /= Off_Line;
+         end loop;
       end return;
    end Get;
 
@@ -115,7 +124,9 @@ package body Storage.Connections is
    end Is_Active;
 
    task Maintenance;
-   --  TODO write comment
+   --  Repeatedly check the Failed queue and try to reconnect connections.
+   --  When a connection is established, move the connection from the Failed
+   --  queue to the Working queue.
 
    -------------------
    --  Maintenance  --
@@ -133,7 +144,7 @@ package body Storage.Connections is
             Working (Connection.State).Push (Connection);
          else
             Failed.Enqueue (Connection);
-            delay 10.0; -- What is the optimal value here?  TODO!
+            delay 5.0;
          end if;
       end loop;
    exception
@@ -149,8 +160,19 @@ package body Storage.Connections is
      (Connection : in out Instance)
    is
    begin
-      Failed.Enqueue (Connection);
-      Connection := (State => Off_Line);
+      if Connection.State /= Off_Line then
+         Failed.Enqueue (Connection);
+
+         --  If we still have some connetions in the Working queue, then fail
+         --  those as well. It stands to reason that if one Connection.State
+         --  connection doesn't work, then the rest are dead also. We do not
+         --  want to hand out these dead connections to AWS tasks.
+         while not Working (Connection.State).Is_Empty loop
+            Failed.Enqueue (Get (As => Connection.State));
+         end loop;
+      end if;
+
+      Connection := Off_Line_Instance;
    end Queue_Failed;
 
    -----------------------------
@@ -159,13 +181,15 @@ package body Storage.Connections is
 
    procedure Stop_Maintenance_Task
    is
+      use System_Message;
    begin
       abort Maintenance;
+      Info.Database_Connection_Manager_Stop;
    end Stop_Maintenance_Task;
 
 begin
 
-   Generate (Count => Config.Get (Max_Connection) + 1, As => Read_Only);
-   Generate (Count => Config.Get (Max_Connection) + 1, As => Read_Write);
+   Generate (Count => Config.Get (Max_Connection), As => Read_Only);
+   Generate (Count => Config.Get (Max_Connection), As => Read_Write);
 
 end Storage.Connections;
