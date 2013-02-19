@@ -35,6 +35,8 @@ package Receptions.End_Points.Queue is
 
    not overriding
    function ID (Item : in     Instance) return String;
+
+   XML_Element_Name : constant String := "queue";
 private
    type Instance is new End_Point.Instance with
       record

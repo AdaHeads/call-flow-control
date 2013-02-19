@@ -35,6 +35,8 @@ package Receptions.End_Points.Redirect is
 
    not overriding
    function To (Item : in     Instance) return String;
+
+   XML_Element_Name : constant String := "redirect";
 private
    type Instance is new End_Point.Instance with
       record

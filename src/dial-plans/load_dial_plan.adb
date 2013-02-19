@@ -155,6 +155,14 @@ begin
             Check (Element => End_Point, Name => "end-point");
 
             declare
+               package Busy_Signal renames Receptions.End_Points.Busy_Signal;
+               package Hang_Up renames Receptions.End_Points.Hang_Up;
+               package Interactive_Voice_Response
+                 renames Receptions.End_Points.Interactive_Voice_Response;
+               package Queue renames Receptions.End_Points.Queue;
+               package Redirect renames Receptions.End_Points.Redirect;
+               package Voice_Mail renames Receptions.End_Points.Voice_Mail;
+
                Title : constant String := Attribute (Element => End_Point,
                                                      Name    => "title");
 
@@ -166,18 +174,12 @@ begin
                   End_Point_Action := Next_Sibling (End_Point_Action);
                end loop;
 
-               if Node_Name (End_Point_Action) = "hang-up" then
+               if Node_Name (End_Point_Action) = Hang_Up.XML_Element_Name then
+                  End_Points.Insert
+                    (Key      => Title,
+                     New_Item => Hang_Up.Create (Title => Title));
+               elsif Node_Name (End_Point_Action) = Queue.XML_Element_Name then
                   declare
-                     package Hang_Up renames Receptions.End_Points.Hang_Up;
-                  begin
-                     End_Points.Insert
-                       (Key      => Title,
-                        New_Item => Hang_Up.Create (Title => Title));
-                  end;
-               elsif Node_Name (End_Point_Action) = "queue" then
-                  declare
-                     package Queue renames Receptions.End_Points.Queue;
-
                      Q : constant Queue.Instance :=
                            Queue.Create
                              (Title => Title,
@@ -188,10 +190,8 @@ begin
                      End_Points.Insert (Key      => Title,
                                         New_Item => Q);
                   end;
-               elsif Node_Name (End_Point_Action) = "redirect" then
+               elsif Node_Name (End_Point_Action) = Redirect.XML_Element_Name then
                   declare
-                     package Redirect renames Receptions.End_Points.Redirect;
-
                      R : constant Redirect.Instance :=
                            Redirect.Create
                              (Title => Title,
@@ -202,19 +202,12 @@ begin
                      End_Points.Insert (Key      => Title,
                                         New_Item => R);
                   end;
-               elsif Node_Name (End_Point_Action) = "interactive-voice-response" then
+               elsif Node_Name (End_Point_Action) = Interactive_Voice_Response.XML_Element_Name then
+                  End_Points.Insert
+                    (Key      => Title,
+                     New_Item => Interactive_Voice_Response.Create (Title => Title));
+               elsif Node_Name (End_Point_Action) = Voice_Mail.XML_Element_Name then
                   declare
-                     package Interactive_Voice_Response
-                       renames Receptions.End_Points.Interactive_Voice_Response;
-                  begin
-                     End_Points.Insert
-                       (Key      => Title,
-                        New_Item => Interactive_Voice_Response.Create (Title => Title));
-                  end;
-               elsif Node_Name (End_Point_Action) = "voice-mail" then
-                  declare
-                     package Voice_Mail renames Receptions.End_Points.Voice_Mail;
-
                      V : constant Voice_Mail.Instance :=
                            Voice_Mail.Create
                              (Title   => Title,
@@ -226,13 +219,9 @@ begin
                      End_Points.Insert (Key      => Title,
                                         New_Item => V);
                   end;
-               elsif Node_Name (End_Point_Action) = "busy-signal" then
-                  declare
-                     package Busy_Signal renames Receptions.End_Points.Busy_Signal;
-                  begin
-                     End_Points.Insert (Key      => Title,
-                                        New_Item => Busy_Signal.Create (Title => Title));
-                  end;
+               elsif Node_Name (End_Point_Action) = Busy_Signal.XML_Element_Name then
+                  End_Points.Insert (Key      => Title,
+                                     New_Item => Busy_Signal.Create (Title => Title));
                else
                   raise Constraint_Error with "<end-point> element contains illegal element <" &
                                               Node_Name (End_Point_Action) & ">.";

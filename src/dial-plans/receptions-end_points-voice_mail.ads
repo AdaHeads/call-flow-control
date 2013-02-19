@@ -39,6 +39,8 @@ package Receptions.End_Points.Voice_Mail is
 
    not overriding
    function Send_To (Item : in     Instance) return String;
+
+   XML_Element_Name : constant String := "voice-mail";
 private
    type Instance is new End_Point.Instance with
       record

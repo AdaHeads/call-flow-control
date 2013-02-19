@@ -31,6 +31,8 @@ package Receptions.End_Points.Hang_Up is
 
    overriding
    function Value (Item : in Instance) return String;
+
+   XML_Element_Name : constant String := "hang-up";
 private
    type Instance is new End_Point.Instance with
       record

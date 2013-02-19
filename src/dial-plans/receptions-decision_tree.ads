@@ -24,6 +24,8 @@ package Receptions.Decision_Tree is
 
    function Branch (Item : in     Instance;
                     Call : in     Channel_ID) return String;
+
+   XML_Element_Name : constant String := "decision-tree";
 private
    type Instance is tagged
       record

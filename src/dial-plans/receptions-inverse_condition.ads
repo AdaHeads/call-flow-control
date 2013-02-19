@@ -35,6 +35,8 @@ package Receptions.Inverse_Condition is
 
    overriding
    function Value (Item : in Instance) return String;
+
+   XML_Element_Name : constant String := "not";
 private
    type Instance is new Receptions.Condition.Instance with
       record

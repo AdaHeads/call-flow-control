@@ -31,6 +31,8 @@ package Receptions.End_Points.Busy_Signal is
 
    overriding
    function Value (Item : in Instance) return String;
+
+   XML_Element_Name : constant String := "busy-signal";
 private
    type Instance is new End_Point.Instance with
       record

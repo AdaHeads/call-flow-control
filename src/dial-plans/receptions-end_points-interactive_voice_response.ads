@@ -31,6 +31,8 @@ package Receptions.End_Points.Interactive_Voice_Response is
 
    overriding
    function Value (Item : in Instance) return String;
+
+   XML_Element_Name : constant String := "interactive-voice-response";
 private
    type Instance is new End_Point.Instance with
       record

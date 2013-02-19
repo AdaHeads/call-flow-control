@@ -38,6 +38,8 @@ package Receptions.Dial_Plan is
    function Application (Item : in     Instance;
                          Call : in     Channel_ID) return Receptions.End_Point.Class;
 
+   XML_Element_Name : constant String := "dial-plan";
+
    Dead_End : exception;
    Circular : exception;
 private
