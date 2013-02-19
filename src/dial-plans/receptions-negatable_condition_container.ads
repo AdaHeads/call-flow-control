@@ -15,24 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../tests/shared";
-with "xmlada";
+with Ada.Containers.Indefinite_Holders;
 
-project Local is
-   for Main use ("load_dial_plan",
-                 "normalise_dial_plan",
-                 "receptions-decision_tree",
-                 "receptions-decision_tree_collection",
-                 "receptions-dial_plan",
-                 "receptions-end_point_collection",
-                 "receptions-end_points-hang_up",
-                 "receptions-end_points-queue",
-                 "receptions-end_points-redirect",
-                 "receptions-end_points-interactive_voice_response",
-                 "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal",
-                 "receptions-inverse_condition",
-                 "receptions-negatable_condition");
+with Receptions.Negatable_Condition;
 
-   package Compiler renames Shared.Compiler;
-end Local;
+package Receptions.Negatable_Condition_Container is
+  new Ada.Containers.Indefinite_Holders
+    (Element_Type => Receptions.Negatable_Condition.Class,
+     "="          => Receptions.Negatable_Condition."=");

@@ -33,6 +33,7 @@ project Test is
                  "receptions-end_points-interactive_voice_response",
                  "receptions-end_points-voice_mail",
                  "receptions-end_points-busy_signal",
+                 "receptions-inverse_condition",
                  "receptions-negatable_condition");
 
    package Compiler renames Shared.Compiler;

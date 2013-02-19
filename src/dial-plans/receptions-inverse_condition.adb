@@ -15,24 +15,26 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../tests/shared";
-with "xmlada";
+package body Receptions.Inverse_Condition is
+   use Receptions.Negatable_Condition_Container;
 
-project Local is
-   for Main use ("load_dial_plan",
-                 "normalise_dial_plan",
-                 "receptions-decision_tree",
-                 "receptions-decision_tree_collection",
-                 "receptions-dial_plan",
-                 "receptions-end_point_collection",
-                 "receptions-end_points-hang_up",
-                 "receptions-end_points-queue",
-                 "receptions-end_points-redirect",
-                 "receptions-end_points-interactive_voice_response",
-                 "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal",
-                 "receptions-inverse_condition",
-                 "receptions-negatable_condition");
+   not overriding
+   function Create (Condition : in Receptions.Negatable_Condition.Class)
+     return Instance is
+   begin
+      return (Condition => To_Holder (Condition));
+   end Create;
 
-   package Compiler renames Shared.Compiler;
-end Local;
+   overriding
+   function Evaluate (Item : in Instance;
+                      Call : in Channel_ID) return Boolean is
+   begin
+      return not Element (Item.Condition).Evaluate (Call);
+   end Evaluate;
+
+   overriding
+   function Value (Item : in Instance) return String is
+   begin
+      return "not " & Element (Item.Condition).Value;
+   end Value;
+end Receptions.Inverse_Condition;

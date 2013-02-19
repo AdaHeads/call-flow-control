@@ -18,7 +18,7 @@
 with Receptions.Condition;
 
 package Receptions.Negatable_Condition is
-   type Instance is new Receptions.Condition with abstract tagged null record;
+   type Instance is abstract new Receptions.Condition.Instance
+     with null record;
    subtype Class is Instance'Class;
-
 end Receptions.Negatable_Condition;
