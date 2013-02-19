@@ -29,6 +29,7 @@ with DOM.Core.Nodes;           use DOM.Core.Nodes;
 with Receptions.Decision_Tree_Collection,
      Receptions.Dial_Plan,
      Receptions.End_Point_Collection,
+     Receptions.End_Points.Hang_Up,
      Receptions.End_Points.Queue;
 
 procedure Load_Dial_Plan is
@@ -152,6 +153,13 @@ begin
 
                   if Node_Name (End_Point_Action) = "hang-up" then
                      Put_Line ("End-point type:        hang-up");
+
+                     declare
+                        package Hang_Up renames Receptions.End_Points.Hang_Up;
+                     begin
+                        End_Points.Insert (Key      => Title,
+                                           New_Item => Hang_Up.Create (Title => Title));
+                     end;
                   elsif Node_Name (End_Point_Action) = "queue" then
                      Put_Line ("End-point type:        queue");
 
