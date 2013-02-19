@@ -22,6 +22,7 @@ project Local is
    for Main use ("load_dial_plan",
                  "normalise_dial_plan",
                  "receptions-dial_plan",
+                 "receptions-condition",
                  "receptions-end_point_collection",
                  "receptions-end_points-hang_up",
                  "receptions-end_points-queue",

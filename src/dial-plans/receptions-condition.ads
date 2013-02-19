@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2013-, AdaHeads K/S                    --
+--                      Copyright (C) 2012-, AdaHeads K/S                    --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,25 +15,12 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared";
-with "xmlada";
+package Receptions.Condition is
+   type Instance is abstract tagged null record;
+   subtype Class is Instance'Class;
 
-project Test is
-   for Source_Dirs use ("../../dial-plans/");
+   function Evaluate (Item : in Instance;
+                      Call : in Channel_ID) return Boolean is abstract;
 
-   for Main use ("load_dial_plan",
-                 "normalise_dial_plan",
-                 "receptions-dial_plan",
-                 "receptions-condition",
-                 "receptions-end_point_collection",
-                 "receptions-end_points-hang_up",
-                 "receptions-end_points-queue",
-                 "receptions-end_points-redirect",
-                 "receptions-end_points-interactive_voice_response",
-                 "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal",
-                 "receptions-decision_tree_collection",
-                 "receptions-decision_tree");
-
-   package Compiler renames Shared.Compiler;
-end Test;
+   function Value (Item : in Instance) return String is abstract;
+end Receptions.Condition;
