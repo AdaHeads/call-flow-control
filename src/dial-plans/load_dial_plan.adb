@@ -29,6 +29,7 @@ with DOM.Core.Nodes;           use DOM.Core.Nodes;
 with Receptions.Decision_Tree_Collection,
      Receptions.Dial_Plan,
      Receptions.End_Point_Collection,
+     Receptions.End_Points.Busy_Signal,
      Receptions.End_Points.Hang_Up,
      Receptions.End_Points.Queue,
      Receptions.End_Points.Voice_Mail;
@@ -203,6 +204,13 @@ begin
                      end;
                   elsif Node_Name (End_Point_Action) = "busy-signal" then
                      Put_Line ("End-point type:        busy-signal");
+
+                     declare
+                        package Busy_Signal renames Receptions.End_Points.Busy_Signal;
+                     begin
+                        End_Points.Insert (Key      => Title,
+                                           New_Item => Busy_Signal.Create (Title => Title));
+                     end;
                   else
                      raise Constraint_Error with "<end-point> element contains illegal element <" &
                                                  Node_Name (End_Point_Action) & ">.";
