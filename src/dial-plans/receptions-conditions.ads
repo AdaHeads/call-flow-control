@@ -15,26 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared";
-with "xmlada";
-
-project Test is
-   for Source_Dirs use ("../../dial-plans/");
-
-   for Main use ("load_dial_plan",
-                 "normalise_dial_plan",
-                 "receptions-conditions-clock",
-                 "receptions-decision_tree",
-                 "receptions-decision_tree_collection",
-                 "receptions-dial_plan",
-                 "receptions-end_point_collection",
-                 "receptions-end_points-hang_up",
-                 "receptions-end_points-queue",
-                 "receptions-end_points-redirect",
-                 "receptions-end_points-interactive_voice_response",
-                 "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal",
-                 "receptions-inverse_condition");
-
-   package Compiler renames Shared.Compiler;
-end Test;
+package Receptions.Conditions is
+   pragma Pure;
+end Receptions.Conditions;

@@ -15,26 +15,30 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared";
-with "xmlada";
+with Receptions.Condition;
 
-project Test is
-   for Source_Dirs use ("../../dial-plans/");
+private
+with Ada.Calendar;
 
-   for Main use ("load_dial_plan",
-                 "normalise_dial_plan",
-                 "receptions-conditions-clock",
-                 "receptions-decision_tree",
-                 "receptions-decision_tree_collection",
-                 "receptions-dial_plan",
-                 "receptions-end_point_collection",
-                 "receptions-end_points-hang_up",
-                 "receptions-end_points-queue",
-                 "receptions-end_points-redirect",
-                 "receptions-end_points-interactive_voice_response",
-                 "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal",
-                 "receptions-inverse_condition");
+package Receptions.Conditions.Clock is
+   type Instance is new Receptions.Condition.Instance with private;
+   subtype Class is Instance'Class;
 
-   package Compiler renames Shared.Compiler;
-end Test;
+   not overriding
+   function Create (From, To : in String) return Instance
+     with Precondition => (From < To);
+
+   overriding
+   function Evaluate (Item : in Instance;
+                      Call : in Channel_ID) return Boolean;
+
+   overriding
+   function Value (Item : in Instance) return String;
+
+   XML_Element_Name : constant String := "clock";
+private
+   type Instance is new Receptions.Condition.Instance with
+      record
+         From, To : Ada.Calendar.Day_Duration;
+      end record;
+end Receptions.Conditions.Clock;

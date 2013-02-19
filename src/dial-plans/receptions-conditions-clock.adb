@@ -15,26 +15,39 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared";
-with "xmlada";
+with Ada.Calendar.Formatting;
 
-project Test is
-   for Source_Dirs use ("../../dial-plans/");
+package body Receptions.Conditions.Clock is
+   not overriding
+   function Create (From, To : in String) return Instance is
+      use Ada.Calendar.Formatting;
+   begin
+      return Result : Instance do
+         Result := (From => Value (Elapsed_Time => From),
+                    To   => Value (Elapsed_Time => To));
 
-   for Main use ("load_dial_plan",
-                 "normalise_dial_plan",
-                 "receptions-conditions-clock",
-                 "receptions-decision_tree",
-                 "receptions-decision_tree_collection",
-                 "receptions-dial_plan",
-                 "receptions-end_point_collection",
-                 "receptions-end_points-hang_up",
-                 "receptions-end_points-queue",
-                 "receptions-end_points-redirect",
-                 "receptions-end_points-interactive_voice_response",
-                 "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal",
-                 "receptions-inverse_condition");
+         if Result.From >= Result.To then
+            raise Constraint_Error
+              with From & " >= " & To & " (as timestamps).";
+         end if;
+      end return;
+   end Create;
 
-   package Compiler renames Shared.Compiler;
-end Test;
+   overriding
+   function Evaluate (Item : in Instance;
+                      Call : in Channel_ID) return Boolean is
+      pragma Unreferenced (Call);
+      use Ada.Calendar;
+      Now : constant Day_Duration := Seconds (Ada.Calendar.Clock);
+   begin
+      return Item.From < Now and Now < Item.To;
+   end Evaluate;
+
+   overriding
+   function Value (Item : in Instance) return String is
+      use Ada.Calendar;
+   begin
+      return "Clock in " & Day_Duration'Image (Item.From) & " .. " &
+                           Day_Duration'Image (Item.To);
+   end Value;
+end Receptions.Conditions.Clock;

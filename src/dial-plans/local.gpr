@@ -21,7 +21,7 @@ with "xmlada";
 project Local is
    for Main use ("load_dial_plan",
                  "normalise_dial_plan",
-                 "receptions-condition",
+                 "receptions-conditions-clock",
                  "receptions-decision_tree",
                  "receptions-decision_tree_collection",
                  "receptions-dial_plan",
