@@ -17,9 +17,9 @@
 
 with Ada.Containers.Indefinite_Holders;
 
-with Receptions.Negatable_Condition;
+with Receptions.Condition;
 
-package Receptions.Negatable_Condition_Container is
+package Receptions.Condition_Container is
   new Ada.Containers.Indefinite_Holders
-    (Element_Type => Receptions.Negatable_Condition.Class,
-     "="          => Receptions.Negatable_Condition."=");
+    (Element_Type => Receptions.Condition.Class,
+     "="          => Receptions.Condition."=");

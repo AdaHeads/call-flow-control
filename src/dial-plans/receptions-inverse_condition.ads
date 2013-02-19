@@ -15,18 +15,17 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Receptions.Condition,
-     Receptions.Negatable_Condition;
+with Receptions.Condition;
 
 private
-with Receptions.Negatable_Condition_Container;
+with Receptions.Condition_Container;
 
 package Receptions.Inverse_Condition is
    type Instance is new Receptions.Condition.Instance with private;
    subtype Class is Instance'Class;
 
    not overriding
-   function Create (Condition : in Receptions.Negatable_Condition.Class)
+   function Create (Condition : in Receptions.Condition.Class)
      return Instance;
 
    overriding
@@ -40,6 +39,6 @@ package Receptions.Inverse_Condition is
 private
    type Instance is new Receptions.Condition.Instance with
       record
-         Condition : Receptions.Negatable_Condition_Container.Holder;
+         Condition : Receptions.Condition_Container.Holder;
       end record;
 end Receptions.Inverse_Condition;

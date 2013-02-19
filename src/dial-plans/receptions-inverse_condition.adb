@@ -16,10 +16,10 @@
 -------------------------------------------------------------------------------
 
 package body Receptions.Inverse_Condition is
-   use Receptions.Negatable_Condition_Container;
+   use Receptions.Condition_Container;
 
    not overriding
-   function Create (Condition : in Receptions.Negatable_Condition.Class)
+   function Create (Condition : in Receptions.Condition.Class)
      return Instance is
    begin
       return (Condition => To_Holder (Condition));
