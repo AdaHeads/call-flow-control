@@ -27,7 +27,14 @@ package Storage is
 
       with function Cursor_To_Element
         (C : in out Database_Cursor'Class)
-        return Element;
+         return Element;
+      --  Takes a Database_Cursor and turns it into an Element.
+
+      --  NOTE: This function _MUST_ take care of moving the Database_Cursor
+      --  forward using the C.Next call. If this is not done, the call to
+      --  Process_Element will be repeated indefinitely. This also means that
+      --  an Element can be build from several rows, since full control over
+      --  cursor is left to the Cursor_To_Element function.
 
    procedure Process_Select_Query
      (Process_Element    : not null access procedure (E : in Element);
@@ -36,7 +43,7 @@ package Storage is
    --  Hand every Element created by Cursor_To_Element to the Process_Element
    --  procedure.
 
-   procedure Stop_Connection_Maintenance_Task;
+--     procedure Stop_Connection_Maintenance_Task;
    --  Stop the database connection maintenance task.
 
 end Storage;

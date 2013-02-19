@@ -22,6 +22,7 @@
 with "aws";
 with "gnatcoll";
 with "gnatcoll_postgres";
+with "gnatcoll_sqlite";
 with "yolk";
 
 project Alice is
@@ -29,7 +30,7 @@ project Alice is
    Build : Build_Type := External ("BUILDTYPE", "Production");
 
    type Databases is ("PostgreSQL", "SQLite");
-   Database : Databases := External ("DATABASE", "PostgreSQL");
+   Database : Databases := External ("DATABASE", "SQLite");
 
    Source_Options := ("src/**");
    for Source_Dirs use Source_Options;

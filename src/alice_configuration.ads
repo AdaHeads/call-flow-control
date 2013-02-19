@@ -31,11 +31,7 @@ package Alice_Configuration is
                  DB_Password,
                  DB_Port,
                  DB_User,
-                 DB2_Host,
-                 DB2_Name,
-                 DB2_Password,
-                 DB2_Port,
-                 DB2_User,
+                 SQLite_Database,
                  PBX_Secret,
                  PBX_User,
                  PBX_Host,
@@ -56,23 +52,15 @@ package Alice_Configuration is
                        => U ("5432"),
                        DB_User
                        => U ("alice"),
-                       DB2_Host
-                       => U ("pgsecondary.adaheads.com"),
-                       DB2_Name
-                       => U ("customers"),
-                       DB2_Password
-                       => U ("secret"),
-                       DB2_Port
-                       => U ("5432"),
-                       DB2_User
-                       => U ("alice"),
-                      PBX_Secret
+                       SQLite_Database
+                       => U ("sqlite/customers.db"),
+                       PBX_Secret
                        => U ("password"),
-                      PBX_User
+                       PBX_User
                        => U ("username"),
-                      PBX_Host
+                       PBX_Host
                        => U ("Asterisk_Host"),
-                      PBX_Port
+                       PBX_Port
                        => U ("5038"));
 
    package Config is new Yolk.Config_File_Parser

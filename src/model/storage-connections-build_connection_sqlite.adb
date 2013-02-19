@@ -15,12 +15,19 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.SQL.Exec;
+with GNATCOLL.SQL.Sqlite;
 
-private package Storage.Connections is
+with Alice_Configuration;
 
-   function Get_Connection
-     return GNATCOLL.SQL.Exec.Database_Connection;
-   --  Get a database connection.
+separate (Storage.Connections)
+function Build_Connection
+  return GNATCOLL.SQL.Exec.Database_Connection
+is
+   use Alice_Configuration;
+   use GNATCOLL.SQL.Exec;
 
-end Storage.Connections;
+   Descr : constant Database_Description :=
+             GNATCOLL.SQL.Sqlite.Setup (Config.Get (SQLite_Database));
+begin
+   return GNATCOLL.SQL.Exec.Get_Task_Connection (Descr);
+end Build_Connection;

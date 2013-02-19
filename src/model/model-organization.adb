@@ -278,11 +278,14 @@ package body Model.Organization is
                Full_Name => Cursor.Value (5),
                Is_Human  => Cursor.Boolean_Value (6));
 
-            Contact.Add_Attribute
-              (Model.Attribute.Create
-                 (ID   => Attribute_Identifier'
-                    (CID => Contact.ID, OID => Organization.ID),
-                  JSON => String_To_JSON_Object (Cursor.Json_Text_Value (7))));
+            if not Cursor.Is_Null (7) then
+               Contact.Add_Attribute
+                 (Model.Attribute.Create
+                    (ID   => Attribute_Identifier'
+                       (CID => Contact.ID, OID => Organization.ID),
+                     JSON =>
+                       String_To_JSON_Object (Cursor.Json_Text_Value (7))));
+            end if;
 
             Organization.Contact_List.Add_Contact (Contact => Contact,
                                                    ID      => Organization.ID);
@@ -304,13 +307,20 @@ package body Model.Organization is
       return Object
    is
       use Common;
+
+      Instance : Object;
    begin
-      return (Contact_List => Contacts.Null_List,
-              Full_Name => U (C.Value (0)),
-              ID        => Organization_Identifier (C.Integer_Value (3)),
-              JSON      => String_To_JSON_Object (C.Json_Text_Value (2)),
-              Mode      => Request_Parameters.Midi,
-              URI       => U (C.Value (1)));
+      Instance :=
+        (Contact_List => Contacts.Null_List,
+         Full_Name    => U (C.Value (0)),
+         ID           => Organization_Identifier (C.Integer_Value (3)),
+         JSON         => String_To_JSON_Object (C.Json_Text_Value (2)),
+         Mode         => Request_Parameters.Midi,
+         URI          => U (C.Value (1)));
+
+      C.Next;
+
+      return Instance;
    end Organization_Midi_Element;
 
    ---------------------------------
@@ -322,13 +332,20 @@ package body Model.Organization is
       return Object
    is
       use Common;
+
+      Instance : Object;
    begin
-      return (Contact_List => Contacts.Null_List,
-              Full_Name => U (C.Value (0)),
-              ID        => Organization_Identifier (C.Integer_Value (2)),
-              JSON      => GNATCOLL.JSON.JSON_Null,
-              Mode      => Request_Parameters.Mini,
-              URI       => U (C.Value (1)));
+      Instance :=
+        (Contact_List => Contacts.Null_List,
+         Full_Name    => U (C.Value (0)),
+         ID           => Organization_Identifier (C.Integer_Value (2)),
+         JSON         => GNATCOLL.JSON.JSON_Null,
+         Mode         => Request_Parameters.Mini,
+         URI          => U (C.Value (1)));
+
+      C.Next;
+
+      return Instance;
    end Organization_Mini_Element;
 
    ----------------------

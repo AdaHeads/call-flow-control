@@ -19,15 +19,19 @@
 #                                                                             #
 ###############################################################################
 
+ifeq ($(DATABASE),)
+DATABASE=SQLite
+endif
+
 ifeq ($(PROCESSORS),)
 PROCESSORS=1
 endif
 
 all:
-	gnatmake -j${PROCESSORS} -P alice
+	DATABASE=${DATABASE} gnatmake -j${PROCESSORS} -P alice
 
 debug:
-	BUILDTYPE=Debug gnatmake -j${PROCESSORS} -P alice
+	BUILDTYPE=Debug DATABASE=${DATABASE} gnatmake -j${PROCESSORS} -P alice
 
 clean: cleanup_messy_temp_files
 	gnatclean -P alice
