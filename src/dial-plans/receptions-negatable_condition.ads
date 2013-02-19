@@ -15,23 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../tests/shared";
-with "xmlada";
+with Receptions.Condition;
 
-project Local is
-   for Main use ("load_dial_plan",
-                 "normalise_dial_plan",
-                 "receptions-decision_tree",
-                 "receptions-decision_tree_collection",
-                 "receptions-dial_plan",
-                 "receptions-end_point_collection",
-                 "receptions-end_points-hang_up",
-                 "receptions-end_points-queue",
-                 "receptions-end_points-redirect",
-                 "receptions-end_points-interactive_voice_response",
-                 "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal",
-                 "receptions-negatable_condition");
+package Receptions.Negatable_Condition is
+   type Instance is new Receptions.Condition with abstract tagged null record;
+   subtype Class is Instance'Class;
 
-   package Compiler renames Shared.Compiler;
-end Local;
+end Receptions.Negatable_Condition;
