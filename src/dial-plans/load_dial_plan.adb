@@ -30,7 +30,8 @@ with Receptions.Decision_Tree_Collection,
      Receptions.Dial_Plan,
      Receptions.End_Point_Collection,
      Receptions.End_Points.Hang_Up,
-     Receptions.End_Points.Queue;
+     Receptions.End_Points.Queue,
+     Receptions.End_Points.Voice_Mail;
 
 procedure Load_Dial_Plan is
    procedure Check (Element : in     Node;
@@ -182,6 +183,24 @@ begin
                      Put_Line ("End-point type:        interactive-voice-response");
                   elsif Node_Name (End_Point_Action) = "voice-mail" then
                      Put_Line ("End-point type:        voice-mail");
+
+                     declare
+                        use Receptions.End_Points.Voice_Mail;
+
+                        Play_Attribute    : constant not null Node :=
+                                              Get_Named_Item (Nodes.Attributes (End_Point_Action),
+                                                              "play");
+                        Send_To_Attribute : constant not null Node :=
+                                              Get_Named_Item (Nodes.Attributes (End_Point_Action),
+                                                              "send-to");
+                        Voice_Mail : Receptions.End_Points.Voice_Mail.Instance;
+                     begin
+                        Voice_Mail := Create (Title   => Title,
+                                              Play    => Node_Value (Play_Attribute),
+                                              Send_To => Node_Value (Send_To_Attribute));
+                        End_Points.Insert (Key      => Title,
+                                           New_Item => Voice_Mail);
+                     end;
                   elsif Node_Name (End_Point_Action) = "busy-signal" then
                      Put_Line ("End-point type:        busy-signal");
                   else
