@@ -24,6 +24,7 @@ project Test is
    for Main use ("load_dial_plan",
                  "normalise_dial_plan",
                  "receptions-conditions-clock",
+                 "receptions-conditions-inverse",
                  "receptions-decision_tree",
                  "receptions-decision_tree_collection",
                  "receptions-dial_plan",
@@ -33,8 +34,7 @@ project Test is
                  "receptions-end_points-redirect",
                  "receptions-end_points-interactive_voice_response",
                  "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal",
-                 "receptions-inverse_condition");
+                 "receptions-end_points-busy_signal");
 
    package Compiler renames Shared.Compiler;
 end Test;

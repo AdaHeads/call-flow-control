@@ -15,26 +15,30 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package body Receptions.Inverse_Condition is
-   use Receptions.Condition_Container;
+with Receptions.Condition;
+
+private
+with Receptions.Condition_Container;
+
+package Receptions.Conditions.Inverse is
+   type Instance is new Receptions.Condition.Instance with private;
+   subtype Class is Instance'Class;
 
    not overriding
    function Create (Condition : in Receptions.Condition.Class)
-     return Instance is
-   begin
-      return (Condition => To_Holder (Condition));
-   end Create;
+     return Instance;
 
    overriding
    function Evaluate (Item : in Instance;
-                      Call : in Channel_ID) return Boolean is
-   begin
-      return not Element (Item.Condition).Evaluate (Call);
-   end Evaluate;
+                      Call : in Channel_ID) return Boolean;
 
    overriding
-   function Value (Item : in Instance) return String is
-   begin
-      return "not " & Element (Item.Condition).Value;
-   end Value;
-end Receptions.Inverse_Condition;
+   function Value (Item : in Instance) return String;
+
+   XML_Element_Name : constant String := "not";
+private
+   type Instance is new Receptions.Condition.Instance with
+      record
+         Condition : Receptions.Condition_Container.Holder;
+      end record;
+end Receptions.Conditions.Inverse;
