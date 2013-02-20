@@ -22,6 +22,7 @@ project Local is
    for Main use ("load_dial_plan",
                  "normalise_dial_plan",
                  "receptions-conditions-clock",
+                 "receptions-conditions-day_of_month",
                  "receptions-conditions-day_of_week",
                  "receptions-conditions-inverse",
                  "receptions-decision_tree",
