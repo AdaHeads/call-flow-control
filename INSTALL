@@ -3,8 +3,11 @@ To build Alice all you have to do is:
     $ cd Alice/
     $ make
 
-If you have a multicore system you can prepend make with PROCESSORS=n to speed
-things up.
+Set the DATABASE=PostgreSQL environment variable if you want to use that
+instead of the default SQLite database.
+
+If you have a multicore system you can set the PROCESSORS=n environment
+variable to speed things up.
 
 You now have a fully functioning Alice server in the Alice/exe/ directory. You
 can use one of the controller scripts found in tools/ to start/stop Alice.
