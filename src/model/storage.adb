@@ -17,30 +17,14 @@
 
 with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
-with Ada.Strings.Unbounded;
-with Ada.Task_Attributes;
 
-with Common;
 with Storage.Connections;
 with System_Message.Critical;
 
 package body Storage is
 
    Database_Error : exception;
-
-   package Task_DB_Connection is new Ada.Task_Attributes
-     (Connections.Instance, Connections.Off_Line_Instance);
-   --  Associates a specific task ID with a database connection instance.
-
-   function Get_Connection
-     (As : Connections.Connected_Mode)
-      return Connections.Instance;
-   --  Return a database connection instance. You will get a Read_Write
-   --  connection as long as that is possible (ie. the primary server is up)
-   --  even if you request a Read_Only connection. You will only get a
-   --  Read_Only connection if the primary database server is down.
-   --  If both the primary and secondary database servers are down, then you
-   --  will get a null Instance.
+   --  Is raised if we can't complete a query for one reason or another.
 
    function Trim
      (Source : in String)
@@ -48,26 +32,6 @@ package body Storage is
    --  Trim Source string on both sides. This will clear away \n also. This
    --  function is here because the errors thrown by PostgreSQL is postfixed
    --  with a \n which we must remove before sending the message to syslogd.
-
-   ----------------------
-   --  Get_Connection  --
-   ----------------------
-
-   function Get_Connection
-     (As : in Connections.Connected_Mode)
-     return Connections.Instance
-   is
-      use Connections;
-
-      Connection : Instance := Task_DB_Connection.Value;
-   begin
-      if Connection = Off_Line_Instance then
-         Connection := Get (As => As);
-         Task_DB_Connection.Set_Value (Connection);
-      end if;
-
-      return Connection;
-   end Get_Connection;
 
    ----------------------------
    --  Process_Select_Query  --
@@ -78,87 +42,32 @@ package body Storage is
       Prepared_Statement : in GNATCOLL.SQL.Exec.Prepared_Statement;
       Query_Parameters   : in GNATCOLL.SQL.Exec.SQL_Parameters)
    is
-      use Ada.Strings.Unbounded;
-      use Common;
       use Connections;
       use GNATCOLL.SQL;
       use GNATCOLL.SQL.Exec;
       use System_Message;
 
-      function Operation_Succeeded
-        return Boolean;
-      --  Excecute the query and process the elements.
-
-      C             : Database_Cursor;
-      DB            : Instance := Get_Connection (As => Read_Only);
-      Error_Message : Unbounded_String := Null_Unbounded_String;
-
-      ---------------------------
-      --  Operation_Succeeded  --
-      ---------------------------
-
-      function Operation_Succeeded
-        return Boolean
-      is
-      begin
-         if DB = Off_Line_Instance then
-            return False;
-         end if;
-
-         C.Fetch (DB.Connection,
-                  Prepared_Statement,
-                  Query_Parameters);
-
-         if DB.Connection.Success then
-            while C.Has_Row loop
-               Process_Element (Cursor_To_Element (C));
-               C.Next;
-            end loop;
-
-            return True;
-         else
-            return False;
-         end if;
-      end Operation_Succeeded;
+      Cursor     : Database_Cursor;
+      Connection : Database_Connection;
    begin
-      if not Operation_Succeeded then
-         Connections.Queue_Failed (Connection => DB);
-         Task_DB_Connection.Set_Value (DB);
+      Connection := Get_Connection;
 
-         DB := Get_Connection (As => Read_Only);
-         --  First try failed. Get a new connection and try again.
+      Cursor.Fetch (Connection,
+                    Prepared_Statement,
+                    Query_Parameters);
 
-         if not Operation_Succeeded then
-            --  Second try also failed. Log error and raise Database_Error.
-
-            if DB = Off_Line_Instance  then
-               Error_Message := U
-                 ("database connection is Storage.Connections.Null_Instance");
-            else
-               Error_Message := U (Trim (Exec.Error (DB.Connection)));
-            end if;
-            --  We need to grab the error here, because the connection is
-            --  reset when we register it as failed.
-
-            Connections.Queue_Failed (Connection => DB);
-            Task_DB_Connection.Set_Value (DB);
-
-            Critical.Lost_Database_Connection
-              (Message => To_String (Error_Message));
-            raise Database_Error;
-         end if;
+      if Connection.Success then
+         while Cursor.Has_Row loop
+            Process_Element (Cursor_To_Element (Cursor));
+            --  Note that this loop will go on forever if the Cursor_To_Element
+            --  function does not properly handle moving the cursor forward.
+         end loop;
+      else
+         Critical.Lost_Database_Connection
+           (Message => Trim (Exec.Error (Connection)));
+         raise Database_Error;
       end if;
    end Process_Select_Query;
-
-   ----------------------------------------
-   --  Stop_Connection_Maintenance_Task  --
-   ----------------------------------------
-
-   procedure Stop_Connection_Maintenance_Task
-   is
-   begin
-      Storage.Connections.Stop_Maintenance_Task;
-   end Stop_Connection_Maintenance_Task;
 
    ------------
    --  Trim  --

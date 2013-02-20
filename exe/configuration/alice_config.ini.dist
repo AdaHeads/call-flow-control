@@ -4,9 +4,9 @@
 # default value is used.
 # Default values are defined in the My_Configuration.Default_Values array.
 
-##############################
-#           Cache            #
-##############################
+#########
+# Cache #
+#########
 
 Cache_Max_Element_Age 86_400.0
 # Duration.
@@ -15,9 +15,9 @@ Cache_Max_Element_Age 86_400.0
 # Cached elements that are older than Cache_Max_Element_Age seconds are
 # automatically invalidated and removed from the cache.
 
-##################################
-#            Database            #
-##################################
+#######################
+# PostgreSQL Database #
+#######################
 
 DB_Host pgprimary.adaheads.com
 # String.
@@ -37,7 +37,7 @@ DB_Password secret
 #
 # The database password.
 
-DB2_Port 5432
+DB_Port 5432
 # Positive.
 # Default: 5432
 #
@@ -49,39 +49,20 @@ DB_User alice
 #
 # The database user.
 
-DB2_Host pgsecondary.adaheads.com
+###################
+# SQLite Database #
+###################
+
+SQLite_Database sqlite/customers.db
 # String.
-# Default: pgsecondary.adaheads.com
+# Default: sqlite/customers.db
 #
-# The readonly backup database host.
+# If Alice has been compiled with SQLite support, then she will use this file
+# as the database.
 
-DB2_Name customers
-# String.
-# Default: customers
-#
-# The readonly backup database name.
-
-DB2_Password secret
-# String.
-# Default: secret
-#
-# The readonly backup database password.
-
-DB2_Port 5432
-# Positive.
-# Default: 5432
-#
-# The database port.
-
-DB2_User alice
-# String.
-# Default: alice
-#
-# The readonly backup database user.
-
-#########################################
-#        PBX event socket access        #
-#########################################
+###########################
+# PBX event socket access #
+###########################
 
 PBX_Secret password
 # String.

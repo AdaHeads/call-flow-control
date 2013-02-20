@@ -46,13 +46,19 @@ package body Model.Attribute is
       return Object
    is
       use Common;
+
+      Instance : Object;
    begin
-      return
+      Instance :=
         (ID   => Attribute_Identifier'
            (CID => Contact_Identifier (C.Integer_Value (0, Default => 0)),
             OID => Organization_Identifier
               (C.Integer_Value (1, Default => 0))),
          JSON => String_To_JSON_Object (C.Json_Text_Value (2)));
+
+      C.Next;
+
+      return Instance;
    end Contact_Attributes_Element;
 
    ------------------

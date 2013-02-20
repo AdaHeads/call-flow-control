@@ -23,55 +23,25 @@ with Alice_Configuration;
 
 separate (Storage.Connections)
 function Build_Connection
-  (As : Connected_Mode)
-   return Instance
+  return GNATCOLL.SQL.Exec.Database_Connection
 is
-   package C renames Alice_Configuration;
+   use Ada.Strings;
+   use Alice_Configuration;
 
-   function Port_String
+   function Port
      (Port : in Natural)
-      return String;
+      return String is
+     (" port=" & Fixed.Trim (Natural'Image (Port), Both));
    --  Construct the port string.
 
-   -------------------
-   --  Port_String  --
-   -------------------
-
-   function Port_String
-     (Port : in Natural)
-      return String
-   is
-      use Ada.Strings;
-   begin
-      return " port=" & Fixed.Trim (Natural'Image (Port), Both);
-   end Port_String;
-
-   Primary_Server : constant GNATCOLL.SQL.Exec.Database_Description
+   Descr : constant GNATCOLL.SQL.Exec.Database_Description
      := GNATCOLL.SQL.Postgres.Setup
-       (Database      => C.Config.Get (C.DB_Name),
-        User          => C.Config.Get (C.DB_User),
-        Host          =>
-          C.Config.Get (C.DB_Host) & Port_String (C.Config.Get (C.DB_Port)),
-        Password      => C.Config.Get (C.DB_Password),
-        SSL           => GNATCOLL.SQL.Postgres.Allow,
-        Cache_Support => True);
-
-   Secondary_Server : constant GNATCOLL.SQL.Exec.Database_Description
-     := GNATCOLL.SQL.Postgres.Setup
-       (Database      => C.Config.Get (C.DB2_Name),
-        User          => C.Config.Get (C.DB2_User),
-        Host          =>
-          C.Config.Get (C.DB2_Host) & Port_String (C.Config.Get (C.DB2_Port)),
-        Password      => C.Config.Get (C.DB2_Password),
+       (Database      => Config.Get (DB_Name),
+        User          => Config.Get (DB_User),
+        Host          => Config.Get (DB_Host) & Port (Config.Get (DB_Port)),
+        Password      => Config.Get (DB_Password),
         SSL           => GNATCOLL.SQL.Postgres.Allow,
         Cache_Support => True);
 begin
-   case As is
-      when Read_Only =>
-         return (State      => Read_Only,
-                 Connection => Secondary_Server.Build_Connection);
-      when Read_Write =>
-         return (State      => Read_Write,
-                 Connection => Primary_Server.Build_Connection);
-   end case;
+   return GNATCOLL.SQL.Exec.Get_Task_Connection (Descr);
 end Build_Connection;

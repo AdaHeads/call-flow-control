@@ -22,7 +22,6 @@ with Alice_Handlers;
 with PBX;
 with SIGHUP;
 with SIGHUP_Handler;
-with Storage;
 with System_Message.Critical;
 with System_Message.Info;
 with Unexpected_Exception;
@@ -35,7 +34,7 @@ procedure Alice is
    use Yolk.Process_Control;
    use Yolk.Server;
 
-   Alice_Version : constant String := "0.40";
+   Alice_Version : constant String := "0.41";
 
    Web_Server : HTTP := Create
      (Unexpected => Unexpected_Exception.Callback);
@@ -52,7 +51,6 @@ begin
    Web_Server.Stop;
    PBX.Stop;
    SIGHUP.Stop;
-   Storage.Stop_Connection_Maintenance_Task;
 
    Info.Alice_Stop;
 exception
