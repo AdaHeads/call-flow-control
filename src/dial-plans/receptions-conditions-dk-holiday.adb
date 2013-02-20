@@ -15,33 +15,32 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../tests/shared";
-with "xmlada";
-with "yolk";
+with Ada.Calendar;
 
-project Local is
-   for Source_Dirs use ("./", "../", "../model/");
+with Calendars.DK;
 
-   for Main use ("calendars-dk",
-                 "load_dial_plan",
-                 "normalise_dial_plan",
-                 "receptions-conditions-clock",
-                 "receptions-conditions-day_of_month",
-                 "receptions-conditions-day_of_week",
-                 "receptions-conditions-dk-banking_day",
-                 "receptions-conditions-dk-holiday",
-                 "receptions-conditions-inverse",
-                 "receptions-conditions-month",
-                 "receptions-decision_tree",
-                 "receptions-decision_tree_collection",
-                 "receptions-dial_plan",
-                 "receptions-end_point_collection",
-                 "receptions-end_points-hang_up",
-                 "receptions-end_points-queue",
-                 "receptions-end_points-redirect",
-                 "receptions-end_points-interactive_voice_response",
-                 "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal");
+package body Receptions.Conditions.DK.Holiday is
+   not overriding
+   function Create return Instance is
+   begin
+      return Result : Instance do
+         null;
+      end return;
+   end Create;
 
-   package Compiler renames Shared.Compiler;
-end Local;
+   overriding
+   function Evaluate (Item : in Instance;
+                      Call : in Channel_ID) return Boolean is
+      pragma Unreferenced (Item);
+      pragma Unreferenced (Call);
+   begin
+      return Calendars.DK.Official_Holiday (Ada.Calendar.Clock);
+   end Evaluate;
+
+   overriding
+   function Value (Item : in Instance) return String is
+      pragma Unreferenced (Item);
+   begin
+      return "Official holiday in Denmark";
+   end Value;
+end Receptions.Conditions.DK.Holiday;
