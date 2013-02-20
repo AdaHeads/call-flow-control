@@ -15,25 +15,31 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../tests/shared";
-with "xmlada";
+with Receptions.Condition;
 
-project Local is
-   for Main use ("load_dial_plan",
-                 "normalise_dial_plan",
-                 "receptions-conditions-clock",
-                 "receptions-conditions-day_of_week",
-                 "receptions-conditions-inverse",
-                 "receptions-decision_tree",
-                 "receptions-decision_tree_collection",
-                 "receptions-dial_plan",
-                 "receptions-end_point_collection",
-                 "receptions-end_points-hang_up",
-                 "receptions-end_points-queue",
-                 "receptions-end_points-redirect",
-                 "receptions-end_points-interactive_voice_response",
-                 "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal");
+private
+with Ada.Calendar.Formatting;
 
-   package Compiler renames Shared.Compiler;
-end Local;
+package Receptions.Conditions.Day_Of_Week is
+   type Instance is new Receptions.Condition.Instance with private;
+   subtype Class is Instance'Class;
+
+   not overriding
+   function Create (List : in String) return Instance;
+
+   overriding
+   function Evaluate (Item : in Instance;
+                      Call : in Channel_ID) return Boolean;
+
+   overriding
+   function Value (Item : in Instance) return String;
+
+   XML_Element_Name : constant String := "day-of-week";
+private
+   type Set_Of_Days is array (Ada.Calendar.Formatting.Day_Name) of Boolean;
+
+   type Instance is new Receptions.Condition.Instance with
+      record
+         Days : Set_Of_Days := (others => False);
+      end record;
+end Receptions.Conditions.Day_Of_Week;
