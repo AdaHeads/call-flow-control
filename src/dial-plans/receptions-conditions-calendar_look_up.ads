@@ -15,32 +15,29 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../tests/shared";
-with "xmlada";
-with "yolk";
+with Receptions.Condition;
 
-project Local is
-   for Source_Dirs use ("./", "../", "../model/");
+private
+with Ada.Strings.Unbounded;
 
-   for Main use ("load_dial_plan",
-                 "normalise_dial_plan",
-                 "receptions-conditions-calendar_look_up",
-                 "receptions-conditions-clock",
-                 "receptions-conditions-day_of_month",
-                 "receptions-conditions-day_of_week",
-                 "receptions-conditions-inverse",
-                 "receptions-conditions-month",
-                 "receptions-conditions-week_number",
-                 "receptions-decision_tree",
-                 "receptions-decision_tree_collection",
-                 "receptions-dial_plan",
-                 "receptions-end_point_collection",
-                 "receptions-end_points-hang_up",
-                 "receptions-end_points-queue",
-                 "receptions-end_points-redirect",
-                 "receptions-end_points-interactive_voice_response",
-                 "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal");
+package Receptions.Conditions.Calendar_Look_Up is
+   type Instance is new Receptions.Condition.Instance with private;
+   subtype Class is Instance'Class;
 
-   package Compiler renames Shared.Compiler;
-end Local;
+   not overriding
+   function Create (Kind : in String) return Instance;
+
+   overriding
+   function Evaluate (Item : in Instance;
+                      Call : in Channel_ID) return Boolean;
+
+   overriding
+   function Value (Item : in Instance) return String;
+
+   XML_Element_Name : constant String := "calendar-look-up";
+private
+   type Instance is new Receptions.Condition.Instance with
+      record
+         Kind : Ada.Strings.Unbounded.Unbounded_String;
+      end record;
+end Receptions.Conditions.Calendar_Look_Up;

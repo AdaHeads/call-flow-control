@@ -15,32 +15,31 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../tests/shared";
-with "xmlada";
-with "yolk";
+with System_Message.Critical;
 
-project Local is
-   for Source_Dirs use ("./", "../", "../model/");
+package body Receptions.Conditions.Calendar_Look_Up is
+   not overriding
+   function Create (Kind : in String) return Instance is
+   begin
+      --  Would like to check if Kind exists in the calendar database.
+      System_Message.Critical.No_Calendar_Database;
+      return (Kind => Ada.Strings.Unbounded.To_Unbounded_String (Kind));
+   end Create;
 
-   for Main use ("load_dial_plan",
-                 "normalise_dial_plan",
-                 "receptions-conditions-calendar_look_up",
-                 "receptions-conditions-clock",
-                 "receptions-conditions-day_of_month",
-                 "receptions-conditions-day_of_week",
-                 "receptions-conditions-inverse",
-                 "receptions-conditions-month",
-                 "receptions-conditions-week_number",
-                 "receptions-decision_tree",
-                 "receptions-decision_tree_collection",
-                 "receptions-dial_plan",
-                 "receptions-end_point_collection",
-                 "receptions-end_points-hang_up",
-                 "receptions-end_points-queue",
-                 "receptions-end_points-redirect",
-                 "receptions-end_points-interactive_voice_response",
-                 "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal");
+   overriding
+   function Evaluate (Item : in Instance;
+                      Call : in Channel_ID) return Boolean is
+      pragma Unreferenced (Call);
+   begin
+      --  Would like to look up today date in the calendar database.
+      System_Message.Critical.No_Calendar_Database;
+      return False;
+   end Evaluate;
 
-   package Compiler renames Shared.Compiler;
-end Local;
+   overriding
+   function Value (Item : in Instance) return String is
+   begin
+      return "Looking up """ & Ada.Strings.Unbounded.To_String (Item.Kind) &
+             """ in calendar.";
+   end Value;
+end Receptions.Conditions.Calendar_Look_Up;
