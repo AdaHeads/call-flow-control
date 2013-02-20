@@ -38,10 +38,13 @@ package body Calendars.DK is
       Year  : constant Ada.Calendar.Year_Number  := Ada.Calendar.Year  (Date);
       Month : constant Ada.Calendar.Month_Number := Ada.Calendar.Month (Date);
       Day   : constant Ada.Calendar.Day_Number   := Ada.Calendar.Day   (Date);
+      use Ada.Calendar.Formatting;
    begin
       System_Message.Critical.Partial_Calendar_Data;
 
       if Official_Holiday (Date) then
+         return False;
+      elsif Day_Of_Week (Date) in Saturday .. Sunday then
          return False;
       else
          return (Month = 5 and then Day = 1); -- 1st of May
