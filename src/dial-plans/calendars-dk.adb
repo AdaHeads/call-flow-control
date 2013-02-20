@@ -69,8 +69,6 @@ package body Calendars.DK is
       use Ada.Calendar.Formatting;
       use type Ada.Calendar.Arithmetic.Day_Count;
    begin
-      System_Message.Critical.Partial_Calendar_Data;
-
       return
         (Day_Of_Week (Date) = Sunday) or else -- Sunday
         (Month = 1  and then Day = 1) or else -- New Year
