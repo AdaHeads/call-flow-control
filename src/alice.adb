@@ -34,7 +34,7 @@ procedure Alice is
    use Yolk.Process_Control;
    use Yolk.Server;
 
-   Alice_Version : constant String := "0.40";
+   Alice_Version : constant String := "0.41";
 
    Web_Server : HTTP := Create
      (Unexpected => Unexpected_Exception.Callback);
