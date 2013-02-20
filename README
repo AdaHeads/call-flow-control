@@ -17,4 +17,21 @@ Alice is GPLv3, see COPYING3 and COPYING.RUNTIME.
 --  Dependencies  --
 --------------------
 
-Alice depends on Yolk, AWS and GNATColl being compiled with PostgreSQL support.
+Alice depends on Yolk[1], AWS[2] and GNATColl[3] being compiled with PostgreSQL
+and/or SQLite support.
+
+------------------
+--  References  --
+------------------
+
+[1] Yolk
+    https://github.com/ThomasLocke/yolk
+    Git: git clone git://github.com/ThomasLocke/yolk.git
+
+[2] Ada Web Server
+    http://libre.adacore.com/libre/tools/aws/
+    Git: git clone --recursive http://forge.open-do.org/anonscm/git/aws/aws.git
+
+[3] GNAT Component Collection
+    http://libre.adacore.com/libre/tools/gnat-component-collection/AA
+    SVN: svn co http://svn.eu.adacore.com/anonsvn/Dev/trunk/gps/gnatlib/
