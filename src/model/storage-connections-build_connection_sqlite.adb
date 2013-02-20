@@ -24,9 +24,8 @@ function Build_Connection
   return GNATCOLL.SQL.Exec.Database_Connection
 is
    use Alice_Configuration;
-   use GNATCOLL.SQL.Exec;
 
-   Descr : constant Database_Description :=
+   Descr : constant GNATCOLL.SQL.Exec.Database_Description :=
              GNATCOLL.SQL.Sqlite.Setup (Config.Get (SQLite_Database));
 begin
    return GNATCOLL.SQL.Exec.Get_Task_Connection (Descr);

@@ -31,7 +31,7 @@ is
    function Port
      (Port : in Natural)
       return String is
-      (" port=" & Fixed.Trim (Natural'Image (Port), Both));
+     (" port=" & Fixed.Trim (Natural'Image (Port), Both));
    --  Construct the port string.
 
    Descr : constant GNATCOLL.SQL.Exec.Database_Description
