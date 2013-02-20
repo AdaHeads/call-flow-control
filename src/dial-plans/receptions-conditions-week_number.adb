@@ -19,11 +19,50 @@ with Ada.Calendar,
      Ada.Strings.Fixed,
      Ada.Strings.Unbounded;
 
-package body Receptions.Conditions.DK.Week_Number is
+package body Receptions.Conditions.Week_Number is
+   function Week_Number (Date : in Ada.Calendar.Time) return Week_Numbers;
+   function Week_Number (Date : in Ada.Calendar.Time) return Week_Numbers is
+      Year  : constant Ada.Calendar.Year_Number  := Ada.Calendar.Year  (Date);
+      Month : constant Ada.Calendar.Month_Number := Ada.Calendar.Month (Date);
+      Day   : constant Ada.Calendar.Day_Number   := Ada.Calendar.Day   (Date);
+
+      --  See <http://www.tondering.dk/claus/cal/week.php#weekno>.
+      a, b, c, s, e, f, g, d, n : Integer;
+   begin
+      case Month is
+         when 1 .. 2 =>
+            a := Year - 1;
+            b :=       (a / 4) -       (a / 100) +       (a / 400);
+            c := ((a - 1) / 4) - ((a - 1) / 100) + ((a - 1) / 400);
+            s := b - c;
+            e := 0;
+            f := Day - 1 + 31 * (Month - 1);
+         when 3 .. 12 =>
+            a := Year;
+            b :=       (a / 4) -       (a / 100) +       (a / 400);
+            c := ((a - 1) / 4) - ((a - 1) / 100) + ((a - 1) / 400);
+            s := b - c;
+            e := s + 1;
+            f := Day + ((153 * (Month - 3) + 2) / 5) + 58 + s;
+      end case;
+
+      g := (a + b) mod 7;
+      d := (f + g - e) mod 7;
+      n := f + 3 - d;
+
+      if n < 0 then
+         return 53 - ((g - s) / 5);
+      elsif n > 364 + s then
+         return 1;
+      else
+         return (n / 7) + 1;
+      end if;
+   end Week_Number;
+
    not overriding
    function Create (List : in String) return Instance is
-      use Ada.Strings.Fixed,
-          Calendars.DK;
+      use Ada.Calendar,
+          Ada.Strings.Fixed;
 
       From  : Positive := List'First;
       Comma : Natural;
@@ -35,8 +74,8 @@ package body Receptions.Conditions.DK.Week_Number is
 
             exit when Comma = 0;
 
-            Result.Weeks (Week_Numbers'Value (List (From .. Comma - 1))) :=
-              True;
+            Result.Weeks (Week_Numbers'Value (List (From .. Comma - 1)))
+              := True;
 
             From := Comma + 1;
          end loop;
@@ -51,16 +90,15 @@ package body Receptions.Conditions.DK.Week_Number is
       pragma Unreferenced (Call);
    begin
       return
-        Item.Weeks (Calendars.DK.Week_Number (Ada.Calendar.Clock));
+        Item.Weeks (Week_Number (Ada.Calendar.Clock));
    end Evaluate;
 
    overriding
    function Value (Item : in Instance) return String is
-      use Ada.Strings.Unbounded,
-          Calendars.DK;
+      use Ada.Calendar,
+          Ada.Strings.Unbounded;
       Result : Unbounded_String;
-      Prefix : Unbounded_String := To_Unbounded_String
-                                     ("Danish week number in {");
+      Prefix : Unbounded_String := To_Unbounded_String ("Week number in {");
    begin
       for Week in Item.Weeks'Range loop
          if Item.Weeks (Week) then
@@ -76,4 +114,4 @@ package body Receptions.Conditions.DK.Week_Number is
          return To_String (Result) & "}";
       end if;
    end Value;
-end Receptions.Conditions.DK.Week_Number;
+end Receptions.Conditions.Week_Number;

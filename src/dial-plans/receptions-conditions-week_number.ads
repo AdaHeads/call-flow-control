@@ -17,12 +17,12 @@
 
 with Receptions.Condition;
 
-package Receptions.Conditions.DK.First_Banking_Day_Of_Month is
-   type Instance is new Receptions.Condition.Instance with null record;
+package Receptions.Conditions.Week_Number is
+   type Instance is new Receptions.Condition.Instance with private;
    subtype Class is Instance'Class;
 
    not overriding
-   function Create return Instance;
+   function Create (List : in String) return Instance;
 
    overriding
    function Evaluate (Item : in Instance;
@@ -31,5 +31,13 @@ package Receptions.Conditions.DK.First_Banking_Day_Of_Month is
    overriding
    function Value (Item : in Instance) return String;
 
-   XML_Element_Name : constant String := "DK-første-bankdag-i-måneden";
-end Receptions.Conditions.DK.First_Banking_Day_Of_Month;
+   XML_Element_Name : constant String := "week-number";
+private
+   subtype Week_Numbers is Positive range 1 .. 53;
+   type Set_Of_Weeks is array (Week_Numbers) of Boolean;
+
+   type Instance is new Receptions.Condition.Instance with
+      record
+         Weeks : Set_Of_Weeks := (others => False);
+      end record;
+end Receptions.Conditions.Week_Number;
