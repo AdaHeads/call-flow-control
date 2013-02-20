@@ -70,7 +70,6 @@ package body Calendars.DK is
       use type Ada.Calendar.Arithmetic.Day_Count;
    begin
       return
-        (Day_Of_Week (Date) = Sunday) or else -- Sunday
         (Month = 1  and then Day = 1) or else -- New Year
         (Easter (Date,  -3)) or else --  Skærtorsdag
         (Easter (Date,  -2)) or else --  Langfredag
@@ -82,20 +81,32 @@ package body Calendars.DK is
    end Official_Holiday;
 
    function Banking_Day (Date : in Ada.Calendar.Time) return Boolean is
-      Year  : constant Ada.Calendar.Year_Number  := Ada.Calendar.Year  (Date);
-      Month : constant Ada.Calendar.Month_Number := Ada.Calendar.Month (Date);
-      Day   : constant Ada.Calendar.Day_Number   := Ada.Calendar.Day   (Date);
-      use Ada.Calendar.Formatting;
-   begin
-      System_Message.Critical.Partial_Calendar_Data;
+      use Ada.Calendar,
+          Ada.Calendar.Formatting;
+      use type Ada.Calendar.Arithmetic.Day_Count;
 
-      if Official_Holiday (Date) then
-         return False;
-      elsif Day_Of_Week (Date) in Saturday .. Sunday then
-         return False;
-      else
-         return (Month = 5 and then Day = 1); -- 1st of May
+      Year  : constant Year_Number  := Ada.Calendar.Year  (Date);
+      Month : constant Month_Number := Ada.Calendar.Month (Date);
+      Day   : constant Day_Number   := Ada.Calendar.Day   (Date);
+   begin
+      if Year > 2013 then
+         System_Message.Critical.Partial_Calendar_Data;
       end if;
+
+      --  See <https://www.lpk.dk/webbank_aabningstider_og_betalingsfrister>.
+      return not (
+        --  Lørdage, søndage,
+        (Day_Of_Week (Date) in Saturday .. Sunday) or else
+        --  helligdage samt
+        (not Official_Holiday (Date)) or else
+        --  fredagen efter Kristi himmelfartsdag,
+        (Easter (Date, +40)) or else
+        --  grundlovsdag,
+        (Month = 6  and then Day = 5) or else
+        --  juleaftensdag og
+        (Month = 12 and then Day = 24) or else
+        --  nytårsaftensdag.
+        (Month = 12 and then Day = 31));
    end Banking_Day;
 
    function Week_Number (Date : in Ada.Calendar.Time) return Week_Numbers is
