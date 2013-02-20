@@ -33,12 +33,12 @@ source_units=$(mktemp)
 
 #-----------------------------------------------------------------------------
 
-if diff ${generated_units} ${source_units} 1>/dev/null; then
-   result=0
-else
+if diff ${generated_units} ${source_units} | grep '^> ' 1>/dev/null; then
    echo "Untested dial-plan units:"
    diff ${generated_units} ${source_units} | grep '^> '
    result=1
+else
+   result=0
 fi
 
 rm -f ${generated_units} ${source_units}

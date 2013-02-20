@@ -15,30 +15,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared";
-with "xmlada";
-with "yolk";
+with Ada.Calendar;
 
-project Test is
-   for Source_Dirs use ("../../dial-plans/", "../../", "../../model/");
+package Calendars.DK is
+   function Official_Holiday (Date : in Ada.Calendar.Time) return Boolean;
 
-   for Main use ("calendars-dk",
-                 "load_dial_plan",
-                 "normalise_dial_plan",
-                 "receptions-conditions-clock",
-                 "receptions-conditions-day_of_month",
-                 "receptions-conditions-day_of_week",
-                 "receptions-conditions-inverse",
-                 "receptions-decision_tree",
-                 "receptions-decision_tree_collection",
-                 "receptions-dial_plan",
-                 "receptions-end_point_collection",
-                 "receptions-end_points-hang_up",
-                 "receptions-end_points-queue",
-                 "receptions-end_points-redirect",
-                 "receptions-end_points-interactive_voice_response",
-                 "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal");
+   function Banking_Day (Date : in Ada.Calendar.Time) return Boolean;
 
-   package Compiler renames Shared.Compiler;
-end Test;
+   subtype Week_Numbers is Positive range 1 .. 53;
+   function Week_Number (Date : in Ada.Calendar.Time) return Week_Numbers;
+end Calendars.DK;

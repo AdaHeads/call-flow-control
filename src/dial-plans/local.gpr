@@ -17,9 +17,13 @@
 
 with "../tests/shared";
 with "xmlada";
+with "yolk";
 
 project Local is
-   for Main use ("load_dial_plan",
+   for Source_Dirs use ("./", "../", "../model/");
+
+   for Main use ("calendars-dk",
+                 "load_dial_plan",
                  "normalise_dial_plan",
                  "receptions-conditions-clock",
                  "receptions-conditions-day_of_month",

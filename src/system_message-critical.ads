@@ -42,6 +42,10 @@ package System_Message.Critical is
      (Log_Trace => Yolk.Log.Critical,
       Status    => "Lost connection to database");
 
+   procedure Partial_Calendar_Data is new Logger
+     (Log_Trace => Yolk.Log.Critical,
+      Status    => "Calendar data are incomplete.");
+
    procedure Response_Exception is new Log_And_Respond
      (Description => "Exception raised while trying to generate content",
       Log_Trace   => Yolk.Log.Critical,
