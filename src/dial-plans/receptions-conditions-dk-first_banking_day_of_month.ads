@@ -15,34 +15,21 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared";
-with "xmlada";
-with "yolk";
+with Receptions.Condition;
 
-project Test is
-   for Source_Dirs use ("../../dial-plans/", "../../", "../../model/");
+package Receptions.Conditions.DK.First_Banking_Day_Of_Month is
+   type Instance is new Receptions.Condition.Instance with null record;
+   subtype Class is Instance'Class;
 
-   for Main use ("calendars-dk",
-                 "load_dial_plan",
-                 "normalise_dial_plan",
-                 "receptions-conditions-clock",
-                 "receptions-conditions-day_of_month",
-                 "receptions-conditions-day_of_week",
-                 "receptions-conditions-dk-banking_day",
-                 "receptions-conditions-dk-first_banking_day_of_month",
-                 "receptions-conditions-dk-holiday",
-                 "receptions-conditions-inverse",
-                 "receptions-conditions-month",
-                 "receptions-decision_tree",
-                 "receptions-decision_tree_collection",
-                 "receptions-dial_plan",
-                 "receptions-end_point_collection",
-                 "receptions-end_points-hang_up",
-                 "receptions-end_points-queue",
-                 "receptions-end_points-redirect",
-                 "receptions-end_points-interactive_voice_response",
-                 "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal");
+   not overriding
+   function Create return Instance;
 
-   package Compiler renames Shared.Compiler;
-end Test;
+   overriding
+   function Evaluate (Item : in Instance;
+                      Call : in Channel_ID) return Boolean;
+
+   overriding
+   function Value (Item : in Instance) return String;
+
+   XML_Element_Name : constant String := "DK-første-bankdag-i-måneden";
+end Receptions.Conditions.DK.First_Banking_Day_Of_Month;

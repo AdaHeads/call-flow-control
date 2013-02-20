@@ -15,34 +15,44 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared";
-with "xmlada";
-with "yolk";
+with Ada.Calendar,
+     Ada.Calendar.Arithmetic;
 
-project Test is
-   for Source_Dirs use ("../../dial-plans/", "../../", "../../model/");
+with Calendars.DK;
 
-   for Main use ("calendars-dk",
-                 "load_dial_plan",
-                 "normalise_dial_plan",
-                 "receptions-conditions-clock",
-                 "receptions-conditions-day_of_month",
-                 "receptions-conditions-day_of_week",
-                 "receptions-conditions-dk-banking_day",
-                 "receptions-conditions-dk-first_banking_day_of_month",
-                 "receptions-conditions-dk-holiday",
-                 "receptions-conditions-inverse",
-                 "receptions-conditions-month",
-                 "receptions-decision_tree",
-                 "receptions-decision_tree_collection",
-                 "receptions-dial_plan",
-                 "receptions-end_point_collection",
-                 "receptions-end_points-hang_up",
-                 "receptions-end_points-queue",
-                 "receptions-end_points-redirect",
-                 "receptions-end_points-interactive_voice_response",
-                 "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal");
+package body Receptions.Conditions.DK.First_Banking_Day_Of_Month is
+   not overriding
+   function Create return Instance is
+   begin
+      return Result : Instance do
+         null;
+      end return;
+   end Create;
 
-   package Compiler renames Shared.Compiler;
-end Test;
+   overriding
+   function Evaluate (Item : in Instance;
+                      Call : in Channel_ID) return Boolean is
+      pragma Unreferenced (Item);
+      pragma Unreferenced (Call);
+
+      use Ada.Calendar, Ada.Calendar.Arithmetic;
+
+      Today : constant Time      := Clock;
+      Days  : constant Day_Count := Day_Count (Day (Today));
+   begin
+      for Offset in 1 .. Days - 1 loop
+         if Calendars.DK.Banking_Day (Today - Offset) then
+            return False;
+         end if;
+      end loop;
+
+      return Calendars.DK.Banking_Day (Today);
+   end Evaluate;
+
+   overriding
+   function Value (Item : in Instance) return String is
+      pragma Unreferenced (Item);
+   begin
+      return "First banking day of the month in Denmark";
+   end Value;
+end Receptions.Conditions.DK.First_Banking_Day_Of_Month;

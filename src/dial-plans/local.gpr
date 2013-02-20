@@ -29,6 +29,7 @@ project Local is
                  "receptions-conditions-day_of_month",
                  "receptions-conditions-day_of_week",
                  "receptions-conditions-dk-banking_day",
+                 "receptions-conditions-dk-first_banking_day_of_month",
                  "receptions-conditions-dk-holiday",
                  "receptions-conditions-inverse",
                  "receptions-conditions-month",
