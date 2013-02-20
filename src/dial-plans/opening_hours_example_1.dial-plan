@@ -7,7 +7,7 @@
 	<decision-tree title="Start">
 		<branch>
 			<conditions>
-				<DK-bankdag/>
+				<not><calendar-look-up kind="ikke-bankdag"/></not>
 				<day-of-week is="Thursday"/>
 				<clock from="10:00" to="18:00"/>
 			</conditions>
@@ -15,7 +15,7 @@
 		</branch>
 		<branch>
 			<conditions>
-				<DK-bankdag/>
+				<not><calendar-look-up kind="ikke-bankdag"/></not>
 				<day-of-week is="Monday,Tuesday,Wednesday,Friday"/>
 				<clock from="09:00" to="17:00"/>
 			</conditions>

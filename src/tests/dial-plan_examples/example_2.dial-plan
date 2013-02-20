@@ -8,7 +8,7 @@
 		<branch>
 			<conditions>
 			        <month is="January"/>
-				<DK-første-bankdag-i-måneden/>
+				<calendar-look-up kind="første-bankdag-i-måneden"/>
 				<clock from="0800" to="1800"/>
 			</conditions>
 			<action do="Inventory day"/>
@@ -16,7 +16,7 @@
 
 		<branch> <!-- Grundlovsdag -->
 			<conditions>
-			        <DK-bankdag/>
+				<not><calendar-look-up kind="ikke-bankdag"/></not>
 			        <month is="June"/>
 				<day-of-month is="05"/>
 			</conditions>
@@ -25,7 +25,7 @@
 
 		<branch>
 			<conditions>
-				<DK-sidste-bankdag-i-måneden/>
+				<calendar-look-up kind="sidste-bankdag-i-måneden"/>
 				<clock from="0800" to="1800"/>
 			</conditions>
 			<action do="Open"/>
@@ -33,7 +33,7 @@
 
 		<branch>
 			<conditions>
-			        <DK-bankdag/>
+				<not><calendar-look-up kind="ikke-bankdag"/></not>
 				<day-of-week is="Monday,Tuesday,Wednesday,Thursday,Friday"/>
 				<clock from="1000" to="1600"/>
 			</conditions>
@@ -42,7 +42,7 @@
 
 		<branch>
 			<conditions>
-			        <not><DK-helligdag/></not>
+				<not><calendar-look-up kind="helligdag"/></not>
 				<day-of-week is="Saturday"/>
 				<clock from="1000" to="1400"/>
 			</conditions>

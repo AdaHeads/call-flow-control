@@ -13,16 +13,10 @@
 <!ELEMENT branch                      ( conditions , action ) >
 
 <!ENTITY % condition.group " clock
+                           | calendar-look-up
                            | day-of-month
                            | day-of-week
                            | month
-                           | DK-bankdag
-                           | DK-helligdag
-                           | DK-første-bankdag-i-måneden
-                           | DK-første-bankdag-i-ugen
-                           | DK-sidste-bankdag-i-måneden
-                           | DK-sidste-bankdag-i-ugen
-                           | DK-ugenummer
                            | callee
                            | caller " >
 
@@ -34,6 +28,9 @@
 <!ATTLIST clock                       from          CDATA  #REQUIRED
                                       to            CDATA  #REQUIRED >
 
+<!ELEMENT calendar-look-up            EMPTY >
+<!ATTLIST calendar-look-up            kind          CDATA  #REQUIRED >
+
 <!ELEMENT day-of-month                EMPTY >
 <!ATTLIST day-of-month                is            CDATA  #REQUIRED >
 
@@ -43,20 +40,8 @@
 <!ELEMENT month                       EMPTY >
 <!ATTLIST month                       is            CDATA  #REQUIRED >
 
-<!ELEMENT DK-bankdag                  EMPTY >
-
-<!ELEMENT DK-helligdag                EMPTY >
-
-<!ELEMENT DK-første-bankdag-i-måneden EMPTY >
-
-<!ELEMENT DK-første-bankdag-i-ugen    EMPTY >
-
-<!ELEMENT DK-sidste-bankdag-i-måneden EMPTY >
-
-<!ELEMENT DK-sidste-bankdag-i-ugen    EMPTY >
-
-<!ELEMENT DK-ugenummer                EMPTY >
-<!ATTLIST DK-ugenummer                is            CDATA  #REQUIRED >
+<!ELEMENT week-number                 EMPTY >
+<!ATTLIST week-number                 is            CDATA  #REQUIRED >
 
 <!ELEMENT callee                      EMPTY >
 <!ATTLIST callee                      number        CDATA  #REQUIRED >
