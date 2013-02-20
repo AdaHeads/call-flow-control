@@ -15,32 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../tests/shared";
-with "xmlada";
-with "yolk";
-
-project Local is
-   for Source_Dirs use ("./", "../", "../model/");
-
-   for Main use ("calendars-dk",
-                 "load_dial_plan",
-                 "normalise_dial_plan",
-                 "receptions-conditions-clock",
-                 "receptions-conditions-day_of_month",
-                 "receptions-conditions-day_of_week",
-                 "receptions-conditions-dk-banking_day",
-                 "receptions-conditions-inverse",
-                 "receptions-conditions-month",
-                 "receptions-decision_tree",
-                 "receptions-decision_tree_collection",
-                 "receptions-dial_plan",
-                 "receptions-end_point_collection",
-                 "receptions-end_points-hang_up",
-                 "receptions-end_points-queue",
-                 "receptions-end_points-redirect",
-                 "receptions-end_points-interactive_voice_response",
-                 "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal");
-
-   package Compiler renames Shared.Compiler;
-end Local;
+package Receptions.Conditions.DK is
+   pragma Pure;
+end Receptions.Conditions.DK;
