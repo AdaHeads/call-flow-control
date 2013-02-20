@@ -20,11 +20,16 @@ with "xmlada";
 with "yolk";
 
 project Test is
-   for Source_Dirs use ("../../dial-plans/", "../../", "../../model/");
+   for Source_Dirs use ("../../dial-plans/",
+                        "../../",
+                        "../../model/",
+                        "../../pbx/",
+                        "../../view/");
 
    for Main use ("load_dial_plan",
                  "normalise_dial_plan",
                  "receptions-conditions-calendar_look_up",
+                 "receptions-conditions-callee",
                  "receptions-conditions-clock",
                  "receptions-conditions-day_of_month",
                  "receptions-conditions-day_of_week",

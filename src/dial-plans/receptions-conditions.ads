@@ -16,5 +16,4 @@
 -------------------------------------------------------------------------------
 
 package Receptions.Conditions is
-   pragma Pure;
 end Receptions.Conditions;

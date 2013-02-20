@@ -69,8 +69,6 @@ procedure Load_Dial_Plan is
                raise Constraint_Error
                  with "Failed to extract """ & Name & """ attribute " &
                       "from """ & Node_Name (Element) & """ element.";
-            when others =>
-               raise;
          end;
       end if;
    end Attribute;

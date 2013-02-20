@@ -12,8 +12,8 @@
 
 <!ELEMENT branch                      ( conditions , action ) >
 
-<!ENTITY % condition.group " clock
-                           | calendar-look-up
+<!ENTITY % condition.group " calendar-look-up
+                           | clock
                            | day-of-month
                            | day-of-week
                            | month
@@ -24,12 +24,12 @@
 
 <!ELEMENT not                         (%condition.group;) >
 
+<!ELEMENT calendar-look-up            EMPTY >
+<!ATTLIST calendar-look-up            kind          CDATA  #REQUIRED >
+
 <!ELEMENT clock                       EMPTY >
 <!ATTLIST clock                       from          CDATA  #REQUIRED
                                       to            CDATA  #REQUIRED >
-
-<!ELEMENT calendar-look-up            EMPTY >
-<!ATTLIST calendar-look-up            kind          CDATA  #REQUIRED >
 
 <!ELEMENT day-of-month                EMPTY >
 <!ATTLIST day-of-month                is            CDATA  #REQUIRED >

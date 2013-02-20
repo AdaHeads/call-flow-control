@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2012-, AdaHeads K/S                    --
+--                      Copyright (C) 2013-, AdaHeads K/S                    --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,5 +15,29 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package Receptions.End_Points is
-end Receptions.End_Points;
+with Receptions.Condition;
+
+private
+with Ada.Strings.Unbounded;
+
+package Receptions.Conditions.Callee is
+   type Instance is new Receptions.Condition.Instance with private;
+   subtype Class is Instance'Class;
+
+   not overriding
+   function Create (Number : in String) return Instance;
+
+   overriding
+   function Evaluate (Item : in Instance;
+                      Call : in Channel_ID) return Boolean;
+
+   overriding
+   function Value (Item : in Instance) return String;
+
+   XML_Element_Name : constant String := "callee";
+private
+   type Instance is new Receptions.Condition.Instance with
+      record
+         Number : Ada.Strings.Unbounded.Unbounded_String;
+      end record;
+end Receptions.Conditions.Callee;

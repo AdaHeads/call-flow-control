@@ -15,8 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package Receptions is
-   pragma Pure;
+with AMI.Channel_ID;
 
-   type Channel_ID is new Integer;
+package Receptions is
+   subtype Channel_ID is AMI.Channel_ID.Instance;
 end Receptions;
