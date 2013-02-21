@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2013-, AdaHeads K/S                     --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -19,14 +19,11 @@ with GNATCOLL.SQL.Sqlite;
 
 with Alice_Configuration;
 
-separate (Storage.Connections)
-function Build_Connection
-  return GNATCOLL.SQL.Exec.Database_Connection
-is
+package Storage.SQLite is
+
    use Alice_Configuration;
 
-   Descr : constant GNATCOLL.SQL.Exec.Database_Description :=
-             GNATCOLL.SQL.Sqlite.Setup (Config.Get (SQLite_Database));
-begin
-   return GNATCOLL.SQL.Exec.Get_Task_Connection (Descr);
-end Build_Connection;
+   Description : constant GNATCOLL.SQL.Exec.Database_Description :=
+                   GNATCOLL.SQL.Sqlite.Setup (Config.Get (SQLite_Database));
+
+end Storage.SQLite;

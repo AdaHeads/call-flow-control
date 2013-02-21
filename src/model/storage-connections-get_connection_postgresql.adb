@@ -15,13 +15,12 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package body Storage.Connections is
+with Storage.PostgreSQL;
 
-   -----------
-   --  Get  --
-   -----------
-
-   function Get_Connection
-     return GNATCOLL.SQL.Exec.Database_Connection is separate;
-
-end Storage.Connections;
+separate (Storage.Connections)
+function Get_Connection
+  return GNATCOLL.SQL.Exec.Database_Connection
+is
+begin
+   return GNATCOLL.SQL.Exec.Get_Task_Connection (PostgreSQL.Description);
+end Get_Connection;

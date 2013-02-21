@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2013-, AdaHeads K/S                     --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,13 +15,29 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package body Storage.Connections is
+with Ada.Strings.Fixed;
 
-   -----------
-   --  Get  --
-   -----------
+with GNATCOLL.SQL.Postgres;
 
-   function Get_Connection
-     return GNATCOLL.SQL.Exec.Database_Connection is separate;
+with Alice_Configuration;
 
-end Storage.Connections;
+package Storage.PostgreSQL is
+
+   use Ada.Strings;
+   use Alice_Configuration;
+
+   function Port
+     (Port : in Natural)
+      return String is
+     (" port=" & Fixed.Trim (Natural'Image (Port), Both));
+   --  Construct the port string.
+
+   Description : constant GNATCOLL.SQL.Exec.Database_Description
+     := GNATCOLL.SQL.Postgres.Setup
+       (Database => Config.Get (DB_Name),
+        User     => Config.Get (DB_User),
+        Host     => Config.Get (DB_Host) & Port (Config.Get (DB_Port)),
+        Password => Config.Get (DB_Password),
+        SSL      => GNATCOLL.SQL.Postgres.Allow);
+
+end Storage.PostgreSQL;

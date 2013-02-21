@@ -15,33 +15,12 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Fixed;
-
-with GNATCOLL.SQL.Postgres;
-
-with Alice_Configuration;
+with Storage.SQLite;
 
 separate (Storage.Connections)
-function Build_Connection
+function Get_Connection
   return GNATCOLL.SQL.Exec.Database_Connection
 is
-   use Ada.Strings;
-   use Alice_Configuration;
-
-   function Port
-     (Port : in Natural)
-      return String is
-     (" port=" & Fixed.Trim (Natural'Image (Port), Both));
-   --  Construct the port string.
-
-   Descr : constant GNATCOLL.SQL.Exec.Database_Description
-     := GNATCOLL.SQL.Postgres.Setup
-       (Database      => Config.Get (DB_Name),
-        User          => Config.Get (DB_User),
-        Host          => Config.Get (DB_Host) & Port (Config.Get (DB_Port)),
-        Password      => Config.Get (DB_Password),
-        SSL           => GNATCOLL.SQL.Postgres.Allow,
-        Cache_Support => True);
 begin
-   return GNATCOLL.SQL.Exec.Get_Task_Connection (Descr);
-end Build_Connection;
+   return GNATCOLL.SQL.Exec.Get_Task_Connection (SQLite.Description);
+end Get_Connection;

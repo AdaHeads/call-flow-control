@@ -80,11 +80,11 @@ project Alice is
    package Naming is
       case Database is
          when "PostgreSQL" =>
-            for Body ("Storage.Connections.Build_Connection") use
-                      "storage-connections-build_connection_postgresql.adb";
+            for Body ("Storage.Connections.Get_Connection") use
+                      "storage-connections-get_connection_postgresql.adb";
          when "SQLite" =>
-            for Body ("Storage.Connections.Build_Connection") use
-                      "storage-connections-build_connection_sqlite.adb";
+            for Body ("Storage.Connections.Get_Connection") use
+                      "storage-connections-get_connection_sqlite.adb";
       end case;
    end Naming;
 end Alice;
