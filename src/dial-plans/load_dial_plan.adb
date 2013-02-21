@@ -26,7 +26,9 @@ with DOM.Core;                 use DOM.Core;
 with DOM.Core.Documents;       use DOM.Core.Documents;
 with DOM.Core.Nodes;           use DOM.Core.Nodes;
 
-with Receptions.Decision_Tree_Collection,
+with AMI.Response,
+     PBX,
+     Receptions.Decision_Tree_Collection,
      Receptions.Dial_Plan,
      Receptions.End_Point_Collection,
      Receptions.End_Points.Busy_Signal,
@@ -84,6 +86,8 @@ procedure Load_Dial_Plan is
    End_Points         : Receptions.End_Point_Collection.Map;
    Decision_Trees     : Receptions.Decision_Tree_Collection.Map;
 begin
+   PBX.Start;
+
    Set_Public_ID (Input, "dial-plan");
 
    Open_Source_File :
@@ -250,4 +254,12 @@ begin
       Put_Line ("Dial-plan title:       """ & Reception.Title & """");
       Put_Line ("Title of first action: """ & To_String (Start_Action_Title) & """");
    end;
+
+   PBX.Stop;
+exception
+   when AMI.Response.Timeout =>
+      null;
+   when others =>
+      PBX.Stop;
+      raise;
 end Load_Dial_Plan;
