@@ -24,7 +24,7 @@ package body Receptions.Conditions.Callee is
 
    overriding
    function Evaluate (Item : in Instance;
-                      Call : in Channel_ID) return Boolean is
+                      Call : in PBX.Call.Identification) return Boolean is
    begin
       raise Program_Error with "Jacob has not implemented this yet.";
       return False;

@@ -28,7 +28,7 @@ package body Receptions.Conditions.Calendar_Look_Up is
 
    overriding
    function Evaluate (Item : in Instance;
-                      Call : in Channel_ID) return Boolean is
+                      Call : in PBX.Call.Identification) return Boolean is
       pragma Unreferenced (Call);
    begin
       --  Would like to look up today date in the calendar database.

@@ -35,7 +35,7 @@ package body Receptions.Conditions.Clock is
 
    overriding
    function Evaluate (Item : in Instance;
-                      Call : in Channel_ID) return Boolean is
+                      Call : in PBX.Call.Identification) return Boolean is
       pragma Unreferenced (Call);
       use Ada.Calendar;
       Now : constant Day_Duration := Seconds (Ada.Calendar.Clock);

@@ -27,7 +27,7 @@ package body Receptions.Conditions.Inverse is
 
    overriding
    function Evaluate (Item : in Instance;
-                      Call : in Channel_ID) return Boolean is
+                      Call : in PBX.Call.Identification) return Boolean is
    begin
       return not Element (Item.Condition).Evaluate (Call);
    exception

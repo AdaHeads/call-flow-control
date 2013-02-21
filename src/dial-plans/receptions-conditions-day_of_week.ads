@@ -15,7 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Receptions.Condition;
+with PBX.Call,
+     Receptions.Condition;
 
 private
 with Ada.Calendar.Formatting;
@@ -29,7 +30,7 @@ package Receptions.Conditions.Day_Of_Week is
 
    overriding
    function Evaluate (Item : in Instance;
-                      Call : in Channel_ID) return Boolean;
+                      Call : in PBX.Call.Identification) return Boolean;
 
    overriding
    function Value (Item : in Instance) return String;

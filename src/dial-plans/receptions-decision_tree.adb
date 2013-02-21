@@ -17,7 +17,7 @@
 
 package body Receptions.Decision_Tree is
    function Branch (Item : in     Instance;
-                    Call : in     Channel_ID) return String is
+                    Call : in     PBX.Call.Identification) return String is
    begin
       return Ada.Strings.Unbounded.To_String (Item.Fall_Back);
    end Branch;

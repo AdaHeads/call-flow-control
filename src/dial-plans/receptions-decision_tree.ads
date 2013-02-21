@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with PBX.Call;
+
 private
 with Ada.Strings.Unbounded;
 
@@ -23,7 +25,7 @@ package Receptions.Decision_Tree is
    subtype Class is Instance'Class;
 
    function Branch (Item : in     Instance;
-                    Call : in     Channel_ID) return String;
+                    Call : in     PBX.Call.Identification) return String;
 
    XML_Element_Name : constant String := "decision-tree";
 private

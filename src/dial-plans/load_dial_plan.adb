@@ -90,7 +90,7 @@ begin
    declare
       use Ada.Command_Line, Ada.Text_IO;
    begin
-      if Argument_Count = 1 then
+      if Argument_Count >= 1 then
          Open (Argument (1), Input);
       else
          Put_Line (Standard_Error, "Usage:");

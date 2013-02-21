@@ -15,8 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AMI.Channel_ID;
-
 package Receptions is
-   subtype Channel_ID is AMI.Channel_ID.Instance;
+    pragma Pure;
 end Receptions;

@@ -15,13 +15,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Receptions.Decision_Tree_Collection,
+with PBX.Call,
+     Receptions.Decision_Tree_Collection,
      Receptions.End_Point,
      Receptions.End_Point_Collection;
 
 private
 with Ada.Strings.Unbounded;
-
 
 package Receptions.Dial_Plan is
    type Instance is tagged private;
@@ -36,7 +36,7 @@ package Receptions.Dial_Plan is
    function Title (Item : in     Instance) return String;
 
    function Application (Item : in     Instance;
-                         Call : in     Channel_ID) return Receptions.End_Point.Class;
+                         Call : in     PBX.Call.Identification) return Receptions.End_Point.Class;
 
    XML_Element_Name : constant String := "dial-plan";
 

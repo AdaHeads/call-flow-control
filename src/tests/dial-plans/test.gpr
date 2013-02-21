@@ -22,6 +22,8 @@ with "yolk";
 project Test is
    for Source_Dirs use ("../../dial-plans/",
                         "../../",
+                        "../../client/",
+                        "../../handlers/",
                         "../../model/",
                         "../../pbx/",
                         "../../view/");

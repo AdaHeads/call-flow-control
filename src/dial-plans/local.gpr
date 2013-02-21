@@ -22,6 +22,8 @@ with "yolk";
 project Local is
    for Source_Dirs use ("./",
                         "../",
+                        "../client/",
+                        "../handlers/",
                         "../model/",
                         "../pbx/",
                         "../view/");
