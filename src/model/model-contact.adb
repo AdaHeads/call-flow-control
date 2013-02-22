@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with SQL_Statements.Contact;
+with SQL_Prepared_Statements.Contact;
 with Storage;
 with View.Contact;
 
@@ -24,7 +24,7 @@ package body Model.Contact is
    use GNATCOLL.SQL;
    use GNATCOLL.SQL.Exec;
 
-   package SQL renames SQL_Statements.Contact;
+   package SQL renames SQL_Prepared_Statements.Contact;
 
    function Contact_Element
      (C : in out Database_Cursor'Class)

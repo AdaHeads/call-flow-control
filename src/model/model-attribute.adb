@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with SQL_Statements.Attribute;
+with SQL_Prepared_Statements.Attribute;
 with Storage;
 with View.Attribute;
 
@@ -24,7 +24,7 @@ package body Model.Attribute is
    use GNATCOLL.SQL;
    use GNATCOLL.SQL.Exec;
 
-   package SQL renames SQL_Statements.Attribute;
+   package SQL renames SQL_Prepared_Statements.Attribute;
 
    function Contact_Attributes_Element
      (C : in out Database_Cursor'Class)

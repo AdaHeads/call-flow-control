@@ -80,11 +80,23 @@ project Alice is
    package Naming is
       case Database is
          when "PostgreSQL" =>
-            for Body ("Storage.Connections.Get_Connection") use
-                      "storage-connections-get_connection_postgresql.adb";
+            for Specification ("Storage.Connection") use
+              "__storage-connection_postgresql.ads";
+            for Specification ("SQL_Prepared_Statements.Attribute") use
+              "__sql_prepared_statements-attribute_postgresql.ads";
+            for Specification ("SQL_Prepared_Statements.Contact") use
+              "__sql_prepared_statements-contact_postgresql.ads";
+            for Specification ("SQL_Prepared_Statements.Organization") use
+              "__sql_prepared_statements-organization_postgresql.ads";
          when "SQLite" =>
-            for Body ("Storage.Connections.Get_Connection") use
-                      "storage-connections-get_connection_sqlite.adb";
+            for Specification ("Storage.Connection") use
+              "__storage-connection_sqlite.ads";
+            for Specification ("SQL_Prepared_Statements.Attribute") use
+              "__sql_prepared_statements-attribute_sqlite.ads";
+            for Specification ("SQL_Prepared_Statements.Contact") use
+              "__sql_prepared_statements-contact_sqlite.ads";
+            for Specification ("SQL_Prepared_Statements.Organization") use
+              "__sql_prepared_statements-organization_sqlite.ads";
       end case;
    end Naming;
 end Alice;

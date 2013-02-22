@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2012-, AdaHeads K/S                     --
+--                     Copyright (C) 2013-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -17,11 +17,12 @@
 
 with Ada.Strings.Fixed;
 
+with GNATCOLL.SQL.Exec;
 with GNATCOLL.SQL.Postgres;
 
 with Alice_Configuration;
 
-package Storage.PostgreSQL is
+private package Storage.Connection is
 
    use Ada.Strings;
    use Alice_Configuration;
@@ -40,4 +41,8 @@ package Storage.PostgreSQL is
         Password => Config.Get (DB_Password),
         SSL      => GNATCOLL.SQL.Postgres.Allow);
 
-end Storage.PostgreSQL;
+   function Get_Connection
+     return GNATCOLL.SQL.Exec.Database_Connection is
+      (GNATCOLL.SQL.Exec.Get_Task_Connection (Description));
+
+end Storage.Connection;

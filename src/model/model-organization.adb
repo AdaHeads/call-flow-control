@@ -16,13 +16,13 @@
 -------------------------------------------------------------------------------
 
 with Model.Attribute;
-with SQL_Statements.Organization;
+with SQL_Prepared_Statements.Organization;
 with Storage;
 with View.Organization;
 
 package body Model.Organization is
 
-   package SQL renames SQL_Statements.Organization;
+   package SQL renames SQL_Prepared_Statements.Organization;
 
    function Organization_Maxi_Element
      (Cursor : in out Database_Cursor'Class)

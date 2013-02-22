@@ -19,7 +19,7 @@ with Ada.Strings.Hash;
 
 with Common;
 with Model.Attribute;
-with SQL_Statements.Contact;
+with SQL_Prepared_Statements.Contact;
 with Storage;
 with View.Contact;
 
@@ -28,7 +28,7 @@ package body Model.Contacts is
    use GNATCOLL.SQL;
    use GNATCOLL.SQL.Exec;
 
-   package SQL renames SQL_Statements.Contact;
+   package SQL renames SQL_Prepared_Statements.Contact;
 
    function Contact_List
      (Cursor : in out Database_Cursor'Class)

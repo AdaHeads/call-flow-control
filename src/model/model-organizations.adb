@@ -19,13 +19,13 @@ with Ada.Strings.Hash;
 
 with GNATCOLL.JSON;
 
-with SQL_Statements.Organization;
+with SQL_Prepared_Statements.Organization;
 with Storage;
 with View.Organization;
 
 package body Model.Organizations is
 
-   package SQL renames SQL_Statements.Organization;
+   package SQL renames SQL_Prepared_Statements.Organization;
 
    function Organization_Midi
      (Cursor : in out Database_Cursor'Class)

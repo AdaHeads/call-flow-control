@@ -15,17 +15,16 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.SQL.Exec;
+with GNATCOLL.SQL;
 
 package SQL_Statements.Contact is
 
    use GNATCOLL.SQL;
-   use GNATCOLL.SQL.Exec;
 
-   ------------------------------------------------------------------------
-   --  Statement for all contacts associated with an organization. This  --
-   --  does not include the organization itself.                         --
-   ------------------------------------------------------------------------
+   ----------------------------------------------------------------------------
+   --  SQL for all contacts associated with an organization. This does not   --
+   --  include the organization itself.                                      --
+   ----------------------------------------------------------------------------
 
    Contacts_Join_1 : constant SQL_Left_Join_Table
      := Join (Table1 => DB.Organization,
@@ -62,17 +61,10 @@ package SQL_Statements.Contact is
                        or Is_Null
                          (DB.Contact_Attributes.Organization_Id)));
 
-   Contacts_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Contacts_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "organization_contacts");
-
-   ---------------------------------------------------------------------------
-   --  Prepared statement for fetching a contact with ALL its associated    --
-   --  attributes, ie. one attribute set for each organization the contact  --
-   --  belongs to.                                                          --
-   ---------------------------------------------------------------------------
+   ----------------------------------------------------------------------------
+   --  SQL for fetching a contact with ALL its associated attributes, ie.    --
+   --  one attribute set for each organization the contact belongs to.       --
+   ----------------------------------------------------------------------------
 
    Contact_Query_Full_Left_Join : constant SQL_Left_Join_Table
      :=  Left_Join (Full    => DB.Contact,
@@ -94,15 +86,9 @@ package SQL_Statements.Contact is
      := Where_And (Query => Contact_Query_Full,
                    Where => DB.Contact.Id = Integer_Param (1));
 
-   Contact_Full_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Contact_With_Id_Query_Full,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "contact_full");
-
    ----------------------------------------------------------------------------
-   --  Prepared statement for fetching a contact specified by its relation   --
-   --  to an organization. Only the attributes that belong to the specified  --
+   --  SQL for fetching a contact specified by its relation to an            --
+   --  organization. Only the attributes that belong to the specified        --
    --  organization are added to the contact.                                --
    ----------------------------------------------------------------------------
 
@@ -113,11 +99,5 @@ package SQL_Statements.Contact is
                    and
                      DB.Contact_Attributes.Organization_Id =
                        Integer_Param (2));
-
-   Contact_Org_Specified_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Contact_Org_Specified_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "contact_org_specified");
 
 end SQL_Statements.Contact;

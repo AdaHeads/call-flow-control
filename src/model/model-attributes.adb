@@ -18,7 +18,7 @@
 with Ada.Strings.Hash;
 
 with Common;
-with SQL_Statements.Attribute;
+with SQL_Prepared_Statements.Attribute;
 with Storage;
 with View.Attribute;
 
@@ -27,7 +27,7 @@ package body Model.Attributes is
    use GNATCOLL.SQL;
    use GNATCOLL.SQL.Exec;
 
-   package SQL renames SQL_Statements.Attribute;
+   package SQL renames SQL_Prepared_Statements.Attribute;
 
    function Attribute_List
      (C : in out Database_Cursor'Class)
