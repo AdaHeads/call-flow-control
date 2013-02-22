@@ -61,4 +61,8 @@ package System_Message.Info is
      (Log_Trace => Yolk.Log.Info,
       Status    => "Stopping SIGHUP watcher");
 
+   procedure Jacob_Wants_To_See_This is new Logger
+     (Log_Trace => Yolk.Log.Info,
+      Status    => "Jacob wants to see this.");
+
 end System_Message.Info;

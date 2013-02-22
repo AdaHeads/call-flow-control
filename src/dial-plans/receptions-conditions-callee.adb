@@ -15,19 +15,27 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with System_Message.Info;
+
 package body Receptions.Conditions.Callee is
    not overriding
    function Create (Number : in String) return Instance is
+      use Ada.Strings.Unbounded;
    begin
-      return (Number => Ada.Strings.Unbounded.To_Unbounded_String (Number));
+      return (Number => To_Unbounded_String (Number));
    end Create;
 
    overriding
    function Evaluate (Item : in Instance;
                       Call : in PBX.Call.Identification) return Boolean is
+      use Ada.Strings.Unbounded,
+          PBX.Call;
    begin
-      raise Program_Error with "Jacob has not implemented this yet.";
-      return False;
+      System_Message.Info.Jacob_Wants_To_See_This
+        (Message => "Actual callee: """ & Image (B_Leg (Get (Call))) &
+                    """. Checking for callee: """ & To_String (Item.Number) &
+                    """.");
+      return Image (B_Leg (Get (Call))) = To_String (Item.Number);
    end Evaluate;
 
    overriding
