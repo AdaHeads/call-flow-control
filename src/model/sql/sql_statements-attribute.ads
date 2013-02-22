@@ -15,16 +15,15 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.SQL.Exec;
+with GNATCOLL.SQL;
 
 package SQL_Statements.Attribute is
 
    use GNATCOLL.SQL;
-   use GNATCOLL.SQL.Exec;
 
-   --------------------------------------------------------------------
-   --  Prepared statement for fetching the attributes of a contact.  --
-   --------------------------------------------------------------------
+   ----------------------------------------------------------------------------
+   --  SQL for fetching the attributes of a contact.                         --
+   ----------------------------------------------------------------------------
 
    Contact_Attributes_Query : constant SQL_Query
      := SQL_Select (Fields =>
@@ -38,16 +37,10 @@ package SQL_Statements.Attribute is
                    Where =>
                      DB.Contact_Attributes.Contact_Id = Integer_Param (1));
 
-   Contact_Attributes_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Contact_With_Id_Attributes_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "contact_attributes");
-
-   -------------------------------------------------------------------
-   --  Prepared statement for fetching the attributes of a contact  --
-   --  related to a specific organization.                          --
-   -------------------------------------------------------------------
+   ----------------------------------------------------------------------------
+   --  SQL for fetching the attributes of a contact related to a specific    --
+   --  organization.                                                         --
+   ----------------------------------------------------------------------------
 
    Contact_Organization_Attributes_Query : constant SQL_Query
      := Where_And (Query => Contact_Attributes_Query,
@@ -56,11 +49,5 @@ package SQL_Statements.Attribute is
                    and
                      DB.Contact_Attributes.Organization_Id =
                        Integer_Param (2));
-
-   Contact_Organization_Attributes_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Contact_Organization_Attributes_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "contact_organization_attributes");
 
 end SQL_Statements.Attribute;

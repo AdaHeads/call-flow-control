@@ -18,7 +18,7 @@
 with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
 
-with Storage.Connections;
+with Storage.Connection;
 with System_Message.Critical;
 
 package body Storage is
@@ -42,7 +42,7 @@ package body Storage is
       Prepared_Statement : in GNATCOLL.SQL.Exec.Prepared_Statement;
       Query_Parameters   : in GNATCOLL.SQL.Exec.SQL_Parameters)
    is
-      use Connections;
+      use Connection;
       use GNATCOLL.SQL;
       use GNATCOLL.SQL.Exec;
       use System_Message;

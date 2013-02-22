@@ -15,16 +15,15 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.SQL.Exec;
+with GNATCOLL.SQL;
 
 package SQL_Statements.Organization is
 
    use GNATCOLL.SQL;
-   use GNATCOLL.SQL.Exec;
 
-   --------------------------------------------------------------------
-   --  Statement for fetching a basic organization without contacts  --
-   --------------------------------------------------------------------
+   ----------------------------------------------------------------------------
+   --  SQL for fetching a basic organization without contacts                --
+   ----------------------------------------------------------------------------
 
    Organizations_Mini_Query : constant SQL_Query
      := SQL_Select (Fields =>
@@ -57,45 +56,9 @@ package SQL_Statements.Organization is
      := Where_And (Organizations_Mini_Query,
                    DB.Organization.Uri = Text_Param (1));
 
-   Organization_Midi_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Organization_Midi_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "organization_midi");
-
-   Organization_URI_Midi_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Organization_URI_Midi_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "organization_uri_midi");
-
-   Organization_Mini_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Organization_Mini_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "organization_mini");
-
-   Organization_URI_Mini_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Organization_URI_Mini_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "organization_uri_mini");
-
-   Organizations_Midi_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Organizations_Midi_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "organizations_midi");
-
-   Organizations_Mini_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Organizations_Mini_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "organizations_mini");
-
-   --------------------------------------------------------------------------
-   --  Statement for fetching an organization and all associated contacts  --
-   --------------------------------------------------------------------------
+   ----------------------------------------------------------------------------
+   --  SQL for fetching an organization and all associated contacts          --
+   ----------------------------------------------------------------------------
 
    Org_Contacts_Join_1 : constant SQL_Left_Join_Table
      := Left_Join (Full    => DB.Organization,
@@ -151,17 +114,5 @@ package SQL_Statements.Organization is
                                                        DB.Organization.Id
                        or Is_Null
                          (DB.Contact_Attributes.Organization_Id)));
-
-   Organization_Maxi_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Org_Contacts_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "organization_maxi");
-
-   Organization_URI_Maxi_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Org_URI_Contacts_Query,
-                 Auto_Complete => True,
-                 On_Server     => True,
-                 Name          => "organization_uri_maxi");
 
 end SQL_Statements.Organization;

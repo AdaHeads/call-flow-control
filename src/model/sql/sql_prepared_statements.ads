@@ -15,15 +15,5 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.SQL.Sqlite;
-
-with Alice_Configuration;
-
-package Storage.SQLite is
-
-   use Alice_Configuration;
-
-   Description : constant GNATCOLL.SQL.Exec.Database_Description :=
-                   GNATCOLL.SQL.Sqlite.Setup (Config.Get (SQLite_Database));
-
-end Storage.SQLite;
+package SQL_Prepared_Statements is
+end SQL_Prepared_Statements;
