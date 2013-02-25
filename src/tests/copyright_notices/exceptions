@@ -1,3 +1,3 @@
-src/model/database.adb
-src/model/database_names.ads
-src/model/database.ads
+src/model/schema/database.adb
+src/model/schema/database.ads
+src/model/schema/database_names.ads
