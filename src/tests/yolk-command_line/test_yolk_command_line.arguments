@@ -1,0 +1,3 @@
+--three-files a b
+--set-exit-status yes
+--three-files c
