@@ -270,7 +270,7 @@ begin
                Title : constant String := Attribute (Element => Decision_Tree,
                                                      Name    => "title");
 
-               --End_Point_Action : not null Node := First_Child (End_Point);
+               Child : not null Node := First_Child (Decision_Tree);
             begin
                Ada.Text_IO.Put_Line (Item => "Decision-tree title:   """ &
                                              Title & """");
