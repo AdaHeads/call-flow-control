@@ -44,13 +44,13 @@ package body Receptions.Conditions.Day_Of_Month is
    end Create;
 
    overriding
-   function Evaluate (Item : in Instance;
-                      Call : in PBX.Call.Identification) return Boolean is
+   function True (Item : in Instance;
+                  Call : in PBX.Call.Identification) return Boolean is
       pragma Unreferenced (Call);
    begin
       return
         Item.Days (Ada.Calendar.Day (Ada.Calendar.Clock));
-   end Evaluate;
+   end True;
 
    overriding
    function Value (Item : in Instance) return String is

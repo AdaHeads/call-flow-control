@@ -28,7 +28,7 @@ package body Receptions.Branch is
                         Call : in     PBX.Call.Identification) return Boolean is
    begin
       for Condition of Item.Conditions loop
-         if not Condition.Evaluate (Call) then
+         if not Condition.True (Call) then
             return False;
          end if;
       end loop;

@@ -34,14 +34,14 @@ package body Receptions.Conditions.Clock is
    end Create;
 
    overriding
-   function Evaluate (Item : in Instance;
-                      Call : in PBX.Call.Identification) return Boolean is
+   function True (Item : in Instance;
+                  Call : in PBX.Call.Identification) return Boolean is
       pragma Unreferenced (Call);
       use Ada.Calendar;
       Now : constant Day_Duration := Seconds (Ada.Calendar.Clock);
    begin
       return Item.From < Now and Now < Item.To;
-   end Evaluate;
+   end True;
 
    overriding
    function Value (Item : in Instance) return String is

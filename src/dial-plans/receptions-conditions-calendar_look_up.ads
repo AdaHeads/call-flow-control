@@ -29,8 +29,8 @@ package Receptions.Conditions.Calendar_Look_Up is
    function Create (Kind : in String) return Instance;
 
    overriding
-   function Evaluate (Item : in Instance;
-                      Call : in PBX.Call.Identification) return Boolean;
+   function True (Item : in Instance;
+                  Call : in PBX.Call.Identification) return Boolean;
 
    overriding
    function Value (Item : in Instance) return String;

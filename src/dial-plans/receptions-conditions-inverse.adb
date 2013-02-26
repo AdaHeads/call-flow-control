@@ -26,15 +26,15 @@ package body Receptions.Conditions.Inverse is
    end Create;
 
    overriding
-   function Evaluate (Item : in Instance;
-                      Call : in PBX.Call.Identification) return Boolean is
+   function True (Item : in Instance;
+                  Call : in PBX.Call.Identification) return Boolean is
    begin
-      return not Element (Item.Condition).Evaluate (Call);
+      return not Element (Item.Condition).True (Call);
    exception
       when Constraint_Error =>
          raise Constraint_Error
            with "<" & XML_Element_Name & "> object not initialized.";
-   end Evaluate;
+   end True;
 
    overriding
    function Value (Item : in Instance) return String is

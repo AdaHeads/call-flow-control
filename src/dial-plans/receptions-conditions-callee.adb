@@ -26,8 +26,8 @@ package body Receptions.Conditions.Callee is
    end Create;
 
    overriding
-   function Evaluate (Item : in Instance;
-                      Call : in PBX.Call.Identification) return Boolean is
+   function True (Item : in Instance;
+                  Call : in PBX.Call.Identification) return Boolean is
       use Ada.Strings.Unbounded,
           PBX.Call;
    begin
@@ -36,7 +36,7 @@ package body Receptions.Conditions.Callee is
                     """. Checking for callee: """ & To_String (Item.Number) &
                     """.");
       return Image (B_Leg (Get (Call))) = To_String (Item.Number);
-   end Evaluate;
+   end True;
 
    overriding
    function Value (Item : in Instance) return String is

@@ -27,14 +27,14 @@ package body Receptions.Conditions.Calendar_Look_Up is
    end Create;
 
    overriding
-   function Evaluate (Item : in Instance;
-                      Call : in PBX.Call.Identification) return Boolean is
+   function True (Item : in Instance;
+                  Call : in PBX.Call.Identification) return Boolean is
       pragma Unreferenced (Call);
    begin
-      --  Would like to look up today date in the calendar database.
+      --  Would like to look up todays date in the calendar database.
       System_Message.Critical.No_Calendar_Database;
       return False;
-   end Evaluate;
+   end True;
 
    overriding
    function Value (Item : in Instance) return String is

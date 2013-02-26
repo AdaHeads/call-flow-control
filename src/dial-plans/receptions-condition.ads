@@ -21,8 +21,8 @@ package Receptions.Condition is
    type Instance is abstract tagged null record;
    subtype Class is Instance'Class;
 
-   function Evaluate (Item : in Instance;
-                      Call : in PBX.Call.Identification) return Boolean is abstract;
+   function True (Item : in Instance;
+                  Call : in PBX.Call.Identification) return Boolean is abstract;
 
    function Value (Item : in Instance) return String is abstract;
 end Receptions.Condition;
