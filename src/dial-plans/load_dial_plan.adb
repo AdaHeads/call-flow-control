@@ -28,8 +28,10 @@ with DOM.Core.Nodes;           use DOM.Core.Nodes;
 
 with AMI.Response,
      PBX,
+     Receptions.Decision_Tree,
      Receptions.Decision_Tree_Collection,
      Receptions.Dial_Plan,
+     Receptions.End_Point,
      Receptions.End_Point_Collection,
      Receptions.End_Points.Busy_Signal,
      Receptions.End_Points.Hang_Up,
@@ -88,7 +90,7 @@ procedure Load_Dial_Plan is
 begin
    PBX.Start;
 
-   Set_Public_ID (Input, "dial-plan");
+   Set_Public_ID (Input, Receptions.Dial_Plan.XML_Element_Name);
 
    Open_Source_File :
    declare
@@ -116,10 +118,11 @@ begin
 
    Doc := Get_Tree (Reader);
 
+   Load_Dial_Plan :
    declare
       Dial_Plan : constant Node := Get_Element (Doc);
    begin
-      Check (Element => Dial_Plan, Name => "dial-plan");
+      Check (Element => Dial_Plan, Name => Receptions.Dial_Plan.XML_Element_Name);
 
       Dial_Plan_Title := Ada.Strings.Unbounded.To_Unbounded_String
                            (Attribute (Element => Dial_Plan,
@@ -141,6 +144,7 @@ begin
                                              Name    => "do"));
       end;
 
+      Load_End_Points :
       declare
          End_Point : Node := First_Child (Dial_Plan);
       begin
@@ -150,11 +154,11 @@ begin
             loop
                exit Find_End_Points when End_Point = null;
                exit Next_End_Point when Node_Type (End_Point) = Element_Node and then
-                                        Node_Name (End_Point) = "end-point";
+                                        Node_Name (End_Point) = Receptions.End_Point.XML_Element_Name;
                End_Point := Next_Sibling (End_Point);
             end loop Next_End_Point;
 
-            Check (Element => End_Point, Name => "end-point");
+            Check (Element => End_Point, Name => Receptions.End_Point.XML_Element_Name);
 
             declare
                package Busy_Signal renames Receptions.End_Points.Busy_Signal;
@@ -225,18 +229,57 @@ begin
                   End_Points.Insert (Key      => Title,
                                      New_Item => Busy_Signal.Create (Title => Title));
                else
-                  raise Constraint_Error with "<end-point> element contains illegal element <" &
-                                              Node_Name (End_Point_Action) & ">.";
+                  raise Constraint_Error
+                    with "<" & Receptions.End_Point.XML_Element_Name &
+                         "> element contains illegal element <" &
+                         Node_Name (End_Point_Action) & ">.";
                end if;
 
-               Ada.Text_IO.Put_Line ("End-point type:        """ & Node_Name (End_Point_Action) & """");
-               Ada.Text_IO.Put_Line ("End-point title:       """ & Title & """");
+               Ada.Text_IO.Put_Line (Item => "End-point type:        """ &
+                                             Node_Name (End_Point_Action) &
+                                             """");
+               Ada.Text_IO.Put_Line (Item => "End-point title:       """ &
+                                             Title & """");
             end;
 
             End_Point := Next_Sibling (End_Point);
          end loop Find_End_Points;
-      end;
-   end;
+      end Load_End_Points;
+
+      Load_Decision_Trees :
+      declare
+         Decision_Tree : Node := First_Child (Dial_Plan);
+      begin
+         Find_Decision_Trees :
+         loop
+            Next_Decision_Tree :
+            loop
+               exit Find_Decision_Trees
+                 when Decision_Tree = null;
+               exit Next_Decision_Tree
+                 when Node_Type (Decision_Tree) = Element_Node and then
+                      Node_Name (Decision_Tree) = Receptions.Decision_Tree.XML_Element_Name;
+               Decision_Tree := Next_Sibling (Decision_Tree);
+            end loop Next_Decision_Tree;
+
+            Check (Element => Decision_Tree,
+                   Name    => Receptions.Decision_Tree.XML_Element_Name);
+
+            Load_Decision_Tree :
+            declare
+               Title : constant String := Attribute (Element => Decision_Tree,
+                                                     Name    => "title");
+
+               --End_Point_Action : not null Node := First_Child (End_Point);
+            begin
+               Ada.Text_IO.Put_Line (Item => "Decision-tree title:   """ &
+                                             Title & """");
+            end Load_Decision_Tree;
+
+            Decision_Tree := Next_Sibling (Decision_Tree);
+         end loop Find_Decision_Trees;
+      end Load_Decision_Trees;
+   end Load_Dial_Plan;
 
    declare
       use Ada.Strings.Unbounded;
