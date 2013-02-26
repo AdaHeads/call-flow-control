@@ -17,10 +17,10 @@
 
 with Ada.Containers.Indefinite_Vectors;
 
-with Receptions.Condition;
+with Receptions.Branch;
 
 package Receptions.List_Of_Branches is
   new Ada.Containers.Indefinite_Vectors
     (Index_Type   => Positive,
-     Element_Type => Receptions.Condition.Class,
-     "="          => Receptions.Condition."=");
+     Element_Type => Receptions.Branch.Class,
+     "="          => Receptions.Branch."=");
