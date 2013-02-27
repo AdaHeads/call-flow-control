@@ -122,7 +122,8 @@ begin
    declare
       Dial_Plan : constant Node := Get_Element (Doc);
    begin
-      Check (Element => Dial_Plan, Name => Receptions.Dial_Plan.XML_Element_Name);
+      Check (Element => Dial_Plan,
+             Name    => Receptions.Dial_Plan.XML_Element_Name);
 
       Dial_Plan_Title := Ada.Strings.Unbounded.To_Unbounded_String
                            (Attribute (Element => Dial_Plan,
@@ -152,13 +153,17 @@ begin
          loop
             Next_End_Point :
             loop
-               exit Find_End_Points when End_Point = null;
-               exit Next_End_Point when Node_Type (End_Point) = Element_Node and then
-                                        Node_Name (End_Point) = Receptions.End_Point.XML_Element_Name;
+               exit Find_End_Points
+                 when End_Point = null;
+               exit Next_End_Point
+                 when Node_Type (End_Point) = Element_Node and then
+                      Node_Name (End_Point) =
+                                         Receptions.End_Point.XML_Element_Name;
                End_Point := Next_Sibling (End_Point);
             end loop Next_End_Point;
 
-            Check (Element => End_Point, Name => Receptions.End_Point.XML_Element_Name);
+            Check (Element => End_Point,
+                   Name    => Receptions.End_Point.XML_Element_Name);
 
             declare
                package Busy_Signal renames Receptions.End_Points.Busy_Signal;
@@ -196,7 +201,8 @@ begin
                      End_Points.Insert (Key      => Title,
                                         New_Item => Q);
                   end;
-               elsif Node_Name (End_Point_Action) = Redirect.XML_Element_Name then
+               elsif Node_Name (End_Point_Action) =
+                                                 Redirect.XML_Element_Name then
                   declare
                      R : constant Redirect.Instance :=
                            Redirect.Create
@@ -208,26 +214,33 @@ begin
                      End_Points.Insert (Key      => Title,
                                         New_Item => R);
                   end;
-               elsif Node_Name (End_Point_Action) = Interactive_Voice_Response.XML_Element_Name then
+               elsif Node_Name (End_Point_Action) =
+                               Interactive_Voice_Response.XML_Element_Name then
                   End_Points.Insert
                     (Key      => Title,
-                     New_Item => Interactive_Voice_Response.Create (Title => Title));
-               elsif Node_Name (End_Point_Action) = Voice_Mail.XML_Element_Name then
+                     New_Item => Interactive_Voice_Response.Create
+                                   (Title => Title));
+               elsif Node_Name (End_Point_Action) =
+                                               Voice_Mail.XML_Element_Name then
                   declare
                      V : constant Voice_Mail.Instance :=
                            Voice_Mail.Create
                              (Title   => Title,
-                              Play    => Attribute (Element => End_Point_Action,
-                                                    Name    => "play"),
-                              Send_To => Attribute (Element => End_Point_Action,
-                                                    Name    => "send-to"));
+                              Play    => Attribute
+                                           (Element => End_Point_Action,
+                                            Name    => "play"),
+                              Send_To => Attribute
+                                           (Element => End_Point_Action,
+                                            Name    => "send-to"));
                   begin
                      End_Points.Insert (Key      => Title,
                                         New_Item => V);
                   end;
-               elsif Node_Name (End_Point_Action) = Busy_Signal.XML_Element_Name then
+               elsif Node_Name (End_Point_Action) =
+                                              Busy_Signal.XML_Element_Name then
                   End_Points.Insert (Key      => Title,
-                                     New_Item => Busy_Signal.Create (Title => Title));
+                                     New_Item => Busy_Signal.Create
+                                                   (Title => Title));
                else
                   raise Constraint_Error
                     with "<" & Receptions.End_Point.XML_Element_Name &
@@ -258,7 +271,8 @@ begin
                  when Decision_Tree = null;
                exit Next_Decision_Tree
                  when Node_Type (Decision_Tree) = Element_Node and then
-                      Node_Name (Decision_Tree) = Receptions.Decision_Tree.XML_Element_Name;
+                      Node_Name (Decision_Tree) =
+                                     Receptions.Decision_Tree.XML_Element_Name;
                Decision_Tree := Next_Sibling (Decision_Tree);
             end loop Next_Decision_Tree;
 
@@ -294,8 +308,9 @@ begin
    declare
       use Ada.Strings.Unbounded, Ada.Text_IO;
    begin
-      Put_Line ("Dial-plan title:       """ & Reception.Title & """");
-      Put_Line ("Title of first action: """ & To_String (Start_Action_Title) & """");
+      Put_Line (Item => "Dial-plan title:       """ & Reception.Title & """");
+      Put_Line (Item => "Title of first action: """ &
+                        To_String (Start_Action_Title) & """");
    end;
 
    PBX.Stop;
