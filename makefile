@@ -24,7 +24,7 @@ DATABASE=SQLite
 endif
 
 ifeq ($(PROCESSORS),)
-PROCESSORS=1
+PROCESSORS=`(test -f /proc/cpuinfo && grep -c ^processor /proc/cpuinfo) || echo 1`
 endif
 
 all:
