@@ -42,7 +42,7 @@ project Test is
                  "receptions-conditions-week_number",
                  "receptions-decision_tree",
                  "receptions-decision_tree_collection",
-                 "receptions-dial_plan",
+                 "receptions-dial_plan-io",
                  "receptions-end_point_collection",
                  "receptions-end_points-hang_up",
                  "receptions-end_points-queue",
