@@ -50,4 +50,10 @@ package DOM.Support is
    --  at <Element>.
    --  Will raise Constraint_Error with a descriptive message if the end of
    --  the sequence is reached.
+
+   procedure Next (Element : in out DOM.Core.Node;
+                   Done    :    out Boolean);
+   --  Go to the next XML element in a sequence of sibling elements starting
+   --  at <Element>.  <Done> is set to False if the end of the sequence is
+   --  reached.
 end DOM.Support;

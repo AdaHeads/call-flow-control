@@ -92,4 +92,12 @@ package body DOM.Support is
    begin
       Element := DOM.Core.Nodes.Next_Sibling (Element);
    end Next;
+
+   procedure Next (Element : in out DOM.Core.Node;
+                   Done    :    out Boolean) is
+      use type DOM.Core.Node;
+   begin
+      Element := DOM.Core.Nodes.Next_Sibling (Element);
+      Done := (Element = null);
+   end Next;
 end DOM.Support;
