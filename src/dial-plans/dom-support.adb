@@ -57,9 +57,33 @@ package body DOM.Support is
       use DOM.Core, DOM.Core.Nodes;
    begin
       loop
-         exit when Element = null;
-         exit when Node_Type (Element) = Element_Node and then
-                   Node_Name (Element) = Name;
+         if Element = null then
+            raise Constraint_Error
+              with "The sequence does not contain a <" & Name & "> element.";
+         elsif Node_Type (Element) = Element_Node and then
+               Node_Name (Element) = Name then
+            return;
+         end if;
+
+         Element := Next_Sibling (Element);
+      end loop;
+   end Find_First;
+
+   procedure Find_First (Element : in out DOM.Core.Node;
+                         Name    : in     String;
+                         Found   :    out Boolean) is
+      use DOM.Core, DOM.Core.Nodes;
+   begin
+      loop
+         if Element = null then
+            Found := False;
+            return;
+         elsif Node_Type (Element) = Element_Node and then
+               Node_Name (Element) = Name then
+            Found := True;
+            return;
+         end if;
+
          Element := Next_Sibling (Element);
       end loop;
    end Find_First;

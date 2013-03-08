@@ -35,4 +35,13 @@ package DOM.Support is
                          Name    : in     String);
    --  Find the first XML element named <Name> in a sequence of sibling
    --  elements starting at <Element>.
+   --  Will raise Constraint_Error with a descriptive message if the sequence
+   --  does not contain a matching element.
+
+   procedure Find_First (Element : in out DOM.Core.Node;
+                         Name    : in     String;
+                         Found   :    out Boolean);
+   --  Find the first XML element named <Name> in a sequence of sibling
+   --  elements starting at <Element>.  <Found> is true if a matching element
+   --  is found, and false if no matching element is found in the sequence.
 end DOM.Support;
