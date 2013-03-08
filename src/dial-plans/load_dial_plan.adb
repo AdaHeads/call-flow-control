@@ -16,6 +16,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Command_Line,
+     Ada.Exceptions,
      Ada.Strings.Unbounded,
      Ada.Text_IO;
 
@@ -25,9 +26,11 @@ with DOM.Readers;              use DOM.Readers;
 with DOM.Core;                 use DOM.Core;
 with DOM.Core.Documents;       use DOM.Core.Documents;
 with DOM.Core.Nodes;           use DOM.Core.Nodes;
+with DOM.Support;              use DOM.Support;
 
 with AMI.Response,
      PBX,
+     Receptions.Branch,
      Receptions.Decision_Tree,
      Receptions.Decision_Tree_Collection,
      Receptions.Dial_Plan,
@@ -41,42 +44,6 @@ with AMI.Response,
      Receptions.End_Points.Voice_Mail;
 
 procedure Load_Dial_Plan is
-   procedure Check (Element : in     Node;
-                    Name    : in     String);
-   procedure Check (Element : in     Node;
-                    Name    : in     String) is
-   begin
-      if Element = null then
-         raise Constraint_Error with "No element.";
-      elsif Node_Type (Element) /= Element_Node then
-         raise Constraint_Error with "Not an element.";
-      elsif Node_Name (Element) /= Name then
-         raise Constraint_Error with "Not an <" & Name & "> element.";
-      end if;
-   end Check;
-
-   function Attribute (Element : in     Node;
-                       Name    : in     String) return String;
-   function Attribute (Element : in     Node;
-                       Name    : in     String) return String is
-   begin
-      if Element = null then
-         raise Constraint_Error with "No element.";
-      elsif Node_Type (Element) /= Element_Node then
-         raise Constraint_Error with "Not an element.";
-      else
-         begin
-            return Node_Value (Get_Named_Item (Nodes.Attributes (Element),
-                                               Name));
-         exception
-            when Constraint_Error =>
-               raise Constraint_Error
-                 with "Failed to extract """ & Name & """ attribute " &
-                      "from """ & Node_Name (Element) & """ element.";
-         end;
-      end if;
-   end Attribute;
-
    Input  : File_Input;
    Reader : Tree_Reader;
    Doc    : Document;
@@ -284,10 +251,46 @@ begin
                Title : constant String := Attribute (Element => Decision_Tree,
                                                      Name    => "title");
 
-               Child : not null Node := First_Child (Decision_Tree);
+               Child : Node := First_Child (Decision_Tree);
             begin
                Ada.Text_IO.Put_Line (Item => "Decision-tree title:   """ &
                                              Title & """");
+
+               Load_Branches :
+               loop
+                  Next_Branch_Or_Fallback :
+                  loop
+                     exit Load_Branches when Child = null;
+                     exit Next_Branch_Or_Fallback
+                       when Node_Type (Child) = Element_Node and then
+                            Node_Name (Child) =
+                                            Receptions.Branch.XML_Element_Name;
+                     exit Load_Branches
+                       when Node_Type (Child) = Element_Node and then
+                            Node_Name (Child) = "fall-back";
+                     Child := Next_Sibling (Child);
+                  end loop Next_Branch_Or_Fallback;
+
+                  Load_Branch :
+                  declare
+                     Branch : Node renames Child;
+                  begin
+                     Check (Element => Branch,
+                            Name    => Receptions.Branch.XML_Element_Name);
+
+                     raise Program_Error;
+                  end Load_Branch;
+               end loop Load_Branches;
+
+               Load_Fallback :
+               declare
+                  Fallback : Node renames Child;
+               begin
+                  Check (Element => Fallback,
+                         Name    => "fall-back");
+
+                  raise Program_Error;
+               end Load_Fallback;
             end Load_Decision_Tree;
 
             Decision_Tree := Next_Sibling (Decision_Tree);
@@ -317,7 +320,12 @@ begin
 exception
    when AMI.Response.Timeout =>
       null;
-   when others =>
+   when E : others =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+      Ada.Text_IO.Put_Line
+        (File => Ada.Text_IO.Standard_Error,
+         Item => "Load_Dial_Plan terminated by an unexpected exception: " &
+                 Ada.Exceptions.Exception_Name (E) & " (" &
+                 Ada.Exceptions.Exception_Message (E) & ")");
       PBX.Stop;
-      raise;
 end Load_Dial_Plan;
