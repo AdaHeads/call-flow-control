@@ -51,4 +51,16 @@ package body DOM.Support is
          raise Constraint_Error with "Not an <" & Name & "> element.";
       end if;
    end Check;
+
+   procedure Find_First (Element : in out DOM.Core.Node;
+                         Name    : in     String) is
+      use DOM.Core, DOM.Core.Nodes;
+   begin
+      loop
+         exit when Element = null;
+         exit when Node_Type (Element) = Element_Node and then
+                   Node_Name (Element) = Name;
+         Element := Next_Sibling (Element);
+      end loop;
+   end Find_First;
 end DOM.Support;

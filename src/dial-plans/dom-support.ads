@@ -30,4 +30,9 @@ package DOM.Support is
    --  Will raise Constraint_Error with a descriptive message if <Element> is
    --  not an XML element as well as if <Element> does not have an attribute
    --  named <Name>.
+
+   procedure Find_First (Element : in out DOM.Core.Node;
+                         Name    : in     String);
+   --  Find the first XML element named <Name> in a sequence of sibling
+   --  elements starting at <Element>.
 end DOM.Support;
