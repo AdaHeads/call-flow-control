@@ -87,4 +87,9 @@ package body DOM.Support is
          Element := Next_Sibling (Element);
       end loop;
    end Find_First;
+
+   procedure Next (Element : in out DOM.Core.Node) is
+   begin
+      Element := DOM.Core.Nodes.Next_Sibling (Element);
+   end Next;
 end DOM.Support;
