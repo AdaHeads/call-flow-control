@@ -42,8 +42,8 @@ package DOM.Support is
                          Name    : in     String;
                          Found   :    out Boolean);
    --  Find the first XML element named <Name> in a sequence of sibling
-   --  elements starting at <Element>.  <Found> is true if a matching element
-   --  is found, and false if no matching element is found in the sequence.
+   --  elements starting at <Element>.  <Found> is True if a matching element
+   --  is found, and False if no matching element is found in the sequence.
 
    procedure Next (Element : in out DOM.Core.Node);
    --  Go to the next XML element in a sequence of sibling elements starting
@@ -54,6 +54,6 @@ package DOM.Support is
    procedure Next (Element : in out DOM.Core.Node;
                    Done    :    out Boolean);
    --  Go to the next XML element in a sequence of sibling elements starting
-   --  at <Element>.  <Done> is set to False if the end of the sequence is
+   --  at <Element>.  <Done> is set to True if the end of the sequence is
    --  reached.
 end DOM.Support;
