@@ -55,6 +55,7 @@ package body Handlers.Call is
       Ticket            : PBX.Reply_Ticket := PBX.Null_Reply;
       Requested_Call_ID : String renames Parameters (Request).Get ("call_id");
    begin
+
       Ticket := PBX.Action.Hangup (ID => PBX.Call.Value (Requested_Call_ID));
 
       PBX.Action.Wait_For (Ticket);
@@ -67,6 +68,7 @@ package body Handlers.Call is
 
    exception
       when PBX.Call.Not_Found =>
+
          Response_Object.HTTP_Status_Code (HTTP.Not_Found);
          Response_Object.Content
            (Status_Message
