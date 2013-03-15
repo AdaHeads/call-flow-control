@@ -17,12 +17,21 @@
 
 with System_Message.Info;
 
+with Ada.Exceptions, Ada.Text_IO; use Ada.Exceptions, Ada.Text_IO;
+
 package body Receptions.Conditions.Callee is
    not overriding
    function Create (Number : in String) return Instance is
       use Ada.Strings.Unbounded;
    begin
       return (Number => To_Unbounded_String (Number));
+   exception
+      when E : others =>
+         Put_Line (File => Standard_Error,
+                   Item => "Receptions.Conditions.Callee.Create raised " &
+                           Exception_Name (E) & " with " &
+                           Exception_Message (E) & ".");
+         raise;
    end Create;
 
    overriding

@@ -15,11 +15,20 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Exceptions, Ada.Text_IO; use Ada.Exceptions, Ada.Text_IO;
+
 package body Receptions.End_Points.Hang_Up is
    not overriding
    function Create (Title : in     String) return Instance is
    begin
       return (Title => Ada.Strings.Unbounded.To_Unbounded_String (Title));
+   exception
+      when E : others =>
+         Put_Line (File => Standard_Error,
+                   Item => "Receptions.End_Points.Hang_Up.Create raised " &
+                           Exception_Name (E) & " with " &
+                           Exception_Message (E) & ".");
+         raise;
    end Create;
 
    overriding

@@ -18,6 +18,8 @@
 with Ada.Strings.Fixed,
      Ada.Strings.Unbounded;
 
+with Ada.Exceptions, Ada.Text_IO; use Ada.Exceptions, Ada.Text_IO;
+
 package body Receptions.Conditions.Day_Of_Week is
    not overriding
    function Create (List : in String) return Instance is
@@ -41,6 +43,13 @@ package body Receptions.Conditions.Day_Of_Week is
 
          Result.Days (Day_Name'Value (List (From .. List'Last))) := True;
       end return;
+   exception
+      when E : others =>
+         Put_Line (File => Standard_Error,
+                   Item => "Receptions.Conditions.Day_Of_Week.Create raised " &
+                           Exception_Name (E) & " with " &
+                           Exception_Message (E) & ".");
+         raise;
    end Create;
 
    overriding

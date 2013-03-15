@@ -17,6 +17,8 @@
 
 with Ada.Calendar.Formatting;
 
+with Ada.Exceptions, Ada.Text_IO; use Ada.Exceptions, Ada.Text_IO;
+
 package body Receptions.Conditions.Clock is
    not overriding
    function Create (From, To : in String) return Instance is
@@ -53,6 +55,12 @@ package body Receptions.Conditions.Clock is
          raise Constraint_Error
            with "Failed to generate Ada object from <" & XML_Element_Name &
                 " from=""" & From & """ to=""" & To & """>.";
+      when E : others =>
+         Put_Line (File => Standard_Error,
+                   Item => "Receptions.Conditions.Clock.Create raised " &
+                           Exception_Name (E) & " with " &
+                           Exception_Message (E) & ".");
+         raise;
    end Create;
 
    overriding
