@@ -22,6 +22,10 @@
 
 cd "$(dirname "$0")" || exit -1
 
+if [ -z "${PROCESSORS}" ]; then
+   PROCESSORS=$((test -f /proc/cpuinfo && grep -c ^processor /proc/cpuinfo) || echo 1)
+fi
+
 failed_list=$(mktemp)
 succeeded_list=$(mktemp)
 
@@ -37,8 +41,8 @@ for file in $(find ./ -mindepth 2 -type f -name \*.gpr | sort); do
 
    rm -f "$(dirname "${file}")"/*.{o,ali}
 
-   if gnatmake -P ${file} 1>${file}.output \
-                          2>${file}.errors; then
+   if gnatmake -j${PROCESSORS} -P ${file} 1>${file}.output \
+                                          2>${file}.errors; then
       echo ${build_number}/${number_of_builds}$'\tBuild succeeded' 1>&2
 
       echo ${file} >> ${succeeded_list}
