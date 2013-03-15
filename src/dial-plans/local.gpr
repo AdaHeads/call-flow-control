@@ -28,31 +28,9 @@ project Local is
                         "../pbx/",
                         "../view/");
 
-   for Main use ("dom-support",
-                 "load_dial_plan",
+   for Main use ("load_dial_plan",
                  "normalise_dial_plan",
-                 "receptions-branch-io",
-                 "receptions-condition-io",
-                 "receptions-conditions-calendar_look_up",
-                 "receptions-conditions-callee",
-                 "receptions-conditions-clock",
-                 "receptions-conditions-day_of_month",
-                 "receptions-conditions-day_of_week",
-                 "receptions-conditions-inverse",
-                 "receptions-conditions-io",
-                 "receptions-conditions-month",
-                 "receptions-conditions-week_number",
-                 "receptions-decision_tree-io",
-                 "receptions-dial_plan-io",
-                 "receptions-end_point-io",
-                 "receptions-end_points-hang_up",
-                 "receptions-end_points-queue",
-                 "receptions-end_points-redirect",
-                 "receptions-end_points-interactive_voice_response",
-                 "receptions-end_points-voice_mail",
-                 "receptions-end_points-busy_signal",
-                 "receptions-list_of_branches",
-                 "receptions-set_of_conditions");
+                 "test_dial_plan");
 
    package Compiler renames Shared.Compiler;
 end Local;
