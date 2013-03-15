@@ -16,10 +16,12 @@
 -------------------------------------------------------------------------------
 
 package body Receptions.Dial_Plan is
-   function Create (Title          : in     String;
-                    Start_At       : in     String;
-                    End_Points     : in     Receptions.End_Point_Collection.Map;
-                    Decision_Trees : in     Receptions.Decision_Tree_Collection.Map) return Instance is
+   function Create
+     (Title          : in     String;
+      Start_At       : in     String;
+      End_Points     : in     Receptions.End_Point_Collection.Map;
+      Decision_Trees : in     Receptions.Decision_Tree_Collection.Map)
+     return Instance is
       use Ada.Strings.Unbounded;
    begin
       return (Title          => To_Unbounded_String (Title),
@@ -34,20 +36,23 @@ package body Receptions.Dial_Plan is
    end Title;
 
    function Application (Item : in     Instance;
-                         Call : in     PBX.Call.Identification) return Receptions.End_Point.Class is
+                         Call : in     PBX.Call.Identification)
+     return Receptions.End_Point.Class is
 
-      function "+" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
+      function "+" (Item : in Ada.Strings.Unbounded.Unbounded_String)
+        return String
         renames Ada.Strings.Unbounded.To_String;
-      function "+" (Item : in String) return Ada.Strings.Unbounded.Unbounded_String
+      function "+" (Item : in String)
+        return Ada.Strings.Unbounded.Unbounded_String
         renames Ada.Strings.Unbounded.To_Unbounded_String;
 
       Next_Action : Ada.Strings.Unbounded.Unbounded_String := Item.Start_At;
    begin
       for Jumps in 0 .. Item.Decision_Trees.Length loop
-         if Item.End_Points.Contains (+ Next_Action) then
-            return Item.End_Points.Element (+ Next_Action);
-         elsif Item.Decision_Trees.Contains (+ Next_Action) then
-            Next_Action := + Item.Decision_Trees.Element (+ Next_Action).Branch (Call);
+         if Item.End_Points.Contains (+Next_Action) then
+            return Item.End_Points.Element (+Next_Action);
+         elsif Item.Decision_Trees.Contains (+Next_Action) then
+            Next_Action := +Item.Decision_Trees.Element (+Next_Action).Branch (Call);
          else
             raise Dead_End;
          end if;

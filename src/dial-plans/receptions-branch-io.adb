@@ -15,29 +15,37 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with PBX.Call,
-     Receptions.Conditions;
+with DOM.Core.Nodes,
+     DOM.Support;
 
-private
-with Ada.Strings.Unbounded;
+with Receptions.Action,
+     Receptions.Conditions.IO;
 
-package Receptions.Branch is
-   type Instance is tagged private;
-   subtype Class is Instance'Class;
+package body Receptions.Branch.IO is
+   function Load (From : in DOM.Core.Node) return Instance is
+      function Conditions return Receptions.Conditions.Instance;
+      function Action return String;
 
-   function Create (Conditions : in     Receptions.Conditions.Instance;
-                    Action     : in     String) return Instance;
+      function Action return String is
+         use DOM.Core, DOM.Support;
+         Child : Node := Nodes.First_Child (From);
+      begin
+         Find_First (Element => Child,
+                     Name    => Receptions.Action.XML_Element_Name);
+         return Attribute (Element => Child,
+                           Name    => "do");
+      end Action;
 
-   function Applicable (Item : in     Instance;
-                        Call : in     PBX.Call.Identification) return Boolean;
-
-   function Action (Item : in     Instance) return String;
-
-   XML_Element_Name : constant String := "branch";
-private
-   type Instance is tagged
-      record
-         Conditions : Receptions.Conditions.Instance;
-         Action     : Ada.Strings.Unbounded.Unbounded_String;
-      end record;
-end Receptions.Branch;
+      function Conditions return Receptions.Conditions.Instance is
+         use DOM.Core, DOM.Support;
+         Child : Node := Nodes.First_Child (From);
+      begin
+         Find_First (Element => Child,
+                     Name    => Receptions.Conditions.XML_Element_Name);
+         return Receptions.Conditions.IO.Load (From => Child);
+      end Conditions;
+   begin
+      return Create (Conditions => Conditions,
+                     Action     => Action);
+   end Load;
+end Receptions.Branch.IO;

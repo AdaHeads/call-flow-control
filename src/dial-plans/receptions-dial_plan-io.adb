@@ -24,49 +24,10 @@ with Receptions.Decision_Tree.IO,
 package body Receptions.Dial_Plan.IO is
    function Load (From : in DOM.Core.Node) return Instance is
       function Title return String;
-      function Title return String is
-      begin
-         return DOM.Support.Attribute (Element => From,
-                                       Name    => "title");
-      end Title;
-
       function Start_At return String;
-      function Start_At return String is
-         Start : DOM.Core.Node := DOM.Core.Nodes.First_Child (From);
-      begin
-         DOM.Support.Find_First (Element => Start,
-                                 Name    => "start");
-         return DOM.Support.Attribute (Element => Start,
-                                       Name    => "do");
-      end Start_At;
-
       function End_Points return Receptions.End_Point_Collection.Map;
-      function End_Points return Receptions.End_Point_Collection.Map is
-         End_Point   : DOM.Core.Node := DOM.Core.Nodes.First_Child (From);
-         Found, Done : Boolean;
-      begin
-         return End_Points : Receptions.End_Point_Collection.Map do
-            Find_End_Points :
-            loop
-               DOM.Support.Find_First
-                 (Element => End_Point,
-                  Name    => Receptions.End_Point.XML_Element_Name,
-                  Found   => Found);
-               exit Find_End_Points when not Found;
-
-               End_Points.Insert
-                 (Key      => DOM.Support.Attribute (Element => End_Point,
-                                                     Name    => "title"),
-                  New_Item => Receptions.End_Point.IO.Load (From => End_Point));
-
-               DOM.Support.Next (Element => End_Point,
-                                 Done    => Done);
-               exit Find_End_Points when Done;
-            end loop Find_End_Points;
-         end return;
-      end End_Points;
-
       function Decision_Trees return Receptions.Decision_Tree_Collection.Map;
+
       function Decision_Trees return Receptions.Decision_Tree_Collection.Map is
          Decision_Tree : DOM.Core.Node := DOM.Core.Nodes.First_Child (From);
          Found, Done   : Boolean;
@@ -83,7 +44,8 @@ package body Receptions.Dial_Plan.IO is
                Decision_Trees.Insert
                  (Key      => DOM.Support.Attribute (Element => Decision_Tree,
                                                      Name    => "title"),
-                  New_Item => Receptions.Decision_Tree.IO.Load (From => Decision_Tree));
+                  New_Item => Receptions.Decision_Tree.IO.Load
+                                (From => Decision_Tree));
 
                DOM.Support.Next (Element => Decision_Tree,
                                  Done    => Done);
@@ -91,6 +53,47 @@ package body Receptions.Dial_Plan.IO is
             end loop Find_Decision_Trees;
          end return;
       end Decision_Trees;
+
+      function End_Points return Receptions.End_Point_Collection.Map is
+         End_Point   : DOM.Core.Node := DOM.Core.Nodes.First_Child (From);
+         Found, Done : Boolean;
+      begin
+         return End_Points : Receptions.End_Point_Collection.Map do
+            Find_End_Points :
+            loop
+               DOM.Support.Find_First
+                 (Element => End_Point,
+                  Name    => Receptions.End_Point.XML_Element_Name,
+                  Found   => Found);
+               exit Find_End_Points when not Found;
+
+               End_Points.Insert
+                 (Key      => DOM.Support.Attribute (Element => End_Point,
+                                                     Name    => "title"),
+                  New_Item => Receptions.End_Point.IO.Load
+                                (From => End_Point));
+
+               DOM.Support.Next (Element => End_Point,
+                                 Done    => Done);
+               exit Find_End_Points when Done;
+            end loop Find_End_Points;
+         end return;
+      end End_Points;
+
+      function Start_At return String is
+         Start : DOM.Core.Node := DOM.Core.Nodes.First_Child (From);
+      begin
+         DOM.Support.Find_First (Element => Start,
+                                 Name    => "start");
+         return DOM.Support.Attribute (Element => Start,
+                                       Name    => "do");
+      end Start_At;
+
+      function Title return String is
+      begin
+         return DOM.Support.Attribute (Element => From,
+                                       Name    => "title");
+      end Title;
    begin
       DOM.Support.Check (Element => From,
                          Name    => XML_Element_Name);

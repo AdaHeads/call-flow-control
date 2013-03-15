@@ -88,6 +88,38 @@ package body DOM.Support is
       end loop;
    end Find_First;
 
+   procedure First (Element : in out DOM.Core.Node) is
+      use DOM.Core, DOM.Core.Nodes;
+   begin
+      loop
+         if Element = null then
+            raise Constraint_Error
+              with "The sequence does not contain an XML element.";
+         elsif Node_Type (Element) = Element_Node then
+            return;
+         end if;
+
+         Element := Next_Sibling (Element);
+      end loop;
+   end First;
+
+   procedure First (Element : in out DOM.Core.Node;
+                    Found   :    out Boolean) is
+      use DOM.Core, DOM.Core.Nodes;
+   begin
+      loop
+         if Element = null then
+            Found := False;
+            return;
+         elsif Node_Type (Element) = Element_Node then
+            Found := True;
+            return;
+         end if;
+
+         Element := Next_Sibling (Element);
+      end loop;
+   end First;
+
    procedure Next (Element : in out DOM.Core.Node) is
    begin
       Element := DOM.Core.Nodes.Next_Sibling (Element);

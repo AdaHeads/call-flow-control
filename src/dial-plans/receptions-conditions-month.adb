@@ -34,7 +34,8 @@ package body Receptions.Conditions.Month is
 
             exit when Comma = 0;
 
-            Result.Months (Month_Number'Value (List (From .. Comma - 1))) := True;
+            Result.Months (Month_Number'Value (List (From .. Comma - 1))) :=
+                                                                          True;
 
             From := Comma + 1;
          end loop;

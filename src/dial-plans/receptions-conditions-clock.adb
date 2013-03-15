@@ -20,7 +20,24 @@ with Ada.Calendar.Formatting;
 package body Receptions.Conditions.Clock is
    not overriding
    function Create (From, To : in String) return Instance is
-      use Ada.Calendar.Formatting;
+      function Value (Elapsed_Time : in String)
+        return Ada.Calendar.Day_Duration;
+
+      function Value (Elapsed_Time : in String)
+        return Ada.Calendar.Day_Duration is
+      begin
+         if Elapsed_Time'Length = 3 then
+            return Ada.Calendar.Formatting.Value (Elapsed_Time & ":00:00");
+         elsif Elapsed_Time'Length = 5 then
+            return Ada.Calendar.Formatting.Value (Elapsed_Time & ":00");
+         elsif Elapsed_Time'Length = 8 then
+            return Ada.Calendar.Formatting.Value (Elapsed_Time);
+         else
+            raise Constraint_Error
+              with """" & Elapsed_Time &
+                   """ is not a properly formatted timestamp.";
+         end if;
+      end Value;
    begin
       return Result : Instance do
          Result := (From => Value (Elapsed_Time => From),
@@ -31,6 +48,11 @@ package body Receptions.Conditions.Clock is
               with From & " >= " & To & " (as timestamps).";
          end if;
       end return;
+   exception
+      when Constraint_Error =>
+         raise Constraint_Error
+           with "Failed to generate Ada object from <" & XML_Element_Name &
+                " from=""" & From & """ to=""" & To & """>.";
    end Create;
 
    overriding

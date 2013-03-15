@@ -38,7 +38,8 @@ procedure Load_Dial_Plan is
 begin
    PBX.Start;
 
-   Set_Public_ID (Input, Receptions.Dial_Plan.XML_Element_Name);
+   Set_Public_Id (Input, Receptions.Dial_Plan.XML_Element_Name);
+   --  ID should be all upper-case, but AdaCore doesn't seem to get that.
 
    Open_Source_File :
    declare

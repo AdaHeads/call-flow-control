@@ -21,43 +21,6 @@ with Ada.Calendar,
 
 package body Receptions.Conditions.Week_Number is
    function Week_Number (Date : in Ada.Calendar.Time) return Week_Numbers;
-   function Week_Number (Date : in Ada.Calendar.Time) return Week_Numbers is
-      Year  : constant Ada.Calendar.Year_Number  := Ada.Calendar.Year  (Date);
-      Month : constant Ada.Calendar.Month_Number := Ada.Calendar.Month (Date);
-      Day   : constant Ada.Calendar.Day_Number   := Ada.Calendar.Day   (Date);
-
-      --  See <http://www.tondering.dk/claus/cal/week.php#weekno>.
-      a, b, c, s, e, f, g, d, n : Integer;
-   begin
-      case Month is
-         when 1 .. 2 =>
-            a := Year - 1;
-            b :=       (a / 4) -       (a / 100) +       (a / 400);
-            c := ((a - 1) / 4) - ((a - 1) / 100) + ((a - 1) / 400);
-            s := b - c;
-            e := 0;
-            f := Day - 1 + 31 * (Month - 1);
-         when 3 .. 12 =>
-            a := Year;
-            b :=       (a / 4) -       (a / 100) +       (a / 400);
-            c := ((a - 1) / 4) - ((a - 1) / 100) + ((a - 1) / 400);
-            s := b - c;
-            e := s + 1;
-            f := Day + ((153 * (Month - 3) + 2) / 5) + 58 + s;
-      end case;
-
-      g := (a + b) mod 7;
-      d := (f + g - e) mod 7;
-      n := f + 3 - d;
-
-      if n < 0 then
-         return 53 - ((g - s) / 5);
-      elsif n > 364 + s then
-         return 1;
-      else
-         return (n / 7) + 1;
-      end if;
-   end Week_Number;
 
    not overriding
    function Create (List : in String) return Instance is
@@ -114,4 +77,42 @@ package body Receptions.Conditions.Week_Number is
          return To_String (Result) & "}";
       end if;
    end Value;
+
+   function Week_Number (Date : in Ada.Calendar.Time) return Week_Numbers is
+      Year  : constant Ada.Calendar.Year_Number  := Ada.Calendar.Year  (Date);
+      Month : constant Ada.Calendar.Month_Number := Ada.Calendar.Month (Date);
+      Day   : constant Ada.Calendar.Day_Number   := Ada.Calendar.Day   (Date);
+
+      --  See <http://www.tondering.dk/claus/cal/week.php#weekno>.
+      a, b, c, s, e, f, g, d, n : Integer;
+   begin
+      case Month is
+         when 1 .. 2 =>
+            a := Year - 1;
+            b :=       (a / 4) -       (a / 100) +       (a / 400);
+            c := ((a - 1) / 4) - ((a - 1) / 100) + ((a - 1) / 400);
+            s := b - c;
+            e := 0;
+            f := Day - 1 + 31 * (Month - 1);
+         when 3 .. 12 =>
+            a := Year;
+            b :=       (a / 4) -       (a / 100) +       (a / 400);
+            c := ((a - 1) / 4) - ((a - 1) / 100) + ((a - 1) / 400);
+            s := b - c;
+            e := s + 1;
+            f := Day + ((153 * (Month - 3) + 2) / 5) + 58 + s;
+      end case;
+
+      g := (a + b) mod 7;
+      d := (f + g - e) mod 7;
+      n := f + 3 - d;
+
+      if n < 0 then
+         return 53 - ((g - s) / 5);
+      elsif n > 364 + s then
+         return 1;
+      else
+         return (n / 7) + 1;
+      end if;
+   end Week_Number;
 end Receptions.Conditions.Week_Number;

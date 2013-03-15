@@ -18,7 +18,8 @@
 with DOM.Core.Nodes,
      DOM.Support;
 
-with Receptions.Branch;
+with Receptions.Branch,
+     Receptions.Branch.IO;
 
 package body Receptions.Decision_Tree.IO is
    function Load (From : in DOM.Core.Node) return Instance is
@@ -35,20 +36,20 @@ package body Receptions.Decision_Tree.IO is
          Child       : Node := First_Child (From);
          Found, Done : Boolean;
       begin
-         loop
-            Find_First (Element => Child,
-                        Name    => Receptions.Branch.XML_Element_Name,
-                        Found   => Found);
-            exit when not Found;
+         return Result : Receptions.List_Of_Branches.Vector do
+            loop
+               Find_First (Element => Child,
+                           Name    => Receptions.Branch.XML_Element_Name,
+                           Found   => Found);
+               exit when not Found;
 
-            raise Program_Error with "not implemented";
+               Result.Append (Receptions.Branch.IO.Load (Child));
 
-            Next (Element => Child,
-                  Done    => Done);
-            exit when Done;
-         end loop;
-
-         return Receptions.List_Of_Branches.Empty_Vector;
+               Next (Element => Child,
+                     Done    => Done);
+               exit when Done;
+            end loop;
+         end return;
       end Branches;
 
       function Fall_Back return String;
@@ -69,57 +70,3 @@ package body Receptions.Decision_Tree.IO is
                      Fall_Back => Fall_Back);
    end Load;
 end Receptions.Decision_Tree.IO;
-
---      Check (Element => Decision_Tree,
---             Name    => Receptions.Decision_Tree.XML_Element_Name);
---
---            Load_Decision_Tree :
---            declare
---               Title : constant String := Attribute (Element => Decision_Tree,
---                                                     Name    => "title");
---
---               Child : Node := First_Child (Decision_Tree);
---            begin
---               Ada.Text_IO.Put_Line (Item => "Decision-tree title:   """ &
---                                             Title & """");
---
---               Load_Branches :
---               loop
---                  Next_Branch_Or_Fallback :
---                  loop
---                     exit Load_Branches when Child = null;
---                     exit Next_Branch_Or_Fallback
---                       when Node_Type (Child) = Element_Node and then
---                            Node_Name (Child) =
---                                            Receptions.Branch.XML_Element_Name;
---                     exit Load_Branches
---                       when Node_Type (Child) = Element_Node and then
---                            Node_Name (Child) = "fall-back";
---                     Child := Next_Sibling (Child);
---                  end loop Next_Branch_Or_Fallback;
---
---                  Load_Branch :
---                  declare
---                     Branch : Node renames Child;
---                  begin
---                     Check (Element => Branch,
---                            Name    => Receptions.Branch.XML_Element_Name);
---
---                     raise Program_Error;
---                  end Load_Branch;
---               end loop Load_Branches;
---
---               Load_Fallback :
---               declare
---                  Fallback : Node renames Child;
---               begin
---                  Check (Element => Fallback,
---                         Name    => "fall-back");
---
---                  raise Program_Error;
---               end Load_Fallback;
---            end Load_Decision_Tree;
---
---            Decision_Tree := Next_Sibling (Decision_Tree);
---         end loop Find_Decision_Trees;
---      end Load_Decision_Trees;

@@ -15,29 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with PBX.Call,
-     Receptions.Conditions;
-
-private
-with Ada.Strings.Unbounded;
-
-package Receptions.Branch is
-   type Instance is tagged private;
-   subtype Class is Instance'Class;
-
-   function Create (Conditions : in     Receptions.Conditions.Instance;
-                    Action     : in     String) return Instance;
-
-   function Applicable (Item : in     Instance;
-                        Call : in     PBX.Call.Identification) return Boolean;
-
-   function Action (Item : in     Instance) return String;
-
-   XML_Element_Name : constant String := "branch";
-private
-   type Instance is tagged
-      record
-         Conditions : Receptions.Conditions.Instance;
-         Action     : Ada.Strings.Unbounded.Unbounded_String;
-      end record;
-end Receptions.Branch;
+package Receptions.Action is
+   XML_Element_Name : constant String := "action";
+end Receptions.Action;

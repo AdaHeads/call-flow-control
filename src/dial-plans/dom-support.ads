@@ -45,6 +45,18 @@ package DOM.Support is
    --  elements starting at <Element>.  <Found> is True if a matching element
    --  is found, and False if no matching element is found in the sequence.
 
+   procedure First (Element : in out DOM.Core.Node);
+   --  Find the first XML element in a sequence of sibling elements (and other
+   --  XML nodes) starting at <Element>.
+   --  Will raise Constraint_Error with a descriptive message if the sequence
+   --  does not contain an XML element.
+
+   procedure First (Element : in out DOM.Core.Node;
+                    Found   :    out Boolean);
+   --  Find the first XML element in a sequence of sibling elements (and other
+   --  XML nodes) starting at <Element>.  <Found> is True if an XML element is
+   --  found, and False if no XML element is found in the sequence.
+
    procedure Next (Element : in out DOM.Core.Node);
    --  Go to the next XML element in a sequence of sibling elements starting
    --  at <Element>.

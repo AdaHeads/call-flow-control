@@ -16,7 +16,7 @@
 -------------------------------------------------------------------------------
 
 package body Receptions.Branch is
-   function Create (Conditions : in     Receptions.Set_Of_Conditions.List;
+   function Create (Conditions : in     Receptions.Conditions.Instance;
                     Action     : in     String) return Instance is
       use Ada.Strings.Unbounded;
    begin

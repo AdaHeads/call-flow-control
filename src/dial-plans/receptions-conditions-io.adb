@@ -1,3 +1,4 @@
+
 -------------------------------------------------------------------------------
 --                                                                           --
 --                      Copyright (C) 2013-, AdaHeads K/S                    --
@@ -15,29 +16,34 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with PBX.Call,
-     Receptions.Conditions;
+with DOM.Core.Nodes,
+     DOM.Support;
 
-private
-with Ada.Strings.Unbounded;
+with Receptions.Condition.IO;
 
-package Receptions.Branch is
-   type Instance is tagged private;
-   subtype Class is Instance'Class;
+package body Receptions.Conditions.IO is
+   function Load (From : in DOM.Core.Node) return Instance is
+      use DOM.Core.Nodes, DOM.Support;
+      Condition   : DOM.Core.Node;
+      Found, Done : Boolean;
+   begin
+      Check (Element => From,
+             Name    => Receptions.Conditions.XML_Element_Name);
 
-   function Create (Conditions : in     Receptions.Conditions.Instance;
-                    Action     : in     String) return Instance;
+      return Result : Instance do
+         Condition := First_Child (From);
 
-   function Applicable (Item : in     Instance;
-                        Call : in     PBX.Call.Identification) return Boolean;
+         loop
+            First (Element => Condition,
+                   Found   => Found);
+            exit when not Found;
 
-   function Action (Item : in     Instance) return String;
+            Result.Append (Receptions.Condition.IO.Load (From => Condition));
 
-   XML_Element_Name : constant String := "branch";
-private
-   type Instance is tagged
-      record
-         Conditions : Receptions.Conditions.Instance;
-         Action     : Ada.Strings.Unbounded.Unbounded_String;
-      end record;
-end Receptions.Branch;
+            Next (Element => Condition,
+                  Done    => Done);
+            exit when Done;
+         end loop;
+      end return;
+   end Load;
+end Receptions.Conditions.IO;
