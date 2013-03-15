@@ -56,6 +56,7 @@ package PBX.Call is
    function Value (Item : String) return Channel_Identification;
    --  Conversion.
 
+   overriding
    function To_String (Channel : in Channel_Identification) return String;
    function Image (Channel : in Channel_Identification) return String
                    renames To_String;

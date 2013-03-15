@@ -447,6 +447,7 @@ package body PBX.Call is
    --  To_String  --
    -----------------
 
+   overriding
    function To_String (Channel : in Channel_Identification) return String is
    begin
       return Ada.Strings.Unbounded.To_String
