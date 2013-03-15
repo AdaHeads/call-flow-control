@@ -42,6 +42,11 @@ package body Receptions.Conditions.Month is
 
          Result.Months (Month_Number'Value (List (From .. List'Last))) := True;
       end return;
+   exception
+      when Constraint_Error =>
+         raise Constraint_Error
+           with "Receptions.Conditions.Month: " &
+                "Failed to parse list of month numbers: """ & List & """.";
    end Create;
 
    overriding
