@@ -17,7 +17,6 @@
 
 with Ada.Command_Line,
      Ada.Exceptions,
-     Ada.Strings.Unbounded,
      Ada.Text_IO;
 
 with Input_Sources.File;       use Input_Sources.File;
@@ -25,35 +24,17 @@ with Sax.Readers;              use Sax.Readers;
 with DOM.Readers;              use DOM.Readers;
 with DOM.Core;                 use DOM.Core;
 with DOM.Core.Documents;       use DOM.Core.Documents;
-with DOM.Core.Nodes;           use DOM.Core.Nodes;
-with DOM.Support;              use DOM.Support;
 
 with AMI.Response,
      PBX,
-     Receptions.Branch,
-     Receptions.Decision_Tree,
-     Receptions.Decision_Tree_Collection,
      Receptions.Dial_Plan,
-     Receptions.End_Point,
-     Receptions.End_Point_Collection,
-     Receptions.End_Points.Busy_Signal,
-     Receptions.End_Points.Hang_Up,
-     Receptions.End_Points.Interactive_Voice_Response,
-     Receptions.End_Points.Queue,
-     Receptions.End_Points.Redirect,
-     Receptions.End_Points.Voice_Mail;
+     Receptions.Dial_Plan.IO;
 
 procedure Load_Dial_Plan is
-   Input  : File_Input;
-   Reader : Tree_Reader;
-   Doc    : Document;
-
+   Input     : File_Input;
+   Reader    : Tree_Reader;
+   Doc       : Document;
    Reception : Receptions.Dial_Plan.Instance;
-
-   Dial_Plan_Title    : Ada.Strings.Unbounded.Unbounded_String;
-   Start_Action_Title : Ada.Strings.Unbounded.Unbounded_String;
-   End_Points         : Receptions.End_Point_Collection.Map;
-   Decision_Trees     : Receptions.Decision_Tree_Collection.Map;
 begin
    PBX.Start;
 
@@ -85,236 +66,10 @@ begin
 
    Doc := Get_Tree (Reader);
 
-   Load_Dial_Plan :
-   declare
-      Dial_Plan : constant Node := Get_Element (Doc);
-   begin
-      Check (Element => Dial_Plan,
-             Name    => Receptions.Dial_Plan.XML_Element_Name);
+   Reception := Receptions.Dial_Plan.IO.Load (From => Get_Element (Doc));
 
-      Dial_Plan_Title := Ada.Strings.Unbounded.To_Unbounded_String
-                           (Attribute (Element => Dial_Plan,
-                                       Name    => "title"));
-
-      declare
-         Start : Node := First_Child (Dial_Plan);
-      begin
-         loop
-            exit when Start = null;
-            exit when Node_Type (Start) = Element_Node;
-            Start := Next_Sibling (Start);
-         end loop;
-
-         Check (Element => Start, Name => "start");
-
-         Start_Action_Title := Ada.Strings.Unbounded.To_Unbounded_String
-                                 (Attribute (Element => Start,
-                                             Name    => "do"));
-      end;
-
-      Load_End_Points :
-      declare
-         End_Point : Node := First_Child (Dial_Plan);
-      begin
-         Find_End_Points :
-         loop
-            Next_End_Point :
-            loop
-               exit Find_End_Points
-                 when End_Point = null;
-               exit Next_End_Point
-                 when Node_Type (End_Point) = Element_Node and then
-                      Node_Name (End_Point) =
-                                         Receptions.End_Point.XML_Element_Name;
-               End_Point := Next_Sibling (End_Point);
-            end loop Next_End_Point;
-
-            Check (Element => End_Point,
-                   Name    => Receptions.End_Point.XML_Element_Name);
-
-            declare
-               package Busy_Signal renames Receptions.End_Points.Busy_Signal;
-               package Hang_Up renames Receptions.End_Points.Hang_Up;
-               package Interactive_Voice_Response
-                 renames Receptions.End_Points.Interactive_Voice_Response;
-               package Queue renames Receptions.End_Points.Queue;
-               package Redirect renames Receptions.End_Points.Redirect;
-               package Voice_Mail renames Receptions.End_Points.Voice_Mail;
-
-               Title : constant String := Attribute (Element => End_Point,
-                                                     Name    => "title");
-
-               End_Point_Action : not null Node := First_Child (End_Point);
-            begin
-               loop
-                  exit when End_Point_Action = null;
-                  exit when Node_Type (End_Point_Action) = Element_Node;
-                  End_Point_Action := Next_Sibling (End_Point_Action);
-               end loop;
-
-               if Node_Name (End_Point_Action) = Hang_Up.XML_Element_Name then
-                  End_Points.Insert
-                    (Key      => Title,
-                     New_Item => Hang_Up.Create (Title => Title));
-               elsif Node_Name (End_Point_Action) = Queue.XML_Element_Name then
-                  declare
-                     Q : constant Queue.Instance :=
-                           Queue.Create
-                             (Title => Title,
-                              ID    => Attribute
-                                         (Element => End_Point_Action,
-                                          Name    => "id"));
-                  begin
-                     End_Points.Insert (Key      => Title,
-                                        New_Item => Q);
-                  end;
-               elsif Node_Name (End_Point_Action) =
-                                                 Redirect.XML_Element_Name then
-                  declare
-                     R : constant Redirect.Instance :=
-                           Redirect.Create
-                             (Title => Title,
-                              To    => Attribute
-                                         (Element => End_Point_Action,
-                                          Name    => "to"));
-                  begin
-                     End_Points.Insert (Key      => Title,
-                                        New_Item => R);
-                  end;
-               elsif Node_Name (End_Point_Action) =
-                               Interactive_Voice_Response.XML_Element_Name then
-                  End_Points.Insert
-                    (Key      => Title,
-                     New_Item => Interactive_Voice_Response.Create
-                                   (Title => Title));
-               elsif Node_Name (End_Point_Action) =
-                                               Voice_Mail.XML_Element_Name then
-                  declare
-                     V : constant Voice_Mail.Instance :=
-                           Voice_Mail.Create
-                             (Title   => Title,
-                              Play    => Attribute
-                                           (Element => End_Point_Action,
-                                            Name    => "play"),
-                              Send_To => Attribute
-                                           (Element => End_Point_Action,
-                                            Name    => "send-to"));
-                  begin
-                     End_Points.Insert (Key      => Title,
-                                        New_Item => V);
-                  end;
-               elsif Node_Name (End_Point_Action) =
-                                              Busy_Signal.XML_Element_Name then
-                  End_Points.Insert (Key      => Title,
-                                     New_Item => Busy_Signal.Create
-                                                   (Title => Title));
-               else
-                  raise Constraint_Error
-                    with "<" & Receptions.End_Point.XML_Element_Name &
-                         "> element contains illegal element <" &
-                         Node_Name (End_Point_Action) & ">.";
-               end if;
-
-               Ada.Text_IO.Put_Line (Item => "End-point type:        """ &
-                                             Node_Name (End_Point_Action) &
-                                             """");
-               Ada.Text_IO.Put_Line (Item => "End-point title:       """ &
-                                             Title & """");
-            end;
-
-            End_Point := Next_Sibling (End_Point);
-         end loop Find_End_Points;
-      end Load_End_Points;
-
-      Load_Decision_Trees :
-      declare
-         Decision_Tree : Node := First_Child (Dial_Plan);
-      begin
-         Find_Decision_Trees :
-         loop
-            Next_Decision_Tree :
-            loop
-               exit Find_Decision_Trees
-                 when Decision_Tree = null;
-               exit Next_Decision_Tree
-                 when Node_Type (Decision_Tree) = Element_Node and then
-                      Node_Name (Decision_Tree) =
-                                     Receptions.Decision_Tree.XML_Element_Name;
-               Decision_Tree := Next_Sibling (Decision_Tree);
-            end loop Next_Decision_Tree;
-
-            Check (Element => Decision_Tree,
-                   Name    => Receptions.Decision_Tree.XML_Element_Name);
-
-            Load_Decision_Tree :
-            declare
-               Title : constant String := Attribute (Element => Decision_Tree,
-                                                     Name    => "title");
-
-               Child : Node := First_Child (Decision_Tree);
-            begin
-               Ada.Text_IO.Put_Line (Item => "Decision-tree title:   """ &
-                                             Title & """");
-
-               Load_Branches :
-               loop
-                  Next_Branch_Or_Fallback :
-                  loop
-                     exit Load_Branches when Child = null;
-                     exit Next_Branch_Or_Fallback
-                       when Node_Type (Child) = Element_Node and then
-                            Node_Name (Child) =
-                                            Receptions.Branch.XML_Element_Name;
-                     exit Load_Branches
-                       when Node_Type (Child) = Element_Node and then
-                            Node_Name (Child) = "fall-back";
-                     Child := Next_Sibling (Child);
-                  end loop Next_Branch_Or_Fallback;
-
-                  Load_Branch :
-                  declare
-                     Branch : Node renames Child;
-                  begin
-                     Check (Element => Branch,
-                            Name    => Receptions.Branch.XML_Element_Name);
-
-                     raise Program_Error;
-                  end Load_Branch;
-               end loop Load_Branches;
-
-               Load_Fallback :
-               declare
-                  Fallback : Node renames Child;
-               begin
-                  Check (Element => Fallback,
-                         Name    => "fall-back");
-
-                  raise Program_Error;
-               end Load_Fallback;
-            end Load_Decision_Tree;
-
-            Decision_Tree := Next_Sibling (Decision_Tree);
-         end loop Find_Decision_Trees;
-      end Load_Decision_Trees;
-   end Load_Dial_Plan;
-
-   declare
-      use Ada.Strings.Unbounded;
-   begin
-      Reception := Receptions.Dial_Plan.Create
-                     (Title          => To_String (Dial_Plan_Title),
-                      Start_At       => To_String (Start_Action_Title),
-                      End_Points     => End_Points,
-                      Decision_Trees => Decision_Trees);
-   end;
-
-   declare
-      use Ada.Strings.Unbounded, Ada.Text_IO;
-   begin
-      Put_Line (Item => "Dial-plan title:       """ & Reception.Title & """");
-      Put_Line (Item => "Title of first action: """ &
-                        To_String (Start_Action_Title) & """");
-   end;
+   Ada.Text_IO.Put_Line
+     (Item => "Dial-plan title:       """ & Reception.Title & """");
 
    PBX.Stop;
 exception
