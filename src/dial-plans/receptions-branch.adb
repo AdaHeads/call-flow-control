@@ -15,17 +15,17 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Exceptions;
+
 package body Receptions.Branch is
-   function Create (Conditions : in     Receptions.Conditions.Instance;
-                    Action     : in     String) return Instance is
-      use Ada.Strings.Unbounded;
+   function Action (Item : in     Instance) return String is
    begin
-      return (Conditions => Conditions,
-              Action     => To_Unbounded_String (Action));
-   end Create;
+      return Ada.Strings.Unbounded.To_String (Item.Action);
+   end Action;
 
    function Applicable (Item : in     Instance;
-                        Call : in     PBX.Call.Identification) return Boolean is
+                        Call : in     PBX.Call.Identification)
+     return Boolean is
    begin
       for Condition of Item.Conditions loop
          if not Condition.True (Call) then
@@ -36,8 +36,15 @@ package body Receptions.Branch is
       return True;
    end Applicable;
 
-   function Action (Item : in     Instance) return String is
+   function Create (Conditions : in     Receptions.Conditions.Instance;
+                    Action     : in     String) return Instance is
+      use Ada.Strings.Unbounded;
    begin
-      return Ada.Strings.Unbounded.To_String (Item.Action);
-   end Action;
+      return (Conditions => Conditions,
+              Action     => To_Unbounded_String (Action));
+   exception
+      when E : Constraint_Error =>
+         raise Constraint_Error with "Receptions.Branch.Create: " &
+                                     Ada.Exceptions.Exception_Message (E);
+   end Create;
 end Receptions.Branch;
