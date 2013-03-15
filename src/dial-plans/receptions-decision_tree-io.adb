@@ -24,13 +24,9 @@ with Receptions.Branch,
 package body Receptions.Decision_Tree.IO is
    function Load (From : in DOM.Core.Node) return Instance is
       function Title return String;
-      function Title return String is
-      begin
-         return DOM.Support.Attribute (Element => From,
-                                       Name    => "title");
-      end Title;
-
       function Branches return Receptions.List_Of_Branches.Vector;
+      function Fall_Back return String;
+
       function Branches return Receptions.List_Of_Branches.Vector is
          use DOM.Core, DOM.Core.Nodes, DOM.Support;
          Child       : Node := First_Child (From);
@@ -52,7 +48,6 @@ package body Receptions.Decision_Tree.IO is
          end return;
       end Branches;
 
-      function Fall_Back return String;
       function Fall_Back return String is
          use DOM.Core, DOM.Support;
          Child : Node := Nodes.First_Child (From);
@@ -63,8 +58,14 @@ package body Receptions.Decision_Tree.IO is
                            Name    => "do");
       end Fall_Back;
 
-      use DOM.Support;
+      function Title return String is
+      begin
+         return DOM.Support.Attribute (Element => From,
+                                       Name    => "title");
+      end Title;
    begin
+      DOM.Support.Check (Element => From,
+                         Name    => XML_Element_Name);
       return Create (Title     => Title,
                      Branches  => Branches,
                      Fall_Back => Fall_Back);

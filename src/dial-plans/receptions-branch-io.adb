@@ -45,6 +45,8 @@ package body Receptions.Branch.IO is
          return Receptions.Conditions.IO.Load (From => Child);
       end Conditions;
    begin
+      DOM.Support.Check (Element => From,
+                         Name    => XML_Element_Name);
       return Create (Conditions => Conditions,
                      Action     => Action);
    end Load;

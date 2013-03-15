@@ -40,8 +40,8 @@ package body Receptions.End_Point.IO is
       Title  : constant String := Attribute (From, "title");
       Action : DOM.Core.Node;
    begin
-      Check (Element => From,
-             Name    => Receptions.End_Point.XML_Element_Name);
+      DOM.Support.Check (Element => From,
+                         Name    => XML_Element_Name);
 
       Action := DOM.Core.Nodes.First_Child (From);
 
@@ -75,7 +75,7 @@ package body Receptions.End_Point.IO is
             return R;
          end;
       elsif Node_Name (Action) = Interactive_Voice_Response.XML_Element_Name
-                                                                          then
+      then
          return Interactive_Voice_Response.Create (Title => Title);
       elsif Node_Name (Action) = Voice_Mail.XML_Element_Name then
          declare
