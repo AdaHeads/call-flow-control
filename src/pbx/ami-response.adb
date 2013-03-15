@@ -144,6 +144,7 @@ package body AMI.Response is
 
       Deadline : constant Ada.Calendar.Time := Current_Time + Timeout;
    begin
+      Subscribe (Ticket);
       AMI.Trace.Debug (Message => "Waiting",
                        Context => Context);
       loop
