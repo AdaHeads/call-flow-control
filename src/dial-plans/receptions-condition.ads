@@ -22,7 +22,8 @@ package Receptions.Condition is
    subtype Class is Instance'Class;
 
    function True (Item : in Instance;
-                  Call : in PBX.Call.Identification) return Boolean is abstract;
+                  Call : in PBX.Call.Identification) return Boolean is
+     abstract;
 
    function Value (Item : in Instance) return String is abstract;
 end Receptions.Condition;
