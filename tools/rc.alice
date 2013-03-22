@@ -94,7 +94,7 @@ yolk_start() {
 
     if [ -f ${ALICE_CONFIG} -a -f ${YOLK_CONFIG} ]
     then
-        su -c "./${NAME} --alice-config-file ${ALICE_CONFIG} --yolk-config-file ${YOLK_CONFIG} > /dev/null &" ${USER}
+        su --shell /bin/sh -c "./${NAME} --alice-config-file ${ALICE_CONFIG} --yolk-config-file ${YOLK_CONFIG} > /dev/null &" ${USER}
 
         # Create the PID file
 	YOLK_PID=`pidof ${NAME}`  # TODO: Fix this bad solution.
