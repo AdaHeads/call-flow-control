@@ -94,7 +94,7 @@ yolk_start() {
 
     if [ -f ${ALICE_CONFIG} -a -f ${YOLK_CONFIG} ]
     then
-        su --shell /bin/sh -c "./${NAME} --alice-config-file ${ALICE_CONFIG} --yolk-config-file ${YOLK_CONFIG} 1>/dev/null 2>/dev/null & echo "'$!' ${USER} > $PID}
+        su --shell /bin/sh -c "./${NAME} --alice-config-file ${ALICE_CONFIG} --yolk-config-file ${YOLK_CONFIG} 1>/dev/null 2>/dev/null & echo "'$!' ${USER} > $PID
 
         # Check that everything went well.
 	if [ -f ${PID} ]
