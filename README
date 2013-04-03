@@ -2,6 +2,7 @@ Contents of this README:
 
     1. Introduction
     2. Dependencies
+    3. References
 
 --------------------
 --  Introduction  --
@@ -17,8 +18,8 @@ Alice is GPLv3, see COPYING3 and COPYING.RUNTIME.
 --  Dependencies  --
 --------------------
 
-Alice depends on Yolk[1], AWS[2] and GNATColl[3] being compiled with PostgreSQL
-and/or SQLite support.
+Alice depends on Yolk[1], libdialplan[2], AWS[3] and GNATColl[4] being compiled
+with PostgreSQL and/or SQLite support.
 
 ------------------
 --  References  --
@@ -28,10 +29,14 @@ and/or SQLite support.
     https://github.com/ThomasLocke/yolk
     Git: git clone git://github.com/ThomasLocke/yolk.git
 
-[2] Ada Web Server
+[2] libdialplan
+    https://github.com/AdaHeads/libdialplan
+    Git: git clone git://github.com/AdaHeads/libdialplan.git
+
+[3] Ada Web Server
     http://libre.adacore.com/libre/tools/aws/
     Git: git clone --recursive http://forge.open-do.org/anonscm/git/aws/aws.git
 
-[3] GNAT Component Collection
+[4] GNAT Component Collection
     http://libre.adacore.com/libre/tools/gnat-component-collection/AA
     SVN: svn co http://svn.eu.adacore.com/anonsvn/Dev/trunk/gps/gnatlib/
