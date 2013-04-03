@@ -25,19 +25,16 @@ with DOM.Readers;              use DOM.Readers;
 with DOM.Core;                 use DOM.Core;
 with DOM.Core.Documents;       use DOM.Core.Documents;
 
-with AMI.Response,
-     PBX,
-     Receptions.Dial_Plan,
-     Receptions.Dial_Plan.IO;
+with Receptions.Dial_Plan,
+     Receptions.Dial_Plan.IO,
+     Receptions.No_PBX;
 
-procedure Load_Dial_Plan is
+procedure Test_Dial_Plan is
    Input     : File_Input;
    Reader    : Tree_Reader;
    Doc       : Document;
    Reception : Receptions.Dial_Plan.Instance;
 begin
-   PBX.Start;
-
    Set_Public_Id (Input, Receptions.Dial_Plan.XML_Element_Name);
    --  ID should be all upper-case, but AdaCore doesn't seem to get that.
 
@@ -70,18 +67,17 @@ begin
    Reception := Receptions.Dial_Plan.IO.Load (From => Get_Element (Doc));
 
    Ada.Text_IO.Put_Line
-     (Item => "Dial-plan title:       """ & Reception.Title & """");
-
-   PBX.Stop;
+     (Item => "Dial-plan title: " & Reception.Title);
+   Ada.Text_IO.Put_Line
+     (Item => "Current action:  " &
+              Reception.Application
+                (Call => Receptions.No_PBX.Null_Call).Value);
 exception
-   when AMI.Response.Timeout =>
-      null;
    when E : others =>
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       Ada.Text_IO.Put_Line
         (File => Ada.Text_IO.Standard_Error,
-         Item => "Load_Dial_Plan terminated by an unexpected exception: " &
+         Item => "Test_Dial_Plan terminated by an unexpected exception: " &
                  Ada.Exceptions.Exception_Name (E) & " (" &
                  Ada.Exceptions.Exception_Message (E) & ")");
-      PBX.Stop;
-end Load_Dial_Plan;
+end Test_Dial_Plan;

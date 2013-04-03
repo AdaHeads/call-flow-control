@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE dial-plan SYSTEM "../../dial-plans/dial-plan.dtd">
+<!DOCTYPE dial-plan SYSTEM "/usr/gnat/share/doc/libdialplan/dial-plan.dtd">
 
 <dial-plan title="Example 2: Checking opening hours">
 	<start do="Start"/>
