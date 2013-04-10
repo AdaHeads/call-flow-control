@@ -15,23 +15,37 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared";
-with "xmlada";
-with "yolk";
-with "libdialplan";
+package body Dial_Plan_Interface is
+   function Callee (PBX  : in Instance;
+                    ID   : in Receptions.PBX_Interface.Call'Class)
+     return String is
+   begin
+      raise Program_Error
+        with "Dial_Plan_Interface.Callee not implemented yet.";
+      return "<callee>";
+   end Callee;
 
-project Test is
-   for Source_Dirs use (".",
-                        "../../",
-                        "../../client/",
-                        "../../handlers/",
-                        "../../model/",
-                        "../../pbx/",
-                        "../../view/");
+   function Caller (PBX  : in Instance;
+                    ID   : in Receptions.PBX_Interface.Call'Class)
+     return String is
+   begin
+      raise Program_Error
+        with "Dial_Plan_Interface.Caller not implemented yet.";
+      return "<caller>";
+   end Caller;
 
-   for Main use ("dial_plan_interface",
-                 "normalise_dial_plan",
-                 "test_dial_plan");
+   procedure Log (PBX     : in     Instance;
+                  Level   : in     Receptions.PBX_Interface.Log_Level;
+                  Message : in     String) is
+   begin
+      raise Program_Error with "Dial_Plan_Interface.Log not implemented yet.";
+   end Log;
 
-   package Compiler renames Shared.Compiler;
-end Test;
+   function Today_Is (PBX : in Instance;
+                      Day : in String) return Boolean is
+   begin
+      raise Program_Error
+        with "Dial_Plan_Interface.Today_Is not implemented yet.";
+      return False;
+   end Today_Is;
+end Dial_Plan_Interface;

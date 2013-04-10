@@ -15,23 +15,22 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared";
-with "xmlada";
-with "yolk";
-with "libdialplan";
+with Receptions.PBX_Interface;
 
-project Test is
-   for Source_Dirs use (".",
-                        "../../",
-                        "../../client/",
-                        "../../handlers/",
-                        "../../model/",
-                        "../../pbx/",
-                        "../../view/");
+package Dial_Plan_Interface is
+   type Instance is new Receptions.PBX_Interface.Instance with null record;
 
-   for Main use ("dial_plan_interface",
-                 "normalise_dial_plan",
-                 "test_dial_plan");
+   procedure Log (PBX     : in     Instance;
+                  Level   : in     Receptions.PBX_Interface.Log_Level;
+                  Message : in     String);
 
-   package Compiler renames Shared.Compiler;
-end Test;
+   function Caller (PBX  : in Instance;
+                    ID   : in Receptions.PBX_Interface.Call'Class)
+     return String;
+   function Callee (PBX  : in Instance;
+                    ID   : in Receptions.PBX_Interface.Call'Class)
+     return String;
+
+   function Today_Is (PBX : in Instance;
+                      Day : in String) return Boolean;
+end Dial_Plan_Interface;
