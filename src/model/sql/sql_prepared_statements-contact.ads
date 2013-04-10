@@ -15,8 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  PostgreSQL implementation of the prepared statements for a contact.
-
 with GNATCOLL.SQL.Exec;
 
 with SQL_Prepared_Statements.Configuration,
