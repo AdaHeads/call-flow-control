@@ -47,6 +47,18 @@ package Database is
    type T_Numbered_Contact_Recipients (Index : Integer)
       is new T_Abstract_Contact_Recipients (null, Index) with null record;
 
+   type T_Abstract_Kinds (Instance : Cst_String_Access; Index : Integer)
+      is abstract new SQL_Table (Ta_Kinds, Instance, Index) with
+   record
+      Description : SQL_Field_Text (Ta_Kinds, Instance, N_Description, Index);
+      Id : SQL_Field_Text (Ta_Kinds, Instance, N_Id, Index);
+   end record;
+
+   type T_Kinds (Instance : Cst_String_Access)
+      is new T_Abstract_Kinds (Instance, -1) with null record;
+   type T_Numbered_Kinds (Index : Integer)
+      is new T_Abstract_Kinds (null, Index) with null record;
+
    type T_Abstract_Organization (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Organization, Instance, Index) with
    record
@@ -99,6 +111,18 @@ package Database is
    type T_Numbered_Recipient_Kind (Index : Integer)
       is new T_Abstract_Recipient_Kind (null, Index) with null record;
 
+   type T_Abstract_Special_Days (Instance : Cst_String_Access; Index : Integer)
+      is abstract new SQL_Table (Ta_Special_Days, Instance, Index) with
+   record
+      Day : SQL_Field_Date (Ta_Special_Days, Instance, N_Day, Index);
+      Kind : SQL_Field_Text (Ta_Special_Days, Instance, N_Kind, Index);
+   end record;
+
+   type T_Special_Days (Instance : Cst_String_Access)
+      is new T_Abstract_Special_Days (Instance, -1) with null record;
+   type T_Numbered_Special_Days (Index : Integer)
+      is new T_Abstract_Special_Days (null, Index) with null record;
+
    function FK (Self : T_Contact_Attributes'Class; Foreign : T_Organization'Class) return SQL_Criteria;
    function FK (Self : T_Contact_Attributes'Class; Foreign : T_Organization_Contacts'Class) return SQL_Criteria;
    function FK (Self : T_Contact_Attributes'Class; Foreign : T_Contact'Class) return SQL_Criteria;
@@ -107,12 +131,15 @@ package Database is
    function FK (Self : T_Organization_Contacts'Class; Foreign : T_Organization'Class) return SQL_Criteria;
    function FK (Self : T_Organization_Contacts'Class; Foreign : T_Contact'Class) return SQL_Criteria;
    function FK (Self : T_Recipient'Class; Foreign : T_Recipient_Kind'Class) return SQL_Criteria;
+   function FK (Self : T_Special_Days'Class; Foreign : T_Kinds'Class) return SQL_Criteria;
 
    Contact : T_Contact (null);
    Contact_Attributes : T_Contact_Attributes (null);
    Contact_Recipients : T_Contact_Recipients (null);
+   Kinds : T_Kinds (null);
    Organization : T_Organization (null);
    Organization_Contacts : T_Organization_Contacts (null);
    Recipient : T_Recipient (null);
    Recipient_Kind : T_Recipient_Kind (null);
+   Special_Days : T_Special_Days (null);
 end Database;

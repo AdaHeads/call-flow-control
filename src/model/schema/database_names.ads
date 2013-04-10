@@ -7,6 +7,8 @@ package Database_Names is
    Ta_Contact_Attributes : constant Cst_String_Access := TC_Contact_Attributes'Access;
    TC_Contact_Recipients : aliased constant String := "contact_recipients";
    Ta_Contact_Recipients : constant Cst_String_Access := TC_Contact_Recipients'Access;
+   TC_Kinds : aliased constant String := "kinds";
+   Ta_Kinds : constant Cst_String_Access := TC_Kinds'Access;
    TC_Organization : aliased constant String := "organization";
    Ta_Organization : constant Cst_String_Access := TC_Organization'Access;
    TC_Organization_Contacts : aliased constant String := "organization_contacts";
@@ -15,9 +17,15 @@ package Database_Names is
    Ta_Recipient : constant Cst_String_Access := TC_Recipient'Access;
    TC_Recipient_Kind : aliased constant String := "recipient_kind";
    Ta_Recipient_Kind : constant Cst_String_Access := TC_Recipient_Kind'Access;
+   TC_Special_Days : aliased constant String := "special_days";
+   Ta_Special_Days : constant Cst_String_Access := TC_Special_Days'Access;
 
    NC_Contact_Id : aliased constant String := "contact_id";
    N_Contact_Id : constant Cst_String_Access := NC_contact_id'Access;
+   NC_Day : aliased constant String := """day""";
+   N_Day : constant Cst_String_Access := NC_day'Access;
+   NC_Description : aliased constant String := "description";
+   N_Description : constant Cst_String_Access := NC_description'Access;
    NC_Email_Address : aliased constant String := "email_address";
    N_Email_Address : constant Cst_String_Access := NC_email_address'Access;
    NC_Full_Name : aliased constant String := "full_name";

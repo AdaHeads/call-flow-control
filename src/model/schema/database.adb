@@ -42,4 +42,9 @@ package body Database is
    begin
       return Self.Kind_Id = Foreign.Id;
    end FK;
+
+   function FK (Self : T_Special_Days'Class; Foreign : T_Kinds'Class) return SQL_Criteria is
+   begin
+      return Self.Kind = Foreign.Id;
+   end FK;
 end Database;
