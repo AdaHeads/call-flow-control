@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2013-, AdaHeads K/S                    --
+--                     Copyright (C) 2013-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,26 +15,16 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared";
-with "xmlada";
-with "yolk";
-with "libdialplan";
+with GNATCOLL.SQL;
 
-project Test is
-   for Source_Dirs use (".",
-                        "../../",
-                        "../../client/",
-                        "../../handlers/",
-                        "../../model/",
-                        "../../model/schema/",
-                        "../../model/sql/",
-                        "../../pbx/",
-                        "../../view/");
+package SQL_Statements.Special_Days is
 
-   for Main use ("dial_plan_interface",
-                 "normalise_dial_plan",
-                 "sql_statements-special_days",
-                 "test_dial_plan");
+   use GNATCOLL.SQL;
 
-   package Compiler renames Shared.Compiler;
-end Test;
+   Query : constant SQL_Query :=
+             SQL_Select (Fields => DB.Special_Days.Day,
+                         From   => DB.Special_Days,
+                         Where  => DB.Special_Days.Kind = Text_Param (1) and
+                                   DB.Special_Days.Day  = Date_Param (2));
+
+end SQL_Statements.Special_Days;
