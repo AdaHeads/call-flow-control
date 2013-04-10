@@ -46,6 +46,7 @@ package body Dial_Plan_Interface is
    procedure Log (PBX     : in     Instance;
                   Level   : in     Receptions.PBX_Interface.Log_Level;
                   Message : in     String) is
+      pragma Unreferenced (PBX);
       use Receptions.PBX_Interface;
    begin
       case Level is
