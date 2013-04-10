@@ -19,7 +19,8 @@
 
 with GNATCOLL.SQL.Exec;
 
-with SQL_Statements.Contact;
+with SQL_Prepared_Statements.Configuration,
+     SQL_Statements.Contact;
 
 package SQL_Prepared_Statements.Contact is
 
@@ -34,7 +35,7 @@ package SQL_Prepared_Statements.Contact is
    Contacts_Prepared : constant Prepared_Statement
      := Prepare (Query         => Contacts_Query,
                  Auto_Complete => True,
-                 On_Server     => True,
+                 On_Server     => Configuration.On_Server,
                  Name          => "organization_contacts");
 
    ----------------------------------------------------------------------------
@@ -46,7 +47,7 @@ package SQL_Prepared_Statements.Contact is
    Contact_Full_Prepared : constant Prepared_Statement
      := Prepare (Query         => Contact_With_Id_Query_Full,
                  Auto_Complete => True,
-                 On_Server     => True,
+                 On_Server     => Configuration.On_Server,
                  Name          => "contact_full");
 
    ----------------------------------------------------------------------------
@@ -58,7 +59,7 @@ package SQL_Prepared_Statements.Contact is
    Contact_Org_Specified_Prepared : constant Prepared_Statement
      := Prepare (Query         => Contact_Org_Specified_Query,
                  Auto_Complete => True,
-                 On_Server     => True,
+                 On_Server     => Configuration.On_Server,
                  Name          => "contact_org_specified");
 
 end SQL_Prepared_Statements.Contact;

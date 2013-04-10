@@ -40,8 +40,6 @@ abstract project Shared is
               "__storage-connection_postgresql.ads";
             for Specification ("SQL_Prepared_Statements.Configuration") use
               "__sql_prepared_statements-configuration_postgresql.ads";
-            for Specification ("SQL_Prepared_Statements.Contact") use
-              "__sql_prepared_statements-contact_postgresql.ads";
             for Specification ("SQL_Prepared_Statements.Organization") use
               "__sql_prepared_statements-organization_postgresql.ads";
          when "SQLite" =>
@@ -49,8 +47,6 @@ abstract project Shared is
               "__storage-connection_sqlite.ads";
             for Specification ("SQL_Prepared_Statements.Configuration") use
               "__sql_prepared_statements-configuration_sqlite.ads";
-            for Specification ("SQL_Prepared_Statements.Contact") use
-              "__sql_prepared_statements-contact_sqlite.ads";
             for Specification ("SQL_Prepared_Statements.Organization") use
               "__sql_prepared_statements-organization_sqlite.ads";
       end case;
