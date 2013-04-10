@@ -15,6 +15,15 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with System_Message.Alert,
+     System_Message.Critical,
+     System_Message.Debug,
+     System_Message.Emergency,
+     System_Message.Error,
+     System_Message.Info,
+     System_Message.Notice,
+     System_Message.Warning;
+
 package body Dial_Plan_Interface is
    function Callee (PBX  : in Instance;
                     ID   : in Receptions.PBX_Interface.Call'Class)
@@ -37,8 +46,26 @@ package body Dial_Plan_Interface is
    procedure Log (PBX     : in     Instance;
                   Level   : in     Receptions.PBX_Interface.Log_Level;
                   Message : in     String) is
+      use Receptions.PBX_Interface;
    begin
-      raise Program_Error with "Dial_Plan_Interface.Log not implemented yet.";
+      case Level is
+         when Debug =>
+            System_Message.Debug.Dial_Plan     (Message => Message);
+         when Information =>
+            System_Message.Info.Dial_Plan      (Message => Message);
+         when Notice =>
+            System_Message.Notice.Dial_Plan    (Message => Message);
+         when Warning =>
+            System_Message.Warning.Dial_Plan   (Message => Message);
+         when Error =>
+            System_Message.Error.Dial_Plan     (Message => Message);
+         when Critical =>
+            System_Message.Critical.Dial_Plan  (Message => Message);
+         when Alert =>
+            System_Message.Alert.Dial_Plan     (Message => Message);
+         when Emergency =>
+            System_Message.Emergency.Dial_Plan (Message => Message);
+      end case;
    end Log;
 
    function Today_Is (PBX : in Instance;

@@ -15,26 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package System_Message.Debug is
-
-   procedure Entered_Subprogram is new Logger
-     (Log_Trace => Yolk.Log.Debug,
-      Status    => "Entered subprogram");
-
-   procedure Leaving_Subprogram is new Logger
-     (Log_Trace => Yolk.Log.Debug,
-      Status    => "Leaving subprogram");
-
-   procedure Looking_For_XML_Element is new Logger
-     (Log_Trace => Yolk.Log.Debug,
-      Status    => "Looking for XML element");
-
-   procedure Looking_For_XML_Attribute is new Logger
-     (Log_Trace => Yolk.Log.Debug,
-      Status    => "Looking for XML attribute");
+package System_Message.Notice is
 
    procedure Dial_Plan is new Logger
-     (Log_Trace => Yolk.Log.Debug,
+     (Log_Trace => Yolk.Log.Notice,
       Status    => "libdialplan");
 
-end System_Message.Debug;
+end System_Message.Notice;

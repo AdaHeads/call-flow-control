@@ -65,4 +65,8 @@ package System_Message.Info is
      (Log_Trace => Yolk.Log.Info,
       Status    => "Jacob wants to see this.");
 
+   procedure Dial_Plan is new Logger
+     (Log_Trace => Yolk.Log.Info,
+      Status    => "libdialplan");
+
 end System_Message.Info;
