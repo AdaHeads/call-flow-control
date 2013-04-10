@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2013-, AdaHeads K/S                    --
+--                     Copyright (C) 2013-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,32 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Exceptions, Ada.Text_IO; use Ada.Exceptions, Ada.Text_IO;
+package System_Message.Emergency is
 
-package body Receptions.End_Points.Busy_Signal is
-   not overriding
-   function Create (Title : in     String) return Instance is
-   begin
-      return (Title => Ada.Strings.Unbounded.To_Unbounded_String (Title));
-   exception
-      when E : others =>
-         Put_Line (File => Standard_Error,
-                   Item => "Receptions.End_Points.Busy_Signal.Create raised " &
-                           Exception_Name (E) & " with " &
-                           Exception_Message (E) & ".");
-         raise;
-   end Create;
+   procedure Dial_Plan is new Logger
+     (Log_Trace => Yolk.Log.Emergency,
+      Status    => "libdialplan");
 
-   overriding
-   function Title (Item : in     Instance) return String is
-   begin
-      return Ada.Strings.Unbounded.To_String (Item.Title);
-   end Title;
-
-   overriding
-   function Value (Item : in Instance) return String is
-   begin
-      return "Busy_Signal'(Title => """ &
-             Ada.Strings.Unbounded.To_String (Item.Title) & """)";
-   end Value;
-end Receptions.End_Points.Busy_Signal;
+end System_Message.Emergency;

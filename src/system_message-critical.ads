@@ -75,4 +75,8 @@ package System_Message.Critical is
      (Log_Trace => Yolk.Log.Critical,
       Status    => "Cannot change user for process");
 
+   procedure Dial_Plan is new Logger
+     (Log_Trace => Yolk.Log.Critical,
+      Status    => "libdialplan");
+
 end System_Message.Critical;

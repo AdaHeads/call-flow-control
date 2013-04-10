@@ -33,4 +33,8 @@ package System_Message.Debug is
      (Log_Trace => Yolk.Log.Debug,
       Status    => "Looking for XML attribute");
 
+   procedure Dial_Plan is new Logger
+     (Log_Trace => Yolk.Log.Debug,
+      Status    => "libdialplan");
+
 end System_Message.Debug;

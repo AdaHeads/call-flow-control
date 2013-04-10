@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2013-, AdaHeads K/S                    --
+--                     Copyright (C) 2013-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,8 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with DOM.Core;
+package System_Message.Alert is
 
-package Receptions.End_Point.IO is
-   function Load (From : in DOM.Core.Node) return Class;
-end Receptions.End_Point.IO;
+   procedure Dial_Plan is new Logger
+     (Log_Trace => Yolk.Log.Alert,
+      Status    => "libdialplan");
+
+end System_Message.Alert;

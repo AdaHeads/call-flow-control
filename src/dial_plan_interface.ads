@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2012-, AdaHeads K/S                    --
+--                      Copyright (C) 2013-, AdaHeads K/S                    --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,27 +15,22 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Receptions.End_Point;
+with Receptions.PBX_Interface;
 
-private
-with Ada.Strings.Unbounded;
+package Dial_Plan_Interface is
+   type Instance is new Receptions.PBX_Interface.Instance with null record;
 
-package Receptions.End_Points.Interactive_Voice_Response is
-   type Instance is new End_Point.Instance with private;
+   procedure Log (PBX     : in     Instance;
+                  Level   : in     Receptions.PBX_Interface.Log_Level;
+                  Message : in     String);
 
-   not overriding
-   function Create (Title : in     String) return Instance;
+   function Caller (PBX  : in Instance;
+                    ID   : in Receptions.PBX_Interface.Call'Class)
+     return String;
+   function Callee (PBX  : in Instance;
+                    ID   : in Receptions.PBX_Interface.Call'Class)
+     return String;
 
-   overriding
-   function Title (Item : in     Instance) return String;
-
-   overriding
-   function Value (Item : in Instance) return String;
-
-   XML_Element_Name : constant String := "interactive-voice-response";
-private
-   type Instance is new End_Point.Instance with
-      record
-         Title : Ada.Strings.Unbounded.Unbounded_String;
-      end record;
-end Receptions.End_Points.Interactive_Voice_Response;
+   function Today_Is (PBX : in Instance;
+                      Day : in String) return Boolean;
+end Dial_Plan_Interface;

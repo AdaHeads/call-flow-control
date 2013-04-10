@@ -54,4 +54,8 @@ package System_Message.Error is
       Status      => "not found",
       Status_Code => HTTP_Codes.Not_Found);
 
+   procedure Dial_Plan is new Logger
+     (Log_Trace => Yolk.Log.Error,
+      Status    => "libdialplan");
+
 end System_Message.Error;

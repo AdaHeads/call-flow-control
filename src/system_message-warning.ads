@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2013-, AdaHeads K/S                    --
+--                     Copyright (C) 2013-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,29 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with PBX.Call,
-     Receptions.Conditions;
+package System_Message.Warning is
 
-private
-with Ada.Strings.Unbounded;
+   procedure Dial_Plan is new Logger
+     (Log_Trace => Yolk.Log.Warning,
+      Status    => "libdialplan");
 
-package Receptions.Branch is
-   type Instance is tagged private;
-   subtype Class is Instance'Class;
-
-   function Create (Conditions : in     Receptions.Conditions.Instance;
-                    Action     : in     String) return Instance;
-
-   function Applicable (Item : in     Instance;
-                        Call : in     PBX.Call.Identification) return Boolean;
-
-   function Action (Item : in     Instance) return String;
-
-   XML_Element_Name : constant String := "branch";
-private
-   type Instance is tagged
-      record
-         Conditions : Receptions.Conditions.Instance;
-         Action     : Ada.Strings.Unbounded.Unbounded_String;
-      end record;
-end Receptions.Branch;
+end System_Message.Warning;

@@ -18,9 +18,10 @@
 with "../shared";
 with "xmlada";
 with "yolk";
+with "libdialplan";
 
 project Test is
-   for Source_Dirs use ("../../dial-plans/",
+   for Source_Dirs use (".",
                         "../../",
                         "../../client/",
                         "../../handlers/",
@@ -28,7 +29,7 @@ project Test is
                         "../../pbx/",
                         "../../view/");
 
-   for Main use ("load_dial_plan",
+   for Main use ("dial_plan_interface",
                  "normalise_dial_plan",
                  "test_dial_plan");
 

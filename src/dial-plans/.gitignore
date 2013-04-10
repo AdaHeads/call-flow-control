@@ -1,6 +1,0 @@
-*.ali
-*.o
-
-load_dial_plan
-normalise_dial_plan
-test_dial_plan
