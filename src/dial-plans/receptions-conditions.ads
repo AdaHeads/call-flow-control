@@ -15,6 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Receptions.Set_Of_Conditions;
+
 package Receptions.Conditions is
-   pragma Pure;
+   type Instance is new Receptions.Set_Of_Conditions.List with null record;
+
+   XML_Element_Name : constant String := "conditions";
 end Receptions.Conditions;

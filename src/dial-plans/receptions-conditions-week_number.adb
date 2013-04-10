@@ -19,8 +19,74 @@ with Ada.Calendar,
      Ada.Strings.Fixed,
      Ada.Strings.Unbounded;
 
+with Ada.Exceptions, Ada.Text_IO; use Ada.Exceptions, Ada.Text_IO;
+
 package body Receptions.Conditions.Week_Number is
    function Week_Number (Date : in Ada.Calendar.Time) return Week_Numbers;
+
+   not overriding
+   function Create (List : in String) return Instance is
+      use Ada.Calendar,
+          Ada.Strings.Fixed;
+
+      From  : Positive := List'First;
+      Comma : Natural;
+   begin
+      return Result : Instance do
+         loop
+            Comma := Index (Source  => List (From .. List'Last),
+                            Pattern => ",");
+
+            exit when Comma = 0;
+
+            Result.Weeks (Week_Numbers'Value (List (From .. Comma - 1)))
+              := True;
+
+            From := Comma + 1;
+         end loop;
+
+         Result.Weeks (Week_Numbers'Value (List (From .. List'Last))) := True;
+      end return;
+   exception
+      when E : others =>
+         Put_Line (File => Standard_Error,
+                   Item => "Receptions.Conditions.Week_Number.Create raised " &
+                           Exception_Name (E) & " with " &
+                           Exception_Message (E) & ".");
+         raise;
+   end Create;
+
+   overriding
+   function True (Item : in Instance;
+                  Call : in PBX.Call.Identification) return Boolean is
+      pragma Unreferenced (Call);
+   begin
+      return
+        Item.Weeks (Week_Number (Ada.Calendar.Clock));
+   end True;
+
+   overriding
+   function Value (Item : in Instance) return String is
+      use Ada.Calendar,
+          Ada.Strings.Unbounded;
+      Result : Unbounded_String;
+      Prefix : Unbounded_String := To_Unbounded_String ("Week number in {");
+   begin
+      for Week in Item.Weeks'Range loop
+         if Item.Weeks (Week) then
+            Append (Result, Prefix);
+            Append (Result, Week_Numbers'Image (Week));
+            Prefix := To_Unbounded_String (",");
+         end if;
+      end loop;
+
+      if Length (Result) = 0 then
+         return "False";
+      else
+         return To_String (Result) & "}";
+      end if;
+   end Value;
+
    function Week_Number (Date : in Ada.Calendar.Time) return Week_Numbers is
       Year  : constant Ada.Calendar.Year_Number  := Ada.Calendar.Year  (Date);
       Month : constant Ada.Calendar.Month_Number := Ada.Calendar.Month (Date);
@@ -58,60 +124,4 @@ package body Receptions.Conditions.Week_Number is
          return (n / 7) + 1;
       end if;
    end Week_Number;
-
-   not overriding
-   function Create (List : in String) return Instance is
-      use Ada.Calendar,
-          Ada.Strings.Fixed;
-
-      From  : Positive := List'First;
-      Comma : Natural;
-   begin
-      return Result : Instance do
-         loop
-            Comma := Index (Source  => List (From .. List'Last),
-                            Pattern => ",");
-
-            exit when Comma = 0;
-
-            Result.Weeks (Week_Numbers'Value (List (From .. Comma - 1)))
-              := True;
-
-            From := Comma + 1;
-         end loop;
-
-         Result.Weeks (Week_Numbers'Value (List (From .. List'Last))) := True;
-      end return;
-   end Create;
-
-   overriding
-   function Evaluate (Item : in Instance;
-                      Call : in PBX.Call.Identification) return Boolean is
-      pragma Unreferenced (Call);
-   begin
-      return
-        Item.Weeks (Week_Number (Ada.Calendar.Clock));
-   end Evaluate;
-
-   overriding
-   function Value (Item : in Instance) return String is
-      use Ada.Calendar,
-          Ada.Strings.Unbounded;
-      Result : Unbounded_String;
-      Prefix : Unbounded_String := To_Unbounded_String ("Week number in {");
-   begin
-      for Week in Item.Weeks'Range loop
-         if Item.Weeks (Week) then
-            Append (Result, Prefix);
-            Append (Result, Week_Numbers'Image (Week));
-            Prefix := To_Unbounded_String (",");
-         end if;
-      end loop;
-
-      if Length (Result) = 0 then
-         return "False";
-      else
-         return To_String (Result) & "}";
-      end if;
-   end Value;
 end Receptions.Conditions.Week_Number;

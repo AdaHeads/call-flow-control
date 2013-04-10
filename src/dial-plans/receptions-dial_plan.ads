@@ -27,16 +27,19 @@ package Receptions.Dial_Plan is
    type Instance is tagged private;
    subtype Class is Instance'Class;
 
-   function Create (Title          : in     String;
-                    Start_At       : in     String;
-                    End_Points     : in     Receptions.End_Point_Collection.Map;
-                    Decision_Trees : in     Receptions.Decision_Tree_Collection.Map) return Instance
+   function Create
+     (Title          : in     String;
+      Start_At       : in     String;
+      End_Points     : in     Receptions.End_Point_Collection.Map;
+      Decision_Trees : in     Receptions.Decision_Tree_Collection.Map)
+     return Instance
      with Precondition => (not End_Points.Is_Empty);
 
    function Title (Item : in     Instance) return String;
 
    function Application (Item : in     Instance;
-                         Call : in     PBX.Call.Identification) return Receptions.End_Point.Class;
+                         Call : in     PBX.Call.Identification)
+     return Receptions.End_Point.Class;
 
    XML_Element_Name : constant String := "dial-plan";
 

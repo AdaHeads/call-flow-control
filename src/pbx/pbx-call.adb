@@ -447,6 +447,7 @@ package body PBX.Call is
    --  To_String  --
    -----------------
 
+   overriding
    function To_String (Channel : in Channel_Identification) return String is
    begin
       return Ada.Strings.Unbounded.To_String
@@ -647,14 +648,14 @@ package body PBX.Call is
 
       function Get (ID : in Identification) return Instance is
       begin
+
+         AMI.Trace.Debug (Message => "Looking up call " & Image (ID),
+                          Context => "PBX.Call.Get");
          if not List.Contains (ID) then
-            return Null_Instance;
+            raise Not_Found;
          else
             return List.Element (ID);
          end if;
-      exception
-         when Constraint_Error =>
-            raise Not_Found with " call " & To_String (ID);
       end Get;
 
       --------------

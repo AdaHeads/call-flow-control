@@ -15,7 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with PBX.Call;
+with PBX.Call,
+     Receptions.List_Of_Branches;
 
 private
 with Ada.Strings.Unbounded;
@@ -24,6 +25,12 @@ package Receptions.Decision_Tree is
    type Instance is tagged private;
    subtype Class is Instance'Class;
 
+   function Create (Title     : in     String;
+                    Branches  : in     Receptions.List_Of_Branches.Vector;
+                    Fall_Back : in     String) return Instance;
+
+   function Title (Item : in     Instance) return String;
+
    function Branch (Item : in     Instance;
                     Call : in     PBX.Call.Identification) return String;
 
@@ -31,6 +38,8 @@ package Receptions.Decision_Tree is
 private
    type Instance is tagged
       record
+         Title     : Ada.Strings.Unbounded.Unbounded_String;
+         Branches  : Receptions.List_Of_Branches.Vector;
          Fall_Back : Ada.Strings.Unbounded.Unbounded_String;
       end record;
 end Receptions.Decision_Tree;

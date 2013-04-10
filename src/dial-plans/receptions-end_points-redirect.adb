@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Exceptions, Ada.Text_IO; use Ada.Exceptions, Ada.Text_IO;
+
 package body Receptions.End_Points.Redirect is
    not overriding
    function Create (Title : in     String;
@@ -22,6 +24,13 @@ package body Receptions.End_Points.Redirect is
    begin
       return (Title => Ada.Strings.Unbounded.To_Unbounded_String (Title),
               To    => Ada.Strings.Unbounded.To_Unbounded_String (To));
+   exception
+      when E : others =>
+         Put_Line (File => Standard_Error,
+                   Item => "Receptions.End_Points.Redirect.Create raised " &
+                           Exception_Name (E) & " with " &
+                           Exception_Message (E) & ".");
+         raise;
    end Create;
 
    overriding

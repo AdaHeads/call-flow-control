@@ -1,12 +1,12 @@
 {
     "Standard_Greeting": "Velkommen til...",
     "Enable_Polling": false,
-    "SIP_PBX": "asterisk1.adaheads.com",
+    "SIP_PBX": "asterisk2.adaheads.com",
     "Agent_ID": 1,
     "Websocket": {
         "Reconnect": false,
         "Reconnect_Interval": 1000,
-        "URI": "ws://alice.adaheads.com:4242/notifications"
+        "URI": "wss://alice.adaheads.com:4242/notifications"
     },
     "PJSUA_HTTPD_URI": "http://localhost:30200",
     "System_Console": {
@@ -18,9 +18,9 @@
     "Debug_Enabled": true,
     "SIP_Password": "12345",
     "SIP_Username": 1,
-    "Alice_URI": "http://alice.adaheads.com:4242/",
+    "Alice_URI": "https://alice.adaheads.com:4242/",
     "SIP_Account": {
-        "Domain": "asterisk1.adaheads.com",
+        "Domain": "asterisk2.adaheads.com",
         "Password": "12345",
         "Username": "softphone1"
     },
@@ -29,9 +29,9 @@
     "logLevel": "info",
     "dart": {
         "standardGreeting": "Velkommen til...",
-        "aliceBaseUrl": "http://alice.adaheads.com:4242",
+        "aliceBaseUrl": "https://alice.adaheads.com:4242",
         "notificationSocket": {
-            "interface": "ws://alice.adaheads.com:4242/notifications",
+            "interface": "wss://alice.adaheads.com:4242/notifications",
             "reconnectInterval": 1000
         },
         "agentID": 1,

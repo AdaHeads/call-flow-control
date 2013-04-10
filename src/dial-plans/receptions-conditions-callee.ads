@@ -29,8 +29,8 @@ package Receptions.Conditions.Callee is
    function Create (Number : in String) return Instance;
 
    overriding
-   function Evaluate (Item : in Instance;
-                      Call : in PBX.Call.Identification) return Boolean;
+   function True (Item : in Instance;
+                  Call : in PBX.Call.Identification) return Boolean;
 
    overriding
    function Value (Item : in Instance) return String;

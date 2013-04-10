@@ -18,6 +18,8 @@
 with Ada.Strings.Fixed,
      Ada.Strings.Unbounded;
 
+with Ada.Exceptions, Ada.Text_IO; use Ada.Exceptions, Ada.Text_IO;
+
 package body Receptions.Conditions.Day_Of_Month is
    not overriding
    function Create (List : in String) return Instance is
@@ -41,16 +43,23 @@ package body Receptions.Conditions.Day_Of_Month is
 
          Result.Days (Day_Number'Value (List (From .. List'Last))) := True;
       end return;
+   exception
+      when E : others =>
+         Put_Line (File => Standard_Error,
+                   Item => "Receptions.Conditions.Day_Of_Month.Create raised " &
+                           Exception_Name (E) & " with " &
+                           Exception_Message (E) & ".");
+         raise;
    end Create;
 
    overriding
-   function Evaluate (Item : in Instance;
-                      Call : in PBX.Call.Identification) return Boolean is
+   function True (Item : in Instance;
+                  Call : in PBX.Call.Identification) return Boolean is
       pragma Unreferenced (Call);
    begin
       return
         Item.Days (Ada.Calendar.Day (Ada.Calendar.Clock));
-   end Evaluate;
+   end True;
 
    overriding
    function Value (Item : in Instance) return String is

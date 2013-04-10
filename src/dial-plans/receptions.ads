@@ -16,5 +16,5 @@
 -------------------------------------------------------------------------------
 
 package Receptions is
-    pragma Pure;
+   pragma Pure;
 end Receptions;

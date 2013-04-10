@@ -22,4 +22,6 @@ package Receptions.End_Point is
    function Title (Item : in     Instance) return String is abstract;
 
    function Value (Item : in Instance) return String is abstract;
+
+   XML_Element_Name : constant String := "end-point";
 end Receptions.End_Point;

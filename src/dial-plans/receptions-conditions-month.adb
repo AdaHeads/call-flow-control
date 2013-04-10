@@ -34,23 +34,29 @@ package body Receptions.Conditions.Month is
 
             exit when Comma = 0;
 
-            Result.Months (Month_Number'Value (List (From .. Comma - 1))) := True;
+            Result.Months (Month_Number'Value (List (From .. Comma - 1))) :=
+                                                                          True;
 
             From := Comma + 1;
          end loop;
 
          Result.Months (Month_Number'Value (List (From .. List'Last))) := True;
       end return;
+   exception
+      when Constraint_Error =>
+         raise Constraint_Error
+           with "Receptions.Conditions.Month: " &
+                "Failed to parse list of month numbers: """ & List & """.";
    end Create;
 
    overriding
-   function Evaluate (Item : in Instance;
-                      Call : in PBX.Call.Identification) return Boolean is
+   function True (Item : in Instance;
+                  Call : in PBX.Call.Identification) return Boolean is
       pragma Unreferenced (Call);
    begin
       return
         Item.Months (Ada.Calendar.Month (Ada.Calendar.Clock));
-   end Evaluate;
+   end True;
 
    overriding
    function Value (Item : in Instance) return String is

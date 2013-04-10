@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Exceptions, Ada.Text_IO; use Ada.Exceptions, Ada.Text_IO;
+
 package body Receptions.End_Points.Voice_Mail is
    not overriding
    function Create (Title   : in     String;
@@ -24,6 +26,13 @@ package body Receptions.End_Points.Voice_Mail is
       return (Title   => Ada.Strings.Unbounded.To_Unbounded_String (Title),
               Play    => Ada.Strings.Unbounded.To_Unbounded_String (Play),
               Send_To => Ada.Strings.Unbounded.To_Unbounded_String (Send_To));
+   exception
+      when E : others =>
+         Put_Line (File => Standard_Error,
+                   Item => "Receptions.End_Points.Voice_Mail.Create raised " &
+                           Exception_Name (E) & " with " &
+                           Exception_Message (E) & ".");
+         raise;
    end Create;
 
    overriding

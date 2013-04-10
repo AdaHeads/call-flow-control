@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Exceptions, Ada.Text_IO; use Ada.Exceptions, Ada.Text_IO;
+
 package body Receptions.Conditions.Inverse is
    use Receptions.Condition_Container;
 
@@ -23,18 +25,25 @@ package body Receptions.Conditions.Inverse is
      return Instance is
    begin
       return (Condition => To_Holder (Condition));
+   exception
+      when E : others =>
+         Put_Line (File => Standard_Error,
+                   Item => "Receptions.Conditions.Inverse.Create raised " &
+                           Exception_Name (E) & " with " &
+                           Exception_Message (E) & ".");
+         raise;
    end Create;
 
    overriding
-   function Evaluate (Item : in Instance;
-                      Call : in PBX.Call.Identification) return Boolean is
+   function True (Item : in Instance;
+                  Call : in PBX.Call.Identification) return Boolean is
    begin
-      return not Element (Item.Condition).Evaluate (Call);
+      return not Element (Item.Condition).True (Call);
    exception
       when Constraint_Error =>
          raise Constraint_Error
            with "<" & XML_Element_Name & "> object not initialized.";
-   end Evaluate;
+   end True;
 
    overriding
    function Value (Item : in Instance) return String is

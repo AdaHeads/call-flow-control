@@ -17,17 +17,26 @@
 
 with System_Message.Info;
 
+with Ada.Exceptions, Ada.Text_IO; use Ada.Exceptions, Ada.Text_IO;
+
 package body Receptions.Conditions.Callee is
    not overriding
    function Create (Number : in String) return Instance is
       use Ada.Strings.Unbounded;
    begin
       return (Number => To_Unbounded_String (Number));
+   exception
+      when E : others =>
+         Put_Line (File => Standard_Error,
+                   Item => "Receptions.Conditions.Callee.Create raised " &
+                           Exception_Name (E) & " with " &
+                           Exception_Message (E) & ".");
+         raise;
    end Create;
 
    overriding
-   function Evaluate (Item : in Instance;
-                      Call : in PBX.Call.Identification) return Boolean is
+   function True (Item : in Instance;
+                  Call : in PBX.Call.Identification) return Boolean is
       use Ada.Strings.Unbounded,
           PBX.Call;
    begin
@@ -36,7 +45,7 @@ package body Receptions.Conditions.Callee is
                     """. Checking for callee: """ & To_String (Item.Number) &
                     """.");
       return Image (B_Leg (Get (Call))) = To_String (Item.Number);
-   end Evaluate;
+   end True;
 
    overriding
    function Value (Item : in Instance) return String is
