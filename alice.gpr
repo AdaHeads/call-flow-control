@@ -84,6 +84,8 @@ project Alice is
               "__storage-connection_postgresql.ads";
             for Specification ("SQL_Prepared_Statements.Attribute") use
               "__sql_prepared_statements-attribute_postgresql.ads";
+            for Specification ("SQL_Prepared_Statements.Configuration") use
+              "__sql_prepared_statements-configuration_postgresql.ads";
             for Specification ("SQL_Prepared_Statements.Contact") use
               "__sql_prepared_statements-contact_postgresql.ads";
             for Specification ("SQL_Prepared_Statements.Organization") use
@@ -93,6 +95,8 @@ project Alice is
               "__storage-connection_sqlite.ads";
             for Specification ("SQL_Prepared_Statements.Attribute") use
               "__sql_prepared_statements-attribute_sqlite.ads";
+            for Specification ("SQL_Prepared_Statements.Configuration") use
+              "__sql_prepared_statements-configuration_sqlite.ads";
             for Specification ("SQL_Prepared_Statements.Contact") use
               "__sql_prepared_statements-contact_sqlite.ads";
             for Specification ("SQL_Prepared_Statements.Organization") use

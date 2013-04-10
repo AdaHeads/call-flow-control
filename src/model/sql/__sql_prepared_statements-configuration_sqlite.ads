@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2013-, AdaHeads K/S                    --
+--                     Copyright (C) 2013-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,20 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared";
-with "xmlada";
-with "yolk";
-with "libdialplan";
-
-project Test is
-   for Source_Dirs use ("../../**");
-
-   for Main use ("dial_plan_interface",
-                 "normalise_dial_plan",
-                 "sql_prepared_statements-special_days",
-                 "test_dial_plan");
-
-   package Compiler renames Shared.Compiler;
-
-   package Naming renames Shared.Naming;
-end Test;
+package SQL_Prepared_Statements.Configuration is
+   On_Server : constant Boolean := False;
+end SQL_Prepared_Statements.Configuration;

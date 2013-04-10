@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2013-, AdaHeads K/S                    --
+--                     Copyright (C) 2013-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,20 +15,19 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared";
-with "xmlada";
-with "yolk";
-with "libdialplan";
+with GNATCOLL.SQL.Exec;
 
-project Test is
-   for Source_Dirs use ("../../**");
+with SQL_Prepared_Statements.Configuration,
+     SQL_Statements.Special_Days;
 
-   for Main use ("dial_plan_interface",
-                 "normalise_dial_plan",
-                 "sql_prepared_statements-special_days",
-                 "test_dial_plan");
+package SQL_Prepared_Statements.Special_Days is
 
-   package Compiler renames Shared.Compiler;
+   use GNATCOLL.SQL.Exec;
 
-   package Naming renames Shared.Naming;
-end Test;
+   Query : constant Prepared_Statement
+     := Prepare (Query         => SQL_Statements.Special_Days.Query,
+                 Auto_Complete => True,
+                 On_Server     => Configuration.On_Server,
+                 Name          => "special_days");
+
+end SQL_Prepared_Statements.Special_Days;
