@@ -15,11 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded;
-
 with Common;
 with Model.Attribute;
 with Model.Attributes;
+
+private with Ada.Strings.Unbounded;
 
 package Model.Contact is
 
