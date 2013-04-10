@@ -15,11 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  PostgreSQL implementation of the prepared statements for an organization.
-
 with GNATCOLL.SQL.Exec;
 
-with SQL_Statements.Organization;
+with SQL_Prepared_Statements.Configuration,
+     SQL_Statements.Organization;
 
 package SQL_Prepared_Statements.Organization is
 
@@ -34,37 +33,37 @@ package SQL_Prepared_Statements.Organization is
    Organization_Midi_Prepared : constant Prepared_Statement
      := Prepare (Query         => Organization_Midi_Query,
                  Auto_Complete => True,
-                 On_Server     => True,
+                 On_Server     => Configuration.On_Server,
                  Name          => "organization_midi");
 
    Organization_URI_Midi_Prepared : constant Prepared_Statement
      := Prepare (Query         => Organization_URI_Midi_Query,
                  Auto_Complete => True,
-                 On_Server     => True,
+                 On_Server     => Configuration.On_Server,
                  Name          => "organization_uri_midi");
 
    Organization_Mini_Prepared : constant Prepared_Statement
      := Prepare (Query         => Organization_Mini_Query,
                  Auto_Complete => True,
-                 On_Server     => True,
+                 On_Server     => Configuration.On_Server,
                  Name          => "organization_mini");
 
    Organization_URI_Mini_Prepared : constant Prepared_Statement
      := Prepare (Query         => Organization_URI_Mini_Query,
                  Auto_Complete => True,
-                 On_Server     => True,
+                 On_Server     => Configuration.On_Server,
                  Name          => "organization_uri_mini");
 
    Organizations_Midi_Prepared : constant Prepared_Statement
      := Prepare (Query         => Organizations_Midi_Query,
                  Auto_Complete => True,
-                 On_Server     => True,
+                 On_Server     => Configuration.On_Server,
                  Name          => "organizations_midi");
 
    Organizations_Mini_Prepared : constant Prepared_Statement
      := Prepare (Query         => Organizations_Mini_Query,
                  Auto_Complete => True,
-                 On_Server     => True,
+                 On_Server     => Configuration.On_Server,
                  Name          => "organizations_mini");
 
    ----------------------------------------------------------------------------
@@ -75,13 +74,13 @@ package SQL_Prepared_Statements.Organization is
    Organization_Maxi_Prepared : constant Prepared_Statement
      := Prepare (Query         => Org_Contacts_Query,
                  Auto_Complete => True,
-                 On_Server     => True,
+                 On_Server     => Configuration.On_Server,
                  Name          => "organization_maxi");
 
    Organization_URI_Maxi_Prepared : constant Prepared_Statement
      := Prepare (Query         => Org_URI_Contacts_Query,
                  Auto_Complete => True,
-                 On_Server     => True,
+                 On_Server     => Configuration.On_Server,
                  Name          => "organization_uri_maxi");
 
 end SQL_Prepared_Statements.Organization;

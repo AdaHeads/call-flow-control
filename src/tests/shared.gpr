@@ -40,15 +40,11 @@ abstract project Shared is
               "__storage-connection_postgresql.ads";
             for Specification ("SQL_Prepared_Statements.Configuration") use
               "__sql_prepared_statements-configuration_postgresql.ads";
-            for Specification ("SQL_Prepared_Statements.Organization") use
-              "__sql_prepared_statements-organization_postgresql.ads";
          when "SQLite" =>
             for Specification ("Storage.Connection") use
               "__storage-connection_sqlite.ads";
             for Specification ("SQL_Prepared_Statements.Configuration") use
               "__sql_prepared_statements-configuration_sqlite.ads";
-            for Specification ("SQL_Prepared_Statements.Organization") use
-              "__sql_prepared_statements-organization_sqlite.ads";
       end case;
    end Naming;
 
