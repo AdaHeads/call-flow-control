@@ -15,7 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with System_Message.Alert,
+with Model.Special_Days,
+     System_Message.Alert,
      System_Message.Critical,
      System_Message.Debug,
      System_Message.Emergency,
@@ -71,9 +72,8 @@ package body Dial_Plan_Interface is
 
    function Today_Is (PBX : in Instance;
                       Day : in String) return Boolean is
+      pragma Unreferenced (PBX);
    begin
-      raise Program_Error
-        with "Dial_Plan_Interface.Today_Is not implemented yet.";
-      return False;
+      return Model.Special_Days.Today_Is (Kind => Day);
    end Today_Is;
 end Dial_Plan_Interface;

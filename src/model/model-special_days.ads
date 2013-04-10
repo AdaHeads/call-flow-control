@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2013-, AdaHeads K/S                    --
+--                     Copyright (C) 2013-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,23 +15,16 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared";
-with "gnatcoll";
-with "gnatcoll_postgres";
-with "gnatcoll_sqlite";
-with "xmlada";
-with "yolk";
-with "libdialplan";
+with Ada.Calendar;
 
-project Test is
-   for Source_Dirs use ("../../**");
+package Model.Special_Days is
 
-   for Main use ("dial_plan_interface",
-                 "normalise_dial_plan",
-                 "sql_prepared_statements-special_days",
-                 "test_dial_plan");
+   function Day_Is (Date : in     Ada.Calendar.Time;
+                    Kind : in     String) return Boolean;
 
-   package Compiler renames Shared.Compiler;
+   function Today_Is (Kind : in     String) return Boolean;
 
-   package Naming renames Shared.Naming;
-end Test;
+   procedure Insert (Date : in     Ada.Calendar.Time;
+                     Kind : in     String);
+
+end Model.Special_Days;
