@@ -1,4 +1,4 @@
-gnatcoll_db2ada -dbhost pgprimary -dbname customers -dbuser alice -dbpasswd secret -api=database -enum=recipient_kind,id,kind,kind,integer
+gnatcoll_db2ada -dbhost pgprimary -dbname customers -dbuser alice -dbpasswd secret -api=Database -enum=recipient_kind,id,kind,kind,integer
 
 Note the -enum option. This is not required, but can be added as a convenience. See gnatcoll_db2ada help and
 http://docs.adacore.com/gnatcoll-docs/sql.html#the-gnatcoll-db2ada-tool for more information.
