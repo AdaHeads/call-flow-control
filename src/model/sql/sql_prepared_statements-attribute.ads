@@ -15,11 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  SQLite implementation of the prepared statements for an attribute.
-
 with GNATCOLL.SQL.Exec;
 
-with SQL_Statements.Attribute;
+with SQL_Prepared_Statements.Configuration,
+     SQL_Statements.Attribute;
 
 package SQL_Prepared_Statements.Attribute is
 
@@ -34,6 +33,7 @@ package SQL_Prepared_Statements.Attribute is
    Contact_Attributes_Prepared : constant Prepared_Statement
      := Prepare (Query         => Contact_With_Id_Attributes_Query,
                  Auto_Complete => True,
+                 On_Server     => Configuration.On_Server,
                  Name          => "contact_attributes");
 
    ----------------------------------------------------------------------------
@@ -44,6 +44,7 @@ package SQL_Prepared_Statements.Attribute is
    Contact_Organization_Attributes_Prepared : constant Prepared_Statement
      := Prepare (Query         => Contact_Organization_Attributes_Query,
                  Auto_Complete => True,
+                 On_Server     => Configuration.On_Server,
                  Name          => "contact_organization_attributes");
 
 end SQL_Prepared_Statements.Attribute;
