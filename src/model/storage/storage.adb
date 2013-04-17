@@ -40,7 +40,8 @@ package body Storage is
    procedure Process_Select_Query
      (Process_Element    : not null access procedure (E : in Element);
       Prepared_Statement : in GNATCOLL.SQL.Exec.Prepared_Statement;
-      Query_Parameters   : in GNATCOLL.SQL.Exec.SQL_Parameters)
+      Query_Parameters   : in GNATCOLL.SQL.Exec.SQL_Parameters :=
+                                GNATCOLL.SQL.Exec.No_Parameters)
    is
       use Connection;
       use GNATCOLL.SQL;
