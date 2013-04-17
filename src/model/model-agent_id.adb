@@ -36,7 +36,7 @@ package body Model.Agent_ID is
       return (ID => Agent_ID);
    exception
       when Constraint_Error =>
-         raise Invalid_ID with "Bad value:" & Agent_ID'img;
+         raise Invalid_ID with "Bad value:" & Agent_ID'Img;
    end Create;
 
    function ID (Agent_ID : in Agent_ID_Type) return Natural is
