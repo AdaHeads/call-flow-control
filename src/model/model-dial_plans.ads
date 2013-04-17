@@ -15,24 +15,17 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared";
-with "gnatcoll";
-with "gnatcoll_postgres";
-with "gnatcoll_sqlite";
-with "xmlada";
-with "yolk";
-with "libdialplan";
+with
+  Receptions.End_Point,
+  Receptions.PBX_Interface;
 
-project Test is
-   for Source_Dirs use ("../../**");
+package Model.Dial_Plans is
+   procedure Clear;
+   procedure Reload_All;
+   Not_Found : exception;
+   procedure Load (Number : in     String);
 
-   for Main use ("dial_plan_interface",
-                 "normalise_dial_plan",
-                 "model-dial_plans",
-                 "model-special_days",
-                 "test_dial_plan");
-
-   package Compiler renames Shared.Compiler;
-   package Naming   renames Shared.Naming;
-   package IDE      renames Shared.IDE;
-end Test;
+   function End_Point (Number : in     String;
+                       Call   : in     Receptions.PBX_Interface.Call'Class)
+     return Receptions.End_Point.Class;
+end Model.Dial_Plans;

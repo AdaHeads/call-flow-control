@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2013-, AdaHeads K/S                    --
+--                     Copyright (C) 2013-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,24 +15,25 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared";
-with "gnatcoll";
-with "gnatcoll_postgres";
-with "gnatcoll_sqlite";
-with "xmlada";
-with "yolk";
-with "libdialplan";
+with GNATCOLL.SQL.Exec;
 
-project Test is
-   for Source_Dirs use ("../../**");
+with SQL_Prepared_Statements.Configuration,
+     SQL_Statements.Dial_Plans;
 
-   for Main use ("dial_plan_interface",
-                 "normalise_dial_plan",
-                 "model-dial_plans",
-                 "model-special_days",
-                 "test_dial_plan");
+package SQL_Prepared_Statements.Dial_Plans is
 
-   package Compiler renames Shared.Compiler;
-   package Naming   renames Shared.Naming;
-   package IDE      renames Shared.IDE;
-end Test;
+   use GNATCOLL.SQL.Exec;
+
+   Get_All      : constant Prepared_Statement
+     := Prepare (Query         => SQL_Statements.Dial_Plans.Get_All,
+                 Auto_Complete => True,
+                 On_Server     => Configuration.On_Server,
+                 Name          => "all_dial_plans");
+
+   Get_Specific : constant Prepared_Statement
+     := Prepare (Query         => SQL_Statements.Dial_Plans.Get_Specific,
+                 Auto_Complete => True,
+                 On_Server     => Configuration.On_Server,
+                 Name          => "specific_dial_plan");
+
+end SQL_Prepared_Statements.Dial_Plans;

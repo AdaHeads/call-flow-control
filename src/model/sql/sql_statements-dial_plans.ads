@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2013-, AdaHeads K/S                    --
+--                     Copyright (C) 2013-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,24 +15,20 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared";
-with "gnatcoll";
-with "gnatcoll_postgres";
-with "gnatcoll_sqlite";
-with "xmlada";
-with "yolk";
-with "libdialplan";
+with GNATCOLL.SQL;
 
-project Test is
-   for Source_Dirs use ("../../**");
+package SQL_Statements.Dial_Plans is
 
-   for Main use ("dial_plan_interface",
-                 "normalise_dial_plan",
-                 "model-dial_plans",
-                 "model-special_days",
-                 "test_dial_plan");
+   use GNATCOLL.SQL;
 
-   package Compiler renames Shared.Compiler;
-   package Naming   renames Shared.Naming;
-   package IDE      renames Shared.IDE;
-end Test;
+   Get_All      : constant SQL_Query :=
+     SQL_Select (Fields => DB.Dial_Plans.Phone_Number &
+                           DB.Dial_Plans.Dial_Plan,
+                 From   => DB.Dial_Plans);
+
+   Get_Specific : constant SQL_Query :=
+     SQL_Select (Fields => DB.Dial_Plans.Dial_Plan,
+                 From   => DB.Dial_Plans,
+                 Where  => DB.Dial_Plans.Phone_Number = Text_Param (1));
+
+end SQL_Statements.Dial_Plans;
