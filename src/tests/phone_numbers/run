@@ -1,0 +1,57 @@
+#! /bin/bash
+#-----------------------------------------------------------------------------
+#--  Set up:
+
+cd "$(dirname "$0")" || exit -1
+
+comparison_errors=0
+
+#-----------------------------------------------------------------------------
+#--  Matching comparisons:
+
+while read line; do
+   if echo "${line}" | tr '\t\n' '\0\0' | xargs --null ./comparison; then
+      true
+   else
+      comparison_errors++
+   fi
+done < comparison.examples.matching
+
+#-----------------------------------------------------------------------------
+#--  Non-matching comparisons:
+
+while read line; do
+   if echo "${line}" | tr '\t\n' '\0\0' | xargs --null ./comparison; then
+      comparison_errors++
+   else
+      true
+   fi
+done < comparison.examples.not_matching
+
+#-----------------------------------------------------------------------------
+#--  Report comparison errors:
+
+if [ ${comparison_errors} -gt 0 ]; then
+   echo "Failed at comparing ${errors} examples correctly."
+fi
+
+#-----------------------------------------------------------------------------
+#--  Normalisation:
+
+normalisation_errors=$(./normalisation < normalisation.examples.unnormalised | diff - normalisation.examples.normalised | wc -l)
+
+#-----------------------------------------------------------------------------
+#--  Report normalisation errors:
+
+if [ ${normalisation_errors} -gt 0 ]; then
+   echo "Failed at normalising ${normalisation_errors} examples correctly."
+fi
+
+#-----------------------------------------------------------------------------
+#--  Exit status:
+
+let errors=${comparison_errors}+${normalisation_errors}
+
+exit ${errors}
+
+#-----------------------------------------------------------------------------
