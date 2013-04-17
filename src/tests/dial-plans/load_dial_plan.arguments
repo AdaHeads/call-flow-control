@@ -1,3 +1,5 @@
 dial-plan_examples/opening_hours_example_1.dial-plan
---alice-config-file ../../exe/configuration/alice_config.ini
---yolk-config-file asterisk-ami/yolk_config.ini
+--alice-config-file
+../../exe/configuration/alice_config.ini
+--yolk-config-file
+asterisk-ami/yolk_config.ini

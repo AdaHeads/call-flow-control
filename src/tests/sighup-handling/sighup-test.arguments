@@ -1,1 +1,2 @@
---yolk-config-file sighup-handling/yolk_config.ini
+--yolk-config-file
+sighup-handling/yolk_config.ini
