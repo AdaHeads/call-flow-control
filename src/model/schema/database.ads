@@ -9,6 +9,18 @@ package Database is
    Kind_Cc : constant Kind_Id := 2;
    Kind_To : constant Kind_Id := 1;
 
+   type T_Abstract_Dial_Plans (Instance : Cst_String_Access; Index : Integer)
+      is abstract new SQL_Table (Ta_Dial_Plans, Instance, Index) with
+   record
+      Dial_Plan : SQL_Field_XML (Ta_Dial_Plans, Instance, N_Dial_Plan, Index);
+      Phone_Number : SQL_Field_Text (Ta_Dial_Plans, Instance, N_Phone_Number, Index);
+   end record;
+
+   type T_Dial_Plans (Instance : Cst_String_Access)
+      is new T_Abstract_Dial_Plans (Instance, -1) with null record;
+   type T_Numbered_Dial_Plans (Index : Integer)
+      is new T_Abstract_Dial_Plans (null, Index) with null record;
+
    type T_Abstract_Contact (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Contact, Instance, Index) with
    record
@@ -133,6 +145,7 @@ package Database is
    function FK (Self : T_Recipient'Class; Foreign : T_Recipient_Kind'Class) return SQL_Criteria;
    function FK (Self : T_Special_Days'Class; Foreign : T_Kinds'Class) return SQL_Criteria;
 
+   Dial_Plans : T_Dial_Plans (null);
    Contact : T_Contact (null);
    Contact_Attributes : T_Contact_Attributes (null);
    Contact_Recipients : T_Contact_Recipients (null);

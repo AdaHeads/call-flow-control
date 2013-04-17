@@ -1,6 +1,8 @@
 with GNATCOLL.SQL; use GNATCOLL.SQL;
 package Database_Names is
    pragma Style_Checks (Off);
+   TC_Dial_Plans : aliased constant String := """Dial_Plans""";
+   Ta_Dial_Plans : constant Cst_String_Access := TC_Dial_Plans'Access;
    TC_Contact : aliased constant String := "contact";
    Ta_Contact : constant Cst_String_Access := TC_Contact'Access;
    TC_Contact_Attributes : aliased constant String := "contact_attributes";
@@ -26,6 +28,8 @@ package Database_Names is
    N_Day : constant Cst_String_Access := NC_day'Access;
    NC_Description : aliased constant String := "description";
    N_Description : constant Cst_String_Access := NC_description'Access;
+   NC_Dial_Plan : aliased constant String := "dial_plan";
+   N_Dial_Plan : constant Cst_String_Access := NC_dial_plan'Access;
    NC_Email_Address : aliased constant String := "email_address";
    N_Email_Address : constant Cst_String_Access := NC_email_address'Access;
    NC_Full_Name : aliased constant String := "full_name";
@@ -42,6 +46,8 @@ package Database_Names is
    N_Kind_Id : constant Cst_String_Access := NC_kind_id'Access;
    NC_Organization_Id : aliased constant String := "organization_id";
    N_Organization_Id : constant Cst_String_Access := NC_organization_id'Access;
+   NC_Phone_Number : aliased constant String := "phone_number";
+   N_Phone_Number : constant Cst_String_Access := NC_phone_number'Access;
    NC_Recipient_Id : aliased constant String := "recipient_id";
    N_Recipient_Id : constant Cst_String_Access := NC_recipient_id'Access;
    NC_Uri : aliased constant String := "uri";
