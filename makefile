@@ -43,3 +43,6 @@ tests: all
 
 cleanup_messy_temp_files:
 	find . -name "*~" -type f -print0 | xargs -0 -r /bin/rm
+
+fix-whitespace:
+	@find src -name '*.ad?' | xargs --no-run-if-empty egrep -l '	| $$' | grep -v '^b[~]' | xargs --no-run-if-empty perl -i -lpe 's|	|        |g; s| +$$||g'
