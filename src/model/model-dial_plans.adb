@@ -19,7 +19,8 @@ with
   Ada.Containers.Indefinite_Hashed_Maps,
   Ada.Strings.Hash;
 with
-  Receptions.Dial_Plan;
+  Receptions.Dial_Plan,
+  Receptions.Dial_Plan.IO;
 with
   Phone_Numbers,
   SQL_Prepared_Statements.Dial_Plans,
@@ -116,18 +117,16 @@ package body Model.Dial_Plans is
    function To_Dial_Plan (C : in out Database_Cursor'Class)
                          return Receptions.Dial_Plan.Class is
    begin
-      raise Program_Error
-        with "Dial_Plan_Database.To_Dial_Plan is not implemented.";
-      return Dummy_Result : Receptions.Dial_Plan.Instance do
-         null;
-      end return;
+      return Receptions.Dial_Plan.IO.From_XML (Value (C, 0));
    end To_Dial_Plan;
 
    function To_Map (C : in out Database_Cursor'Class) return Maps.Map is
    begin
-      raise Program_Error
-        with "Dial_Plan_Database.To_Map is not implemented.";
-      return Maps.Empty_Map;
+      return Result : Maps.Map do
+         Result.Insert
+           (Key      => Value (C, 0),
+            New_Item => Receptions.Dial_Plan.IO.From_XML (Value (C, 1)));
+      end return;
    end To_Map;
 
 end Model.Dial_Plans;
