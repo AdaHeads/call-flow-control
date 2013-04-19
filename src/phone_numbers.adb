@@ -19,6 +19,7 @@ with
   Ada.Characters.Latin_1;
 
 package body Phone_Numbers is
+   function Is_Whitespace (Item : in     Character) return Boolean;
    function Is_Whitespace (Item : in     Character) return Boolean is
       use Ada.Characters.Latin_1;
    begin

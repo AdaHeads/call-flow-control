@@ -117,7 +117,7 @@ package body Model.Dial_Plans is
    function To_Dial_Plan (C : in out Database_Cursor'Class)
                          return Receptions.Dial_Plan.Class is
    begin
-      return Receptions.Dial_Plan.IO.From_XML (Value (C, 0));
+      return Receptions.Dial_Plan.IO.XML (Value (C, 0));
    end To_Dial_Plan;
 
    function To_Map (C : in out Database_Cursor'Class) return Maps.Map is
@@ -125,7 +125,7 @@ package body Model.Dial_Plans is
       return Result : Maps.Map do
          Result.Insert
            (Key      => Value (C, 0),
-            New_Item => Receptions.Dial_Plan.IO.From_XML (Value (C, 1)));
+            New_Item => Receptions.Dial_Plan.IO.XML (Value (C, 1)));
       end return;
    end To_Map;
 

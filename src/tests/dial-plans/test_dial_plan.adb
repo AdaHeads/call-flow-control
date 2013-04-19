@@ -19,31 +19,23 @@ with Ada.Command_Line,
      Ada.Exceptions,
      Ada.Text_IO;
 
-with Input_Sources.File;       use Input_Sources.File;
-with Sax.Readers;              use Sax.Readers;
-with DOM.Readers;              use DOM.Readers;
-with DOM.Core;                 use DOM.Core;
-with DOM.Core.Documents;       use DOM.Core.Documents;
-
 with Receptions.Dial_Plan,
      Receptions.Dial_Plan.IO,
      Receptions.No_PBX;
 
 procedure Test_Dial_Plan is
-   Input     : File_Input;
-   Reader    : Tree_Reader;
-   Doc       : Document;
+   use Ada.Text_IO;
+   Input     : Ada.Text_IO.File_Type;
    Reception : Receptions.Dial_Plan.Instance;
 begin
-   Set_Public_Id (Input, Receptions.Dial_Plan.XML_Element_Name);
-   --  ID should be all upper-case, but AdaCore doesn't seem to get that.
-
    Open_Source_File :
    declare
-      use Ada.Command_Line, Ada.Text_IO;
+      use Ada.Command_Line;
    begin
       if Argument_Count >= 1 then
-         Open (Argument (1), Input);
+         Open (File => Input,
+               Name => Argument (1),
+               Mode => In_File);
       else
          Put_Line (Standard_Error, "Usage:");
          Put_Line (Standard_Error, "   " & Command_Name & " <dial-plan file>");
@@ -56,27 +48,21 @@ begin
          return;
    end Open_Source_File;
 
-   Set_Feature (Reader, Validation_Feature, True);
-   Set_Feature (Reader, Namespace_Feature, False);
+   Reception := Receptions.Dial_Plan.IO.XML (File => Input);
 
-   Parse (Reader, Input);
    Close (Input);
 
-   Doc := Get_Tree (Reader);
-
-   Reception := Receptions.Dial_Plan.IO.Load (From => Get_Element (Doc));
-
-   Ada.Text_IO.Put_Line
+   Put_Line
      (Item => "Dial-plan title: " & Reception.Title);
-   Ada.Text_IO.Put_Line
+   Put_Line
      (Item => "Current action:  " &
               Reception.Application
                 (Call => Receptions.No_PBX.Null_Call).Value);
 exception
    when E : others =>
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
-      Ada.Text_IO.Put_Line
-        (File => Ada.Text_IO.Standard_Error,
+      Put_Line
+        (File => Standard_Error,
          Item => "Test_Dial_Plan terminated by an unexpected exception: " &
                  Ada.Exceptions.Exception_Name (E) & " (" &
                  Ada.Exceptions.Exception_Message (E) & ")");
