@@ -45,7 +45,11 @@ package body Model.Dial_Plans is
    function To_Dial_Plan (C : in out Database_Cursor'Class)
                          return Receptions.Dial_Plan.Class is
    begin
-      return Receptions.Dial_Plan.IO.XML (Value (C, 0));
+      return Result : constant Receptions.Dial_Plan.Class :=
+                        Receptions.Dial_Plan.IO.XML (Value (C, 0))
+      do
+         C.Next;
+      end return;
    end To_Dial_Plan;
 
    function To_Map (C : in out Database_Cursor'Class) return Maps.Map is
@@ -54,6 +58,7 @@ package body Model.Dial_Plans is
          Result.Insert
            (Key      => Value (C, 0),
             New_Item => Receptions.Dial_Plan.IO.XML (Value (C, 1)));
+         C.Next;
       end return;
    end To_Map;
 
@@ -92,8 +97,8 @@ package body Model.Dial_Plans is
       begin
          Dial_Plan_Only
            (Process_Element    => Insert'Access,
-            Prepared_Statement => 
-	      SQL_Prepared_Statements.Dial_Plans.Get_Specific,
+            Prepared_Statement =>
+              SQL_Prepared_Statements.Dial_Plans.Get_Specific,
             Query_Parameters   => (1 => +Normalised_Phone_Number'Access));
 
          case Found is
