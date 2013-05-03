@@ -16,23 +16,16 @@
 -------------------------------------------------------------------------------
 
 with
-  Receptions.End_Point,
-  Receptions.PBX_Interface;
+  Ada.Containers.Indefinite_Hashed_Maps,
+  Ada.Strings.Hash;
 with
-  Model.Dial_Plan_Maps;
+  Receptions.Dial_Plan;
+with
+  Phone_Numbers;
 
-package Model.Dial_Plans is
-   Not_Found : exception;
-
-   protected Container is
-      procedure Clear;
-      procedure Reload_All;
-      procedure Load (Number : in     String);
-
-      function End_Point (Number : in     String;
-                          Call   : in     Receptions.PBX_Interface.Call'Class)
-        return Receptions.End_Point.Class;
-   private
-      Loaded : Model.Dial_Plan_Maps.Map;
-   end Container;
-end Model.Dial_Plans;
+package Model.Dial_Plan_Maps is new Ada.Containers.Indefinite_Hashed_Maps
+  (Key_Type        => String,
+   Element_Type    => Receptions.Dial_Plan.Class,
+   Hash            => Ada.Strings.Hash,
+   Equivalent_Keys => Phone_Numbers.Same,
+   "="             => Receptions.Dial_Plan."=");
