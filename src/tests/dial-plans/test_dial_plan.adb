@@ -18,52 +18,38 @@
 with Ada.Command_Line,
      Ada.Exceptions,
      Ada.Text_IO;
-
-with Receptions.Dial_Plan,
-     Receptions.Dial_Plan.IO,
-     Receptions.No_PBX;
+with Receptions.No_PBX;
+with Model.Dial_Plans;
 
 procedure Test_Dial_Plan is
-   use Ada.Text_IO;
-   Input     : Ada.Text_IO.File_Type;
-   Reception : Receptions.Dial_Plan.Instance;
+   use Ada.Command_Line, Ada.Exceptions, Ada.Text_IO;
 begin
-   Open_Source_File :
-   declare
-      use Ada.Command_Line;
-   begin
-      if Argument_Count >= 1 then
-         Open (File => Input,
-               Name => Argument (1),
-               Mode => In_File);
-      else
-         Put_Line (Standard_Error, "Usage:");
-         Put_Line (Standard_Error, "   " & Command_Name & " <dial-plan file>");
-         Set_Exit_Status (Failure);
-         return;
-      end if;
-   exception
-      when others =>
-         Set_Exit_Status (Failure);
-         return;
-   end Open_Source_File;
-
-   Reception := Receptions.Dial_Plan.IO.XML (File => Input);
-
-   Close (Input);
-
-   Put_Line
-     (Item => "Dial-plan title: " & Reception.Title);
-   Put_Line
-     (Item => "Current action:  " &
-              Reception.Application
-                (Call => Receptions.No_PBX.Null_Call).Value);
+   Model.Dial_Plans.Container.Reload_All;
+   
+   Set_Exit_Status (Success);
+   for Index in 1 .. Argument_Count loop
+      declare
+	 Number : String renames Argument (Index);
+      begin
+	 Put_Line (Item => """" & Number & """ goes to the end-point """ & 
+		           Model.Dial_Plans.Container.End_Point
+		             (Number => Number,
+			      Call   => Receptions.No_PBX.Null_Call).Value);
+      exception
+	 when E : others =>
+	    Set_Exit_Status (Failure);
+	    Put_Line
+	      (File => Standard_Error,
+	       Item => "Test_Dial_Plan terminated by an unexpected exception " &
+		       "while testing the phone number """ & Number & """: " &
+                       Exception_Name (E) & " (" & Exception_Message (E) & ")");
+      end;
+   end loop;
 exception
    when E : others =>
-      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+      Set_Exit_Status (Failure);
       Put_Line
-        (File => Standard_Error,
-         Item => "Test_Dial_Plan terminated by an unexpected exception: " &
-                 Ada.Exceptions.Exception_Name (E) & " (" &
-                 Ada.Exceptions.Exception_Message (E) & ")");
+	(File => Standard_Error,
+	 Item => "Test_Dial_Plan terminated by an unexpected exception: " &
+	         Exception_Name (E) & " (" & Exception_Message (E) & ")");
 end Test_Dial_Plan;
