@@ -18,7 +18,7 @@
 with GNATCOLL.SQL.Exec;
 
 package Storage is
-   
+
    Database_Error : exception;
    --  Is raised if we can't complete a query for one reason or another.
 
