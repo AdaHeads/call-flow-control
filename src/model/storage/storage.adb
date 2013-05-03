@@ -23,9 +23,6 @@ with System_Message.Critical;
 
 package body Storage is
 
-   Database_Error : exception;
-   --  Is raised if we can't complete a query for one reason or another.
-
    function Trim
      (Source : in String)
       return String;
