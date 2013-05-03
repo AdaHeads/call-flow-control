@@ -27,7 +27,6 @@ project Test is
    for Source_Dirs use ("../../**");
 
    for Main use ("dial_plan_interface",
-                 "normalise_dial_plan",
                  "model-dial_plans",
                  "model-special_days",
                  "test_dial_plan");
