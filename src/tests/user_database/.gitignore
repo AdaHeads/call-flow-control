@@ -1,0 +1,4 @@
+*.ali
+*.o
+
+show_user_list
