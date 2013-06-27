@@ -23,7 +23,7 @@ package Model is
    type Organization_Identifier is new Natural;
 
    subtype Organization_URI is String
-     with Static_Predicate => (Organization_URI'Length <= 256);
+     with Dynamic_Predicate => (Organization_URI'Length <= 256);
 
    type Organization_Contact_Identifier is
       record
