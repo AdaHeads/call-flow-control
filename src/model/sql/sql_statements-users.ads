@@ -22,13 +22,13 @@ package SQL_Statements.Users is
    use GNATCOLL.SQL;
 
    User_List_Query : constant SQL_Query
-     := SQL_Select (Fields => Distinct (DB.User_IDs.Name),
-                    From   => DB.User_IDs);
+     := Distinct (SQL_Select (Fields => DB.User_IDs.Name,
+			      From   => DB.User_IDs));
 
    OpenID_List_Query : constant SQL_Query
      := SQL_Select (Fields   => DB.User_IDs.OpenID,
                     From     => DB.User_IDs,
-                    Where    => DB.User_IDs.Name = String_Param (1),
+                    Where    => DB.User_IDs.Name = Text_Param (1),
                     Order_By => DB.User_IDs.Rank);
 
 end SQL_Statements.Users;
