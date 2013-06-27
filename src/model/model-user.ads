@@ -18,6 +18,6 @@
 package Model.User is
 
    type Name is new String
-     with Static_Predicate => (Name'Length > 0);
+     with Dynamic_Predicate => (Name'Length > 0);
 
 end Model.User;
