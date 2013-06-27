@@ -135,6 +135,30 @@ package Database is
    type T_Numbered_Special_Days (Index : Integer)
       is new T_Abstract_Special_Days (null, Index) with null record;
 
+   type T_Abstract_User_Ids (Instance : Cst_String_Access; Index : Integer)
+      is abstract new SQL_Table (Ta_User_Ids, Instance, Index) with
+   record
+      Name : SQL_Field_Text (Ta_User_Ids, Instance, N_Name, Index);
+      Openid : SQL_Field_Text (Ta_User_Ids, Instance, N_Openid, Index);
+      Rank : SQL_Field_Integer (Ta_User_Ids, Instance, N_Rank, Index);
+   end record;
+
+   type T_User_Ids (Instance : Cst_String_Access)
+      is new T_Abstract_User_Ids (Instance, -1) with null record;
+   type T_Numbered_User_Ids (Index : Integer)
+      is new T_Abstract_User_Ids (null, Index) with null record;
+
+   type T_Abstract_Users (Instance : Cst_String_Access; Index : Integer)
+      is abstract new SQL_Table (Ta_Users, Instance, Index) with
+   record
+      Name : SQL_Field_Text (Ta_Users, Instance, N_Name, Index);
+   end record;
+
+   type T_Users (Instance : Cst_String_Access)
+      is new T_Abstract_Users (Instance, -1) with null record;
+   type T_Numbered_Users (Index : Integer)
+      is new T_Abstract_Users (null, Index) with null record;
+
    function FK (Self : T_Contact_Attributes'Class; Foreign : T_Organization'Class) return SQL_Criteria;
    function FK (Self : T_Contact_Attributes'Class; Foreign : T_Organization_Contacts'Class) return SQL_Criteria;
    function FK (Self : T_Contact_Attributes'Class; Foreign : T_Contact'Class) return SQL_Criteria;
@@ -144,6 +168,7 @@ package Database is
    function FK (Self : T_Organization_Contacts'Class; Foreign : T_Contact'Class) return SQL_Criteria;
    function FK (Self : T_Recipient'Class; Foreign : T_Recipient_Kind'Class) return SQL_Criteria;
    function FK (Self : T_Special_Days'Class; Foreign : T_Kinds'Class) return SQL_Criteria;
+   function FK (Self : T_User_Ids'Class; Foreign : T_Users'Class) return SQL_Criteria;
 
    Dial_Plans : T_Dial_Plans (null);
    Contact : T_Contact (null);
@@ -155,4 +180,6 @@ package Database is
    Recipient : T_Recipient (null);
    Recipient_Kind : T_Recipient_Kind (null);
    Special_Days : T_Special_Days (null);
+   User_Ids : T_User_Ids (null);
+   Users : T_Users (null);
 end Database;

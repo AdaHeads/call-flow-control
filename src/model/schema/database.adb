@@ -47,4 +47,9 @@ package body Database is
    begin
       return Self.Kind = Foreign.Id;
    end FK;
+
+   function FK (Self : T_User_Ids'Class; Foreign : T_Users'Class) return SQL_Criteria is
+   begin
+      return Self.Name = Foreign.Name;
+   end FK;
 end Database;

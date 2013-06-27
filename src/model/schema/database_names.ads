@@ -21,6 +21,10 @@ package Database_Names is
    Ta_Recipient_Kind : constant Cst_String_Access := TC_Recipient_Kind'Access;
    TC_Special_Days : aliased constant String := "special_days";
    Ta_Special_Days : constant Cst_String_Access := TC_Special_Days'Access;
+   TC_User_Ids : aliased constant String := "user_ids";
+   Ta_User_Ids : constant Cst_String_Access := TC_User_Ids'Access;
+   TC_Users : aliased constant String := "users";
+   Ta_Users : constant Cst_String_Access := TC_Users'Access;
 
    NC_Contact_Id : aliased constant String := "contact_id";
    N_Contact_Id : constant Cst_String_Access := NC_contact_id'Access;
@@ -44,10 +48,16 @@ package Database_Names is
    N_Kind : constant Cst_String_Access := NC_kind'Access;
    NC_Kind_Id : aliased constant String := "kind_id";
    N_Kind_Id : constant Cst_String_Access := NC_kind_id'Access;
+   NC_Name : aliased constant String := """name""";
+   N_Name : constant Cst_String_Access := NC_name'Access;
+   NC_Openid : aliased constant String := "openid";
+   N_Openid : constant Cst_String_Access := NC_openid'Access;
    NC_Organization_Id : aliased constant String := "organization_id";
    N_Organization_Id : constant Cst_String_Access := NC_organization_id'Access;
    NC_Phone_Number : aliased constant String := "phone_number";
    N_Phone_Number : constant Cst_String_Access := NC_phone_number'Access;
+   NC_Rank : aliased constant String := "rank";
+   N_Rank : constant Cst_String_Access := NC_rank'Access;
    NC_Recipient_Id : aliased constant String := "recipient_id";
    N_Recipient_Id : constant Cst_String_Access := NC_recipient_id'Access;
    NC_Uri : aliased constant String := "uri";
