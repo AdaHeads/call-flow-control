@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2013-, AdaHeads K/S                    --
+--                     Copyright (C) 2013-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,22 +15,28 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Ada.Text_IO;
-with
-  Model.User,
-  Model.Users;
+with SQL_Prepared_Statements.Users,
+     Storage;
 
-procedure Show_User_List is
-   use Ada.Text_IO;
-   use Model;
+package body Model.Users is
 
-   Tux : constant User.Name := "Tux";
-begin
-   Put_Line (String (Tux));
+   function List (C : in out Database_Cursor'Class) return Instance is
+   begin
+      return Result : Instance do
+         loop
+            Result.Insert (User.Name (Value (C, 0)));
+            exit when not C.Has_Row;
+            C.Next;
+         end loop;
+      end return;
+   end List;
 
-   Put_Line ("--  From the user database:");
-   --  for User_Name of Users.List loop
-   --     Put_Line (String (User_Name));
-   --  end loop;
-end Show_User_List;
+   function List return Instance is
+      use GNATCOLL.SQL.Exec;
+   begin
+      raise Program_Error with "Model.Users.List is not implemented.";
+
+      return User_Lists.Empty_Set;
+   end List;
+
+end Model.Users;

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                      Copyright (C) 2013-, AdaHeads K/S                    --
+--                     Copyright (C) 2013-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,22 +15,18 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Ada.Text_IO;
-with
-  Model.User,
-  Model.Users;
+with Ada.Containers.Indefinite_Ordered_Sets;
 
-procedure Show_User_List is
-   use Ada.Text_IO;
-   use Model;
+with Model.User;
 
-   Tux : constant User.Name := "Tux";
-begin
-   Put_Line (String (Tux));
+package Model.Users is
 
-   Put_Line ("--  From the user database:");
-   --  for User_Name of Users.List loop
-   --     Put_Line (String (User_Name));
-   --  end loop;
-end Show_User_List;
+   use type Model.User.Name;
+   package User_Lists is new Ada.Containers.Indefinite_Ordered_Sets
+                               (Element_Type => Model.User.Name);
+
+   subtype Instance is User_Lists.Set;
+
+   function List return Instance;
+
+end Model.Users;
