@@ -17,6 +17,7 @@
 
 with Model.Call_ID;
 with Ada.Characters.Handling;
+with GNAT.Calendar.Time_IO;
 
 package body View.Call is
    use GNATCOLL.JSON;
@@ -43,13 +44,13 @@ package body View.Call is
          Value.Set_Field (View.State_S, To_Lower (Call.State'Img));
          Value.Set_Field (View.B_Leg, To_String (Call.B_Leg));
          Value.Set_Field (View.Inbound, Call.Inbound);
-         Value.Set_Field (View.Assigned_To_S, Call.Assigned_To.To_String);
-         Value.Set_Field (View.Channel, To_String (Call.Channel));
+         Value.Set_Field (View.Assigned_To_S, Call.Assigned_To.To_JSON);
+         Value.Set_Field (View.Channel, To_String (Call.ID));
          Value.Set_Field (View.Organization_Id, Natural (Call.Organization));
-         Value.Set_Field (View.Arrival_Time_S, Unix_Timestamp
-                          (Call.Arrival_Time));
+         Value.Set_Field
+           (View.Arrival_Time_S, Unix_Timestamp (Call.Arrival_Time));
       else
-         Value.Set_Field (View.ID, "<null>");
+         Value.Set_Field (View.ID, GNATCOLL.JSON.JSON_Null);
       end if;
       return Value;
    end To_JSON;
@@ -66,7 +67,7 @@ package body View.Call is
          Value.Set_Field (View.State_S, To_Lower (Call.State'Img));
          Value.Set_Field (View.Bridged_With, Call.Bridged_With.To_String);
          Value.Set_Field (View.Inbound, Call.Inbound);
-         Value.Set_Field (View.Assigned_To_S, Call.Assigned_To.To_String);
+         Value.Set_Field (View.Assigned_To_S, Call.Assigned_To.To_JSON);
          Value.Set_Field (View.Channel, Call.Channel.Image);
          Value.Set_Field (View.Queue, Call.Queue);
          Value.Set_Field (View.Arrival_Time_S, Unix_Timestamp (Call.Arrived));

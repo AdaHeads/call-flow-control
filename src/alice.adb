@@ -15,8 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AGI.Callbacks; --  Initializes with a call to AMI.Observers.Register.
-pragma Unreferenced (AGI.Callbacks);
+--  with AGI.Callbacks; --  Initializes with a call to AMI.Observers.Register.
+--  pragma Unreferenced (AGI.Callbacks);
 
 with Alice_Handlers;
 with PBX;

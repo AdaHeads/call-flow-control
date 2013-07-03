@@ -17,16 +17,16 @@
 
 with Ada.Strings.Unbounded;
 with Model.Agent_ID;
-with AMI.Peer;
-with AMI.Peer_ID;
+with ESL.Peer;
+with ESL.Peer_ID;
 with PBX.Call;
 with GNATCOLL.JSON;
 
 package Model.Agent is
    use Ada.Strings.Unbounded;
    use Model.Agent_ID;
-   use AMI.Peer;
-   use AMI.Peer_ID;
+   use ESL.Peer;
+   use ESL.Peer_ID;
 
    type Agent_Type is tagged private;
    type State is (Signed_Out, Idle, Paused, Away);
@@ -36,7 +36,7 @@ package Model.Agent is
                     Extension : in String) return Agent_Type;
 
    procedure Assign (Agent : in     Agent_Type;
-                     Peer  :    out Peer_Type);
+                     Peer  :    out Instance);
 
    procedure Change_State (Agent     :    out Agent_Type;
                            New_State : in     State);

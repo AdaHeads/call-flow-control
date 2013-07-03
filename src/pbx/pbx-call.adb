@@ -18,12 +18,11 @@
 with Ada.Strings;
 with Ada.Strings.Fixed;
 with View.Call;
+with PBX.Trace;
+
 with Model.Agent;
-with AMI.Trace;
 
 package body PBX.Call is
-
-   function Next return Identification;
 
    ----------------
    --  Allocate  --
@@ -33,18 +32,17 @@ package body PBX.Call is
      (Assigned_To : in Agent_ID_Type) return Identification is
       Context : constant String := Package_Name & ".Allocate";
       Call : constant Instance :=
-               (ID             => Next,
+        (ID             => Null_Identification,
                 Inbound        => False,
-                Channel        => Null_Channel_Identification,
                 State          => Pending,
                 Organization   =>
                   Model.Organization_Identifier (0),
                 Arrived        => Current_Time,
-                B_Leg          => Null_Channel_Identification,
+                B_Leg          => Null_Identification,
                 Assigned_To    => Assigned_To);
    begin
       Call_List.Insert (Item => Call);
-      AMI.Trace.Debug (Message => "Inserted call " &
+      PBX.Trace.Debug (Message => "Inserted call " &
                          Get (Call.ID).To_JSON.Write,
                        Context => Context,
                        Level   => 1);
@@ -84,7 +82,7 @@ package body PBX.Call is
    --  B_Leg  --
    -------------
 
-   function B_Leg (Obj : in Instance) return Channel_Identification is
+   function B_Leg (Obj : in Instance) return Identification is
    begin
       return Obj.B_Leg;
    end B_Leg;
@@ -98,150 +96,29 @@ package body PBX.Call is
       Call_List.Change_State (Obj.ID, New_State);
    end Change_State;
 
-   ---------------
-   --  Channel  --
-   ---------------
-
-   function Channel (Obj : in Instance) return Channel_Identification is
-   begin
-      return Obj.Channel;
-   end Channel;
-
-   ---------------
-   --  Channel  --
-   ---------------
-
-   procedure Channel (Obj        : in Instance;
-                      Channel_ID : in Channel_Identification) is
-   begin
-      Call_List.Set_Channel (ID => Obj.ID, Channel_ID => Channel_ID);
-   end Channel;
-
-   ---------------
-   --  Confirm  --
-   ---------------
-
-   procedure Confirm
-     (ID      : in Identification;
-      Channel : in Channel_Identification) is
-   begin
-      Call_List.Set_Channel (ID, Channel);
-   end Confirm;
-
-   ------------------------
-   -- Create_And_Insert  --
-   ------------------------
-
-   function Create_And_Insert
-     (Inbound         : in Boolean;
-      Channel         : in Channel_Identification :=
-        Null_Channel_Identification;
-      State           : in States := Unknown;
-      Organization_ID : in Natural := 0;
-      Assigned_To     : in Agent_ID_Type := Null_Agent_ID;
-      B_Leg           : in Channel_Identification :=
-        Null_Channel_Identification)
-      return Instance
-   is
-      Call : constant Instance :=
-               (ID             => Next,
-                Inbound        => Inbound,
-                Channel        => Channel,
-                State          => State,
-                Organization   =>
-                  Model.Organization_Identifier (Organization_ID),
-                Arrived        => Current_Time,
-                B_Leg          => B_Leg,
-                Assigned_To    => Assigned_To);
-   begin
-      Call_List.Insert (Item => Call);
-      return Call;
-   end Create_And_Insert;
-
    ------------------------
    -- Create_And_Insert  --
    ------------------------
 
    procedure Create_And_Insert
      (Inbound         : in Boolean;
-      Channel         : in Channel_Identification :=
-        Null_Channel_Identification;
+      ID              : in Identification;
       State           : in States := Unknown;
       Organization_ID : in Natural := 0;
-      Assigned_To     : in Agent_ID_Type := Null_Agent_ID;
-      B_Leg           : in Channel_Identification :=
-        Null_Channel_Identification)
+      Assigned_To     : in Agent_ID_Type := Null_Agent_ID)
    is
       Call : constant Instance :=
-               (ID             => Next,
+               (ID             => ID,
                 Inbound        => Inbound,
-                Channel        => Channel,
                 State          => State,
                 Organization   =>
                   Model.Organization_Identifier (Organization_ID),
                 Arrived        => Current_Time,
-                B_Leg          => B_Leg,
+                B_Leg          => Null_Identification,
                 Assigned_To    => Assigned_To);
    begin
       Call_List.Insert (Item => Call);
    end Create_And_Insert;
-
-   ---------------
-   --  Dequeue  --
-   ---------------
-
-   procedure Dequeue (Obj : in Instance) is
-   begin
-      Call_List.Dequeue (Obj.ID);
-   end Dequeue;
-
-   ------------
-   --  Dial  --
-   ------------
-
-   procedure Dial
-     (Obj : in Instance; Destination : in Channel_Identification) is
-
-      procedure Update (Key     : in     Identification;
-                        Element : in out Instance);
-
-      procedure Update (Key     : in     Identification;
-                        Element : in out Instance) is
-         pragma Unreferenced (Key);
-      begin
-         Element.State := Dialing;
-         Element.B_Leg := Destination;
-      end Update;
-   begin
-      Call_List.Update (Obj.ID, Update'Access);
-   end Dial;
-
-   ---------------
-   -- End_Dial  --
-   ---------------
-
-   procedure End_Dial (Obj : in Instance) is
-      procedure Update (Key     : in     Identification;
-                        Element : in out Instance);
-
-      procedure Update (Key     : in     Identification;
-                        Element : in out Instance) is
-         pragma Unreferenced (Key);
-      begin
-         Element.State := Ended;
-      end Update;
-   begin
-      Call_List.Update (Obj.ID, Update'Access);
-   end End_Dial;
-
-   ---------------
-   --  Enqueue  --
-   ---------------
-
-   procedure Enqueue (Obj : in Instance) is
-   begin
-      Call_List.Enqueue (Obj.ID);
-   end Enqueue;
 
    -----------
    --  Get  --
@@ -251,24 +128,6 @@ package body PBX.Call is
    begin
       return Call_List.Get (Call);
    end Get;
-
-   -----------
-   --  Get  --
-   -----------
-
-   function Get (Channel : Channel_Identification) return Instance is
-   begin
-      return Call_List.Get (Channel);
-   end Get;
-
-   -----------
-   --  Has  --
-   -----------
-
-   function Has (Channel_ID : Channel_Identification) return Boolean is
-   begin
-      return Call_List.Contains (Channel_ID);
-   end Has;
 
    function Has (ID : Identification) return Boolean is
    begin
@@ -301,14 +160,10 @@ package body PBX.Call is
       return Obj.Inbound;
    end Inbound;
 
-   ------------
-   --  Link  --
-   ------------
-
-   procedure Link (Call    : in Instance;
-                   Channel : in Channel_Identification) is
+   procedure Link (ID_1 : in Identification;
+                   ID_2 : in Identification) is
    begin
-      Call_List.Link (Call.Channel, Channel);
+      Call_List.Link (ID_1, ID_2);
    end Link;
 
    ------------
@@ -328,22 +183,6 @@ package body PBX.Call is
    begin
       return Call_List.Empty;
    end List_Empty;
-
-   ------------
-   --  Next  --
-   ------------
-
-   function Next return Identification is
-   begin
-      Next_Identification := Identification'Succ (Next_Identification);
-      --  TODO check of already alllocated ID's
-
-      if Next_Identification = Null_Identification then
-         Next_Identification := Identification'Succ (Next_Identification);
-      end if;
-
-      return Next_Identification;
-   end Next;
 
    --------------------
    --  Organization  --
@@ -394,7 +233,7 @@ package body PBX.Call is
       Context : constant String := Package_Name & ".Remove";
       Removed_Call : Instance := Null_Instance;
    begin
-      AMI.Trace.Debug (Message => "Removing call with ID " & To_String (ID),
+      PBX.Trace.Debug (Message => "Removing call with ID " & To_String (ID),
                        Context => Context,
                        Level   => 1);
 
@@ -403,15 +242,6 @@ package body PBX.Call is
 
       Call_List.Remove (ID);
       return Removed_Call;
-   end Remove;
-
-   --------------
-   --  Remove  --
-   --------------
-
-   function Remove (Channel_ID : in Channel_Identification) return Instance is
-   begin
-      return Remove (Call_List.Get (Channel_ID).ID);
    end Remove;
 
    -------------
@@ -438,43 +268,22 @@ package body PBX.Call is
 
    function To_String (Item : in Identification) return String is
       use Ada.Strings;
+      use Ada.Strings.Unbounded;
+
+      Value : String renames To_String (Unbounded_String (Item));
    begin
-      return Ada.Strings.Fixed.Trim (Source => Item'Img,
+      return Ada.Strings.Fixed.Trim (Source => Value,
                                      Side   => Left);
-   end To_String;
-
-   -----------------
-   --  To_String  --
-   -----------------
-
-   overriding
-   function To_String (Channel : in Channel_Identification) return String is
-   begin
-      return Ada.Strings.Unbounded.To_String
-        (Ada.Strings.Unbounded.Unbounded_String (Channel));
    end To_String;
 
    --------------
    --  Unlink  --
    --------------
 
-   procedure Unlink (Call : in Instance) is
+   procedure Unlink (ID : in Identification) is
    begin
-      Call_List.Unlink (Call.ID);
+      Call_List.Unlink (ID);
    end Unlink;
-
-   -------------
-   --  Value  --
-   -------------
-
-   function Value (Item : in String) return Channel_Identification is
-   begin
-      return Channel_Identification
-        (Ada.Strings.Unbounded.To_Unbounded_String (Item));
-   exception
-      when Constraint_Error =>
-         raise Invalid_ID with Item;
-   end Value;
 
    -------------
    --  Value  --
@@ -482,11 +291,13 @@ package body PBX.Call is
 
    function Value (Item : in String) return Identification is
    begin
-      return Identification (Natural'Value (Item));
+      return Identification
+        (Ada.Strings.Unbounded.To_Unbounded_String (Item));
    exception
       when Constraint_Error =>
          raise Invalid_ID with Item;
    end Value;
+
    -----------------
    --  Call_List  --
    -----------------
@@ -541,20 +352,6 @@ package body PBX.Call is
       --  Contains  --
       ----------------
 
-      function Contains (Channel_ID : in Channel_Identification)
-                         return Boolean is
-      begin
-         return
-           Channel_Lookup_Table.Contains
-             (AMI.Channel.Channel_Key (Channel_ID)) and then
-           List.Contains (Channel_Lookup_Table.Element
-                          (AMI.Channel.Channel_Key (Channel_ID)));
-      end Contains;
-
-      ----------------
-      --  Contains  --
-      ----------------
-
       function Contains (ID : in Identification)
                          return Boolean is
       begin
@@ -578,8 +375,8 @@ package body PBX.Call is
       begin
          Call_List.Update (ID, Update'Access);
          if Number_Queued = 0 then
-            AMI.Trace.Log (AMI.Trace.Error, "Tried to decrement number of " &
-                             "Queued calls below 0");
+            PBX.Trace.Error ("Tried to decrement number of " &
+                 "Queued calls below 0");
          else
             Number_Queued := Number_Queued - 1;
          end if;
@@ -626,30 +423,10 @@ package body PBX.Call is
       --  Get  --
       -----------
 
-      function Get (Channel : in Channel_Identification) return Instance is
-      begin
-         if not
-           Channel_Lookup_Table.Contains (AMI.Channel.Channel_Key (Channel))
-         then
-            return Null_Instance;
-         else
-            return List.Element
-              (Channel_Lookup_Table.Element
-                 (AMI.Channel.Channel_Key (Channel)));
-         end if;
-      exception
-         when Constraint_Error =>
-            raise Not_Found with " channel " & To_String (Channel);
-      end Get;
-
-      -----------
-      --  Get  --
-      -----------
-
       function Get (ID : in Identification) return Instance is
       begin
 
-         AMI.Trace.Debug (Message => "Looking up call " & Image (ID),
+         PBX.Trace.Debug (Message => "Looking up call " & Image (ID),
                           Context => "PBX.Call.Get");
          if not List.Contains (ID) then
             raise Not_Found;
@@ -663,93 +440,38 @@ package body PBX.Call is
       --------------
 
       procedure Insert (Item : Instance) is
-         Agent : Model.Agent.Agent_Type := Model.Agent.Null_Agent;
+         --  Agent : Model.Agent.Agent_Type := Model.Agent.Null_Agent;
       begin
-         if
-           Item.Assigned_To = Null_Agent_ID and
-           Item.Channel = Null_Channel_Identification
-         then
-            raise Constraint_Error with
-              "Both agent ID and channel cannot be null";
-         end if;
+--           if
+--             Item.Assigned_To = Null_Agent_ID and
+--           then
+--              raise Constraint_Error with
+--                "Both agent ID and channel cannot be null";
+--           end if;
 
          List.Insert (Key      => Item.ID,
                       New_Item => Item);
-
-         if Item.Channel /= Null_Channel_Identification then
-            Channel_Lookup_Table.Insert
-              (Key      => AMI.Channel.Channel_Key (Item.Channel),
-               New_Item => Item.ID);
-         elsif Item.Assigned_To /= Model.Agent_ID.Null_Agent_ID then
-            --  Update the agent.
-            Agent := Model.Agent.Get (Item.Assigned_To);
-
-            Agent.Current_Call (Call => Item.ID);
-            Model.Agent.Update (Agent);
-         end if;
       exception
          when Constraint_Error =>
-            --  Roll back, if applicable.
-            if List.Contains (Item.ID) then
-               List.Delete (Item.ID);
-            end if;
-            raise Constraint_Error with
-              " channel " & To_String (Item.Channel)
-              & " ID" & To_String (Item.ID);
+            raise Constraint_Error with "ID" & To_String (Item.ID);
       end Insert;
 
-      ------------
-      --  Link  --
-      ------------
-
-      --  TODO: tidy up this function.
-
-      procedure Link (Channel1 : in Channel_Identification;
-                      Channel2 : in Channel_Identification) is
+      procedure Link (ID_1, ID_2 : in Identification) is
          procedure Update (Key     : in     Identification;
                            Element : in out Instance);
 
          procedure Update (Key     : in     Identification;
                            Element : in out Instance) is
-            pragma Unreferenced (Key);
          begin
-
-            if Element.Channel = Channel1 then
-               Element.B_Leg := Channel2;
-            elsif Element.Channel = Channel2 then
-               Element.B_Leg := Channel1;
+            if Key = ID_1 then
+               Element.B_Leg := ID_2;
+            else
+               Element.B_Leg := ID_1;
             end if;
          end Update;
       begin
-         --  Sanity checks.
-         if
-           Channel1 = Null_Channel_Identification or
-           Channel2 = Null_Channel_Identification
-         then
-            raise Constraint_Error with "Null value detected";
-         end if;
-
-         if not
-           Channel_Lookup_Table.Contains (AMI.Channel.Channel_Key (Channel2))
-         then
-            Call_List.Update
-              (Channel_Lookup_Table.Element
-                 (AMI.Channel.Channel_Key (Channel1)), Update'Access);
-         elsif not
-           Channel_Lookup_Table.Contains (AMI.Channel.Channel_Key (Channel1))
-         then
-            Call_List.Update
-              (Channel_Lookup_Table.Element
-                 (AMI.Channel.Channel_Key (Channel2)), Update'Access);
-         else
-            Call_List.Update
-              (Channel_Lookup_Table.Element
-                 (AMI.Channel.Channel_Key (Channel1)), Update'Access);
-            Call_List.Update
-              (Channel_Lookup_Table.Element
-                 (AMI.Channel.Channel_Key (Channel2)), Update'Access);
-         end if;
-
+         Call_List.Update (ID_1, Update'Access);
+         Call_List.Update (ID_2, Update'Access);
       end Link;
 
       --------------
@@ -765,64 +487,14 @@ package body PBX.Call is
       --  Remove  --
       --------------
 
-      procedure Remove (Channel_ID : in Channel_Identification) is
-         Call : Identification := Null_Identification;
-      begin
-         Call := Channel_Lookup_Table.Element
-           (AMI.Channel.Channel_Key (Channel_ID));
-         List.Delete (Call);
-      exception
-         when Constraint_Error =>
-            raise Not_Found with " channel " & To_String (Channel_ID);
-      end Remove;
-
-      --------------
-      --  Remove  --
-      --------------
-
       procedure Remove (ID : in Identification) is
       begin
-         if not
-           (List.Element (ID).Channel = Null_Channel_Identification and
-              List.Element (ID).State = Pending)
-         then
-            Channel_Lookup_Table.Delete
-              (AMI.Channel.Channel_Key (List.Element (ID).Channel));
-         end if;
 
          List.Delete (ID);
       exception
          when Constraint_Error =>
             raise Not_Found with " call " & To_String (ID);
       end Remove;
-
-      -------------------
-      --  Set_Channel  --
-      -------------------
-
-      procedure Set_Channel (ID         : in Identification;
-                             Channel_ID : in Channel_Identification) is
-         procedure Update (Key     : in     Identification;
-                           Element : in out Instance);
-
-         procedure Update (Key     : in     Identification;
-                           Element : in out Instance) is
-            pragma Unreferenced (Key);
-         begin
-            Element.Channel := Channel_ID;
-         end Update;
-      begin
-         Channel_Lookup_Table.Insert
-           (Key      => AMI.Channel.Channel_Key (Channel_ID),
-            New_Item => ID);
-         Call_List.Update (ID, Update'Access);
-      exception
-         when Constraint_Error =>
-            --  Roll back.
-            Channel_Lookup_Table.Delete
-              (AMI.Channel.Channel_Key (Channel_ID));
-            raise;
-      end Set_Channel;
 
       ---------------
       --  To_JSON  --
@@ -861,18 +533,10 @@ package body PBX.Call is
                            Element : in out Instance) is
             pragma Unreferenced (Key);
          begin
-            Element.B_Leg := Null_Channel_Identification;
+            Element.B_Leg := Null_Identification;
          end Update;
       begin
-         if
-           Channel_Lookup_Table.Contains
-             ((AMI.Channel.Channel_Key (List.Element (ID).B_Leg)))
-         then
-            Call_List.Update (Channel_Lookup_Table.Element
-              (AMI.Channel.Channel_Key
-                 (List.Element (ID).B_Leg)), Update'Access);
-         end if;
-
+         --  TODO: Update B-leg.
          Call_List.Update (ID, Update'Access);
       end Unlink;
 

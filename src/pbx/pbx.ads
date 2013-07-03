@@ -15,22 +15,21 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AMI.Client;
+with ESL.Client.Tasking;
 
 package PBX is
-   use AMI;
+   --  use AMI;
 
-   --  TODO: Move this.
-   type Reply_Ticket is new AMI.Action_ID_Type;
+   --
+   type Reply_Ticket is tagged private;
 
-   Null_Reply : constant Reply_Ticket;
+   --  Null_Reply : constant Reply_Ticket;
 
    type PBX_Status_Type is (Shut_Down, Shutting_Down, Running, Connecting,
                            Failure);
 
    --  TODO: make this private and wrap every call to AMI
-   Client        : aliased AMI.Client.Client_Type;
-   Client_Access : constant access AMI.Client.Client_Type := Client'Access;
+   Client        : ESL.Client.Tasking.Instance;
 
    procedure Start;
    --  Startup the PBX subsystem
@@ -42,7 +41,8 @@ package PBX is
    --  Retrieve the current status of the
 
 private
-   Null_Reply : constant Reply_Ticket := Reply_Ticket (AMI.Null_Action_ID);
+   type Reply_Ticket is tagged null record;
+   --  Null_Reply : constant Reply_Ticket := Reply_Ticket (AMI.Null_Action_ID);
 
    Connection_Delay        : Duration     := 1.0;
    Shutdown                : Boolean      := False;

@@ -15,11 +15,62 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with ESL.Packet;
+with ESL.Observer.Event_Observers;
+
 package PBX.Call.Event_Handlers is
 
    Package_Name : constant String := "PBX.Call.Event_Handers";
 
-   procedure Register_Handlers;
+   --   procedure Register_Handlers;
    --  Registers the appropriate event handlers.
+private
+   type Bridge_Observer is
+     new ESL.Observer.Event_Observers.Instance with null record;
+
+   overriding
+   procedure Notify (Observer : access Bridge_Observer;
+                     Packet   : in     ESL.Packet.Instance;
+                     Client   : in     ESL.Client.Reference);
+
+   type Channel_Hold_Observer is
+     new ESL.Observer.Event_Observers.Instance with null record;
+
+   overriding
+   procedure Notify (Observer : access Channel_Hold_Observer;
+                     Packet   : in     ESL.Packet.Instance;
+                     Client   : in     ESL.Client.Reference);
+
+   type Custom_Observer is
+     new ESL.Observer.Event_Observers.Instance with null record;
+
+   overriding
+   procedure Notify (Observer : access Custom_Observer;
+                     Packet   : in     ESL.Packet.Instance;
+                     Client   : in     ESL.Client.Reference);
+
+   type Create_Observer is
+     new ESL.Observer.Event_Observers.Instance with null record;
+
+   overriding
+   procedure Notify (Observer : access Create_Observer;
+                     Packet   : in     ESL.Packet.Instance;
+                     Client   : in     ESL.Client.Reference);
+
+   type Destroy_Observer is
+     new ESL.Observer.Event_Observers.Instance with null record;
+
+   overriding
+   procedure Notify (Observer : access Destroy_Observer;
+                     Packet   : in     ESL.Packet.Instance;
+                     Client   : in     ESL.Client.Reference);
+
+   type Execute_Observer is
+     new ESL.Observer.Event_Observers.Instance with null record;
+
+   overriding
+   procedure Notify (Observer : access Execute_Observer;
+                     Packet   : in     ESL.Packet.Instance;
+                     Client   : in     ESL.Client.Reference);
 
 end PBX.Call.Event_Handlers;

@@ -22,6 +22,8 @@ with GNATCOLL.JSON;
 
 package Common is
 
+   type Long_Unsigned is mod 2**64;
+
    subtype Time is Ada.Calendar.Time;
 
    Null_Time : constant Time := Ada.Calendar.Time_Of
@@ -39,6 +41,10 @@ package Common is
       return String;
    --  Convert and trim an Ada.Calendar.Time type to a Unix timestamp
    --  String.
+
+   function Unix_Timestamp (Date : in Time)
+       return Long_Unsigned;
+   --  Convert an Ada.Calendar.Time type to a 64-bit unsigned.
 
    type JSON_String is new Ada.Strings.Unbounded.Unbounded_String;
 

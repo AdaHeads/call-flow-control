@@ -17,13 +17,13 @@
 
 with GNATCOLL.JSON;
 
-with AMI.Peer;
+with PBX.Peer;
 
 --  Utility functions for converting a peer to viewable types
 package View.Peer is
-   use AMI.Peer;
+   use PBX.Peer;
 
-   function To_JSON (Item : in Peer_Type)
+   function To_JSON (Item : in Instance)
                         return GNATCOLL.JSON.JSON_Value;
 
 end View.Peer;

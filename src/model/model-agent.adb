@@ -31,7 +31,7 @@ package body Model.Agent is
    --------------
 
    procedure Assign (Agent : in     Agent_Type;
-                     Peer  :    out Peer_Type) is
+                     Peer  :    out Instance) is
    begin
       Peer.Agent_ID := Agent.ID;
    end Assign;
@@ -208,44 +208,44 @@ begin
      (Agent_ID.Create (1),
       Agent.Create
         (ID        => Agent_ID.Create (1),
-         Peer_ID   => AMI.Peer_ID.Create ("SIP/softphone1"),
+         Peer_ID   => ESL.Peer_ID.Create ("SIP/softphone1"),
          Extension => "101"));
 
    Agent_List.Insert
      (Agent_ID.Create (2),
       Agent.Create
         (ID        => Agent_ID.Create (2),
-         Peer_ID   =>  AMI.Peer_ID.Create ("SIP/softphone1"),
+         Peer_ID   =>  ESL.Peer_ID.Create ("SIP/softphone1"),
          Extension => "102"));
    Agent_List.Insert
      (Agent_ID.Create (3),
       Agent.Create
         (ID        => Agent_ID.Create (3),
-         Peer_ID   =>  AMI.Peer_ID.Create ("SIP/softphone1"),
+         Peer_ID   =>  ESL.Peer_ID.Create ("SIP/softphone1"),
          Extension => "103"));
    Agent_List.Insert
      (Agent_ID.Create (4),
       Agent.Create
         (ID        => Agent_ID.Create (4),
-         Peer_ID   =>  AMI.Peer_ID.Create ("SIP/softphone1"),
+         Peer_ID   =>  ESL.Peer_ID.Create ("SIP/softphone1"),
          Extension => "104"));
    Agent_List.Insert
      (Agent_ID.Create (5),
       Agent.Create
         (ID        => Agent_ID.Create (5),
-         Peer_ID   =>  AMI.Peer_ID.Create ("SIP/softphone1"),
+         Peer_ID   =>  ESL.Peer_ID.Create ("SIP/softphone1"),
          Extension => "105"));
    Agent_List.Insert
      (Agent_ID.Create (6),
       Agent.Create
         (ID        => Agent_ID.Create (6),
-         Peer_ID   =>  AMI.Peer_ID.Create ("SIP/softphone1"),
+         Peer_ID   =>  ESL.Peer_ID.Create ("SIP/softphone1"),
          Extension => "106"));
    Agent_List.Insert
      (Agent_ID.Create (7),
       Agent.Create
         (ID        => Agent_ID.Create (7),
-         Peer_ID   =>  AMI.Peer_ID.Create ("SIP/uhh"),
+         Peer_ID   =>  ESL.Peer_ID.Create ("SIP/uhh"),
          Extension => "107"));
 
 end Model.Agent;

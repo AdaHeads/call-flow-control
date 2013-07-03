@@ -22,7 +22,7 @@ package body View.Peer is
    use Ada.Strings.Unbounded;
    use Ada.Characters.Handling;
 
-   function To_JSON (Item : in Peer_Type)
+   function To_JSON (Item : in Instance)
                      return GNATCOLL.JSON.JSON_Value is
       use GNATCOLL.JSON;
 
@@ -35,7 +35,7 @@ package body View.Peer is
       Peer_JSON.Set_Field ("Last_State", To_Lower (Item.Last_State'Img));
       Peer_JSON.Set_Field ("Port", To_String (Item.Port));
       Peer_JSON.Set_Field ("Address", To_String (Item.Address));
-      Peer_JSON.Set_Field ("Last_Seen", AMI.Peer.To_String (Item.Last_Seen));
+      Peer_JSON.Set_Field ("Last_Seen", PBX.Peer.To_String (Item.Last_Seen));
       JSON.Set_Field ("peer", Peer_JSON);
 
       return JSON;

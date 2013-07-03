@@ -23,7 +23,7 @@ with Response;
 
 with Model.Agent;
 with Model.Agent_ID;
-with AMI.Peer;
+with ESL.Peer;
 with View.Call;
 
 with PBX;
@@ -52,17 +52,14 @@ package body Handlers.Call is
       use PBX;
 
       Response_Object   : Response.Object := Response.Factory (Request);
-      Ticket            : PBX.Reply_Ticket := PBX.Null_Reply;
       Requested_Call_ID : String renames Parameters (Request).Get ("call_id");
    begin
 
-      Ticket := PBX.Action.Hangup (ID => PBX.Call.Value (Requested_Call_ID));
-
-      PBX.Action.Wait_For (Ticket);
+      PBX.Client.Send (Item => "api kill " & Requested_Call_ID);
 
       Response_Object.HTTP_Status_Code (HTTP.OK);
       Response_Object.Content (Status_Message
-                               ("Success", "Hangup completed"));
+                               ("Success", "Hangup sent!"));
 
       return Response_Object.Build;
 
@@ -180,7 +177,7 @@ package body Handlers.Call is
          Response_Object.Content (Status_Message ("status", "not found"));
       else
 
-         PBX.Action.Wait_For (PBX.Action.Park (Call_ID));
+         --  PBX.Action.Wait_For (PBX.Action.Park (Call_ID));
 
          --  And let the user know that everything went according to plan.
          Response_Object.HTTP_Status_Code (HTTP.OK);
@@ -215,7 +212,7 @@ package body Handlers.Call is
 
       use Model.Agent_ID;
       use Model.Agent;
-      use AMI.Peer;
+      use ESL.Peer;
 
       Call_ID_String    : String renames
                             Parameters (Request).Get (Name => "call_id");
@@ -223,8 +220,8 @@ package body Handlers.Call is
                             Parameters (Request).Get (Name => "agent_id");
       Response_Object   : Response.Object   := Response.Factory (Request);
       Agent_ID          : Agent_ID_Type     := Null_Agent_ID;
-      Agent             : Agent_Type        := Null_Agent;
-      Peer              : Peer_Type         := Null_Peer;
+      --  Agent             : Agent_Type        := Null_Agent;
+      Peer              : Instance         := Null_Peer;
       Assigned_Call     : PBX.Call.Instance;
    begin
       --  We want a valid agent ID, so we let the exception propogate.
@@ -237,7 +234,7 @@ package body Handlers.Call is
       end if;
 
       --  Lookup the peer from the agent_id.
-      Peer := AMI.Peer.List.Get
+      Peer := ESL.Peer.List.Get
         (Model.Agent.Get (Agent_ID => Agent_ID).Peer_ID);
 
       if not Peer.Available then
@@ -253,7 +250,7 @@ package body Handlers.Call is
          return Response_Object.Build;
       else
          --  We're good - transfer the call.
-         Agent := Model.Agent.Get (Agent_ID => Agent_ID);
+         --  Agent := Model.Agent.Get (Agent_ID => Agent_ID);
 
          if Call_ID_String /= "" then
             Assigned_Call := PBX.Call.Get
@@ -264,11 +261,12 @@ package body Handlers.Call is
             Assigned_Call.Assign (Agent_ID);
          end if;
 
-         PBX.Action.Wait_For
-           (PBX.Action.Redirect
-              (Channel     => PBX.Call.To_String (Assigned_Call.Channel),
-               Extension   => Agent.Extension,
-               Context     => "LocalSets"));
+         --  TODO: Make the transfer.
+--           PBX.Action.Wait_For
+--             (PBX.Action.Redirect
+--                (Channel     => PBX.Call.To_String (Assigned_Call.Channel),
+--                 Extension   => Agent.Extension,
+--                 Context     => "LocalSets"));
 
          Response_Object.HTTP_Status_Code (HTTP.OK);
          Response_Object.Content
@@ -378,11 +376,12 @@ package body Handlers.Call is
            (Agent.Get (PBX.Call.Get (Source).Assigned_To).Current_Call);
       end if;
 
-      PBX.Action.Wait_For
-        (PBX.Action.Bridge
-           (Source      => PBX.Call.Get (Source).Channel,
-            Destination => PBX.Call.Get (Agent.Get
-              (PBX.Call.Get (Source).Assigned_To).Current_Call).B_Leg));
+      --  TODO: refactor.
+      --        PBX.Action.Wait_For
+--          (PBX.Action.Bridge
+--             (Source      => PBX.Call.Get (Source).Channel,
+--              Destination => PBX.Call.Get (Agent.Get
+--                (PBX.Call.Get (Source).Assigned_To).Current_Call).B_Leg));
 
       Response_Object.HTTP_Status_Code (HTTP.OK);
       Response_Object.Content

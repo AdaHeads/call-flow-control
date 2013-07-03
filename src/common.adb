@@ -18,7 +18,6 @@
 with Ada.Calendar.Conversions;
 with Ada.Strings.Fixed;
 with Ada.Strings;
-with Interfaces.C;
 
 package body Common is
 
@@ -60,12 +59,18 @@ package body Common is
       return String
    is
       use Ada.Strings;
-      use Interfaces.C;
    begin
       return Fixed.Trim
-        (Source => long'Image
-           (Ada.Calendar.Conversions.To_Unix_Time (Date)),
+        (Source => Long_Unsigned'Image (Unix_Timestamp (Date)),
          Side   => Left);
+   end Unix_Timestamp;
+
+   function Unix_Timestamp
+     (Date : in Time)
+      return Long_Unsigned
+   is
+   begin
+      return Long_Unsigned (Ada.Calendar.Conversions.To_Unix_Time (Date));
    end Unix_Timestamp;
 
 end Common;

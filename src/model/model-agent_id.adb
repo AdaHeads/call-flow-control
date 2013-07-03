@@ -14,6 +14,8 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
+with Ada.Strings;
+with Ada.Strings.Fixed;
 
 package body Model.Agent_ID is
 
@@ -45,8 +47,14 @@ package body Model.Agent_ID is
    end ID;
 
    function To_JSON (Obj : in Agent_ID_Type) return GNATCOLL.JSON.JSON_Value is
+      use Ada.Strings;
    begin
-      return GNATCOLL.JSON.Create (Obj.ID);
+      if Obj = Null_Agent_ID then
+         return GNATCOLL.JSON.JSON_Null;
+      else
+         return GNATCOLL.JSON.Create
+           (Ada.Strings.Fixed.Trim (Obj.ID'Img, Both));
+      end if;
    end To_JSON;
 
    function To_String (Agent_ID : in Agent_ID_Type) return String is

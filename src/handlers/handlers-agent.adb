@@ -18,11 +18,11 @@
 with Common;
 with HTTP_Codes;
 with Response;
-with AMI.Peer;
+with ESL.Peer;
 with Model.Agent;
 
 package body Handlers.Agent is
-   use AMI;
+   use ESL;
 
    -------------
    --  Agent  --

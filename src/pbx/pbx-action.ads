@@ -18,9 +18,6 @@
 --  This is our PBX-boundry layer. It levels out the differences between
 --  various PBX communication protocols.
 
-with AMI.Packet.Action;
-with AMI.Parser;
-
 with PBX.Call;
 with Model.Agent;
 
@@ -34,17 +31,17 @@ package PBX.Action is
    Timeout   : exception;
    Error     : exception;
 
-   function Value (ID : AMI.Action_ID_Type)
-                  return Reply_Ticket;
+--     function Value (ID : AMI.Action_ID_Type)
+--                    return Reply_Ticket;
 
-   type Response_Handler is new AMI.Packet.Action.Response_Handler_Type;
-   subtype Response is AMI.Parser.Packet_Type;
+   type Response_Handler is access procedure;
+--     subtype Response is AMI.Parser.Packet_Type;
 
-   Ignore : constant Response_Handler;
+   Ignore : constant access procedure := null;
    --  Standard null-body handler for ignoring responses.
 
-   function Bridge (Source      : in PBX.Call.Channel_Identification;
-                    Destination : in PBX.Call.Channel_Identification;
+   function Bridge (Source      : in PBX.Call.Identification;
+                    Destination : in PBX.Call.Identification;
                     On_Response : in Response_Handler := Ignore)
                     return Reply_Ticket;
    --  Bridges two channels. The caller must explicitly specify which legs are
@@ -94,12 +91,10 @@ package PBX.Action is
       Context      : in String;
       On_Response  : in Response_Handler := Ignore) return Reply_Ticket;
 
-   procedure Wait_For (Ticket : in Reply_Ticket);
+   --  procedure Wait_For (Ticket : in Reply_Ticket);
    --  Blocking call that waits until a reply for an action is received.
 
-   function Wait_For (Ticket : in Reply_Ticket) return Response;
+   --  function Wait_For (Ticket : in Reply_Ticket) return Response;
 private
-   Ignore : constant Response_Handler :=
-              AMI.Packet.Action.Null_Reponse_Handler'Access;
 
 end PBX.Action;

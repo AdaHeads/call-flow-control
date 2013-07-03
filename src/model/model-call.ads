@@ -19,14 +19,13 @@ with Ada.Strings.Unbounded;
 with Model.Agent_ID;
 with Common;
 with Model.Call_ID;
-with AMI.Channel_ID;
+with ESL.Channel;
 with GNATCOLL.JSON;
 
 package Model.Call is
    use Ada.Strings.Unbounded;
    use GNATCOLL.JSON;
    use Common;
-   use AMI;
    use Model.Agent_ID;
    use Model.Call_ID;
 
@@ -45,7 +44,7 @@ package Model.Call is
          State          : Call_State;
          Inbound        : Boolean;
          Queue_Priority : Priority_Level;
-         Channel        : Channel_ID.Instance (Is_Null => False);
+         Channel        : ESL.Channel.Instance;
          Queue          : Unbounded_String;
          Position       : Natural;
          Count          : Natural;
@@ -69,7 +68,7 @@ private
       State          => Unknown,
       Queue_Priority => Invalid,
       Inbound        => False,
-      Channel        => Channel_ID.Empty_Channel,
+      Channel        => ESL.Channel.Create,
       Queue          => Null_Unbounded_String,
       Position       => 0,
       Count          => 0,

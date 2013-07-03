@@ -18,12 +18,12 @@
 with Common;
 with HTTP_Codes;
 with Response;
-with AMI.Peer;
-with AMI.Channel;
+with ESL.Peer;
+--  with ESL.Channel.List;
 
 package body Handlers.Debug is
    use Common;
-   use AMI;
+   use ESL;
 
    function Channel_List (Request : in AWS.Status.Data)
                           return AWS.Response.Data is
@@ -32,8 +32,9 @@ package body Handlers.Debug is
       Response_Object : Response.Object := Response.Factory (Request);
    begin
       Response_Object.HTTP_Status_Code (OK);
+      --  TODO:
       Response_Object.Content
-        (To_JSON_String (Channel.List.To_JSON.Write));
+        (To_JSON_String ("Not implemented"));
 
       return Response_Object.Build;
    end Channel_List;
