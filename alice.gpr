@@ -24,6 +24,7 @@ with "gnatcoll";
 with "gnatcoll_postgres";
 with "gnatcoll_sqlite";
 with "yolk";
+with "esl";
 
 project Alice is
    type Build_Type is ("Debug", "Production");
