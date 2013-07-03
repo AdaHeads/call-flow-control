@@ -17,7 +17,6 @@
 
 with Model.Call_ID;
 with Ada.Characters.Handling;
-with GNAT.Calendar.Time_IO;
 
 package body View.Call is
    use GNATCOLL.JSON;

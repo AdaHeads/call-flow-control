@@ -25,9 +25,11 @@ package body PBX.Action is
 
    function Remote_End (ID : in Call.Identification) return String;
    --  Determines which end of a call is the remote end.
+   pragma Unreferenced (Remote_End);
 
    function Local_End (ID : in Call.Identification) return String;
    --  Determines which end of a call is the local end.
+   pragma Unreferenced (Local_End);
 
    --     function Value (Handler : Response_Handler)
    --                    return AMI.Packet.Action.Response_Handler_Type;
@@ -52,8 +54,10 @@ package body PBX.Action is
    protected Origination_Requests is
       procedure Link (Ticket  : in Reply_Ticket;
                       Call_ID : in Call.Identification);
+      pragma Unreferenced (Link);
 
       procedure Unlink (Ticket  : in Reply_Ticket);
+      pragma Unreferenced (Unlink);
 
       procedure Unlink (Ticket  : in     Reply_Ticket;
                         Call_ID :    out Call.Identification);
@@ -308,7 +312,6 @@ package body PBX.Action is
 --             On_Response => Value (Ignore));
 --        Packet           : AMI.Parser.Packet_Type;
       pragma Unreferenced (Agent);
-      Ticket : Reply_Ticket;
    begin
       --  Outline the call. This is done prior to sending the action to assure
       --  that a request exist in the list when the action completes, thus
@@ -384,6 +387,7 @@ package body PBX.Action is
                   Parking_Lot      : in String := "";
                   On_Response      : in Response_Handler := Ignore)
                   return Reply_Ticket is
+      pragma Unreferenced (ID, Parking_Lot);
       use PBX.Call;
 --        Park_Action : AMI.Packet.Action.Request :=
 --          AMI.Packet.Action.Park
@@ -399,7 +403,7 @@ package body PBX.Action is
 --        Client.Send (Park_Action);
 --
 --        return Value (Park_Action.Action_ID);
-return Ticket;
+      return Ticket;
    end Park;
 
    --------------
@@ -412,6 +416,7 @@ return Ticket;
       Context      : in String;
       On_Response  : in Response_Handler := Ignore) return Reply_Ticket
    is
+      pragma Unreferenced (Channel, Extension, Context);
 --        Redirect_Action : AMI.Packet.Action.Request :=
 --          AMI.Packet.Action.Redirect
 --            (Channel      => Channel,
@@ -424,7 +429,7 @@ return Ticket;
 --        Client.Send (Redirect_Action);
 --
 --        return Value (Redirect_Action.Action_ID);
-return Ticket;
+      return Ticket;
    end Redirect;
 
    ------------------

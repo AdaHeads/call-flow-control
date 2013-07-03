@@ -274,7 +274,8 @@ package body PBX.Call.Event_Handlers is
                        Peername     =>
                          Packet.Field (Key => To_User).Decoded_Value);
                begin
-                  Peer.List.Get (Peer_ID => ID).Change_State (Unregistered);
+                  Peer.List.Get (Peer_ID => ID).Change_State
+                    (Peer.Unregistered);
                end;
             else
                PBX.Trace.Information

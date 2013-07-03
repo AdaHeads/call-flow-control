@@ -33,9 +33,9 @@ package body View.Peer is
       Peer_JSON.Set_Field ("Agent_ID", Item.Agent_ID.To_String);
       Peer_JSON.Set_Field ("State", To_Lower (Item.State'Img));
       Peer_JSON.Set_Field ("Last_State", To_Lower (Item.Last_State'Img));
-      Peer_JSON.Set_Field ("Port", To_String (Item.Port));
+      Peer_JSON.Set_Field ("Port", Item.Port);
       Peer_JSON.Set_Field ("Address", To_String (Item.Address));
-      Peer_JSON.Set_Field ("Last_Seen", PBX.Peer.To_String (Item.Last_Seen));
+      Peer_JSON.Set_Field ("Last_Seen", ESL.Peer.To_String (Item.Last_Seen));
       JSON.Set_Field ("peer", Peer_JSON);
 
       return JSON;
