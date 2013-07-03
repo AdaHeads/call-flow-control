@@ -17,11 +17,11 @@
 
 with GNATCOLL.JSON;
 
-with PBX.Peer;
+with ESL.Peer;
 
 --  Utility functions for converting a peer to viewable types
 package View.Peer is
-   use PBX.Peer;
+   use ESL.Peer;
 
    function To_JSON (Item : in Instance)
                         return GNATCOLL.JSON.JSON_Value;
