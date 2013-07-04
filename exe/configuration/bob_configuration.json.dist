@@ -1,8 +1,8 @@
 {
     "standardGreeting": "Velkommen til...",
-    "aliceBaseUrl": "http://192.168.2.172:4242",
+    "aliceBaseUrl": "http://alice.adaheads.com:4242",
     "notificationSocket": {
-        "interface": "ws://192.168.2.172:4242/notifications",
+        "interface": "ws://alice.adaheads.com:4242/notifications",
         "reconnectInterval": 1000
     },
     "agentID": "1",
