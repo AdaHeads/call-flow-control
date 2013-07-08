@@ -33,7 +33,6 @@ package Alice_Configuration is
                  DB_User,
                  SQLite_Database,
                  PBX_Secret,
-                 PBX_User,
                  PBX_Host,
                  PBX_Port);
 
@@ -56,12 +55,10 @@ package Alice_Configuration is
                        => U ("sqlite/customers.db"),
                        PBX_Secret
                        => U ("password"),
-                       PBX_User
-                       => U ("username"),
                        PBX_Host
-                       => U ("Asterisk_Host"),
+                       => U ("FreeSWITCH_Host"),
                        PBX_Port
-                       => U ("5038"));
+                       => U ("8021"));
 
    package Config is new Yolk.Config_File_Parser
      (Key_Type            => Keys,

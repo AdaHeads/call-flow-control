@@ -70,20 +70,14 @@ PBX_Secret password
 #
 # The PBX password
 
-PBX_User username
-# String.
-# Default: username
-#
-# The PBX username
-
-PBX_Host Asterisk_Host
+PBX_Host FreeSWITCH_Host
 # String
-# Default: Asterisk_Host
+# Default: FreeSWITCH_Host
 #
 # Host where the PBX event socket is located.
 
-PBX_Port 5038
+PBX_Port 8031
 # Positive.
-# Default: 5038
+# Default: 8021
 #
 # Port for the PBX event socket.
