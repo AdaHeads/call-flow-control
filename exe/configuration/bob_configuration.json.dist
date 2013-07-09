@@ -3,7 +3,7 @@
     "aliceBaseUrl": "http://alice.adaheads.com:4242",
     "notificationSocket": {
         "interface": "ws://alice.adaheads.com:4242/notifications",
-        "reconnectInterval": 1000
+        "reconnectInterval": 2000
     },
     "agentID": "1",
     "serverLog": {
