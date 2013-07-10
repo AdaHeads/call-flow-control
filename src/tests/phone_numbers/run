@@ -13,7 +13,7 @@ while read line; do
    if echo "${line}" | tr '\t\n' '\0\0' | xargs --null ./comparison; then
       true
    else
-      comparison_errors++
+      let comparison_errors++
    fi
 done < comparison.examples.matching
 
@@ -22,7 +22,7 @@ done < comparison.examples.matching
 
 while read line; do
    if echo "${line}" | tr '\t\n' '\0\0' | xargs --null ./comparison; then
-      comparison_errors++
+      let comparison_errors++
    else
       true
    fi
