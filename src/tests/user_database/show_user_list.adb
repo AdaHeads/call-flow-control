@@ -30,7 +30,7 @@ begin
    Put_Line (String (Tux));
 
    Put_Line ("--  From the user database:");
-   --  for User_Name of Users.List loop
-   --     Put_Line (String (User_Name));
-   --  end loop;
+   for User_Name of Users.List loop
+      Put_Line (String (User_Name));
+   end loop;
 end Show_User_List;

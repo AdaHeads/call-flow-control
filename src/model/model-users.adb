@@ -23,20 +23,35 @@ package body Model.Users is
    function List (C : in out Database_Cursor'Class) return Instance is
    begin
       return Result : Instance do
-         loop
+         while C.Has_Row loop
             Result.Insert (User.Name (Value (C, 0)));
-            exit when not C.Has_Row;
             C.Next;
          end loop;
       end return;
    end List;
 
+   procedure User_Names_Only is
+      new Storage.Process_Select_Query
+            (Element           => Instance,
+             Database_Cursor   => Database_Cursor,
+             Cursor_To_Element => List);
+
    function List return Instance is
       use GNATCOLL.SQL.Exec;
-   begin
-      raise Program_Error with "Model.Users.List is not implemented.";
 
-      return User_Lists.Empty_Set;
+      Result : Instance;
+
+      procedure Copy (E : in Instance);
+      procedure Copy (E : in Instance) is
+      begin
+         Result := E;
+      end Copy;
+   begin
+      User_Names_Only
+        (Process_Element    => Copy'Access,
+         Prepared_Statement => SQL_Prepared_Statements.Users.List);
+
+      return Result;
    end List;
 
 end Model.Users;
