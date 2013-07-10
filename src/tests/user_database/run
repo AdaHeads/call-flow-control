@@ -20,10 +20,29 @@ if [ -s show_user_list.output_differences ]; then
    cat show_user_list.output_differences
    echo
 
-   errors++
+   let errors++
 fi
 
 rm -f show_user_list.output_differences
+
+#-----------------------------------------------------------------------------
+#--  Output from show_openids:
+
+./show_openids \
+  --alice-config-file ../../../exe/configuration/alice_config.ini \
+  --yolk-config-file  ../sighup-handling/yolk_config.ini \
+  | diff -u show_openids.expected_output - \
+  > show_openids.output_differences
+
+if [ -s show_openids.output_differences ]; then
+   echo "Mismatch in output from 'show_openids':"
+   cat show_openids.output_differences
+   echo
+
+   let errors++
+fi
+
+rm -f show_openids.output_differences
 
 #-----------------------------------------------------------------------------
 #--  Report errors:

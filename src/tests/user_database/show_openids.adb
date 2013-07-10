@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2013-, AdaHeads K/S                     --
+--                      Copyright (C) 2013-, AdaHeads K/S                    --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,44 +15,26 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with SQL_Prepared_Statements.Users,
-     Storage;
+with
+  Ada.Text_IO;
+with
+  Model.User;
 
-package body Model.Users is
+procedure Show_OpenIDs is
+   use Ada.Text_IO;
+   use Model;
 
-   function List (C : in out Database_Cursor'Class) return Instance;
-   function List (C : in out Database_Cursor'Class) return Instance is
+   Tux : constant User.Name := "Tux";
+begin
+   Put_Line ("--  OpenIDs for user """ & String (Tux) & """:");
+   declare
+      OpenIDs : User.OpenID_List := User.OpenIDs (Tux);
    begin
-      return Result : Instance do
-         while C.Has_Row loop
-            Result.Insert (User.Name (Value (C, 0)));
-            C.Next;
-         end loop;
-      end return;
-   end List;
-
-   procedure User_Names_Only is
-      new Storage.Process_Select_Query
-            (Element           => Instance,
-             Database_Cursor   => Database_Cursor,
-             Cursor_To_Element => List);
-
-   function List return Instance is
-      use GNATCOLL.SQL.Exec;
-
-      Result : Instance;
-
-      procedure Copy (E : in Instance);
-      procedure Copy (E : in Instance) is
-      begin
-         Result := E;
-      end Copy;
-   begin
-      User_Names_Only
-        (Process_Element    => Copy'Access,
-         Prepared_Statement => SQL_Prepared_Statements.Users.List);
-
-      return Result;
-   end List;
-
-end Model.Users;
+      for OpenID of OpenIDs loop
+         Put_Line (User.URL (OpenID));
+      end loop;
+   end;
+   --  for OpenID of User.OpenIDs (Tux) loop
+   --     null; --  Put_Line (User.URL (OpenID));
+   --  end loop;
+end Show_OpenIDs;

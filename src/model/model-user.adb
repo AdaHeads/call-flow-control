@@ -18,41 +18,44 @@
 with SQL_Prepared_Statements.Users,
      Storage;
 
-package body Model.Users is
+package body Model.User is
 
-   function List (C : in out Database_Cursor'Class) return Instance;
-   function List (C : in out Database_Cursor'Class) return Instance is
+   function List (C : in out Database_Cursor'Class) return OpenID_List;
+   function List (C : in out Database_Cursor'Class) return OpenID_List is
    begin
-      return Result : Instance do
+      return Result : OpenID_List do
          while C.Has_Row loop
-            Result.Insert (User.Name (Value (C, 0)));
+            Result.Append (Parse (Value (C, 0)));
             C.Next;
          end loop;
       end return;
    end List;
 
-   procedure User_Names_Only is
+   procedure OpenIDs_For_User is
       new Storage.Process_Select_Query
-            (Element           => Instance,
+            (Element           => OpenID_List,
              Database_Cursor   => Database_Cursor,
              Cursor_To_Element => List);
 
-   function List return Instance is
+   function OpenIDs (User : in     Name) return OpenID_List is
       use GNATCOLL.SQL.Exec;
 
-      Result : Instance;
+      Result : OpenID_List;
 
-      procedure Copy (E : in Instance);
-      procedure Copy (E : in Instance) is
+      procedure Copy (E : in OpenID_List);
+      procedure Copy (E : in OpenID_List) is
       begin
          Result := E;
       end Copy;
+      
+      User_Name : aliased constant String := String (User);
    begin
-      User_Names_Only
+      OpenIDs_For_User
         (Process_Element    => Copy'Access,
-         Prepared_Statement => SQL_Prepared_Statements.Users.List);
+         Prepared_Statement => SQL_Prepared_Statements.Users.OpenIDs,
+	 Query_Parameters   => (1 => +User_Name'Access));
 
       return Result;
-   end List;
+   end OpenIDs;
 
-end Model.Users;
+end Model.User;

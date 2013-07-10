@@ -15,9 +15,21 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Containers.Indefinite_Vectors;
+
+with AWS.URL;
+
 package Model.User is
 
    type Name is new String
      with Dynamic_Predicate => (Name'Length > 0);
+
+   type OpenID is new AWS.URL.Object;
+   package OpenID_Lists is new Ada.Containers.Indefinite_Vectors
+                                 (Element_Type => OpenID,
+                                  Index_Type   => Positive);
+   subtype OpenID_List is OpenID_Lists.Vector;
+
+   function OpenIDs (User : in     Name) return OpenID_List;
 
 end Model.User;
