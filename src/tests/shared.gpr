@@ -22,7 +22,7 @@ abstract project Shared is
       for Default_Switches ("Ada") use ("-fstack-check",
                                         "-gnata",
                                         "-gnatf",
-                                        "-gnato",
+                                        "-gnato13",
                                         "-gnatwa",
                                         "-gnaty3abcdefhiklmnoprstux",
                                         "-Wall",
