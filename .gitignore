@@ -1,6 +1,7 @@
 # Do not track build objects.
 build*/*
 !build*/.gitignore
+src/tests/*/b~*.ad[sb]
 
 # Do not track the .ini and json files in exe/configuration
 exe/configuration/*.ini
@@ -26,6 +27,9 @@ exe/session/*
 
 # Local files @krc
 TODO
+
+# Local files @sparre
+test_and_push_to_master
 
 # www content
 exe/www/*
