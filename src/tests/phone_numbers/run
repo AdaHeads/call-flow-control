@@ -32,7 +32,7 @@ done < comparison.examples.not_matching
 #--  Report comparison errors:
 
 if [ ${comparison_errors} -gt 0 ]; then
-   echo "Failed at comparing ${errors} examples correctly."
+   echo "Failed at comparing ${comparison_errors} examples correctly."
 fi
 
 #-----------------------------------------------------------------------------
