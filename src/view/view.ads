@@ -28,13 +28,13 @@ package View is
    B_Leg             : constant String := "b_leg";
    Call_ID_S         : constant String := "call_Id";
    Channel           : constant String := "channel";
-   Contact_Id        : constant String := "contact_id";
+   Contact_ID        : constant String := "contact_id";
    Contacts          : constant String := "contacts";
    Full_Name         : constant String := "full_name";
    ID                : constant String := "id";
    Inbound           : constant String := "inbound";
    Is_Human          : constant String := "is_human";
-   Organization_Id   : constant String := "organization_id";
+   Organization_ID   : constant String := "organization_id";
    Organization_List : constant String := "organization_list";
    Length            : constant String := "length";
    Queue             : constant String := "queue";

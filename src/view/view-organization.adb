@@ -148,7 +148,7 @@ package body View.Organization is
             J := Create_Object;
          end if;
 
-         J.Set_Field (Organization_Id, Integer (Instance.ID));
+         J.Set_Field (Organization_ID, Integer (Instance.ID));
 
          J.Set_Field (Full_Name, Instance.Full_Name);
 
@@ -183,7 +183,7 @@ package body View.Organization is
             J := Create_Object;
          end if;
 
-         J.Set_Field (Organization_Id, Integer (Instance.ID));
+         J.Set_Field (Organization_ID, Integer (Instance.ID));
 
          J.Set_Field (Full_Name, Instance.Full_Name);
 
@@ -208,7 +208,7 @@ package body View.Organization is
       if Instance /= Null_Organization then
          J := Create_Object;
 
-         J.Set_Field (Organization_Id, Integer (Instance.ID));
+         J.Set_Field (Organization_ID, Integer (Instance.ID));
 
          J.Set_Field (Full_Name, Instance.Full_Name);
 

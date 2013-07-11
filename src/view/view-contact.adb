@@ -33,7 +33,7 @@ package body View.Contact is
       if Instance /= Null_Object then
          J := Create_Object;
 
-         J.Set_Field (Contact_Id, Integer (Instance.ID));
+         J.Set_Field (Contact_ID, Integer (Instance.ID));
 
          J.Set_Field (Full_Name, Instance.Full_Name);
 

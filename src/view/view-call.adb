@@ -45,7 +45,7 @@ package body View.Call is
          Value.Set_Field (View.Inbound, Call.Inbound);
          Value.Set_Field (View.Assigned_To_S, Call.Assigned_To.To_JSON);
          Value.Set_Field (View.Channel, To_String (Call.ID));
-         Value.Set_Field (View.Organization_Id, Natural (Call.Organization));
+         Value.Set_Field (View.Organization_ID, Natural (Call.Organization));
          Value.Set_Field
            (View.Arrival_Time_S, Unix_Timestamp (Call.Arrival_Time));
       else

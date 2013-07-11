@@ -35,9 +35,9 @@ package body View.Attribute is
          J := Create_Object;
       end if;
 
-      J.Set_Field (Contact_Id, Integer (Instance.Contact_ID));
+      J.Set_Field (Contact_ID, Integer (Instance.Contact_ID));
 
-      J.Set_Field (Organization_Id,
+      J.Set_Field (Organization_ID,
                    Integer (Instance.Organization_ID));
 
       return J;
