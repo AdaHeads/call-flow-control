@@ -47,13 +47,13 @@ package body Model.User is
       begin
          Result := E;
       end Copy;
-      
+
       User_Name : aliased constant String := String (User);
    begin
       OpenIDs_For_User
         (Process_Element    => Copy'Access,
          Prepared_Statement => SQL_Prepared_Statements.Users.OpenIDs,
-	 Query_Parameters   => (1 => +User_Name'Access));
+         Query_Parameters   => (1 => +User_Name'Access));
 
       return Result;
    end OpenIDs;

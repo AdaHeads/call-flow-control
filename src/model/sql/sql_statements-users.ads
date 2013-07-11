@@ -23,7 +23,7 @@ package SQL_Statements.Users is
 
    User_List_Query : constant SQL_Query
      := Distinct (SQL_Select (Fields => DB.User_IDs.Name,
-			      From   => DB.User_IDs));
+                              From   => DB.User_IDs));
 
    OpenID_List_Query : constant SQL_Query
      := SQL_Select (Fields   => DB.User_IDs.OpenID,
