@@ -65,7 +65,7 @@ package body Handlers.Configuration is
 
       JSON_Object := GNATCOLL.JSON.Read (JSON, "bad bob_configuration JSON");
 
-      Instance.Content (To_JSON_String (JSON_Object.Write));
+      Instance.Content (To_JSON_String (JSON_Object));
    end Generate_Document;
 
 end Handlers.Configuration;
