@@ -45,7 +45,7 @@ package View is
    Status            : constant String := "status";
    URI               : constant String := "uri";
    URL               : constant String := "url";
-   User              : constant String := "user";
-   Users             : constant String := "users";
+   User_S            : constant String := "user";
+   Users_S           : constant String := "users";
 
 end View;
