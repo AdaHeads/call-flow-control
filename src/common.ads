@@ -69,6 +69,10 @@ package Common is
       return JSON_String
       renames To_Unbounded_String;
 
+   function To_JSON_String
+     (Source : in GNATCOLL.JSON.JSON_Value)
+      return JSON_String;
+
    function U
      (S : in String)
       return Ada.Strings.Unbounded.Unbounded_String

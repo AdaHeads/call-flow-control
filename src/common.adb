@@ -50,6 +50,15 @@ package body Common is
       return String_To_JSON_Object (To_String (Value));
    end String_To_JSON_Object;
 
+   --  To_JSON_String
+
+   function To_JSON_String
+     (Source : in GNATCOLL.JSON.JSON_Value)
+      return JSON_String is
+   begin
+      return To_Unbounded_String (Source.Write);
+   end To_JSON_String;
+
    ----------------------
    --  Unix_Timestamp  --
    ----------------------
