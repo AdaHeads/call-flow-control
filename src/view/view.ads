@@ -34,12 +34,18 @@ package View is
    ID                : constant String := "id";
    Inbound           : constant String := "inbound";
    Is_Human          : constant String := "is_human";
+   OpenIDs           : constant String := "openids";
    Organization_ID   : constant String := "organization_id";
    Organization_List : constant String := "organization_list";
    Length            : constant String := "length";
+   Name              : constant String := "name";
    Queue             : constant String := "queue";
+   Rank              : constant String := "rank";
    State_S           : constant String := "state";
    Status            : constant String := "status";
    URI               : constant String := "uri";
+   URL               : constant String := "url";
+   User              : constant String := "user";
+   Users             : constant String := "users";
 
 end View;
