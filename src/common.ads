@@ -65,11 +65,6 @@ package Common is
    --  empty string or a "null" string a GNATCOLL.JSON.JSON_Null is returned.
 
    function To_JSON_String
-     (Source : in String)
-      return JSON_String
-      renames To_Unbounded_String;
-
-   function To_JSON_String
      (Source : in GNATCOLL.JSON.JSON_Value)
       return JSON_String;
 

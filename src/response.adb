@@ -117,10 +117,10 @@ package body Response is
         (Parameters (Request).Get ("jsoncallback"), Both);
    begin
       if JSON_Callback'Length > 0 then
-         return To_JSON_String (JSON_Callback)
-           & To_JSON_String ("(")
+         return To_Unbounded_String (JSON_Callback)
+           & To_Unbounded_String ("(")
            & Content
-           & To_JSON_String (")");
+           & To_Unbounded_String (")");
       end if;
 
       return Content;

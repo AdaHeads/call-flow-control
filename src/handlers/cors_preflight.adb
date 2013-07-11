@@ -42,7 +42,7 @@ package body CORS_Preflight is
       use HTTP_Codes;
    begin
       Instance.HTTP_Status_Code (OK);
-      Instance.Content (To_JSON_String ("{}"));
+      Instance.Content (Null_JSON_String);
    end Generate_Document;
 
 end CORS_Preflight;

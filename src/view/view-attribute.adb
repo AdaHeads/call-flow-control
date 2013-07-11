@@ -86,7 +86,7 @@ package body View.Attribute is
       return JSON_String
    is
    begin
-      return To_JSON_String (To_JSON (Instance).Write);
+      return To_JSON_String (To_JSON (Instance));
    end To_JSON_String;
 
 end View.Attribute;

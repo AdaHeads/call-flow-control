@@ -105,7 +105,7 @@ package body View.Organization is
       return JSON_String
    is
    begin
-      return To_JSON_String (To_JSON (Instance).Write);
+      return To_JSON_String (To_JSON (Instance));
    end To_JSON_String;
 
    ----------------------
@@ -120,11 +120,11 @@ package body View.Organization is
    begin
       case Instance.Mode is
          when Request_Parameters.Mini =>
-            return To_JSON_String (To_Mini_JSON (Instance).Write);
+            return To_JSON_String (To_Mini_JSON (Instance));
          when Request_Parameters.Midi =>
-            return To_JSON_String (To_Midi_JSON (Instance).Write);
+            return To_JSON_String (To_Midi_JSON (Instance));
          when Request_Parameters.Maxi =>
-            return To_JSON_String (To_Maxi_JSON (Instance).Write);
+            return To_JSON_String (To_Maxi_JSON (Instance));
       end case;
    end To_JSON_String;
 

@@ -28,7 +28,7 @@ package body View.Call is
    begin
       JSON.Set_Field (View.Status, Title);
       JSON.Set_Field ("description", Message);
-      return To_JSON_String (JSON.Write);
+      return To_JSON_String (JSON);
    end Status_Message;
 
    function To_JSON (Call : in PBX.Call.Instance)

@@ -38,7 +38,7 @@ package body Handlers.Agent is
       JSON            : JSON_String;
       Response_Object : Response.Object := Response.Factory (Request);
    begin
-      JSON := To_JSON_String (Peer.List.To_JSON.Write);
+      JSON := To_JSON_String (Peer.List.To_JSON);
 
       Response_Object.HTTP_Status_Code (OK);
       Response_Object.Content (JSON);
@@ -61,7 +61,7 @@ package body Handlers.Agent is
    begin
 
       Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content (To_JSON_String (Model.Agent.To_JSON.Write));
+      Response_Object.Content (To_JSON_String (Model.Agent.To_JSON));
 
       return Response_Object.Build;
    end Agent_List;

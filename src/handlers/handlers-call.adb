@@ -95,7 +95,7 @@ package body Handlers.Call is
       --  Only return a call list when there actual calls in it.
       if not PBX.Call.List_Empty then
          Response_Object.HTTP_Status_Code (HTTP.OK);
-         Response_Object.Content (To_JSON_String (PBX.Call.List.Write));
+         Response_Object.Content (To_JSON_String (PBX.Call.List));
       else
          Response_Object.HTTP_Status_Code (HTTP.No_Content);
       end if;
@@ -270,7 +270,7 @@ package body Handlers.Call is
 
          Response_Object.HTTP_Status_Code (HTTP.OK);
          Response_Object.Content
-           ((To_JSON_String (Assigned_Call.To_JSON.Write)));
+           ((To_JSON_String (Assigned_Call.To_JSON)));
       end if;
 
       return Response_Object.Build;
@@ -330,7 +330,7 @@ package body Handlers.Call is
       if not Call_List.List_Empty then
          Response_Object.HTTP_Status_Code (HTTP.OK);
          Response_Object.Content (To_JSON_String
-                                  (PBX.Call.Queued_Calls.Write));
+                                  (PBX.Call.Queued_Calls));
       else
          Response_Object.HTTP_Status_Code (HTTP.No_Content);
       end if;

@@ -15,11 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with GNATCOLL.JSON;
+
 with Common;
 with HTTP_Codes;
 with Response;
 with ESL.Peer;
 --  with ESL.Channel.List;
+with View;
 
 package body Handlers.Debug is
    use Common;
@@ -27,14 +30,18 @@ package body Handlers.Debug is
 
    function Channel_List (Request : in AWS.Status.Data)
                           return AWS.Response.Data is
+      use GNATCOLL.JSON;
       use HTTP_Codes;
 
       Response_Object : Response.Object := Response.Factory (Request);
+      Data            : JSON_Value;
    begin
       Response_Object.HTTP_Status_Code (OK);
       --  TODO:
-      Response_Object.Content
-        (To_JSON_String ("Not implemented"));
+      Data := Create_Object;
+      Data.Set_Field (Field_Name  => View.Status,
+                      Field       => "Not implemented");
+      Response_Object.Content (To_JSON_String (Data));
 
       return Response_Object.Build;
    end Channel_List;
@@ -46,8 +53,7 @@ package body Handlers.Debug is
       Response_Object : Response.Object := Response.Factory (Request);
    begin
       Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content
-        (To_JSON_String (Peer.List.To_JSON.Write));
+      Response_Object.Content (To_JSON_String (Peer.List.To_JSON));
 
       return Response_Object.Build;
    end Peer_List;

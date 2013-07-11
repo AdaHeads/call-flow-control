@@ -84,7 +84,7 @@ package body System_Message is
                       Field      => Status);
 
       Response_Object.HTTP_Status_Code (Status_Code);
-      Response_Object.Content (To_JSON_String (JSON.Write));
+      Response_Object.Content (To_JSON_String (JSON));
    end Build_Response_Object;
 
    --------------------
@@ -161,7 +161,7 @@ package body System_Message is
 
       if Status_Code = HTTP_Codes.No_Content then
          Response_Object.HTTP_Status_Code (Status_Code);
-         Response_Object.Content (To_JSON_String (""));
+         Response_Object.Content (Null_JSON_String);
       else
          Build_Response_Object
            (Description     => Description,
@@ -203,7 +203,7 @@ package body System_Message is
    begin
       if Status_Code = HTTP_Codes.No_Content then
          Response_Object.HTTP_Status_Code (Status_Code);
-         Response_Object.Content (To_JSON_String (""));
+         Response_Object.Content (Null_JSON_String);
       else
          Build_Response_Object
            (Description     => Description,

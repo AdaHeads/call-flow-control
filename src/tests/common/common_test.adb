@@ -22,6 +22,7 @@ with Ada.Text_IO;
 
 with GNAT.Expect;
 with GNAT.OS_Lib;
+with GNATCOLL.JSON;
 
 with Common;
 
@@ -33,12 +34,13 @@ procedure Common_Test is
    use Common;
    use GNAT.Expect;
    use GNAT.OS_Lib;
+   use GNATCOLL.JSON;
 
    Exit_Code : Exit_Status := Success;
 
    Now_Ada         : constant Time := Current_Time;
    Now_String      : constant String := Unix_Timestamp (Now_Ada);
-   Now_JSON_String : constant JSON_String := To_JSON_String (Now_String);
+   Now_JSON_String : constant JSON_String := To_JSON_String (JSON_Null);
    Now_U_String    : constant Unbounded_String := U (Now_String);
 
    Cmd  : constant String := "date -u +%s";
@@ -53,9 +55,9 @@ procedure Common_Test is
    Long_Date    : constant Long_Integer := Long_Integer'Value (Date);
    Long_Now_Ada : constant Long_Integer := Long_Integer'Value (Now_String);
 begin
-   if To_String (Now_JSON_String) /= Now_String then
+   if To_String (Now_JSON_String) /= "null" then
       Exit_Code := Failure;
-      Put_Line ("Now_JSON_String /= Now_String");
+      Put_Line ("Now_JSON_String /= ""null""");
    end if;
 
    if To_String (Null_JSON_String) /= "" then
