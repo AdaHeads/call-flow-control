@@ -30,6 +30,11 @@ package Model.User is
                                   Index_Type   => Positive);
    subtype OpenID_List is OpenID_Lists.Vector;
 
+   type Permission is (Receptionist, Service_Agent, Administrator);
+   type Permission_List is array (Permission) of Boolean;
+
    function OpenIDs (User : in     Name) return OpenID_List;
+
+   function Permissions (User : in     Name) return Permission_List;
 
 end Model.User;

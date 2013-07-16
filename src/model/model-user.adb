@@ -31,6 +31,28 @@ package body Model.User is
       end return;
    end List;
 
+   function List (C : in out Database_Cursor'Class) return Permission_List;
+   function List (C : in out Database_Cursor'Class) return Permission_List is
+   begin
+      if C.Field_Name (0) = "Is_Receptionist"  and
+         C.Field_Name (1) = "Is_Service_Agent" and
+         C.Field_Name (2) = "Is_Administrator" then
+
+         return Result : Permission_List do
+            Result := (Receptionist  => C.Boolean_Value (0),
+                       Service_Agent => C.Boolean_Value (1),
+                       Administrator => C.Boolean_Value (2));
+            C.Next;
+         end return;
+      else
+         raise Constraint_Error
+           with "Unexpected column names from the database: (" &
+                C.Field_Name (0) & ", " &
+                C.Field_Name (1) & ", " &
+                C.Field_Name (2) & ")";
+      end if;
+   end List;
+
    procedure OpenIDs_For_User is
       new Storage.Process_Select_Query
             (Element           => OpenID_List,
@@ -57,5 +79,39 @@ package body Model.User is
 
       return Result;
    end OpenIDs;
+
+   procedure Permissions_For_User is
+      new Storage.Process_Select_Query
+            (Element           => Permission_List,
+             Database_Cursor   => Database_Cursor,
+             Cursor_To_Element => List);
+
+   function Permissions (User : in     Name) return Permission_List is
+      use GNATCOLL.SQL.Exec;
+
+      Result  : Permission_List := (others => False);
+      Results : Natural := 0;
+
+      procedure Copy (E : in Permission_List);
+      procedure Copy (E : in Permission_List) is
+      begin
+         Result := E;
+         Results := Results + 1;
+      end Copy;
+
+      User_Name : aliased constant String := String (User);
+   begin
+      Permissions_For_User
+        (Process_Element    => Copy'Access,
+         Prepared_Statement => SQL_Prepared_Statements.Users.Permissions,
+         Query_Parameters   => (1 => +User_Name'Access));
+
+      if Results = 1 then
+         return Result;
+      else
+         raise Constraint_Error
+           with "Expected exactly one row from the database.";
+      end if;
+   end Permissions;
 
 end Model.User;

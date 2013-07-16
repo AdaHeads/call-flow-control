@@ -31,4 +31,11 @@ package SQL_Statements.Users is
                     Where    => DB.User_IDs.Name = Text_Param (1),
                     Order_By => DB.User_IDs.Rank);
 
+   Permission_List_Query : constant SQL_Query
+     := SQL_Select (Fields   => DB.Users.Is_Receptionist &
+                                DB.Users.Is_Service_Agent &
+                                DB.Users.Is_Administrator,
+                    From     => DB.Users,
+                    Where    => DB.Users.Name = Text_Param (1));
+
 end SQL_Statements.Users;

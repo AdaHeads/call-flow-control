@@ -23,6 +23,7 @@ with "yolk";
 
 project Test is
    for Main use ("show_openids",
+                 "show_permissions",
                  "show_user_list");
 
    for Source_Dirs use ("../../**");

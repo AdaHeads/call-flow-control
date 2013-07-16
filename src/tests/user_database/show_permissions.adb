@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2013-, AdaHeads K/S                     --
+--                      Copyright (C) 2013-, AdaHeads K/S                    --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,31 +15,25 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.SQL.Exec;
+with
+  Ada.Text_IO;
+with
+  Model.User;
 
-with SQL_Prepared_Statements.Configuration,
-     SQL_Statements.Users;
+procedure Show_Permissions is
+   use Ada.Text_IO;
+   use Model;
 
-package SQL_Prepared_Statements.Users is
-
-   use GNATCOLL.SQL.Exec;
-
-   List : constant Prepared_Statement
-     := Prepare (Query         => SQL_Statements.Users.User_List_Query,
-                 Auto_Complete => True,
-                 On_Server     => Configuration.On_Server,
-                 Name          => "user_list");
-
-   OpenIDs : constant Prepared_Statement
-     := Prepare (Query         => SQL_Statements.Users.OpenID_List_Query,
-                 Auto_Complete => True,
-                 On_Server     => Configuration.On_Server,
-                 Name          => "openid_list");
-
-   Permissions : constant Prepared_Statement
-     := Prepare (Query         => SQL_Statements.Users.Permission_List_Query,
-                 Auto_Complete => True,
-                 On_Server     => Configuration.On_Server,
-                 Name          => "permission_list");
-
-end SQL_Prepared_Statements.Users;
+   Tux : constant User.Name := "Tux";
+begin
+   Put_Line ("--  Permissions for user """ & String (Tux) & """:");
+   declare
+      Permissions : User.Permission_List := User.Permissions (Tux);
+   begin
+      for Kind in Permissions'Range loop
+         if Permissions (Kind) then
+            Put_Line ("Is " & User.Permission'Image (Kind));
+         end if;
+      end loop;
+   end;
+end Show_Permissions;
