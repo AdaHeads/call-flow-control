@@ -42,6 +42,9 @@ package body Model.User is
             Result := (Receptionist  => C.Boolean_Value (0),
                        Service_Agent => C.Boolean_Value (1),
                        Administrator => C.Boolean_Value (2));
+            Result := (Receptionist  => Boolean'Value (C.Value (0)),
+                       Service_Agent => Boolean'Value (C.Value (1)),
+                       Administrator => Boolean'Value (C.Value (2)));
             C.Next;
          end return;
       else

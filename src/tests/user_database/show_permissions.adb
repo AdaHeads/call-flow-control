@@ -18,22 +18,29 @@
 with
   Ada.Text_IO;
 with
-  Model.User;
+  Model.User,
+  Model.Users;
 
 procedure Show_Permissions is
    use Ada.Text_IO;
    use Model;
+   use type User.Permission_List;
 
-   Tux : constant User.Name := "Tux";
+   Permissions : User.Permission_List := (others => False);
 begin
-   Put_Line ("--  Permissions for user """ & String (Tux) & """:");
-   declare
-      Permissions : User.Permission_List := User.Permissions (Tux);
-   begin
-      for Kind in Permissions'Range loop
-         if Permissions (Kind) then
-            Put_Line ("Is " & User.Permission'Image (Kind));
-         end if;
-      end loop;
-   end;
+   for User_Name of Users.List loop
+      Put_Line (String (User_Name) & " ...");
+
+      Permissions := User.Permissions (User_Name);
+
+      if Permissions = User.Permission_List'(others => False) then
+         Put_Line ("   has no permissions.");
+      else
+         for Kind in Permissions'Range loop
+            if Permissions (Kind) then
+               Put_Line ("   is a " & User.Permission'Image (Kind));
+            end if;
+         end loop;
+      end if;
+   end loop;
 end Show_Permissions;

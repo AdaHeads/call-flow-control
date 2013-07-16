@@ -1,4 +1,11 @@
---  Permissions for user "Tux":
-Is RECEPTIONIST
-Is SERVICE_AGENT
-Is ADMINISTRATOR
+AdaHeads Test User One ...
+   is a RECEPTIONIST
+AdaHeads Test User Three ...
+   is a RECEPTIONIST
+   is a SERVICE_AGENT
+   is a ADMINISTRATOR
+AdaHeads Test User Two ...
+   is a RECEPTIONIST
+   is a SERVICE_AGENT
+Tux ...
+   is a ADMINISTRATOR
