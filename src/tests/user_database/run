@@ -45,6 +45,25 @@ fi
 rm -f show_openids.output_differences
 
 #-----------------------------------------------------------------------------
+#--  Output from show_permissions:
+
+./show_permissions \
+  --alice-config-file ../../../exe/configuration/alice_config.ini \
+  --yolk-config-file  ../sighup-handling/yolk_config.ini \
+  | diff -u show_permissions.expected_output - \
+  > show_permissions.output_differences
+
+if [ -s show_permissions.output_differences ]; then
+   echo "Mismatch in output from 'show_permissions':"
+   cat show_permissions.output_differences
+   echo
+
+   let errors++
+fi
+
+rm -f show_permissions.output_differences
+
+#-----------------------------------------------------------------------------
 #--  Report errors:
 
 if [ ${errors} -gt 0 ]; then
