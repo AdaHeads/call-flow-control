@@ -26,6 +26,12 @@ package Database_Names is
    TC_Users : aliased constant String := "users";
    Ta_Users : constant Cst_String_Access := TC_Users'Access;
 
+   NC_Is_Administrator : aliased constant String := """Is_Administrator""";
+   N_Is_Administrator : constant Cst_String_Access := NC_Is_Administrator'Access;
+   NC_Is_Receptionist : aliased constant String := """Is_Receptionist""";
+   N_Is_Receptionist : constant Cst_String_Access := NC_Is_Receptionist'Access;
+   NC_Is_Service_Agent : aliased constant String := """Is_Service_Agent""";
+   N_Is_Service_Agent : constant Cst_String_Access := NC_Is_Service_Agent'Access;
    NC_Contact_Id : aliased constant String := "contact_id";
    N_Contact_Id : constant Cst_String_Access := NC_contact_id'Access;
    NC_Day : aliased constant String := """day""";

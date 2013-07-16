@@ -151,6 +151,9 @@ package Database is
    type T_Abstract_Users (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Users, Instance, Index) with
    record
+      Is_Administrator : SQL_Field_Boolean (Ta_Users, Instance, N_Is_Administrator, Index);
+      Is_Receptionist : SQL_Field_Boolean (Ta_Users, Instance, N_Is_Receptionist, Index);
+      Is_Service_Agent : SQL_Field_Boolean (Ta_Users, Instance, N_Is_Service_Agent, Index);
       Name : SQL_Field_Text (Ta_Users, Instance, N_Name, Index);
    end record;
 
