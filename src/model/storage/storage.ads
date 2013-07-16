@@ -26,7 +26,7 @@ package Storage is
 
       type Database_Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with
         private;
-      type Element (<>) is tagged private;
+      type Element (<>) is private;
 
       with function Cursor_To_Element
         (C : in out Database_Cursor'Class)
