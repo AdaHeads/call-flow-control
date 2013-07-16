@@ -1,7 +1,7 @@
 with GNATCOLL.SQL; use GNATCOLL.SQL;
 package Database_Names is
    pragma Style_Checks (Off);
-   TC_Dial_Plans : aliased constant String := """Dial_Plans""";
+   TC_Dial_Plans : aliased constant String := "Dial_Plans";
    Ta_Dial_Plans : constant Cst_String_Access := TC_Dial_Plans'Access;
    TC_Contact : aliased constant String := "contact";
    Ta_Contact : constant Cst_String_Access := TC_Contact'Access;
@@ -21,20 +21,20 @@ package Database_Names is
    Ta_Recipient_Kind : constant Cst_String_Access := TC_Recipient_Kind'Access;
    TC_Special_Days : aliased constant String := "special_days";
    Ta_Special_Days : constant Cst_String_Access := TC_Special_Days'Access;
-   TC_User_Ids : aliased constant String := "user_ids";
-   Ta_User_Ids : constant Cst_String_Access := TC_User_Ids'Access;
+   TC_User_IDs : aliased constant String := "user_ids";
+   Ta_User_IDs : constant Cst_String_Access := TC_User_IDs'Access;
    TC_Users : aliased constant String := "users";
    Ta_Users : constant Cst_String_Access := TC_Users'Access;
 
-   NC_Is_Administrator : aliased constant String := """Is_Administrator""";
+   NC_Is_Administrator : aliased constant String := "Is_Administrator";
    N_Is_Administrator : constant Cst_String_Access := NC_Is_Administrator'Access;
-   NC_Is_Receptionist : aliased constant String := """Is_Receptionist""";
+   NC_Is_Receptionist : aliased constant String := "Is_Receptionist";
    N_Is_Receptionist : constant Cst_String_Access := NC_Is_Receptionist'Access;
-   NC_Is_Service_Agent : aliased constant String := """Is_Service_Agent""";
+   NC_Is_Service_Agent : aliased constant String := "Is_Service_Agent";
    N_Is_Service_Agent : constant Cst_String_Access := NC_Is_Service_Agent'Access;
    NC_Contact_Id : aliased constant String := "contact_id";
    N_Contact_Id : constant Cst_String_Access := NC_contact_id'Access;
-   NC_Day : aliased constant String := """day""";
+   NC_Day : aliased constant String := "day";
    N_Day : constant Cst_String_Access := NC_day'Access;
    NC_Description : aliased constant String := "description";
    N_Description : constant Cst_String_Access := NC_description'Access;
@@ -54,7 +54,7 @@ package Database_Names is
    N_Kind : constant Cst_String_Access := NC_kind'Access;
    NC_Kind_Id : aliased constant String := "kind_id";
    N_Kind_Id : constant Cst_String_Access := NC_kind_id'Access;
-   NC_Name : aliased constant String := """name""";
+   NC_Name : aliased constant String := "name";
    N_Name : constant Cst_String_Access := NC_name'Access;
    NC_Openid : aliased constant String := "openid";
    N_Openid : constant Cst_String_Access := NC_openid'Access;
