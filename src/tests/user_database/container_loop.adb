@@ -15,23 +15,26 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with "../shared";
-with "gnatcoll";
-with "gnatcoll_postgres";
-with "gnatcoll_sqlite";
-with "yolk";
+with Ada.Command_Line,
+     Ada.Containers.Indefinite_Vectors,
+     Ada.Text_IO;
 
-project Test is
-   for Main use ("container_loop",
-                 "show_openids",
-                 "show_permissions",
-                 "show_user_list");
+procedure Container_Loop is
+   use Ada.Command_Line, Ada.Text_IO;
 
-   for Source_Dirs use ("../../**");
-   for Exec_Dir    use ".";
-   for Object_Dir  use "../../../build_production";
+   package String_Vectors is
+     new Ada.Containers.Indefinite_Vectors (Element_Type => String,
+                                            Index_Type   => Positive);
+   use String_Vectors;
 
-   package Compiler renames Shared.Compiler;
-   package Naming   renames Shared.Naming;
-   package IDE      renames Shared.IDE;
-end Test;
+   function Example (Item : in String) return Vector is
+   begin
+      return Result : Vector do
+         Result.Append (Item);
+      end return;
+   end Example;
+begin
+   for E of Example (Argument (1)) loop
+      Put_Line (E);
+   end loop;
+end Container_Loop;
