@@ -37,7 +37,7 @@ package Response is
    --  GET parameter is present.
 
    procedure Content
-     (Instance :    out Object;
+     (Instance : in out Object;
       Value    : in     Common.JSON_String);
    --  Add content to Instance.
 
@@ -55,7 +55,7 @@ package Response is
    --  Wraps a Factory and Status_Data call into one convenient package.
 
    procedure HTTP_Status_Code
-     (Instance :    out Object;
+     (Instance : in out Object;
       Value    : in     AWS.Messages.Status_Code);
    --  Set the HTTP code that is returned to the client when Build is called.
 
@@ -71,7 +71,7 @@ package Response is
    --  Return whether or not the content of Instance can be cached.
 
    procedure Is_Cacheable
-     (Instance :    out Object;
+     (Instance : in out Object;
       Value    : in     Boolean)
    with Post => Value = Instance.Is_Cacheable;
    --  Set whether the contents of Instance is cacheable. This does not define

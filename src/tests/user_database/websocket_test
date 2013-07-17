@@ -32,7 +32,9 @@ sleep 1
 #-----------------------------------------------------------------------------
 #--  Response from /users/list:
 
-wget --quiet --output-document=user_list.json http://localhost:4242/users/list
+curl -v http://localhost:4242/users/list \
+  1> user_list.json \
+  2> user_list.errors
 
 diff -u user_list.expected.json user_list.json \
   > user_list.json.differences
@@ -45,14 +47,23 @@ if [ -s user_list.json.differences ]; then
    let errors++
 fi
 
-rm -f user_list.json user_list.json.differences
+if grep '^< HTTP/1.1 200 ' user_list.errors 1>/dev/null; then
+   true
+else
+   echo "Incorrect HTTP status from the websocket interface '/users/list':"
+   egrep '^< HTTP/1.1 [0-9]{3] '
+fi
+
+rm -f user_list.json \
+      user_list.errors \
+      user_list.json.differences
 
 #-----------------------------------------------------------------------------
 #--  Response from '/users/list' with parameters:
 
-wget --quiet \
-     --output-document=user_list-with_parameters.json \
-     http://localhost:4242/users/list?a
+curl -v http://localhost:4242/users/list?a \
+  1> user_list-with_parameters.json \
+  2> user_list-with_parameters.errors
 
 diff -u user_list-with_parameters.expected.json \
         user_list-with_parameters.json \
@@ -66,12 +77,23 @@ if [ -s user_list-with_parameters.json.differences ]; then
    let errors++
 fi
 
-rm -f user_list-with_parameters.json user_list-with_parameters.json.differences
+if grep '^< HTTP/1.1 400 ' user_list-with_parameters.errors 1>/dev/null; then
+   true
+else
+   echo "Incorrect HTTP status from the websocket interface '/users/list':"
+   egrep '^< HTTP/1.1 [0-9]{3] '
+fi
+
+rm -f user_list-with_parameters.json \
+      user_list-with_parameters.errors \
+      user_list-with_parameters.json.differences
 
 #-----------------------------------------------------------------------------
 #--  Response from /users/openids:
 
-wget --quiet --output-document=openids.json http://localhost:4242/users/openids?user=Tux
+curl -v http://localhost:4242/users/openids?user=Tux \
+  1> openids.json \
+  2> openids.errors
 
 diff -u openids.expected.json openids.json \
   > openids.json.differences
@@ -84,20 +106,26 @@ if [ -s openids.json.differences ]; then
    let errors++
 fi
 
-rm -f openids.json openids.json.differences
+if grep '^< HTTP/1.1 200 ' openids.errors 1>/dev/null; then
+   true
+else
+   echo "Incorrect HTTP status from the websocket interface '/users/list':"
+   egrep '^< HTTP/1.1 [0-9]{3] '
+fi
+
+rm -f openids.json \
+      openids.errors \
+      openids.json.differences
 
 #-----------------------------------------------------------------------------
 #--  Stop Alice:
 
 kill ${alice_pid}
-
-(
-  sleep 1
-  if [ -d /proc/${alice_pid} ]; then
-     echo 'Killing Alice the hard way...' 1>&2
-     kill -9 ${alice_pid}
-  fi
-) &
+sleep 1
+if [ -d /proc/${alice_pid} ]; then
+   echo 'Killing Alice the hard way...' 1>&2
+   kill -9 ${alice_pid}
+fi
 
 #-----------------------------------------------------------------------------
 #--  Report errors:

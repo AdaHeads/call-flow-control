@@ -18,6 +18,7 @@
 with GNATCOLL.JSON;
 
 with Common,
+     HTTP_Codes,
      Model.Users,
      Response.Not_Cached,
      View.Users;
@@ -54,12 +55,15 @@ package body Handlers.Users.List is
                          Field      => "okay");
          Data.Set_Field (Field_Name => View.Users_S,
                          Field      => View.Users.To_JSON (Model.Users.List));
+
+         Instance.Content (To_JSON_String (Data));
       else
          Data.Set_Field (Field_Name => View.Status,
                          Field      => "too many parameters");
-      end if;
 
-      Instance.Content (To_JSON_String (Data));
+         Instance.Content (To_JSON_String (Data));
+         Instance.HTTP_Status_Code (HTTP_Codes.Bad_Request);
+      end if;
    end Generate_Document;
 
 end Handlers.Users.List;

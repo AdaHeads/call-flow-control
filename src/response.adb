@@ -161,7 +161,7 @@ package body Response is
    ---------------
 
    procedure Content
-     (Instance :    out Object;
+     (Instance : in out Object;
       Value    : in     Common.JSON_String)
    is
    begin
@@ -223,7 +223,7 @@ package body Response is
    ------------------------
 
    procedure HTTP_Status_Code
-     (Instance :    out Object;
+     (Instance : in out Object;
       Value    : in     AWS.Messages.Status_Code)
    is
    begin
@@ -247,7 +247,7 @@ package body Response is
    --------------------
 
    procedure Is_Cacheable
-     (Instance :    out Object;
+     (Instance : in out Object;
       Value    : in     Boolean)
    is
    begin
