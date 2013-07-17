@@ -7,6 +7,68 @@ cd "$(dirname "$0")" || exit -1
 errors=0
 
 #-----------------------------------------------------------------------------
+#--  Helper functions:
+
+function check() {
+   local uri="$1"
+
+   local name="${uri#/}"
+   local name="${name//\//-}"
+
+   local url="http://localhost:4242${uri}"
+
+   local status_file="${name}.status"
+   local data_file="${name}.expected"
+
+   local data="${name}.data"
+   local log="${name}.log"
+   local differences="${name}.differences"
+
+   if [ ! -f "${status_file}" ]; then
+      echo "Please put the expected HTTP status code for <${url}> in '${status_file}'."
+      let errors++
+      return
+   fi
+
+   local expected_status="$(cat "${status_file}" | tr -cd '0-9')"
+
+   if [ -z "${expected_status}" ]; then
+      echo "'${status_file}' should contain the expected 3 digit HTTP status code for <${url}>."
+      let errors++
+      return
+   fi
+
+   if [ ! -f "${data_file}" ]; then
+      echo "Please put the expected data from <${url}> in '${data_file}'."
+      let errors++
+      return
+   fi
+   
+   curl -v "${url}" 1>"${data}" 2>"${log}"
+
+   diff -u "${data_file}" "${data}" > "${differences}"
+
+   if [ -s "${differences}" ]; then
+      echo "Mismatch in output from the websocket interface <${url}>:"
+      cat "${differences}"
+      echo
+
+      let errors++
+   fi
+
+   if grep "^< HTTP/1.1 "${expected_status}' ' "${log}" 1>/dev/null; then
+      true
+   else
+      echo "Incorrect HTTP status from the websocket interface <${url}>:"
+      egrep '^< HTTP/1.1 [0-9]{3] ' "${log}"
+
+      let errors++
+   fi
+
+   rm -f "${data}" "${log}" "${differences}"
+}
+
+#-----------------------------------------------------------------------------
 #--  Make sure Alice is running:
 
 ../../../exe/alice \
@@ -30,92 +92,16 @@ fi
 sleep 1
 
 #-----------------------------------------------------------------------------
-#--  Response from /users/list:
+#--  Actual checks:
 
-curl -v http://localhost:4242/users/list \
-  1> user_list.json \
-  2> user_list.errors
+check "/users/list"
+check "/users/list?a"
 
-diff -u user_list.expected.json user_list.json \
-  > user_list.json.differences
-
-if [ -s user_list.json.differences ]; then
-   echo "Mismatch in output from the websocket interface '/users/list':"
-   cat user_list.json.differences
-   echo
-
-   let errors++
-fi
-
-if grep '^< HTTP/1.1 200 ' user_list.errors 1>/dev/null; then
-   true
-else
-   echo "Incorrect HTTP status from the websocket interface '/users/list':"
-   egrep '^< HTTP/1.1 [0-9]{3] '
-fi
-
-rm -f user_list.json \
-      user_list.errors \
-      user_list.json.differences
-
-#-----------------------------------------------------------------------------
-#--  Response from '/users/list' with parameters:
-
-curl -v http://localhost:4242/users/list?a \
-  1> user_list-with_parameters.json \
-  2> user_list-with_parameters.errors
-
-diff -u user_list-with_parameters.expected.json \
-        user_list-with_parameters.json \
-      > user_list-with_parameters.json.differences
-
-if [ -s user_list-with_parameters.json.differences ]; then
-   echo "Mismatch in output from the websocket interface '/users/list' with parameters:"
-   cat user_list-with_parameters.json.differences
-   echo
-
-   let errors++
-fi
-
-if grep '^< HTTP/1.1 400 ' user_list-with_parameters.errors 1>/dev/null; then
-   true
-else
-   echo "Incorrect HTTP status from the websocket interface '/users/list':"
-   egrep '^< HTTP/1.1 [0-9]{3] '
-fi
-
-rm -f user_list-with_parameters.json \
-      user_list-with_parameters.errors \
-      user_list-with_parameters.json.differences
-
-#-----------------------------------------------------------------------------
-#--  Response from /users/openids:
-
-curl -v http://localhost:4242/users/openids?user=Tux \
-  1> openids.json \
-  2> openids.errors
-
-diff -u openids.expected.json openids.json \
-  > openids.json.differences
-
-if [ -s openids.json.differences ]; then
-   echo "Mismatch in output from the websocket interface '/users/openids':"
-   cat openids.json.differences
-   echo
-
-   let errors++
-fi
-
-if grep '^< HTTP/1.1 200 ' openids.errors 1>/dev/null; then
-   true
-else
-   echo "Incorrect HTTP status from the websocket interface '/users/list':"
-   egrep '^< HTTP/1.1 [0-9]{3] '
-fi
-
-rm -f openids.json \
-      openids.errors \
-      openids.json.differences
+check "/users/openids?user=Tux"
+check "/users/openids"
+check "/users/openids?user=Tux&a"
+check "/users/openids?user=Jacob"
+check "/users/openids?name=Jacob"
 
 #-----------------------------------------------------------------------------
 #--  Stop Alice:
