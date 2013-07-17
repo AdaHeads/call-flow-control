@@ -15,8 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Characters.Handling;
+
 with SQL_Prepared_Statements.Users,
-     Storage;
+     Storage,
+     Storage.Fixes;
 
 package body Model.User is
 
@@ -33,18 +36,16 @@ package body Model.User is
 
    function List (C : in out Database_Cursor'Class) return Permission_List;
    function List (C : in out Database_Cursor'Class) return Permission_List is
+      use Ada.Characters.Handling;
    begin
-      if C.Field_Name (0) = "Is_Receptionist"  and
-         C.Field_Name (1) = "Is_Service_Agent" and
-         C.Field_Name (2) = "Is_Administrator" then
+      if To_Lower (C.Field_Name (0)) = "is_receptionist"  and
+         To_Lower (C.Field_Name (1)) = "is_service_agent" and
+         To_Lower (C.Field_Name (2)) = "is_administrator" then
 
          return Result : Permission_List do
-            Result := (Receptionist  => C.Boolean_Value (0),
-                       Service_Agent => C.Boolean_Value (1),
-                       Administrator => C.Boolean_Value (2));
-            Result := (Receptionist  => Boolean'Value (C.Value (0)),
-                       Service_Agent => Boolean'Value (C.Value (1)),
-                       Administrator => Boolean'Value (C.Value (2)));
+            Result := (Receptionist  => Storage.Fixes.Value (C, 0),
+                       Service_Agent => Storage.Fixes.Value (C, 1),
+                       Administrator => Storage.Fixes.Value (C, 2));
             C.Next;
          end return;
       else
