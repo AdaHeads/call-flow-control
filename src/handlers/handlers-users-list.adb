@@ -49,10 +49,15 @@ package body Handlers.Users.List is
    begin
       Data := Create_Object;
 
-      Data.Set_Field (Field_Name => View.Status,
-                      Field      => "okay");
-      Data.Set_Field (Field_Name => View.Users_S,
-                      Field      => View.Users.To_JSON (Model.Users.List));
+      if Instance.Parameter_Count = 0 then
+         Data.Set_Field (Field_Name => View.Status,
+                         Field      => "okay");
+         Data.Set_Field (Field_Name => View.Users_S,
+                         Field      => View.Users.To_JSON (Model.Users.List));
+      else
+         Data.Set_Field (Field_Name => View.Status,
+                         Field      => "too many parameters");
+      end if;
 
       Instance.Content (To_JSON_String (Data));
    end Generate_Document;

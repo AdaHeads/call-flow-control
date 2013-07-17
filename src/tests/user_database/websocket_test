@@ -48,6 +48,27 @@ fi
 rm -f user_list.json user_list.json.differences
 
 #-----------------------------------------------------------------------------
+#--  Response from '/users/list' with parameters:
+
+wget --quiet \
+     --output-document=user_list-with_parameters.json \
+     http://localhost:4242/users/list?a
+
+diff -u user_list-with_parameters.expected.json \
+        user_list-with_parameters.json \
+      > user_list-with_parameters.json.differences
+
+if [ -s user_list-with_parameters.json.differences ]; then
+   echo "Mismatch in output from the websocket interface '/users/list' with parameters:"
+   cat user_list-with_parameters.json.differences
+   echo
+
+   let errors++
+fi
+
+rm -f user_list-with_parameters.json user_list-with_parameters.json.differences
+
+#-----------------------------------------------------------------------------
 #--  Response from /users/openids:
 
 wget --quiet --output-document=openids.json http://localhost:4242/users/openids?user=Tux
