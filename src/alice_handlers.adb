@@ -26,6 +26,7 @@ with Handlers.Notifications;
 with Handlers.Organization;
 with Handlers.Organization_List;
 with Handlers.Users.List;
+with Handlers.Users.OpenIDs;
 with Not_Found;
 
 with AWS.Dispatchers.Callback;
@@ -194,6 +195,10 @@ package body Alice_Handlers is
       Dispatcher.Register
         (URI    => "/users/list",
          Action => Users.List.Callback);
+
+      Dispatcher.Register
+        (URI    => "/users/openids",
+         Action => Users.OpenIDs.Callback);
    end Set_GET_URI_Dispatchers;
 
    --------------------------------

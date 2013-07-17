@@ -34,6 +34,7 @@ package View is
    ID                : constant String := "id";
    Inbound           : constant String := "inbound";
    Is_Human          : constant String := "is_human";
+   OpenID            : constant String := "openid";
    OpenIDs           : constant String := "openids";
    Organization_ID   : constant String := "organization_id";
    Organization_List : constant String := "organization_list";

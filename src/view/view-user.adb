@@ -29,4 +29,32 @@ package body View.User is
 
       return Data;
    end To_JSON;
+
+   function To_JSON (Item  : in     Model.User.OpenID;
+                     Label : in     OpenID_URL_Labels)
+                    return GNATCOLL.JSON.JSON_Value is
+      use GNATCOLL.JSON;
+      Data : JSON_Value;
+   begin
+      Data := Create_Object;
+
+      Data.Set_Field (Field_Name => Label,
+                      Field      => Model.User.URL (Item));
+
+      return Data;
+   end To_JSON;
+
+   function To_JSON (Item : in     Model.User.OpenID_List)
+                    return GNATCOLL.JSON.JSON_Array is
+      use GNATCOLL.JSON;
+      Data : JSON_Array;
+   begin
+      for OpenID of Item loop
+         Append (Arr => Data,
+                 Val => View.User.To_JSON (Item  => OpenID,
+                                           Label => View.URL));
+      end loop;
+
+      return Data;
+   end To_JSON;
 end View.User;

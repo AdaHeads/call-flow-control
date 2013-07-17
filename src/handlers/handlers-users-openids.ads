@@ -15,28 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with AWS.Dispatchers.Callback;
 
-with Model.User;
-
-package View.User is
-   subtype User_Name_Labels is String
-     with Dynamic_Predicate => (User_Name_Labels = View.Name or
-                                User_Name_Labels = View.User_S);
-
-   function To_JSON (Item  : in     Model.User.Name;
-                     Label : in     User_Name_Labels)
-                    return GNATCOLL.JSON.JSON_Value;
-
-   subtype OpenID_URL_Labels is String
-     with Dynamic_Predicate => (OpenID_URL_Labels = View.OpenID or
-                                OpenID_URL_Labels = View.URL);
-
-   function To_JSON (Item  : in     Model.User.OpenID;
-                     Label : in     OpenID_URL_Labels)
-                    return GNATCOLL.JSON.JSON_Value;
-
-   function To_JSON (Item  : in     Model.User.OpenID_List)
-                    return GNATCOLL.JSON.JSON_Array;
-
-end View.User;
+package Handlers.Users.OpenIDs is
+   function Callback return AWS.Dispatchers.Callback.Handler;
+end Handlers.Users.OpenIDs;
