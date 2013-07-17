@@ -16,6 +16,14 @@ errors=0
 
 alice_pid=$!
 
+if [ -z "${alice_pid}" ]; then
+   echo "Failed to start Alice." 1>&2
+   exit -1
+elif [ ! -d "/proc/${alice_pid}" ]; then
+   echo "No process information directory for the started Alice." 1>&2
+   exit -2
+fi
+
 #-----------------------------------------------------------------------------
 #--  Wait for Alice to become ready:
 
@@ -43,6 +51,14 @@ rm -f user_list.json user_list.json.differences
 #--  Stop Alice:
 
 kill ${alice_pid}
+
+(
+  sleep 1
+  if [ -d /proc/${alice_pid} ]; then
+     echo 'Killing Alice the hard way...' 1>&2
+     kill -9 ${alice_pid}
+  fi
+) &
 
 #-----------------------------------------------------------------------------
 #--  Report errors:
