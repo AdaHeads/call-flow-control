@@ -1,0 +1,59 @@
+#! /bin/bash
+#-----------------------------------------------------------------------------
+#--  Set up:
+
+cd "$(dirname "$0")" || exit -1
+
+errors=0
+
+#-----------------------------------------------------------------------------
+#--  Make sure Alice is running:
+
+../../../exe/alice \
+  --alice-config-file ../../../exe/configuration/alice_config.ini \
+  --yolk-config-file  ..//sighup-handling/yolk_config.ini \
+  1>alice.log 2>alice.errors &
+
+alice_pid=$!
+
+#-----------------------------------------------------------------------------
+#--  Wait for Alice to become ready:
+
+sleep 1
+
+#-----------------------------------------------------------------------------
+#--  Output from show_user_list:
+
+wget --quiet --output-document=user_list.json http://localhost:4242/users/list
+
+diff -u user_list.expected.json user_list.json \
+  > user_list.json.differences
+
+if [ -s user_list.json.differences ]; then
+   echo "Mismatch in output from the websocket interface '/users/list':"
+   cat user_list.json.differences
+   echo
+
+   let errors++
+fi
+
+rm -f user_list.json user_list.json.differences
+
+#-----------------------------------------------------------------------------
+#--  Stop Alice:
+
+kill ${alice_pid}
+
+#-----------------------------------------------------------------------------
+#--  Report errors:
+
+if [ ${errors} -gt 0 ]; then
+   echo "Failed at ${errors} tests."
+fi
+
+#-----------------------------------------------------------------------------
+#--  Exit status:
+
+exit ${errors}
+
+#-----------------------------------------------------------------------------
