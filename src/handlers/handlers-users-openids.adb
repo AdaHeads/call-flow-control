@@ -18,6 +18,7 @@
 with GNATCOLL.JSON;
 
 with Common,
+     HTTP_Codes,
      Model.User,
      Response.Not_Cached,
      View.User;
@@ -45,25 +46,56 @@ package body Handlers.Users.OpenIDs is
       use GNATCOLL.JSON;
       use Common;
 
+      Bad_Parameters : exception;
+
+      function Parameters_Okay return Boolean;
       function User_Name return Model.User.Name;
+
+      function Parameters_Okay return Boolean is
+      begin
+         return Instance.Parameter_Count = 1 and
+                Instance.Parameter_Exist ("user");
+      exception
+         when others =>
+            raise Bad_Parameters;
+      end Parameters_Okay;
+      
       function User_Name return Model.User.Name is
       begin
          return Model.User.Name (Instance.Parameter ("user"));
+      exception
+         when others =>
+            raise Bad_Parameters;
       end User_Name;
 
       Data : JSON_Value;
    begin
       Data := Create_Object;
 
-      Data.Set_Field (Field_Name => View.Status,
-                      Field      => "okay");
-      Data.Set_Field (Field_Name => View.User_S,
-                      Field      => String (User_Name));
-      Data.Set_Field (Field_Name => View.OpenIDs,
-                      Field      => View.User.To_JSON
-                                        (Model.User.OpenIDs (User_Name)));
+      if Parameters_Okay then
+         Data.Set_Field (Field_Name => View.Status,
+                         Field      => "okay");
+         Data.Set_Field (Field_Name => View.User_S,
+                         Field      => String (User_Name));
+         Data.Set_Field (Field_Name => View.OpenIDs,
+                         Field      => View.User.To_JSON
+                                         (Model.User.OpenIDs (User_Name)));
 
-      Instance.Content (To_JSON_String (Data));
+         Instance.Content (To_JSON_String (Data));
+      else
+         Data.Set_Field (Field_Name => View.Status,
+                         Field      => "bad parameters");
+
+         Instance.Content (To_JSON_String (Data));
+         Instance.HTTP_Status_Code (HTTP_Codes.Bad_Request);
+      end if;
+   exception
+      when Bad_Parameters =>
+         Data.Set_Field (Field_Name => View.Status,
+                         Field      => "bad parameters");
+
+         Instance.Content (To_JSON_String (Data));
+         Instance.HTTP_Status_Code (HTTP_Codes.Bad_Request);
    end Generate_Document;
 
 end Handlers.Users.OpenIDs;
