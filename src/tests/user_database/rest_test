@@ -10,6 +10,7 @@ errors=0
 #--  Helper functions:
 
 function check() {
+   local failed=no
    local uri="$1"
 
    local name="${uri#/}"
@@ -54,6 +55,7 @@ function check() {
       echo
 
       let errors++
+      local failed=yes
    fi
 
    if grep "^< HTTP/1.1 "${expected_status}' ' "${log}" 1>/dev/null; then
@@ -63,9 +65,12 @@ function check() {
       egrep '^< HTTP/1.1 [0-9]{3] ' "${log}"
 
       let errors++
+      local failed=yes
    fi
 
-   rm -f "${data}" "${log}" "${differences}"
+   if [ "${failed}" = "no" ]; then
+      rm -f "${data}" "${log}" "${differences}"
+   fi
 }
 
 #-----------------------------------------------------------------------------
@@ -73,7 +78,7 @@ function check() {
 
 ../../../exe/alice \
   --alice-config-file ../../../exe/configuration/alice_config.ini \
-  --yolk-config-file  ..//sighup-handling/yolk_config.ini \
+  --yolk-config-file  ../sighup-handling/yolk_config.ini \
   1>alice.log 2>alice.errors &
 
 alice_pid=$!
