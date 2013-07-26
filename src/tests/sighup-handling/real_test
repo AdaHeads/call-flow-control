@@ -18,7 +18,7 @@
 
 cd "$(dirname "$0")" || exit 2
 
-./sighup-test --yolk-config-file yolk_config.ini --set-exit-code &
+./sighup-test --yolk-config-file ../../../exe/configuration/config.ini.dist --set-exit-code &
 pid=$!
 
 sleep 2

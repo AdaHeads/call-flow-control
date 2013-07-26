@@ -78,7 +78,7 @@ function check() {
 
 ../../../exe/alice \
   --alice-config-file ../../../exe/configuration/alice_config.ini \
-  --yolk-config-file  ../sighup-handling/yolk_config.ini \
+  --yolk-config-file  ../../../exe/configuration/config.ini.dist \
   1>alice.log 2>alice.errors &
 
 alice_pid=$!

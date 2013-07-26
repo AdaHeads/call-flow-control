@@ -1,6 +1,6 @@
 --alice-config-file
 ../../exe/configuration/alice_config.ini
 --yolk-config-file
-sighup-handling/yolk_config.ini
+../../exe/configuration/config.ini.dist
 --phone-number
 +45 21 49 08 04
