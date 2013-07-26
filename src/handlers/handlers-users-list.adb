@@ -17,7 +17,8 @@
 
 with GNATCOLL.JSON;
 
-with Common,
+with Alice_Configuration,
+     Common,
      HTTP_Codes,
      Model.Users,
      Response.Not_Cached,
@@ -46,23 +47,43 @@ package body Handlers.Users.List is
       use GNATCOLL.JSON;
       use Common;
 
+      function Public_User_Information return Boolean;
+      function Public_User_Information return Boolean is
+         use Alice_Configuration;
+      begin
+         return Config.Get (Public_User_Information);
+      exception
+         when others =>
+            raise Constraint_Error
+              with "The 'Public_User_Information' configuration field is a " &
+                   "Boolean.";
+      end Public_User_Information;
+
       Data : JSON_Value;
    begin
       Data := Create_Object;
 
-      if Instance.Parameter_Count = 0 then
-         Data.Set_Field (Field_Name => View.Status,
-                         Field      => "okay");
-         Data.Set_Field (Field_Name => View.Users_S,
-                         Field      => View.Users.To_JSON (Model.Users.List));
+      if Public_User_Information then
+         if Instance.Parameter_Count = 0 then
+            Data.Set_Field (Field_Name => View.Status,
+                            Field      => "okay");
+            Data.Set_Field (Field_Name => View.Users_S,
+                            Field      => View.Users.To_JSON (Model.Users.List));
 
-         Instance.Content (To_JSON_String (Data));
+            Instance.Content (To_JSON_String (Data));
+         else
+            Data.Set_Field (Field_Name => View.Status,
+                            Field      => "too many parameters");
+
+            Instance.Content (To_JSON_String (Data));
+            Instance.HTTP_Status_Code (HTTP_Codes.Bad_Request);
+         end if;
       else
          Data.Set_Field (Field_Name => View.Status,
-                         Field      => "too many parameters");
+                         Field      => "not authorized");
 
          Instance.Content (To_JSON_String (Data));
-         Instance.HTTP_Status_Code (HTTP_Codes.Bad_Request);
+         Instance.HTTP_Status_Code (HTTP_Codes.Not_Authorized);
       end if;
    end Generate_Document;
 
