@@ -29,7 +29,9 @@ package PBX is
                            Failure);
 
    --  TODO: make this private and wrap every call to AMI
-   Client        : ESL.Client.Tasking.Instance;
+   Client        : ESL.Client.Tasking.Instance
+     (On_Connect_Handler    => ESL.Client.Ignore_Event,
+      On_Disconnect_Handler => ESL.Client.Ignore_Event);
 
    procedure Start;
    --  Startup the PBX subsystem
