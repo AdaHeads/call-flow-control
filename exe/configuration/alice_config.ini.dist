@@ -21,6 +21,12 @@ Cache_Max_Element_Age 86_400.0
 
 Host_Name localhost
 
+############################################################
+# Make lists of users and OpenID available to all clients? #
+############################################################
+
+Public_User_Information FALSE
+
 #######################
 # PostgreSQL Database #
 #######################
