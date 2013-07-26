@@ -68,7 +68,8 @@ package body Handlers.Users.List is
             Data.Set_Field (Field_Name => View.Status,
                             Field      => "okay");
             Data.Set_Field (Field_Name => View.Users_S,
-                            Field      => View.Users.To_JSON (Model.Users.List));
+                            Field      => View.Users.To_JSON
+                                            (Model.Users.List));
 
             Instance.Content (To_JSON_String (Data));
          else
@@ -83,7 +84,7 @@ package body Handlers.Users.List is
                          Field      => "not authorized");
 
          Instance.Content (To_JSON_String (Data));
-         Instance.HTTP_Status_Code (HTTP_Codes.Not_Authorized);
+         Instance.HTTP_Status_Code (HTTP_Codes.Unauthorized);
       end if;
    end Generate_Document;
 
