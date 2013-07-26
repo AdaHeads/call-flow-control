@@ -15,6 +15,12 @@ Cache_Max_Element_Age 86_400.0
 # Cached elements that are older than Cache_Max_Element_Age seconds are
 # automatically invalidated and removed from the cache.
 
+##########################################
+# Host name for the server running Alice #
+##########################################
+
+Host_Name localhost
+
 #######################
 # PostgreSQL Database #
 #######################

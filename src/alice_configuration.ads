@@ -26,6 +26,7 @@ package Alice_Configuration is
    use Common;
 
    type Keys is (Cache_Max_Element_Age,
+                 Host_Name,
                  DB_Host,
                  DB_Name,
                  DB_Password,
@@ -41,6 +42,8 @@ package Alice_Configuration is
    Default_Values : constant Defaults_Array :=
                       (Cache_Max_Element_Age
                        => U ("86_400"),
+                       Host_Name
+                       => U ("alice.adaheads.com"),
                        DB_Host
                        => U ("pgprimary.adaheads.com"),
                        DB_Name
