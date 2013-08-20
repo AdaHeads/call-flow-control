@@ -74,6 +74,19 @@ function check() {
 }
 
 #-----------------------------------------------------------------------------
+#--  Make sure no "old" Alice is running:
+
+if netstat -lt | grep ':4242 ' 1>/dev/null; then
+   echo "An instance of Alice is already running." 1>&2
+   sleep 2
+
+   if netstat -lt | grep ':4242 ' 1>/dev/null; then
+      echo "Giving up waiting for it to stop." 1>&2
+      exit -2
+   fi
+fi 
+
+#-----------------------------------------------------------------------------
 #--  Make sure Alice is running:
 
 ../../../exe/alice \
@@ -85,10 +98,10 @@ alice_pid=$!
 
 if [ -z "${alice_pid}" ]; then
    echo "Failed to start Alice." 1>&2
-   exit -1
+   exit -3
 elif [ ! -d "/proc/${alice_pid}" ]; then
    echo "No process information directory for the started Alice." 1>&2
-   exit -2
+   exit -4
 fi
 
 #-----------------------------------------------------------------------------
