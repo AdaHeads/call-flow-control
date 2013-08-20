@@ -112,6 +112,13 @@ check "/users/openids?user=Tux&a"
 check "/users/openids?user=Jacob"
 check "/users/openids?name=Jacob"
 
+check "/users/log_in"
+check "/users/log_in?a"
+check "/users/log_in?a=b"
+check "/users/log_in?openid=adaheads1.myopenid.com"
+check "/users/log_in?openid=https://adaheads1.myopenid.com/"
+check "/users/log_in?openid=https%3a%2f%2fadaheads1.myopenid.com%2f"
+
 #-----------------------------------------------------------------------------
 #--  Stop Alice:
 

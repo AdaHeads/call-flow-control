@@ -26,6 +26,7 @@ with Handlers.Notifications;
 with Handlers.Organization;
 with Handlers.Organization_List;
 with Handlers.Users.List;
+with Handlers.Users.Log_In;
 with Handlers.Users.OpenIDs;
 with Not_Found;
 
@@ -195,6 +196,10 @@ package body Alice_Handlers is
       Dispatcher.Register
         (URI    => "/users/list",
          Action => Users.List.Callback);
+
+      Dispatcher.Register
+        (URI    => "/users/log_in",
+         Action => Users.Log_In.Callback);
 
       Dispatcher.Register
         (URI    => "/users/openids",
