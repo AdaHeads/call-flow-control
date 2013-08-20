@@ -17,7 +17,8 @@
 
 with GNATCOLL.JSON;
 
-with Common,
+with Alice_Configuration,
+     Common,
      HTTP_Codes,
      Model.User,
      Response.Not_Cached,
@@ -51,6 +52,8 @@ package body Handlers.Users.OpenIDs is
       function Parameters_Okay return Boolean;
       function User_Name return Model.User.Name;
 
+      function Public_User_Information return Boolean;
+
       function Parameters_Okay return Boolean is
       begin
          return Instance.Parameter_Count = 1 and
@@ -59,7 +62,18 @@ package body Handlers.Users.OpenIDs is
          when others =>
             raise Bad_Parameters;
       end Parameters_Okay;
-      
+
+      function Public_User_Information return Boolean is
+         use Alice_Configuration;
+      begin
+         return Config.Get (Public_User_Information);
+      exception
+         when others =>
+            raise Constraint_Error
+              with "The 'Public_User_Information' configuration field is a " &
+                   "Boolean.";
+      end Public_User_Information;
+
       function User_Name return Model.User.Name is
       begin
          return Model.User.Name (Instance.Parameter ("user"));
@@ -72,22 +86,30 @@ package body Handlers.Users.OpenIDs is
    begin
       Data := Create_Object;
 
-      if Parameters_Okay then
-         Data.Set_Field (Field_Name => View.Status,
-                         Field      => "okay");
-         Data.Set_Field (Field_Name => View.User_S,
-                         Field      => String (User_Name));
-         Data.Set_Field (Field_Name => View.OpenIDs,
-                         Field      => View.User.To_JSON
-                                         (Model.User.OpenIDs (User_Name)));
+      if Public_User_Information then
+         if Parameters_Okay then
+            Data.Set_Field (Field_Name => View.Status,
+                            Field      => "okay");
+            Data.Set_Field (Field_Name => View.User_S,
+                            Field      => String (User_Name));
+            Data.Set_Field (Field_Name => View.OpenIDs,
+                            Field      => View.User.To_JSON
+                                            (Model.User.OpenIDs (User_Name)));
 
-         Instance.Content (To_JSON_String (Data));
+            Instance.Content (To_JSON_String (Data));
+         else
+            Data.Set_Field (Field_Name => View.Status,
+                            Field      => "bad parameters");
+
+            Instance.Content (To_JSON_String (Data));
+            Instance.HTTP_Status_Code (HTTP_Codes.Bad_Request);
+         end if;
       else
          Data.Set_Field (Field_Name => View.Status,
-                         Field      => "bad parameters");
+                         Field      => "not authorized");
 
          Instance.Content (To_JSON_String (Data));
-         Instance.HTTP_Status_Code (HTTP_Codes.Bad_Request);
+         Instance.HTTP_Status_Code (HTTP_Codes.Unauthorized);
       end if;
    exception
       when Bad_Parameters =>
