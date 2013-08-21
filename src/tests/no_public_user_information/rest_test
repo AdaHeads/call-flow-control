@@ -162,7 +162,7 @@ check "/users/validate"
 #--  Stop Alice:
 
 kill ${alice_pid}
-sleep 1
+sleep 2
 if [ -d /proc/${alice_pid} ]; then
    echo 'Killing Alice the hard way...' 1>&2
    kill -9 ${alice_pid}
