@@ -87,12 +87,23 @@ if netstat -lt | grep ':4242 ' 1>/dev/null; then
 fi 
 
 #-----------------------------------------------------------------------------
+#--  Set up environment for Alice:
+
+rm -rf   session configuration
+mkdir -p session configuration
+
+touch session/session.data
+
+perl -lpe 's/^.*Public_User_Information.*$/Public_User_Information True/i' \
+     ../../../exe/configuration/alice_config.ini \
+  > configuration/alice_config.ini
+
+cp -p ../../../exe/configuration/config.ini.dist configuration/config.ini
+
+#-----------------------------------------------------------------------------
 #--  Make sure Alice is running:
 
-../../../exe/alice \
-  --alice-config-file ../../../exe/configuration/alice_config.ini \
-  --yolk-config-file  ../../../exe/configuration/config.ini.dist \
-  1>alice.log 2>alice.errors &
+../../../exe/alice 1>alice.output 2>alice.errors &
 
 alice_pid=$!
 
@@ -136,6 +147,8 @@ fi
 
 if [ ${errors} -gt 0 ]; then
    echo "Failed at ${errors} tests."
+else
+   rm -rf session configuration alice.{errors,output}
 fi
 
 #-----------------------------------------------------------------------------
