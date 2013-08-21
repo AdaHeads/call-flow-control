@@ -45,7 +45,7 @@ function check() {
       return
    fi
    
-   curl -v "${url}" 1>"${data}" 2>"${log}"
+   curl -k -v "${url}" 1>"${data}" 2>"${log}"
 
    diff -u "${data_file}" "${data}" > "${differences}"
 
@@ -78,12 +78,23 @@ function check() {
 
 if netstat -lt | grep ':4242 ' 1>/dev/null; then
    echo "An instance of Alice is already running." 1>&2
-   sleep 2
 
-   if netstat -lt | grep ':4242 ' 1>/dev/null; then
-      echo "Giving up waiting for it to stop." 1>&2
-      exit -2
-   fi
+   counter=0
+
+   while sleep 1; do
+      if netstat -lt | grep ':4242 ' 1>/dev/null; then
+         echo "It is still running..." 1>&2
+
+         let counter=++
+         if [ ${counter} -gt 10 ]; then
+            echo "Giving up waiting for it to stop." 1>&2
+            exit -2
+         fi
+      else
+         echo "Stopped." 1>&2
+         break
+      fi
+   done
 fi 
 
 #-----------------------------------------------------------------------------
@@ -94,11 +105,17 @@ mkdir -p session configuration
 
 touch session/session.data
 
-perl -lpe 's/^.*Public_User_Information.*$/Public_User_Information True/i' \
-     ../../../exe/configuration/alice_config.ini \
-  > configuration/alice_config.ini
+grep -iv ^Public_User_Information ../../../exe/configuration/alice_config.ini \
+  >  configuration/alice_config.ini
+echo Public_User_Information True \
+  >> configuration/alice_config.ini
 
-cp -p ../../../exe/configuration/config.ini.dist configuration/config.ini
+grep -iv ^Security ../../../exe/configuration/config.ini.dist \
+  >  configuration/config.ini
+echo Security False \
+  >> configuration/config.ini
+
+cp -p ../../../exe/configuration/mime.types configuration/
 
 #-----------------------------------------------------------------------------
 #--  Make sure Alice is running:

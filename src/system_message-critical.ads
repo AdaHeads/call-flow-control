@@ -79,4 +79,8 @@ package System_Message.Critical is
      (Log_Trace => Yolk.Log.Critical,
       Status    => "libdialplan");
 
+   procedure Configuration_Error is new Logger
+     (Log_Trace => Yolk.Log.Critical,
+      Status    => "Configuration error");
+
 end System_Message.Critical;

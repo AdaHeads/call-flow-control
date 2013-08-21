@@ -15,16 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response,
-     AWS.Status;
+with AWS.Dispatchers.Callback;
 
-private
-package Handlers.OpenID is
-
-   function Log_In (Request : in     AWS.Status.Data)
-                   return AWS.Response.Data;
-
-   function Validate (Request : in     AWS.Status.Data)
-                     return AWS.Response.Data;
-
-end Handlers.OpenID;
+package Handlers.Users.Validate is
+   function Callback return AWS.Dispatchers.Callback.Handler;
+end Handlers.Users.Validate;

@@ -16,34 +16,65 @@
 -------------------------------------------------------------------------------
 
 with AWS.OpenID.Error_Messages,
-     AWS.OpenID.Manual_Dispatching;
+     AWS.OpenID.Manual_Dispatching,
+     Yolk.Configuration;
 
-with Alice_Configuration;
+with Alice_Configuration,
+     System_Message.Critical;
 
 package body Handlers.OpenID is
 
    use AWS.OpenID;
 
+   function Protocol return String;
    function Host_Name return String;
+
    function Host_Name return String is
-      use Alice_Configuration;
+      use Yolk.Configuration, Alice_Configuration;
    begin
-      return Config.Get (Host_Name);
+      return Alice_Configuration.Config.Get (Host_Name) &
+        ":" & Yolk.Configuration.Config.Get (Server_Port);
    end Host_Name;
+
+   function Protocol return String is
+      use Yolk.Configuration;
+   begin
+      if Config.Get (Security) then
+         return "https://";
+      else
+         return "http://";
+      end if;
+   exception
+      when others =>
+         System_Message.Critical.Configuration_Error
+           (Message => "'Security' is a Boolean.  """ &
+                       Config.Get (Security) & """ is not a valid choice.");
+         raise;
+   end Protocol;
 
    package OpenID is new Manual_Dispatching
      (Authentication_Failed => Error_Messages.Authentication_Failed'Access,
       Invalid_End_Point     => Error_Messages.Invalid_End_Point'Access,
       Invalid_URL           => Error_Messages.Invalid_URL'Access,
       Provider_Offline      => Error_Messages.Provider_Offline'Access,
+      Protocol              => Protocol,
       Host_Name             => Host_Name,
       Log_In_Page           => "/users/log_in",
-      Return_To_Page        => "/users/validate");
+      Return_To_Page        => "/users/validate",
+      Logged_In_Page        => "/users/logged_in",
+      Log_Out_Page          => "/users/log_out",
+      Logged_Out_Page       => "/users/logged_out");
 
    function Log_In (Request : in     AWS.Status.Data)
                    return AWS.Response.Data is
    begin
       return OpenID.Log_In.Service (Request);
    end Log_In;
+
+   function Validate (Request : in     AWS.Status.Data)
+                   return AWS.Response.Data is
+   begin
+      return OpenID.Validate.Service (Request);
+   end Validate;
 
 end Handlers.OpenID;

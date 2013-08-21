@@ -14,3 +14,4 @@ Server_Name Alice
 Server_Port 4242
 WebSocket_Message_Queue_Size 20
 WWW_Root www
+Security True

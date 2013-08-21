@@ -27,7 +27,9 @@ with Handlers.Organization;
 with Handlers.Organization_List;
 with Handlers.Users.List;
 with Handlers.Users.Log_In;
+with Handlers.Users.Logged_In;
 with Handlers.Users.OpenIDs;
+with Handlers.Users.Validate;
 with Not_Found;
 
 with AWS.Dispatchers.Callback;
@@ -202,8 +204,16 @@ package body Alice_Handlers is
          Action => Users.Log_In.Callback);
 
       Dispatcher.Register
+        (URI    => "/users/logged_in",
+         Action => Users.Logged_In.Callback);
+
+      Dispatcher.Register
         (URI    => "/users/openids",
          Action => Users.OpenIDs.Callback);
+
+      Dispatcher.Register
+        (URI    => "/users/validate",
+         Action => Users.Validate.Callback);
    end Set_GET_URI_Dispatchers;
 
    --------------------------------
