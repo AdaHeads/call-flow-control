@@ -2,7 +2,7 @@
 #-----------------------------------------------------------------------------
 #--  Set up:
 
-cd "$(dirname "$0")" || exit -1
+cd "$(dirname "$0")" || exit 101
 
 errors=0
 
@@ -76,14 +76,16 @@ function check() {
 #-----------------------------------------------------------------------------
 #--  Make sure no "old" Alice is running:
 
-if netstat -lt | grep ':4242 ' 1>/dev/null; then
-   echo "An instance of Alice is already blocking port 4242." 1>&2
-   exit -2
-fi 
-
 if [ ! -z "$(pidof alice)" ]; then
    echo "An instance of Alice is already running." 1>&2
-   exit -3
+
+   let errors++
+   killall -9 alice
+fi 
+
+if netstat -lt | grep ':4242 ' 1>/dev/null; then
+   echo "An instance of Alice is already blocking port 4242." 1>&2
+   exit 102
 fi 
 
 #-----------------------------------------------------------------------------
@@ -115,10 +117,10 @@ alice_pid=$!
 
 if [ -z "${alice_pid}" ]; then
    echo "Failed to start Alice." 1>&2
-   exit -4
+   exit 103
 elif [ ! -d "/proc/${alice_pid}" ]; then
    echo "No process information directory for the started Alice." 1>&2
-   exit -5
+   exit 104
 fi
 
 #-----------------------------------------------------------------------------
@@ -173,7 +175,7 @@ if [ -d /proc/${alice_pid} ]; then
    if [ -d /proc/${alice_pid} ]; then
       echo "Killing Alice the hard way..." 1>&2
       kill -9 ${alice_pid}
-      exit -6
+      exit 105
    fi
 fi
 

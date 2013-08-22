@@ -73,6 +73,14 @@ for file in $(find ./ -mindepth 2 -type f -perm +100 | sort); do
       echo ${run_number}/${number_of_runs}$'\tRun succeeded.' 1>&2
 
       echo "${file}"             >> ${succeeded_list}
+   elif [ ${result} -eq 137 ]; then
+      echo ${run_number}/${number_of_runs}$'\tRun was terminated by SIGKILL.' 1>&2
+
+      echo "${file} (SIGKILL)"   >>    ${failed_list}
+   elif [ ${result} -eq 143 ]; then
+      echo ${run_number}/${number_of_runs}$'\tRun was terminated by SIGTERM.' 1>&2
+
+      echo "${file} (SIGTERM)"   >>    ${failed_list}
    else
       echo ${run_number}/${number_of_runs}$'\tRun failed with exit code '${result}'.' 1>&2
 
