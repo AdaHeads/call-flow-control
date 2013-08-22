@@ -27,6 +27,7 @@ with Handlers.Organization;
 with Handlers.Organization_List;
 with Handlers.Users.List;
 with Handlers.Users.Log_In;
+with Handlers.Users.Log_Out;
 with Handlers.Users.Logged_In;
 with Handlers.Users.Logged_Out;
 with Handlers.Users.OpenIDs;
@@ -203,6 +204,10 @@ package body Alice_Handlers is
       Dispatcher.Register
         (URI    => "/users/log_in",
          Action => Users.Log_In.Callback);
+
+      Dispatcher.Register
+        (URI    => "/users/log_out",
+         Action => Users.Log_Out.Callback);
 
       Dispatcher.Register
         (URI    => "/users/logged_in",

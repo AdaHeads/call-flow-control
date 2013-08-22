@@ -71,6 +71,12 @@ package body Handlers.OpenID is
       return OpenID.Log_In.Service (Request);
    end Log_In;
 
+   function Log_Out (Request : in     AWS.Status.Data)
+                    return AWS.Response.Data is
+   begin
+      return OpenID.Log_Out.Service (Request);
+   end Log_Out;
+
    function Validate (Request : in     AWS.Status.Data)
                    return AWS.Response.Data is
    begin

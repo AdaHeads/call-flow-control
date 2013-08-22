@@ -5,8 +5,8 @@ A few things to remember when creating a new test:
 * Remember that all executable files in the test directory _will_ be executed.
 * Use the "test_name.argument" file to add command line arguments to the test.
   One argument per line.
-* Use the "test_name.allowed_running_time_in_seconds" file to set an allowed
-  running time different from the 10 seconds default value.
+* Use the "test_name.allowed_time_in_seconds" file to set an allowed running
+  time different from the 10 seconds default value.
 * Take a look at the "common" test. This is very simple and can be used as a
   foundation for new tests.
 

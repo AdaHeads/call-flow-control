@@ -50,7 +50,7 @@ function check() {
    diff -u "${data_file}" "${data}" > "${differences}"
 
    if [ -s "${differences}" ]; then
-      echo "Mismatch in output from the websocket interface <${url}>:"
+      echo "Mismatch in output from the REST interface <${url}>:"
       cat "${differences}"
       echo
 
@@ -61,7 +61,7 @@ function check() {
    if grep "^< HTTP/1.1 "${expected_status}' ' "${log}" 1>/dev/null; then
       true
    else
-      echo "Incorrect HTTP status from the websocket interface <${url}>:"
+      echo "Incorrect HTTP status from the REST interface <${url}>:"
       egrep '^< HTTP/1.1 [0-9]{3] ' "${log}"
 
       let errors++
@@ -77,24 +77,13 @@ function check() {
 #--  Make sure no "old" Alice is running:
 
 if netstat -lt | grep ':4242 ' 1>/dev/null; then
+   echo "An instance of Alice is already blocking port 4242." 1>&2
+   exit -2
+fi 
+
+if [ ! -z "$(pidof alice)" ]; then
    echo "An instance of Alice is already running." 1>&2
-
-   counter=0
-
-   while sleep 1; do
-      if netstat -lt | grep ':4242 ' 1>/dev/null; then
-         echo "It is still running..." 1>&2
-
-         let counter=++
-         if [ ${counter} -gt 10 ]; then
-            echo "Giving up waiting for it to stop." 1>&2
-            exit -2
-         fi
-      else
-         echo "Stopped." 1>&2
-         break
-      fi
-   done
+   exit -3
 fi 
 
 #-----------------------------------------------------------------------------
@@ -126,10 +115,10 @@ alice_pid=$!
 
 if [ -z "${alice_pid}" ]; then
    echo "Failed to start Alice." 1>&2
-   exit -3
+   exit -4
 elif [ ! -d "/proc/${alice_pid}" ]; then
    echo "No process information directory for the started Alice." 1>&2
-   exit -4
+   exit -5
 fi
 
 #-----------------------------------------------------------------------------
@@ -152,11 +141,25 @@ check "/users/openids?name=Jacob"
 #-----------------------------------------------------------------------------
 #--  Stop Alice:
 
-kill ${alice_pid}
-sleep 2
 if [ -d /proc/${alice_pid} ]; then
-   echo 'Killing Alice the hard way...' 1>&2
-   kill -9 ${alice_pid}
+   kill ${alice_pid}
+
+   counter=0
+
+   while [ ${counter} -lt 100 ]; do
+      let counter++
+      sleep 0.1
+
+      if [ ! -d /proc/${alice_pid} ]; then
+         break
+      fi
+   done
+
+   if [ -d /proc/${alice_pid} ]; then
+      echo "Killing Alice the hard way..." 1>&2
+      kill -9 ${alice_pid}
+      exit -6
+   fi
 fi
 
 #-----------------------------------------------------------------------------
