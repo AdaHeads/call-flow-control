@@ -38,4 +38,12 @@ package SQL_Statements.Users is
                     From     => DB.Users,
                     Where    => DB.Users.Name = Text_Param (1));
 
+   Permissions_By_ID : constant SQL_Query
+     := SQL_Select (Fields   => DB.Users.Is_Receptionist &
+                                DB.Users.Is_Service_Agent &
+                                DB.Users.Is_Administrator,
+                    From     => DB.User_IDs & DB.Users,
+                    Where    => DB.User_IDs.Name   = DB.Users.Name and
+                                DB.User_IDs.OpenID = Text_Param (1));
+
 end SQL_Statements.Users;

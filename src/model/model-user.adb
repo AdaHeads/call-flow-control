@@ -84,7 +84,7 @@ package body Model.User is
       return Result;
    end OpenIDs;
 
-   procedure Permissions_For_User is
+   procedure Permissions is
       new Storage.Process_Select_Query
             (Element           => Permission_List,
              Database_Cursor   => Database_Cursor,
@@ -105,10 +105,38 @@ package body Model.User is
 
       User_Name : aliased constant String := String (User);
    begin
-      Permissions_For_User
+      Permissions
         (Process_Element    => Copy'Access,
          Prepared_Statement => SQL_Prepared_Statements.Users.Permissions,
          Query_Parameters   => (1 => +User_Name'Access));
+
+      if Results = 1 then
+         return Result;
+      else
+         raise Constraint_Error
+           with "Expected exactly one row from the database.";
+      end if;
+   end Permissions;
+
+   function Permissions (ID : in     OpenID) return Permission_List is
+      use GNATCOLL.SQL.Exec;
+
+      Result  : Permission_List := (others => False);
+      Results : Natural := 0;
+
+      procedure Copy (E : in Permission_List);
+      procedure Copy (E : in Permission_List) is
+      begin
+         Result := E;
+         Results := Results + 1;
+      end Copy;
+
+      ID_String : aliased constant String := URL (ID);
+   begin
+      Permissions
+        (Process_Element    => Copy'Access,
+         Prepared_Statement => SQL_Prepared_Statements.Users.Permissions_By_ID,
+         Query_Parameters   => (1 => +ID_String'Access));
 
       if Results = 1 then
          return Result;

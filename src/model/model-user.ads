@@ -37,4 +37,6 @@ package Model.User is
 
    function Permissions (User : in     Name) return Permission_List;
 
+   function Permissions (ID : in     OpenID) return Permission_List;
+
 end Model.User;

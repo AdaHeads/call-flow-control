@@ -43,4 +43,23 @@ begin
          end loop;
       end if;
    end loop;
+
+   declare
+      OpenID : User.OpenID :=
+                 User.Parse ("https://accounts.google.com/we-love-tux");
+   begin
+      Put_Line ("<" & User.URL (OpenID) & "> ...");
+
+      Permissions := User.Permissions (OpenID);
+
+      if Permissions = User.Permission_List'(others => False) then
+         Put_Line ("   has no permissions.");
+      else
+         for Kind in Permissions'Range loop
+            if Permissions (Kind) then
+               Put_Line ("   is a " & User.Permission'Image (Kind));
+            end if;
+         end loop;
+      end if;
+   end;
 end Show_Permissions;

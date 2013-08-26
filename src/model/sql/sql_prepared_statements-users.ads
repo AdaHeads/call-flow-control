@@ -42,4 +42,10 @@ package SQL_Prepared_Statements.Users is
                  On_Server     => Configuration.On_Server,
                  Name          => "permission_list");
 
+   Permissions_By_ID : constant Prepared_Statement
+     := Prepare (Query         => SQL_Statements.Users.Permissions_By_ID,
+                 Auto_Complete => True,
+                 On_Server     => Configuration.On_Server,
+                 Name          => "permissions_by_id");
+
 end SQL_Prepared_Statements.Users;
