@@ -66,7 +66,7 @@ package body Handlers.Users.Logged_Out is
 
    begin
       if Parameters_Okay then
-         return AWS.Response.URL ("http://localhost/bob/");
+         return AWS.Response.URL ("http://bob.adaheads.com/bob_webui.html");
       else
          return Bad_Parameters;
       end if;
