@@ -77,6 +77,17 @@ package body Handlers.OpenID is
       return OpenID.Log_Out.Service (Request);
    end Log_Out;
 
+   function Permissions (Request : in     AWS.Status.Data)
+                        return Model.User.Permission_List is
+   begin
+      if OpenID.Is_Authenticated (Request) then
+         return Model.User.Permissions (Model.User.Parse
+                                          (OpenID.Authenticated_As (Request)));
+      else
+         return (others => False);
+      end if;
+   end Permissions;
+
    function Validate (Request : in     AWS.Status.Data)
                    return AWS.Response.Data is
    begin

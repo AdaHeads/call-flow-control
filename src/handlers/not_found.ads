@@ -32,7 +32,8 @@ private
    --  to 404.
 
    function JSON_Response is new Response.Not_Cached.Generate_Response
-     (Generate_Document => Generate_Document);
+     (Public            => True,
+      Generate_Document => Generate_Document);
    --  Generate the AWS.Response.Data that ultimately is delivered to the user.
 
 end Not_Found;

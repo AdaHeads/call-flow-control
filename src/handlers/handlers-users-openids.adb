@@ -26,12 +26,30 @@ with Alice_Configuration,
 
 package body Handlers.Users.OpenIDs is
 
+   function Public_User_Information return Boolean;
+   function Public_User_Information return Boolean is
+      use Alice_Configuration;
+   begin
+      return Config.Get (Public_User_Information);
+   exception
+      when others =>
+         raise Constraint_Error
+           with "The 'Public_User_Information' configuration field is a " &
+                "Boolean.";
+   end Public_User_Information;
+
+   ----------------------------------------------------------------------------
+
    procedure Generate_Document (Instance : in out Response.Object);
    --  Add a generated JSON_String to Response_Object.
 
    function JSON_Response is
       new Response.Not_Cached.Generate_Response
-            (Generate_Document      => Generate_Document);
+            (Public            => Public_User_Information,
+             Allowed           => (Model.User.Receptionist  => False,
+                                   Model.User.Service_Agent => False,
+                                   Model.User.Administrator => True),
+             Generate_Document => Generate_Document);
    --  Generate the AWS.Response.Data that ultimately is delivered to the user.
 
    ----------------------------------------------------------------------------

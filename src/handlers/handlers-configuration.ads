@@ -16,7 +16,9 @@
 -------------------------------------------------------------------------------
 
 with AWS.Dispatchers.Callback;
-with Response.Not_Cached;
+
+with Model.User,
+     Response.Not_Cached;
 
 package Handlers.Configuration is
 
@@ -31,7 +33,10 @@ private
    --  Add a generated JSON_String to Response_Object.
 
    function JSON_Response is new Response.Not_Cached.Generate_Response
-     (Generate_Document => Generate_Document);
+     (Allowed           => (Model.User.Receptionist  => True,
+                            Model.User.Service_Agent => False,
+                            Model.User.Administrator => False),
+      Generate_Document => Generate_Document);
    --  Generate the AWS.Response.Data that ultimately is delivered to the user.
 
 end Handlers.Configuration;

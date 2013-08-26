@@ -21,19 +21,6 @@ with Request_Parameters;
 
 package body Handlers.Organization is
 
-   -----------------
-   --  Cache_Key  --
-   -----------------
-
-   function Cache_Key
-     (Instance : in Response.Object)
-      return Model.Organization_Identifier
-   is
-   begin
-      return Model.Organization_Identifier'Value
-        (Instance.Parameter ("org_id"));
-   end Cache_Key;
-
    ----------------
    --  Callback  --
    ----------------
@@ -52,17 +39,17 @@ package body Handlers.Organization is
    procedure Generate_Document
      (Instance : in out Response.Object)
    is
-      use Common;
       use HTTP_Codes;
       use Model.Organization;
 
       Organization : Object;
    begin
       Organization :=
-        Get (Cache_Key (Instance), Mode => Request_Parameters.Maxi);
+        Get (Model.Organization_Identifier'Value
+               (Instance.Parameter ("org_id")),
+             Mode => Request_Parameters.Maxi);
 
       if Organization /= Null_Organization then
-         Instance.Is_Cacheable (True);
          Instance.HTTP_Status_Code (OK);
       else
          Instance.HTTP_Status_Code (Not_Found);

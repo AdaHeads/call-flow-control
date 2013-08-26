@@ -114,7 +114,9 @@ package body Model.User is
          return Result;
       else
          raise Constraint_Error
-           with "Expected exactly one row from the database.";
+           with "Expected exactly one row from the database when querying " &
+                "permisions by user name.  Got" & Natural'Image (Results) &
+                " rows.";
       end if;
    end Permissions;
 
@@ -142,7 +144,9 @@ package body Model.User is
          return Result;
       else
          raise Constraint_Error
-           with "Expected exactly one row from the database.";
+           with "Expected exactly one row from the database when querying " &
+                "permisions by OpenID.  Got" & Natural'Image (Results) &
+                " rows.";
       end if;
    end Permissions;
 

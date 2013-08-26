@@ -15,8 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with HTTP_Codes;
-with Model.Organizations;
+with HTTP_Codes,
+     Model.Organizations,
+     Request_Parameters;
 
 package body Handlers.Organization_List is
 
@@ -24,6 +25,9 @@ package body Handlers.Organization_List is
    --  Cache_Key  --
    -----------------
 
+   function Cache_Key
+     (Instance : in Response.Object)
+      return Request_Parameters.List_View;
    function Cache_Key
      (Instance : in Response.Object)
       return Request_Parameters.List_View
@@ -58,7 +62,6 @@ package body Handlers.Organization_List is
    procedure Generate_Document
      (Instance : in out Response.Object)
    is
-      use Common;
       use HTTP_Codes;
       use Model.Organizations;
 

@@ -15,25 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with HTTP_Codes;
-with Model.Contact;
-with Request_Parameters;
+with HTTP_Codes,
+     Model.Contact,
+     Request_Parameters;
 
 package body Handlers.Contact is
-
-   -----------------
-   --  Cache_Key  --
-   -----------------
-
-   function Cache_Key
-     (Instance : in Response.Object)
-      return Model.Contact_Identifier
-   is
-      use Model;
-   begin
-      return Contact_Identifier'Value
-        (Instance.Parameter ("ce_id"));
-   end Cache_Key;
 
    ----------------
    --  Callback  --
@@ -53,13 +39,11 @@ package body Handlers.Contact is
    procedure Generate_Document
      (Instance : in out Response.Object)
    is
-      use Common;
-      use HTTP_Codes;
-      use Model.Contact;
+      use HTTP_Codes, Model, Model.Contact;
 
       Contact : Object;
    begin
-      Contact := Get (Cache_Key (Instance));
+      Contact := Get (Contact_Identifier'Value (Instance.Parameter ("ce_id")));
 
       if Contact /= Null_Object then
          Instance.Is_Cacheable (True);
