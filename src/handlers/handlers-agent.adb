@@ -17,9 +17,12 @@
 
 with Common;
 with HTTP_Codes;
-with Response;
 with ESL.Peer;
-with Model.Agent;
+with Handlers.OpenID,
+     Model.Agent,
+     Model.User,
+     Response,
+     Response.Error_Messages;
 
 package body Handlers.Agent is
    use ESL;
@@ -33,15 +36,19 @@ package body Handlers.Agent is
       return AWS.Response.Data
    is
       use Common;
-      use HTTP_Codes;
+      use HTTP_Codes, Model.User;
 
       JSON            : JSON_String;
       Response_Object : Response.Object := Response.Factory (Request);
    begin
-      JSON := To_JSON_String (Peer.List.To_JSON);
+      if OpenID.Permissions (Request) (Receptionist) then
+         JSON := To_JSON_String (Peer.List.To_JSON);
 
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content (JSON);
+         Response_Object.HTTP_Status_Code (OK);
+         Response_Object.Content (JSON);
+      else
+         Response.Error_Messages.Not_Authorized (Response_Object);
+      end if;
 
       return Response_Object.Build;
    end Agent;
@@ -55,13 +62,16 @@ package body Handlers.Agent is
       return AWS.Response.Data
    is
       use Common;
-      use HTTP_Codes;
+      use HTTP_Codes, Model.User;
 
       Response_Object : Response.Object := Response.Factory (Request);
    begin
-
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content (To_JSON_String (Model.Agent.To_JSON));
+      if OpenID.Permissions (Request) (Receptionist) then
+         Response_Object.HTTP_Status_Code (OK);
+         Response_Object.Content (To_JSON_String (Model.Agent.To_JSON));
+      else
+         Response.Error_Messages.Not_Authorized (Response_Object);
+      end if;
 
       return Response_Object.Build;
    end Agent_List;
