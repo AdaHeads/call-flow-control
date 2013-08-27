@@ -21,8 +21,6 @@ with Handlers.OpenID,
 
 package body Response.Not_Cached is
 
-   No : constant Model.User.Permission_List := (others => False);
-
    -------------------------
    --  Generate_Response  --
    -------------------------
@@ -34,7 +32,7 @@ package body Response.Not_Cached is
       use AWS.Status;
       use Model.User, System_Message;
 
-      Response_Object : Object := Factory (Request);
+      Response_Object  : Object := Factory (Request);
    begin
       if Public then
          Generate_Document (Response_Object);

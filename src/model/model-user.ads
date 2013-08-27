@@ -33,6 +33,8 @@ package Model.User is
    type Permission is (Receptionist, Service_Agent, Administrator);
    type Permission_List is array (Permission) of Boolean;
 
+   No : constant Permission_List := (others => False);
+
    function OpenIDs (User : in     Name) return OpenID_List;
 
    function Permissions (User : in     Name) return Permission_List;
