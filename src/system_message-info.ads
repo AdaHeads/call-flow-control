@@ -69,4 +69,8 @@ package System_Message.Info is
      (Log_Trace => Yolk.Log.Info,
       Status    => "libdialplan");
 
+   procedure Not_Authorized is new Logger
+     (Log_Trace   => Yolk.Log.Info,
+      Status      => "not authorized");
+
 end System_Message.Info;

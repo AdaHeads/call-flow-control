@@ -16,7 +16,10 @@
 -------------------------------------------------------------------------------
 
 with AWS.Net.WebSocket.Registry;
-with System_Message.Info;
+
+with Handlers.OpenID,
+     Model.User,
+     System_Message.Info;
 
 package body Handlers.Notifications is
 
@@ -73,13 +76,22 @@ package body Handlers.Notifications is
       Request : AWS.Status.Data)
       return AWS.Net.WebSocket.Object'Class
    is
-      use System_Message;
+      use Model.User, System_Message;
    begin
-      Info.Notifications_WebSocket_Created;
+      if OpenID.Permissions (Request) = No then
+         Info.Not_Authorized
+           (Message => "Attempted to create a websocket without being " &
+                       "logged in.");
 
-      return Object'(AWS.Net.WebSocket.Object
-                     (AWS.Net.WebSocket.Create (Socket, Request))
-                     with null record);
+         raise Program_Error
+           with "Attempted to create a websocket without being logged in.";
+      else
+         Info.Notifications_WebSocket_Created;
+
+         return Object'(AWS.Net.WebSocket.Object
+                          (AWS.Net.WebSocket.Create (Socket, Request))
+                          with null record);
+      end if;
    end Create;
 
    ----------------
