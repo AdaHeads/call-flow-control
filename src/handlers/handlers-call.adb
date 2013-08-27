@@ -400,9 +400,10 @@ package body Handlers.Call is
              (Agent.Get
                 (PBX.Call.Get (Source).Assigned_To).Current_Call).Inbound
          then
-            raise PBX.Call.Invalid_ID with "Cannot transfer with an inbound call "
-              & "as destination " & To_String
-              (Agent.Get (PBX.Call.Get (Source).Assigned_To).Current_Call);
+            raise PBX.Call.Invalid_ID
+              with "Cannot transfer with an inbound call as destination " &
+                   To_String (Agent.Get (PBX.Call.Get
+                                           (Source).Assigned_To).Current_Call);
          end if;
 
       --  TODO: refactor.
