@@ -17,43 +17,55 @@
 
 with GNATCOLL.JSON;
 
-with Common;
-with HTTP_Codes;
-with Response;
 with ESL.Peer;
 --  with ESL.Channel.List;
-with View;
+
+with Common,
+     Handlers.OpenID,
+     HTTP_Codes,
+     Model.User,
+     Response,
+     Response.Error_Messages,
+     View;
 
 package body Handlers.Debug is
-   use Common;
    use ESL;
+   use Common;
 
    function Channel_List (Request : in AWS.Status.Data)
                           return AWS.Response.Data is
       use GNATCOLL.JSON;
-      use HTTP_Codes;
+      use HTTP_Codes, Model.User;
 
       Response_Object : Response.Object := Response.Factory (Request);
       Data            : JSON_Value;
    begin
-      Response_Object.HTTP_Status_Code (OK);
-      --  TODO:
-      Data := Create_Object;
-      Data.Set_Field (Field_Name  => View.Status,
-                      Field       => "Not implemented");
-      Response_Object.Content (To_JSON_String (Data));
+      if Handlers.OpenID.Permissions (Request) = No then
+         Response.Error_Messages.Not_Authorized (Response_Object);
+      else
+         Response_Object.HTTP_Status_Code (OK);
+         --  TODO:
+         Data := Create_Object;
+         Data.Set_Field (Field_Name  => View.Status,
+                         Field       => "Not implemented");
+         Response_Object.Content (To_JSON_String (Data));
+      end if;
 
       return Response_Object.Build;
    end Channel_List;
 
    function Peer_List (Request : in AWS.Status.Data)
                        return AWS.Response.Data is
-      use HTTP_Codes;
+      use HTTP_Codes, Model.User;
 
       Response_Object : Response.Object := Response.Factory (Request);
    begin
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content (To_JSON_String (Peer.List.To_JSON));
+      if Handlers.OpenID.Permissions (Request) = No then
+         Response.Error_Messages.Not_Authorized (Response_Object);
+      else
+         Response_Object.HTTP_Status_Code (OK);
+         Response_Object.Content (To_JSON_String (Peer.List.To_JSON));
+      end if;
 
       return Response_Object.Build;
    end Peer_List;
