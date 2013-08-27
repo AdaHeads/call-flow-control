@@ -17,12 +17,15 @@
 
 with Ada.Strings.Unbounded;
 with Ada.Exceptions;
-with Common;
-with HTTP_Codes;
-with Response;
+with Common,
+     Handlers.OpenID,
+     HTTP_Codes,
+     Model.Agent,
+     Model.Agent_ID,
+     Model.User,
+     Response,
+     Response.Error_Messages;
 
-with Model.Agent;
-with Model.Agent_ID;
 with ESL.Peer;
 with View.Call;
 
@@ -54,12 +57,15 @@ package body Handlers.Call is
       Response_Object   : Response.Object := Response.Factory (Request);
       Requested_Call_ID : String renames Parameters (Request).Get ("call_id");
    begin
+      if OpenID.Permissions (Request) (Model.User.Receptionist) then
+         PBX.Client.Send (Item => "api kill " & Requested_Call_ID);
 
-      PBX.Client.Send (Item => "api kill " & Requested_Call_ID);
-
-      Response_Object.HTTP_Status_Code (HTTP.OK);
-      Response_Object.Content (Status_Message
-                               ("Success", "Hangup sent!"));
+         Response_Object.HTTP_Status_Code (HTTP.OK);
+         Response_Object.Content (Status_Message
+                                    ("Success", "Hangup sent!"));
+      else
+         Response.Error_Messages.Not_Authorized (Response_Object);
+      end if;
 
       return Response_Object.Build;
 
@@ -92,12 +98,16 @@ package body Handlers.Call is
 
       Response_Object : Response.Object := Response.Factory (Request);
    begin
-      --  Only return a call list when there actual calls in it.
-      if not PBX.Call.List_Empty then
-         Response_Object.HTTP_Status_Code (HTTP.OK);
-         Response_Object.Content (To_JSON_String (PBX.Call.List));
+      if OpenID.Permissions (Request) (Model.User.Receptionist) then
+         --  Only return a call list when there actual calls in it.
+         if not PBX.Call.List_Empty then
+            Response_Object.HTTP_Status_Code (HTTP.OK);
+            Response_Object.Content (To_JSON_String (PBX.Call.List));
+         else
+            Response_Object.HTTP_Status_Code (HTTP.No_Content);
+         end if;
       else
-         Response_Object.HTTP_Status_Code (HTTP.No_Content);
+         Response.Error_Messages.Not_Authorized (Response_Object);
       end if;
 
       return Response_Object.Build;
@@ -131,16 +141,21 @@ package body Handlers.Call is
       Response_Object   : Response.Object := Response.Factory (Request);
 
    begin
-      Originating_Agent :=
-        Model.Agent.Get (Model.Agent_ID.Create (Agent_ID_String));
+      if OpenID.Permissions (Request) (Model.User.Receptionist) then
+         Originating_Agent :=
+           Model.Agent.Get (Model.Agent_ID.Create (Agent_ID_String));
 
-      PBX.Action.Originate
+         PBX.Action.Originate
            (Agent       => Originating_Agent,
             Extension   => Extension_String);
 
-      Response_Object.HTTP_Status_Code (HTTP.OK);
-      Response_Object.Content (Status_Message
-                        ("status", "ok"));
+         Response_Object.HTTP_Status_Code (HTTP.OK);
+         Response_Object.Content (Status_Message
+                                    ("status", "ok"));
+      else
+         Response.Error_Messages.Not_Authorized (Response_Object);
+      end if;
+
       return Response_Object.Build;
    exception
       when E : PBX.Action.Error =>
@@ -171,17 +186,21 @@ package body Handlers.Call is
                             Call_List.Value
                               (Parameters (Request).Get ("call_id"));
    begin
-      --  Fetch the call from the call list.
-      if not Call_List.Has (ID => Call_ID) then
-         Response_Object.HTTP_Status_Code (HTTP.Not_Found);
-         Response_Object.Content (Status_Message ("status", "not found"));
+      if OpenID.Permissions (Request) (Model.User.Receptionist) then
+         --  Fetch the call from the call list.
+         if not Call_List.Has (ID => Call_ID) then
+            Response_Object.HTTP_Status_Code (HTTP.Not_Found);
+            Response_Object.Content (Status_Message ("status", "not found"));
+         else
+
+            --  PBX.Action.Wait_For (PBX.Action.Park (Call_ID));
+
+            --  And let the user know that everything went according to plan.
+            Response_Object.HTTP_Status_Code (HTTP.OK);
+            Response_Object.Content (Status_Message ("status", "ok"));
+         end if;
       else
-
-         --  PBX.Action.Wait_For (PBX.Action.Park (Call_ID));
-
-         --  And let the user know that everything went according to plan.
-         Response_Object.HTTP_Status_Code (HTTP.OK);
-         Response_Object.Content (Status_Message ("status", "ok"));
+         Response.Error_Messages.Not_Authorized (Response_Object);
       end if;
 
       return Response_Object.Build;
@@ -224,53 +243,58 @@ package body Handlers.Call is
       Peer              : Instance         := Null_Peer;
       Assigned_Call     : PBX.Call.Instance;
    begin
-      --  We want a valid agent ID, so we let the exception propogate.
-      Agent_ID := Create (Agent_ID => Agent_ID_String);
+      if OpenID.Permissions (Request) (Model.User.Receptionist) then
+         --  We want a valid agent ID, so we let the exception propogate.
+         Agent_ID := Create (Agent_ID => Agent_ID_String);
 
-      --  If we do not have any calls at this point, return HTTP 204.
-      if PBX.Call.List_Empty then
-         Response_Object.HTTP_Status_Code (HTTP.No_Content);
-         return Response_Object.Build;
-      end if;
-
-      --  Lookup the peer from the agent_id.
-      Peer := ESL.Peer.List.Get
-        (Model.Agent.Get (Agent_ID => Agent_ID).Peer_ID);
-
-      if not Peer.Available then
-         System_Messages.Notify
-           (Critical, "Get_Call: " &
-              "The following agent is unavailable: " &
-              Agent_ID.To_String);
-         Response_Object.HTTP_Status_Code (HTTP.Bad_Request);
-         Response_Object.Content
-           (Status_Message
-              ("Bad request", "Agent peer unavailable"));
-
-         return Response_Object.Build;
-      else
-         --  We're good - transfer the call.
-         --  Agent := Model.Agent.Get (Agent_ID => Agent_ID);
-
-         if Call_ID_String /= "" then
-            Assigned_Call := PBX.Call.Get
-              (Call => PBX.Call.Value (Call_ID_String));
-            Assigned_Call.Assign (Agent_ID);
-         else
-            Assigned_Call := PBX.Call.Highest_Prioirity;
-            Assigned_Call.Assign (Agent_ID);
+         --  If we do not have any calls at this point, return HTTP 204.
+         if PBX.Call.List_Empty then
+            Response_Object.HTTP_Status_Code (HTTP.No_Content);
+            return Response_Object.Build;
          end if;
 
-         --  TODO: Make the transfer.
---           PBX.Action.Wait_For
---             (PBX.Action.Redirect
---                (Channel     => PBX.Call.To_String (Assigned_Call.Channel),
---                 Extension   => Agent.Extension,
---                 Context     => "LocalSets"));
+         --  Lookup the peer from the agent_id.
+         Peer := ESL.Peer.List.Get
+           (Model.Agent.Get (Agent_ID => Agent_ID).Peer_ID);
 
-         Response_Object.HTTP_Status_Code (HTTP.OK);
-         Response_Object.Content
-           ((To_JSON_String (Assigned_Call.To_JSON)));
+         if not Peer.Available then
+            System_Messages.Notify
+              (Critical, "Get_Call: " &
+                 "The following agent is unavailable: " &
+                 Agent_ID.To_String);
+            Response_Object.HTTP_Status_Code (HTTP.Bad_Request);
+            Response_Object.Content
+              (Status_Message
+                 ("Bad request", "Agent peer unavailable"));
+
+            return Response_Object.Build;
+         else
+            --  We're good - transfer the call.
+            --  Agent := Model.Agent.Get (Agent_ID => Agent_ID);
+
+            if Call_ID_String /= "" then
+               Assigned_Call := PBX.Call.Get
+                 (Call => PBX.Call.Value (Call_ID_String));
+               Assigned_Call.Assign (Agent_ID);
+            else
+               Assigned_Call := PBX.Call.Highest_Prioirity;
+               Assigned_Call.Assign (Agent_ID);
+            end if;
+
+            --  TODO: Make the transfer.
+            --           PBX.Action.Wait_For
+            --             (PBX.Action.Redirect
+            --                (Channel     => PBX.Call.To_String
+            --                                  (Assigned_Call.Channel),
+            --                 Extension   => Agent.Extension,
+            --                 Context     => "LocalSets"));
+
+            Response_Object.HTTP_Status_Code (HTTP.OK);
+            Response_Object.Content
+              ((To_JSON_String (Assigned_Call.To_JSON)));
+         end if;
+      else
+         Response.Error_Messages.Not_Authorized (Response_Object);
       end if;
 
       return Response_Object.Build;
@@ -326,13 +350,17 @@ package body Handlers.Call is
 
       Response_Object : Response.Object := Response.Factory (Request);
    begin
-      --  Only return a call list when there actual calls in it.
-      if not Call_List.List_Empty then
-         Response_Object.HTTP_Status_Code (HTTP.OK);
-         Response_Object.Content (To_JSON_String
-                                  (PBX.Call.Queued_Calls));
+      if OpenID.Permissions (Request) (Model.User.Receptionist) then
+         --  Only return a call list when there actual calls in it.
+         if not Call_List.List_Empty then
+            Response_Object.HTTP_Status_Code (HTTP.OK);
+            Response_Object.Content (To_JSON_String
+                                       (PBX.Call.Queued_Calls));
+         else
+            Response_Object.HTTP_Status_Code (HTTP.No_Content);
+         end if;
       else
-         Response_Object.HTTP_Status_Code (HTTP.No_Content);
+         Response.Error_Messages.Not_Authorized (Response_Object);
       end if;
 
       return Response_Object.Build;
@@ -360,21 +388,22 @@ package body Handlers.Call is
       Response_Object : Response.Object :=
                           Response.Factory (Request);
    begin
-      --  Check valitity of the call. (Will raise exception on invalid).
-      Source := Value (Parameters (Request).Get ("source"));
-      if Source = Null_Identification then
-         raise PBX.Call.Invalid_ID;
-      end if;
+      if OpenID.Permissions (Request) (Model.User.Receptionist) then
+         --  Check valitity of the call. (Will raise exception on invalid).
+         Source := Value (Parameters (Request).Get ("source"));
+         if Source = Null_Identification then
+            raise PBX.Call.Invalid_ID;
+         end if;
 
-      if
-        PBX.Call.Get
-          (Agent.Get
-               (PBX.Call.Get (Source).Assigned_To).Current_Call).Inbound
-      then
-         raise PBX.Call.Invalid_ID with "Cannot transfer with an inbound call "
-           & "as destination " & To_String
-           (Agent.Get (PBX.Call.Get (Source).Assigned_To).Current_Call);
-      end if;
+         if
+           PBX.Call.Get
+             (Agent.Get
+                (PBX.Call.Get (Source).Assigned_To).Current_Call).Inbound
+         then
+            raise PBX.Call.Invalid_ID with "Cannot transfer with an inbound call "
+              & "as destination " & To_String
+              (Agent.Get (PBX.Call.Get (Source).Assigned_To).Current_Call);
+         end if;
 
       --  TODO: refactor.
       --        PBX.Action.Wait_For
@@ -383,11 +412,15 @@ package body Handlers.Call is
 --              Destination => PBX.Call.Get (Agent.Get
 --                (PBX.Call.Get (Source).Assigned_To).Current_Call).B_Leg));
 
-      Response_Object.HTTP_Status_Code (HTTP.OK);
-      Response_Object.Content
+         Response_Object.HTTP_Status_Code (HTTP.OK);
+         Response_Object.Content
            (Status_Message
               ("Success", "Transfer succeeded"));
-         return Response_Object.Build;
+      else
+         Response.Error_Messages.Not_Authorized (Response_Object);
+      end if;
+
+      return Response_Object.Build;
 
    exception
       when Invalid_ID =>
