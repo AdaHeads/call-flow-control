@@ -19,9 +19,9 @@ with GNATCOLL.JSON;
 
 with Alice_Configuration,
      Common,
-     HTTP_Codes,
      Model.User,
      Model.Users,
+     Response.Error_Messages,
      Response.Not_Cached,
      View.Users;
 
@@ -80,18 +80,10 @@ package body Handlers.Users.List is
 
             Instance.Content (To_JSON_String (Data));
          else
-            Data.Set_Field (Field_Name => View.Status,
-                            Field      => "too many parameters");
-
-            Instance.Content (To_JSON_String (Data));
-            Instance.HTTP_Status_Code (HTTP_Codes.Bad_Request);
+            Response.Error_Messages.Too_Many_Parameters (Instance);
          end if;
       else
-         Data.Set_Field (Field_Name => View.Status,
-                         Field      => "not authorized");
-
-         Instance.Content (To_JSON_String (Data));
-         Instance.HTTP_Status_Code (HTTP_Codes.Unauthorized);
+         Response.Error_Messages.Not_Authorized (Instance);
       end if;
    end Generate_Document;
 

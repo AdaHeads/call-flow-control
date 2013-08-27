@@ -19,8 +19,8 @@ with GNATCOLL.JSON;
 
 with Alice_Configuration,
      Common,
-     HTTP_Codes,
      Model.User,
+     Response.Error_Messages,
      Response.Not_Cached,
      View.User;
 
@@ -116,26 +116,14 @@ package body Handlers.Users.OpenIDs is
 
             Instance.Content (To_JSON_String (Data));
          else
-            Data.Set_Field (Field_Name => View.Status,
-                            Field      => "bad parameters");
-
-            Instance.Content (To_JSON_String (Data));
-            Instance.HTTP_Status_Code (HTTP_Codes.Bad_Request);
+            Response.Error_Messages.Bad_Parameters (Instance);
          end if;
       else
-         Data.Set_Field (Field_Name => View.Status,
-                         Field      => "not authorized");
-
-         Instance.Content (To_JSON_String (Data));
-         Instance.HTTP_Status_Code (HTTP_Codes.Unauthorized);
+         Response.Error_Messages.Not_Authorized (Instance);
       end if;
    exception
       when Bad_Parameters =>
-         Data.Set_Field (Field_Name => View.Status,
-                         Field      => "bad parameters");
-
-         Instance.Content (To_JSON_String (Data));
-         Instance.HTTP_Status_Code (HTTP_Codes.Bad_Request);
+         Response.Error_Messages.Bad_Parameters (Instance);
    end Generate_Document;
 
 end Handlers.Users.OpenIDs;

@@ -15,29 +15,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
-
 with Handlers.OpenID,
-     HTTP_Codes,
-     System_Message.Critical,
-     View;
+     Response.Error_Messages,
+     System_Message.Critical;
 
 package body Response.Not_Cached is
 
    No : constant Model.User.Permission_List := (others => False);
-
-   procedure Not_Allowed (HTTP_Response : in out Object) is
-      use GNATCOLL.JSON;
-      use Common;
-
-      Data : JSON_Value := Create_Object;
-   begin
-      Data.Set_Field (Field_Name => View.Status,
-                      Field      => "not authorized");
-
-      Content (HTTP_Response, To_JSON_String (Data));
-      HTTP_Status_Code (HTTP_Response, HTTP_Codes.Unauthorized);
-   end Not_Allowed;
 
    -------------------------
    --  Generate_Response  --
@@ -55,7 +39,7 @@ package body Response.Not_Cached is
       if Public then
          Generate_Document (Response_Object);
       elsif (Handlers.OpenID.Permissions (Request) and Allowed) = No then
-         Not_Allowed (Response_Object);
+         Response.Error_Messages.Not_Authorized (Response_Object);
       else
          Generate_Document (Response_Object);
       end if;

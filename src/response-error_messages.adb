@@ -22,6 +22,20 @@ with Common,
      View;
 
 package body Response.Error_Messages is
+   procedure Bad_Parameters (HTTP_Response : in out Object) is
+      use GNATCOLL.JSON;
+      JSON : JSON_Value;
+   begin
+      JSON := Create_Object;
+      JSON.Set_Field (Field_Name => View.Status,
+                      Field      => "bad parameters");
+
+      HTTP_Status_Code (HTTP_Response,
+                        HTTP_Codes.Bad_Request);
+      Content (HTTP_Response,
+               Common.To_JSON_String (JSON));
+   end Bad_Parameters;
+
    procedure Not_Authorized (HTTP_Response : in out Object) is
       use GNATCOLL.JSON;
       JSON : JSON_Value;

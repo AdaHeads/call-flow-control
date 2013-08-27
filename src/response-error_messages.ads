@@ -17,5 +17,7 @@
 
 package Response.Error_Messages is
    procedure Not_Authorized (HTTP_Response : in out Object);
+
+   procedure Bad_Parameters (HTTP_Response : in out Object);
    procedure Too_Many_Parameters (HTTP_Response : in out Object);
 end Response.Error_Messages;
