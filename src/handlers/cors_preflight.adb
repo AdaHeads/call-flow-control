@@ -16,7 +16,8 @@
 -------------------------------------------------------------------------------
 
 with Common;
-with HTTP_Codes;
+with HTTP_Codes,
+     System_Message.Info;
 
 package body CORS_Preflight is
 
@@ -41,6 +42,9 @@ package body CORS_Preflight is
       use Common;
       use HTTP_Codes;
    begin
+      System_Message.Info.Jacob_Wants_To_See_This
+        (Message => "CORS Preflight URI: " & Instance.Request_URL);
+
       Instance.HTTP_Status_Code (OK);
       Instance.Content (Null_JSON_String);
    end Generate_Document;
