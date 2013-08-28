@@ -17,12 +17,12 @@
 
 --  Application specific resource handlers.
 
-with AWS.Services.Dispatchers.Method;
+with AWS.Response,
+     AWS.Status;
 
 package Alice_Handlers is
 
-   function Get
-     return AWS.Services.Dispatchers.Method.Handler;
+   function Callback (Request : in AWS.Status.Data) return AWS.Response.Data;
    --  Register content dispatchers for the server.
 
 end Alice_Handlers;

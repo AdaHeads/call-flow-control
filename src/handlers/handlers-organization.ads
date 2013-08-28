@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Dispatchers.Callback;
+with AWS.Response;
 
 with Model.User,
      Response.Not_Cached;
@@ -23,7 +23,7 @@ with Model.User,
 package Handlers.Organization is
 
    function Callback
-     return AWS.Dispatchers.Callback.Handler;
+     return AWS.Response.Callback;
    --  Return a callback for the "organization" interface.
 
 private

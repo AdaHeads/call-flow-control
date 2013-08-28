@@ -15,8 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Dispatchers.Callback;
+with AWS.Response;
 
 package Handlers.Users.Validate is
-   function Callback return AWS.Dispatchers.Callback.Handler;
+   function Callback return AWS.Response.Callback;
 end Handlers.Users.Validate;

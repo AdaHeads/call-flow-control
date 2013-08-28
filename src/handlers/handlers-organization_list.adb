@@ -49,10 +49,10 @@ package body Handlers.Organization_List is
    ----------------
 
    function Callback
-     return AWS.Dispatchers.Callback.Handler
+     return AWS.Response.Callback
    is
    begin
-      return AWS.Dispatchers.Callback.Create (JSON_Response'Access);
+      return JSON_Response'Access;
    end Callback;
 
    -------------------------

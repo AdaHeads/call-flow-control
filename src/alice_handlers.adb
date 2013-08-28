@@ -15,76 +15,57 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with CORS_Preflight;
-with Handlers.Contact;
-with Handlers.Agent;
-with Handlers.Call;
-with Handlers.Configuration;
-with Handlers.Debug;
-with Handlers.Log;
-with Handlers.Notifications;
-with Handlers.Organization;
-with Handlers.Organization_List;
-with Handlers.Users.List;
-with Handlers.Users.Log_In;
-with Handlers.Users.Log_Out;
-with Handlers.Users.Logged_In;
-with Handlers.Users.Logged_Out;
-with Handlers.Users.OpenIDs;
-with Handlers.Users.Validate;
-with Not_Found;
-
-with AWS.Dispatchers.Callback;
-with AWS.Net.WebSocket.Registry;
-with AWS.Services.Dispatchers.URI;
-with AWS.Status;
+with AWS.Net.WebSocket.Registry,
+     AWS.Services.Dispatchers.Method,
+     AWS.Services.Dispatchers.URI;
 
 with Yolk.Static_Content;
 
+with Alice_Configuration,
+     Handlers.Authenticated_Dispatcher,
+     Model.User;
+
+with CORS_Preflight,
+     Handlers.Agent,
+     Handlers.Call,
+     Handlers.Configuration,
+     Handlers.Contact,
+     Handlers.Debug,
+     Handlers.Log,
+     Handlers.Notifications,
+     Handlers.Organization,
+     Handlers.Organization_List,
+     Handlers.Users.List,
+     Handlers.Users.Log_In,
+     Handlers.Users.Log_Out,
+     Handlers.Users.Logged_In,
+     Handlers.Users.Logged_Out,
+     Handlers.Users.OpenIDs,
+     Handlers.Users.Validate,
+     Not_Found;
+
 package body Alice_Handlers is
 
-   procedure Set_GET_URI_Dispatchers
-     (Dispatcher : out AWS.Services.Dispatchers.URI.Handler);
-   --  Add all URI dispatchers for GET requests.
-
-   procedure Set_POST_URI_Dispatchers
-     (Dispatcher : in out AWS.Services.Dispatchers.URI.Handler);
-   --  Add all URI dispatchers for POST requests.
+   function Callback (Request : in AWS.Status.Data) return AWS.Response.Data is
+   begin
+      return Handlers.Authenticated_Dispatcher.Run (Request);
+   end Callback;
 
    -----------
    --  Get  --
    -----------
 
-   function Get
+   function Get_Obsolecent
+     return AWS.Services.Dispatchers.Method.Handler;
+   function Get_Obsolecent
      return AWS.Services.Dispatchers.Method.Handler
    is
-      use AWS.Dispatchers;
       use AWS.Services;
       use Handlers;
 
       Method_Dispatcher   : Dispatchers.Method.Handler;
       URI_GET_Dispatcher  : Dispatchers.URI.Handler;
-      URI_POST_Dispatcher : Dispatchers.URI.Handler;
    begin
-      -----------------------------------------
-      --  Unknown Resource (404) Dispatcher  --
-      -----------------------------------------
-
-      Method_Dispatcher.Register_Default_Callback
-        (Action => Not_Found.Callback);
-      --  If no request methods has been set in the request we treat the
-      --  request as failed and return a 404 Not Found.
-
-      URI_GET_Dispatcher.Register_Default_Callback
-        (Action => Not_Found.Callback);
-      --  Returns a 404 to the user if no callback is found for the requested
-      --  resource.
-
-      URI_POST_Dispatcher.Register_Default_Callback
-        (Action => Not_Found.Callback);
-      --  Returns a 404 to the user if no callback is found for the requested
-      --  resource.
-
       -----------------
       --  Bob files  --
       -----------------
@@ -94,8 +75,7 @@ package body Alice_Handlers is
 
       URI_GET_Dispatcher.Register_Regexp
         (URI    => "/bob/*.",
-         Action => Callback.Create
-           (Callback => Yolk.Static_Content.Non_Compressable'Access));
+         Action => Yolk.Static_Content.Non_Compressable'Access);
       --  If a request begins with /bob/, then look for a file matching the
       --  given URI, sans domain, postfixed the WWW_Root configuration
       --  parameter.
@@ -103,176 +83,114 @@ package body Alice_Handlers is
       --  serverside caching of files is necessary, consider using an actual
       --  proxy / cache server like varnish in front of Alice.
 
-      ---------------------------
-      --  Set URI dispatchers  --
-      ---------------------------
-
-      Set_GET_URI_Dispatchers (Dispatcher => URI_GET_Dispatcher);
-      Set_POST_URI_Dispatchers (Dispatcher => URI_POST_Dispatcher);
-
-      -----------------------
-      --  Method handlers  --
-      -----------------------
-
-      Method_Dispatcher.Register
-        (Method => AWS.Status.GET,
-         Action => URI_GET_Dispatcher);
-      --  Add all the GET URI's to the GET method dispatcher.
-
-      Method_Dispatcher.Register
-        (Method => AWS.Status.POST,
-         Action => URI_POST_Dispatcher);
-      --  Add all the POST URI's to the POST method dispatcher.
-
-      Method_Dispatcher.Register
-        (Method => AWS.Status.OPTIONS,
-         Action => CORS_Preflight.Callback);
-      --  This is for CORS preflight requests.
-
-      --------------------------
-      --  WebSocket handlers  --
-      --------------------------
-
-      AWS.Net.WebSocket.Registry.Register
-        (URI     => "/notifications",
-         Factory => Notifications.Create'Access);
-
       return Method_Dispatcher;
-   end Get;
+   end Get_Obsolecent;
 
-   -------------------------------
-   --  Set_GET_URI_Dispatchers  --
-   -------------------------------
+   package Permission_Operations is
+      use Handlers.Authenticated_Dispatcher, Model;
 
-   procedure Set_GET_URI_Dispatchers
-     (Dispatcher : out AWS.Services.Dispatchers.URI.Handler)
-   is
-      use AWS.Dispatchers;
-      use AWS.Services;
-      use Handlers;
-   begin
-      Dispatcher.Register
-        (URI    => "/agent",
-         Action => Callback.Create
-           (Callback => Agent.Agent'Access));
+      Public        : constant Authentication := (Public => True);
+      Logged_In     : constant Authentication := (Public => False,
+                                                  As     => (others => True));
+      Receptionist  : constant Authentication :=
+        (Public => False,
+         As     => (User.Receptionist  => True,
+                    others              => False));
+      Service_Agent : constant Authentication :=
+        (Public => False,
+         As     => (User.Service_Agent => True,
+                    others              => False));
+      Administrator : constant Authentication :=
+        (Public => False,
+         As     => (User.Administrator => True,
+                    others             => False));
 
-      Dispatcher.Register
-        (URI    => "/agent/list",
-         Action => Callback.Create
-           (Callback => Agent.Agent_List'Access));
+      function "or" (Left, Right : in Authentication) return Authentication;
+      function "or" (Left  : in Boolean;
+                     Right : in Authentication) return Authentication;
+   end Permission_Operations;
 
-      Dispatcher.Register
-        (URI    => "/call/list",
-         Action => Callback.Create
-           (Callback => Call.List'Access));
+   package body Permission_Operations is
+      function "or"  (Left, Right : in Authentication) return Authentication is
+         use Model.User;
+      begin
+         if Left.Public or Right.Public then
+            return Public;
+         else
+            return (Public => False,
+                    As     => Left.As or Right.As);
+         end if;
+      end "or";
 
-      Dispatcher.Register
-        (URI    => "/call/queue",
-         Action => Callback.Create
-           (Callback => Call.Queue'Access));
+      function "or" (Left  : in Boolean;
+                     Right : in Authentication) return Authentication is
+      begin
+         if Left then
+            return Public;
+         else
+            return Right;
+         end if;
+      end "or";
+   end Permission_Operations;
 
-      Dispatcher.Register
-        (URI    => "/configuration",
-         Action => Configuration.Callback);
+   function Public_User_Identification return Boolean
+     renames Alice_Configuration.Public_User_Identification;
 
-      Dispatcher.Register
-        (URI    => "/contact",
-         Action => Contact.Callback);
+   use AWS.Status;
+   use Handlers, Handlers.Authenticated_Dispatcher;
+   use Permission_Operations;
+begin
+   Set_Default (Action => Not_Found.Callback);
+   --  If no request methods has been set in the request we treat the
+   --  request as failed and return a 404 Not Found.
 
-      Dispatcher.Register
-        (URI    => "/debug/channel/list",
-         Action => Callback.Create
-           (Callback => Handlers.Debug.Channel_List'Access));
+   Set_Default (Method => OPTIONS,
+                Action => CORS_Preflight.Callback);
+   --  This is for CORS preflight requests.
 
-      Dispatcher.Register
-        (URI    => "/debug/peer/list",
-         Action => Callback.Create
-           (Callback => Handlers.Debug.Peer_List'Access));
+   pragma Style_Checks ("M100"); --  Allow long lines in the routing table
 
-      Dispatcher.Register
-        (URI    => "/organization",
-         Action => Organization.Callback);
+   Register (GET,  "/agent",              Receptionist,           Agent.Agent'Access);
+   Register (GET,  "/agent/list",         Receptionist,           Agent.Agent_List'Access);
 
-      Dispatcher.Register
-        (URI    => "/organization/list",
-         Action => Organization_List.Callback);
+   Register (GET,  "/call/list",          Receptionist,           Call.List'Access);
+   Register (GET,  "/call/queue",         Receptionist,           Call.Queue'Access);
 
-      Dispatcher.Register
-        (URI    => "/users/list",
-         Action => Users.List.Callback);
+   Register (POST, "/call/hangup",        Receptionist,           Call.Hangup'Access);
+   Register (POST, "/call/originate",     Receptionist,           Call.Originate'Access);
+   Register (POST, "/call/park",          Receptionist,           Call.Park'Access);
+   Register (POST, "/call/pickup",        Receptionist,           Call.Pickup'Access);
+   Register (POST, "/call/transfer",      Receptionist,           Call.Transfer'Access);
 
-      Dispatcher.Register
-        (URI    => "/users/log_in",
-         Action => Users.Log_In.Callback);
+   Register (GET,  "/configuration",      Receptionist,           Configuration.Callback);
 
-      Dispatcher.Register
-        (URI    => "/users/log_out",
-         Action => Users.Log_Out.Callback);
+   Register (GET,  "/contact",            Receptionist or Service_Agent,
+                                                                  Contact.Callback);
 
-      Dispatcher.Register
-        (URI    => "/users/logged_in",
-         Action => Users.Logged_In.Callback);
+   Register (GET,  "/debug/channel/list", Logged_In,              Debug.Channel_List'Access);
+   Register (GET,  "/debug/peer/list",    Logged_In,              Debug.Channel_List'Access);
 
-      Dispatcher.Register
-        (URI    => "/users/logged_out",
-         Action => Users.Logged_Out.Callback);
+   Register (POST, "/log/critical",       Logged_In,              Log.Critical);
+   Register (POST, "/log/error",          Logged_In,              Log.Error);
+   Register (POST, "/log/info",           Logged_In,              Log.Info);
 
-      Dispatcher.Register
-        (URI    => "/users/openids",
-         Action => Users.OpenIDs.Callback);
+   Register (GET,  "/organization",       Receptionist or Service_Agent,
+                                                                  Organization.Callback);
+   Register (GET,  "/organization/list",  Receptionist or Service_Agent,
+                                                                  Organization_List.Callback);
 
-      Dispatcher.Register
-        (URI    => "/users/validate",
-         Action => Users.Validate.Callback);
-   end Set_GET_URI_Dispatchers;
+   Register (GET,  "/users/list",         Public_User_Identification or Administrator,
+                                                                  Users.List.Callback);
+   Register (GET,  "/users/log_in",       Public,                 Users.Log_In.Callback);
+   Register (GET,  "/users/log_out",      Public,                 Users.Log_Out.Callback);
+   Register (GET,  "/users/logged_in",    Public,                 Users.Logged_In.Callback);
+   Register (GET,  "/users/logged_out",   Public,                 Users.Logged_Out.Callback);
+   Register (GET,  "/users/openids",      Public_User_Identification or Administrator,
+                                                                  Users.OpenIDs.Callback);
+   Register (GET,  "/users/validate",     Public,                 Users.Validate.Callback);
 
-   --------------------------------
-   --  Set_POST_URI_Dispatchers  --
-   --------------------------------
-
-   procedure Set_POST_URI_Dispatchers
-     (Dispatcher : in out AWS.Services.Dispatchers.URI.Handler)
-   is
-      use AWS.Dispatchers;
-      use AWS.Services;
-      use Handlers;
-   begin
-      Dispatcher.Register
-        (URI    => "/call/hangup",
-         Action => Callback.Create
-           (Callback => Call.Hangup'Access));
-
-      Dispatcher.Register
-        (URI    => "/call/park",
-         Action => Callback.Create
-           (Callback => Call.Park'Access));
-
-      Dispatcher.Register
-        (URI    => "/call/pickup",
-         Action => Callback.Create
-           (Callback => Call.Pickup'Access));
-
-      Dispatcher.Register
-        (URI    => "/call/transfer",
-         Action => Callback.Create
-           (Callback => Call.Transfer'Access));
-
-      Dispatcher.Register
-        (URI    => "/call/originate",
-         Action => Callback.Create
-           (Callback => Handlers.Call.Originate'Access));
-
-      Dispatcher.Register
-        (URI    => "/log/critical",
-         Action => Log.Callback_Critical);
-
-      Dispatcher.Register
-        (URI    => "/log/error",
-         Action => Log.Callback_Error);
-
-      Dispatcher.Register
-        (URI    => "/log/info",
-         Action => Log.Callback_Info);
-   end Set_POST_URI_Dispatchers;
+   AWS.Net.WebSocket.Registry.Register
+     (URI     => "/notifications",
+      Factory => Notifications.Create'Access);
 
 end Alice_Handlers;

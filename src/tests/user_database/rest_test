@@ -94,9 +94,9 @@ mkdir -p session configuration
 
 touch session/session.data
 
-grep -iv ^Public_User_Information ../../../exe/configuration/alice_config.ini \
+grep -iv ^Public_User_Identification ../../../exe/configuration/alice_config.ini \
   >  configuration/alice_config.ini
-echo Public_User_Information True \
+echo Public_User_Identification True \
   >> configuration/alice_config.ini
 
 grep -iv ^Security ../../../exe/configuration/config.ini.dist \

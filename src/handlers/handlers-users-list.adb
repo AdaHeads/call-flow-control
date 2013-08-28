@@ -27,17 +27,8 @@ with Alice_Configuration,
 
 package body Handlers.Users.List is
 
-   function Public_User_Identification return Boolean;
-   function Public_User_Identification return Boolean is
-      use Alice_Configuration;
-   begin
-      return Config.Get (Public_User_Identification);
-   exception
-      when others =>
-         raise Constraint_Error
-           with "The 'Public_User_Identification' configuration field is a " &
-                "Boolean.";
-   end Public_User_Identification;
+   function Public_User_Identification return Boolean
+     renames Alice_Configuration.Public_User_Identification;
 
    ----------------------------------------------------------------------------
 
@@ -55,9 +46,9 @@ package body Handlers.Users.List is
 
    ----------------------------------------------------------------------------
 
-   function Callback return AWS.Dispatchers.Callback.Handler is
+   function Callback return AWS.Response.Callback is
    begin
-      return AWS.Dispatchers.Callback.Create (JSON_Response'Access);
+      return JSON_Response'Access;
    end Callback;
 
    procedure Generate_Document

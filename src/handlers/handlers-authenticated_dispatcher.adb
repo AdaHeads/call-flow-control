@@ -82,7 +82,7 @@ package body Handlers.Authenticated_Dispatcher is
             end if;
          end;
       else
-         return Default_Action (Request);
+         return Default_Action (Method (Request)) (Request);
       end if;
    end Run;
 

@@ -30,9 +30,9 @@ package body Handlers.Users.Log_In is
    function Generate_Response (Request : in AWS.Status.Data)
                               return AWS.Response.Data;
 
-   function Callback return AWS.Dispatchers.Callback.Handler is
+   function Callback return AWS.Response.Callback is
    begin
-      return AWS.Dispatchers.Callback.Create (Generate_Response'Access);
+      return Generate_Response'Access;
    end Callback;
 
    function Generate_Response (Request : in AWS.Status.Data)

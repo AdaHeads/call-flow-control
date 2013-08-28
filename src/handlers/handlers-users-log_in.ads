@@ -15,8 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Dispatchers.Callback;
+with AWS.Response;
 
 package Handlers.Users.Log_In is
-   function Callback return AWS.Dispatchers.Callback.Handler;
+   function Callback return AWS.Response.Callback;
 end Handlers.Users.Log_In;

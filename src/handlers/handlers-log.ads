@@ -15,7 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Dispatchers.Callback;
+with AWS.Dispatchers.Callback,
+     AWS.Response;
 
 with Response.Not_Cached;
 
@@ -25,12 +26,21 @@ package Handlers.Log is
      return AWS.Dispatchers.Callback.Handler;
    --  Return a callback for the CRITICAL log handler.
 
+   function Critical return AWS.Response.Callback;
+   --  Return a callback for the CRITICAL log handler.
+
    function Callback_Error
      return AWS.Dispatchers.Callback.Handler;
    --  Return a callback for the ERROR log handler.
 
+   function Error return AWS.Response.Callback;
+   --  Return a callback for the ERROR log handler.
+
    function Callback_Info
      return AWS.Dispatchers.Callback.Handler;
+   --  Return a callback for the INFO log handler.
+
+   function Info return AWS.Response.Callback;
    --  Return a callback for the INFO log handler.
 
 private

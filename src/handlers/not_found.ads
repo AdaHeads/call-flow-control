@@ -15,13 +15,18 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Dispatchers.Callback;
+with AWS.Dispatchers.Callback,
+     AWS.Response;
+
 with Response.Not_Cached;
 
 package Not_Found is
 
    function Callback
      return AWS.Dispatchers.Callback.Handler;
+   --  Return a callback for the Not_Found (404) response.
+
+   function Callback return AWS.Response.Callback;
    --  Return a callback for the Not_Found (404) response.
 
 private

@@ -15,13 +15,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Dispatchers.Callback;
+with AWS.Response;
 with Response.Not_Cached;
 
 package CORS_Preflight is
 
    function Callback
-     return AWS.Dispatchers.Callback.Handler;
+     return AWS.Response.Callback;
    --  Return a callback for the OPTIONS CORS preflight response (200).
 
 private

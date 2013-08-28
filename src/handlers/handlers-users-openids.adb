@@ -26,17 +26,8 @@ with Alice_Configuration,
 
 package body Handlers.Users.OpenIDs is
 
-   function Public_User_Identification return Boolean;
-   function Public_User_Identification return Boolean is
-      use Alice_Configuration;
-   begin
-      return Config.Get (Public_User_Identification);
-   exception
-      when others =>
-         raise Constraint_Error
-           with "The 'Public_User_Identification' configuration field is a " &
-                "Boolean.";
-   end Public_User_Identification;
+   function Public_User_Identification return Boolean
+     renames Alice_Configuration.Public_User_Identification;
 
    ----------------------------------------------------------------------------
 
@@ -70,8 +61,6 @@ package body Handlers.Users.OpenIDs is
       function Parameters_Okay return Boolean;
       function User_Name return Model.User.Name;
 
-      function Public_User_Identification return Boolean;
-
       function Parameters_Okay return Boolean is
       begin
          return Instance.Parameter_Count = 1 and
@@ -80,17 +69,6 @@ package body Handlers.Users.OpenIDs is
          when others =>
             raise Bad_Parameters;
       end Parameters_Okay;
-
-      function Public_User_Identification return Boolean is
-         use Alice_Configuration;
-      begin
-         return Config.Get (Public_User_Identification);
-      exception
-         when others =>
-            raise Constraint_Error
-              with "The 'Public_User_Identification' configuration field is a " &
-                   "Boolean.";
-      end Public_User_Identification;
 
       function User_Name return Model.User.Name is
       begin

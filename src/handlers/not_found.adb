@@ -30,6 +30,11 @@ package body Not_Found is
       return AWS.Dispatchers.Callback.Create (JSON_Response'Access);
    end Callback;
 
+   function Callback return AWS.Response.Callback is
+   begin
+      return JSON_Response'Access;
+   end Callback;
+
    -------------------------
    --  Generate_Document  --
    -------------------------

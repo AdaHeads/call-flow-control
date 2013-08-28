@@ -64,6 +64,11 @@ package body Handlers.Log is
       return AWS.Dispatchers.Callback.Create (Info_Response'Access);
    end Callback_Info;
 
+   function Critical return AWS.Response.Callback is
+   begin
+      return Critical_Response'Access;
+   end Critical;
+
    --------------------
    --  Critical_Log  --
    --------------------
@@ -71,15 +76,19 @@ package body Handlers.Log is
    procedure Critical_Log
      (Instance : in out Response.Object)
    is
-      use System_Message;
-
-      Msg : constant String := Get_Message (Instance);
+      Message : String renames Get_Message (Instance);
    begin
-      if Msg'Length > 0 then
-         Critical.Client_Critical (Message         => Msg,
-                                   Response_Object => Instance);
+      if Message'Length > 0 then
+         System_Message.Critical.Client_Critical
+           (Message         => Message,
+            Response_Object => Instance);
       end if;
    end Critical_Log;
+
+   function Error return AWS.Response.Callback is
+   begin
+      return Error_Response'Access;
+   end Error;
 
    -----------------
    --  Error_Log  --
@@ -88,13 +97,12 @@ package body Handlers.Log is
    procedure Error_Log
      (Instance : in out Response.Object)
    is
-      use System_Message;
-
-      Msg : constant String := Get_Message (Instance);
+      Message : String renames Get_Message (Instance);
    begin
-      if Msg'Length > 0 then
-         Error.Client_Error (Message         => Msg,
-                             Response_Object => Instance);
+      if Message'Length > 0 then
+         System_Message.Error.Client_Error
+           (Message         => Message,
+            Response_Object => Instance);
       end if;
    end Error_Log;
 
@@ -122,6 +130,11 @@ package body Handlers.Log is
       end if;
    end Get_Message;
 
+   function Info return AWS.Response.Callback is
+   begin
+      return Info_Response'Access;
+   end Info;
+
    ----------------
    --  Info_Log  --
    ----------------
@@ -129,13 +142,12 @@ package body Handlers.Log is
    procedure Info_Log
      (Instance : in out Response.Object)
    is
-      use System_Message;
-
-      Msg : constant String := Get_Message (Instance);
+      Message : String renames Get_Message (Instance);
    begin
-      if Msg'Length > 0 then
-         Info.Client_Info (Message         => Msg,
-                           Response_Object => Instance);
+      if Message'Length > 0 then
+         System_Message.Info.Client_Info
+           (Message         => Message,
+            Response_Object => Instance);
       end if;
    end Info_Log;
 
