@@ -15,8 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response,
-     AWS.Status,
+with AWS.Status,
      GNATCOLL.JSON;
 
 with Common,
