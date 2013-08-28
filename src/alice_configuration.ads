@@ -75,4 +75,6 @@ package Alice_Configuration is
                                 Default   =>
                                 "configuration/alice_config.ini"));
 
+   function Public_User_Identification return Boolean;
+
 end Alice_Configuration;
