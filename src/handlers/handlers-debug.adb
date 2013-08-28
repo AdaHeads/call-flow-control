@@ -22,9 +22,7 @@ with ESL.Peer;
 
 with Common,
      HTTP_Codes,
-     Model.User,
      Response,
-     Response.Error_Messages,
      View;
 
 package body Handlers.Debug is
@@ -34,7 +32,7 @@ package body Handlers.Debug is
    function Channel_List (Request : in AWS.Status.Data)
                           return AWS.Response.Data is
       use GNATCOLL.JSON;
-      use HTTP_Codes, Model.User;
+      use HTTP_Codes;
 
       Response_Object : Response.Object := Response.Factory (Request);
       Data            : JSON_Value;
@@ -51,7 +49,7 @@ package body Handlers.Debug is
 
    function Peer_List (Request : in AWS.Status.Data)
                        return AWS.Response.Data is
-      use HTTP_Codes, Model.User;
+      use HTTP_Codes;
 
       Response_Object : Response.Object := Response.Factory (Request);
    begin
