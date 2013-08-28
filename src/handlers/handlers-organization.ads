@@ -17,8 +17,7 @@
 
 with AWS.Response;
 
-with Model.User,
-     Response.Not_Cached;
+with Response.Not_Cached;
 
 package Handlers.Organization is
 
@@ -38,10 +37,7 @@ private
    --  Set required/optional GET/POST request parameters.
 
    function JSON_Response is new Response.Not_Cached.Generate_Response
-     (Allowed           => (Model.User.Receptionist  => True,
-                            Model.User.Service_Agent => True,
-                            Model.User.Administrator => False),
-      Generate_Document => Generate_Document);
+     (Generate_Document => Generate_Document);
    --  Generate the AWS.Response.Data that ultimately is delivered to the user.
 
 end Handlers.Organization;

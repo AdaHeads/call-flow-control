@@ -20,7 +20,7 @@ with AWS.Dispatchers.Callback,
 
 with Response.Not_Cached;
 
-package Not_Found is
+package Handlers.Not_Found is
 
    function Callback
      return AWS.Dispatchers.Callback.Handler;
@@ -37,8 +37,7 @@ private
    --  to 404.
 
    function JSON_Response is new Response.Not_Cached.Generate_Response
-     (Public            => True,
-      Generate_Document => Generate_Document);
+     (Generate_Document => Generate_Document);
    --  Generate the AWS.Response.Data that ultimately is delivered to the user.
 
-end Not_Found;
+end Handlers.Not_Found;

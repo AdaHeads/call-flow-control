@@ -17,18 +17,13 @@
 
 with GNATCOLL.JSON;
 
-with Alice_Configuration,
-     Common,
-     Model.User,
+with Common,
      Model.Users,
      Response.Error_Messages,
      Response.Not_Cached,
      View.Users;
 
 package body Handlers.Users.List is
-
-   function Public_User_Identification return Boolean
-     renames Alice_Configuration.Public_User_Identification;
 
    ----------------------------------------------------------------------------
 
@@ -37,11 +32,7 @@ package body Handlers.Users.List is
 
    function JSON_Response is
       new Response.Not_Cached.Generate_Response
-            (Public            => Public_User_Identification,
-             Allowed           => (Model.User.Receptionist  => False,
-                                   Model.User.Service_Agent => False,
-                                   Model.User.Administrator => True),
-             Generate_Document => Generate_Document);
+            (Generate_Document => Generate_Document);
    --  Generate the AWS.Response.Data that ultimately is delivered to the user.
 
    ----------------------------------------------------------------------------
@@ -61,20 +52,15 @@ package body Handlers.Users.List is
    begin
       Data := Create_Object;
 
-      if Public_User_Identification then
-         if Instance.Parameter_Count = 0 then
-            Data.Set_Field (Field_Name => View.Status,
-                            Field      => "okay");
-            Data.Set_Field (Field_Name => View.Users_S,
-                            Field      => View.Users.To_JSON
-                                            (Model.Users.List));
+      if Instance.Parameter_Count = 0 then
+         Data.Set_Field (Field_Name => View.Status,
+                         Field      => "okay");
+         Data.Set_Field (Field_Name => View.Users_S,
+                         Field      => View.Users.To_JSON (Model.Users.List));
 
-            Instance.Content (To_JSON_String (Data));
-         else
-            Response.Error_Messages.Too_Many_Parameters (Instance);
-         end if;
+         Instance.Content (To_JSON_String (Data));
       else
-         Response.Error_Messages.Not_Authorized (Instance);
+         Response.Error_Messages.Too_Many_Parameters (Instance);
       end if;
    end Generate_Document;
 

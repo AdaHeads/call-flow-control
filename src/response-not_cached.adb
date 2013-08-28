@@ -15,9 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Handlers.OpenID,
-     Response.Error_Messages,
-     System_Message.Critical;
+with System_Message.Critical;
 
 package body Response.Not_Cached is
 
@@ -29,25 +27,18 @@ package body Response.Not_Cached is
      (Request : in AWS.Status.Data)
          return AWS.Response.Data
    is
-      use AWS.Status;
-      use Model.User, System_Message;
+--      use AWS.Status;
 
-      Response_Object  : Object := Factory (Request);
+      Response_Object : Object := Factory (Request);
    begin
-      if Public then
-         Generate_Document (Response_Object);
-      elsif (Handlers.OpenID.Permissions (Request) and Allowed) = No then
-         Response.Error_Messages.Not_Authorized (Response_Object);
-      else
-         Generate_Document (Response_Object);
-      end if;
+      Generate_Document (Response_Object);
 
       return Response_Object.Build;
    exception
       when Event : others =>
          --  For now we assume that "other" exceptions caught here are bad
          --  enough to warrant a critical level log entry and response.
-         Critical.Response_Exception
+         System_Message.Critical.Response_Exception
            (Event           => Event,
             Message         => Response_Object.To_Debug_String,
             Response_Object => Response_Object);

@@ -25,13 +25,14 @@ with Alice_Configuration,
      Handlers.Authenticated_Dispatcher,
      Model.User;
 
-with CORS_Preflight,
-     Handlers.Agent,
+with Handlers.Agent,
      Handlers.Call,
      Handlers.Configuration,
      Handlers.Contact,
+     Handlers.CORS_Preflight,
      Handlers.Debug,
      Handlers.Log,
+     Handlers.Not_Found,
      Handlers.Notifications,
      Handlers.Organization,
      Handlers.Organization_List,
@@ -41,8 +42,7 @@ with CORS_Preflight,
      Handlers.Users.Logged_In,
      Handlers.Users.Logged_Out,
      Handlers.Users.OpenIDs,
-     Handlers.Users.Validate,
-     Not_Found;
+     Handlers.Users.Validate;
 
 package body Alice_Handlers is
 

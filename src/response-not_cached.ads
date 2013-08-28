@@ -18,8 +18,6 @@
 with AWS.Response;
 with AWS.Status;
 
-with Model.User;
-
 package Response.Not_Cached is
 
    -------------------------
@@ -27,9 +25,6 @@ package Response.Not_Cached is
    -------------------------
 
    generic
-
-      Public  : Boolean := False;
-      Allowed : Model.User.Permission_List := (others => False);
 
       with procedure Generate_Document
         (Response_Object : in out Object);

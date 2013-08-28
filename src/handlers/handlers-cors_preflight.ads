@@ -18,7 +18,7 @@
 with AWS.Response;
 with Response.Not_Cached;
 
-package CORS_Preflight is
+package Handlers.CORS_Preflight is
 
    function Callback
      return AWS.Response.Callback;
@@ -32,10 +32,9 @@ private
    --  to 200.
 
    function JSON_Response is new Response.Not_Cached.Generate_Response
-     (Public            => True,
-      Generate_Document => Generate_Document);
+     (Generate_Document => Generate_Document);
    --  Generate the AWS.Response.Data that ultimately is delivered to the user.
    --  In the case of a CORS preflight request all we return is an empty JSON
    --  string, ie. {}.
 
-end CORS_Preflight;
+end Handlers.CORS_Preflight;

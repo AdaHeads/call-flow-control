@@ -15,22 +15,19 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with System_Message.Error;
+with Common;
+with HTTP_Codes,
+     System_Message.Info;
 
-package body Not_Found is
+package body Handlers.CORS_Preflight is
 
    ----------------
    --  Callback  --
    ----------------
 
    function Callback
-     return AWS.Dispatchers.Callback.Handler
+     return AWS.Response.Callback
    is
-   begin
-      return AWS.Dispatchers.Callback.Create (JSON_Response'Access);
-   end Callback;
-
-   function Callback return AWS.Response.Callback is
    begin
       return JSON_Response'Access;
    end Callback;
@@ -40,12 +37,16 @@ package body Not_Found is
    -------------------------
 
    procedure Generate_Document
-     (Response_Object : in out Response.Object)
+     (Instance : in out Response.Object)
    is
-      use System_Message;
+      use Common;
+      use HTTP_Codes;
    begin
-      Error.Not_Found (Message         => Response_Object.Request_URL,
-                       Response_Object => Response_Object);
+      System_Message.Info.Jacob_Wants_To_See_This
+        (Message => "CORS Preflight URI: " & Instance.Request_URL);
+
+      Instance.HTTP_Status_Code (OK);
+      Instance.Content (Null_JSON_String);
    end Generate_Document;
 
-end Not_Found;
+end Handlers.CORS_Preflight;

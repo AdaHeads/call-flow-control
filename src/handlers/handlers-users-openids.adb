@@ -17,17 +17,13 @@
 
 with GNATCOLL.JSON;
 
-with Alice_Configuration,
-     Common,
+with Common,
      Model.User,
      Response.Error_Messages,
      Response.Not_Cached,
      View.User;
 
 package body Handlers.Users.OpenIDs is
-
-   function Public_User_Identification return Boolean
-     renames Alice_Configuration.Public_User_Identification;
 
    ----------------------------------------------------------------------------
 
@@ -36,11 +32,7 @@ package body Handlers.Users.OpenIDs is
 
    function JSON_Response is
       new Response.Not_Cached.Generate_Response
-            (Public            => Public_User_Identification,
-             Allowed           => (Model.User.Receptionist  => False,
-                                   Model.User.Service_Agent => False,
-                                   Model.User.Administrator => True),
-             Generate_Document => Generate_Document);
+            (Generate_Document => Generate_Document);
    --  Generate the AWS.Response.Data that ultimately is delivered to the user.
 
    ----------------------------------------------------------------------------
@@ -82,22 +74,18 @@ package body Handlers.Users.OpenIDs is
    begin
       Data := Create_Object;
 
-      if Public_User_Identification then
-         if Parameters_Okay then
-            Data.Set_Field (Field_Name => View.Status,
-                            Field      => "okay");
-            Data.Set_Field (Field_Name => View.User_S,
-                            Field      => String (User_Name));
-            Data.Set_Field (Field_Name => View.OpenIDs,
-                            Field      => View.User.To_JSON
-                                            (Model.User.OpenIDs (User_Name)));
+      if Parameters_Okay then
+         Data.Set_Field (Field_Name => View.Status,
+                         Field      => "okay");
+         Data.Set_Field (Field_Name => View.User_S,
+                         Field      => String (User_Name));
+         Data.Set_Field (Field_Name => View.OpenIDs,
+                         Field      => View.User.To_JSON
+                                         (Model.User.OpenIDs (User_Name)));
 
-            Instance.Content (To_JSON_String (Data));
-         else
-            Response.Error_Messages.Bad_Parameters (Instance);
-         end if;
+         Instance.Content (To_JSON_String (Data));
       else
-         Response.Error_Messages.Not_Authorized (Instance);
+         Response.Error_Messages.Bad_Parameters (Instance);
       end if;
    exception
       when Bad_Parameters =>
