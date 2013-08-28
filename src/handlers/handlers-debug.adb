@@ -21,7 +21,6 @@ with ESL.Peer;
 --  with ESL.Channel.List;
 
 with Common,
-     Handlers.OpenID,
      HTTP_Codes,
      Model.User,
      Response,
@@ -40,16 +39,12 @@ package body Handlers.Debug is
       Response_Object : Response.Object := Response.Factory (Request);
       Data            : JSON_Value;
    begin
-      if Handlers.OpenID.Permissions (Request) = No then
-         Response.Error_Messages.Not_Authorized (Response_Object);
-      else
-         Response_Object.HTTP_Status_Code (OK);
-         --  TODO:
-         Data := Create_Object;
-         Data.Set_Field (Field_Name  => View.Status,
-                         Field       => "Not implemented");
-         Response_Object.Content (To_JSON_String (Data));
-      end if;
+      Response_Object.HTTP_Status_Code (OK);
+      --  TODO:
+      Data := Create_Object;
+      Data.Set_Field (Field_Name  => View.Status,
+                      Field       => "Not implemented");
+      Response_Object.Content (To_JSON_String (Data));
 
       return Response_Object.Build;
    end Channel_List;
@@ -60,12 +55,8 @@ package body Handlers.Debug is
 
       Response_Object : Response.Object := Response.Factory (Request);
    begin
-      if Handlers.OpenID.Permissions (Request) = No then
-         Response.Error_Messages.Not_Authorized (Response_Object);
-      else
-         Response_Object.HTTP_Status_Code (OK);
-         Response_Object.Content (To_JSON_String (Peer.List.To_JSON));
-      end if;
+      Response_Object.HTTP_Status_Code (OK);
+      Response_Object.Content (To_JSON_String (Peer.List.To_JSON));
 
       return Response_Object.Build;
    end Peer_List;
