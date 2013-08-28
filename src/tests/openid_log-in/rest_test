@@ -190,12 +190,12 @@ fi
 check "/organisation/list"
 
 check "/organization/list"
-check "/organization/list?a=b"
+#check "/organization/list?a=b"
 
-check "/organization"
-check "/organization?a=b"
+#check "/organization"
+#check "/organization?a=b"
 check "/organization?org_id=1"
-check "/organization?org_id=1&a=b"
+#check "/organization?org_id=1&a=b"
 
 #-----------------------------------------------------------------------------
 #--  Stop Alice:
