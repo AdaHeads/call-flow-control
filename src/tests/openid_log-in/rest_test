@@ -1,0 +1,238 @@
+#! /bin/bash
+#-----------------------------------------------------------------------------
+#--  Set up:
+
+cd "$(dirname "$0")" || exit 101
+
+export LANG=C
+
+errors=0
+logged_in=false
+
+#-----------------------------------------------------------------------------
+#--  Helper functions:
+
+function check() {
+   local uri="$1"
+
+   local name="${uri#/}"
+   local name="${name//\//-}"
+
+   local url="http://localhost:4242${uri}"
+
+   local status_file="${name}.status"
+   local data_file="${name}.expected"
+
+   local data="${name}.data"
+   local log="${name}.log"
+   local differences="${name}.differences"
+
+   if [ ! -f "${status_file}" ]; then
+      echo "Please put the expected HTTP status code for <${url}> in '${status_file}'."
+      let errors++
+      return
+   fi
+
+   local expected_status="$(cat "${status_file}" | tr -cd '0-9')"
+
+   if [ -z "${expected_status}" ]; then
+      echo "'${status_file}' should contain the expected 3 digit HTTP status code for <${url}>."
+      let errors++
+      return
+   fi
+
+   if [ ! -f "${data_file}" ]; then
+      echo "Please put the expected data from <${url}> in '${data_file}'."
+      let errors++
+      return
+   fi
+
+   if [ ! "${logged_in}" = "true" ]; then
+      echo "Not logged in.  No point in checking <${url}>'."
+      let errors++
+      return
+   fi
+
+   wget --keep-session-cookies \
+        --load-cookies cookies \
+        --save-headers \
+        --output-document "${data}" \
+        --output-file     "${log}" \
+        "${url}"
+
+   egrep -v '^(Date|Server|Cache-Control|Pragma|Connection|Content-Length): ' "${data}" \
+     | diff -u "${data_file}" - > "${differences}"
+
+   if [ -s "${differences}" ]; then
+      echo "Mismatch in output from the REST interface <${url}>:"
+      cat "${differences}"
+      echo
+
+      let errors++
+      return
+   fi
+
+   if grep "^HTTP/1.1 ${expected_status} " "${data}" 1>/dev/null; then
+      true
+   elif grep "ERROR ${expected_status}:" "${log}" 1>/dev/null; then
+      true
+   else
+      echo "Incorrect HTTP status from the REST interface <${url}>:"
+      egrep '^< HTTP/1.1 [0-9]{3] ' "${data}"
+
+      let errors++
+      return
+   fi
+}
+
+#-----------------------------------------------------------------------------
+#--  Make sure no "old" Alice is running:
+
+if [ ! -z "$(pidof alice)" ]; then
+   echo "An instance of Alice is already running.  Killing it..." 1>&2
+   killall -9 alice
+fi
+
+if netstat -lt | grep ':4242 ' 1>/dev/null; then
+   echo "An instance of Alice is already blocking port 4242." 1>&2
+   exit 102
+fi
+
+#-----------------------------------------------------------------------------
+#--  Set up environment for Alice:
+
+rm -rf   session configuration
+mkdir -p session configuration
+
+touch session/session.data
+
+grep -iv ^Public_User_Identification ../../../exe/configuration/alice_config.ini \
+  >  configuration/alice_config.ini
+echo Public_User_Identification False \
+  >> configuration/alice_config.ini
+
+grep -iv ^Security ../../../exe/configuration/config.ini.dist \
+  >  configuration/config.ini
+echo Security False \
+  >> configuration/config.ini
+
+cp -p ../../../exe/configuration/mime.types configuration/
+
+#-----------------------------------------------------------------------------
+#--  Make sure Alice is running:
+
+../../../exe/alice 1>alice.output 2>alice.errors &
+
+alice_pid=$!
+
+if [ -z "${alice_pid}" ]; then
+   echo "Failed to start Alice." 1>&2
+   exit 103
+elif [ ! -d "/proc/${alice_pid}" ]; then
+   echo "No process information directory for the started Alice." 1>&2
+   exit 104
+fi
+
+#-----------------------------------------------------------------------------
+#--  Wait for Alice to become ready:
+
+sleep 2
+
+#-----------------------------------------------------------------------------
+#--  Log in:
+
+wget --keep-session-cookies \
+     --save-cookies cookies \
+     --output-document myopenid.html \
+     --output-file     myopenid.log \
+     'http://localhost:4242/users/log_in?openid=https://adaheads1.myopenid.com/'
+
+if [ $? != 0 ]; then
+   echo "Failed connecting to Alice/users/log_in." 1>&2
+
+   let errors++
+elif [ ! -s myopenid.html ]; then
+   echo "Empty response from Alice/users/log_in." 1>&2
+
+   let errors++
+fi
+
+secrets=$(grep input myopenid.html \
+            | perl -lpe 's/></>\n</g' \
+            | egrep 'name="(tid|token|_)"' \
+            | head -n3 \
+            | perl -lpe 's/^<input type="hidden" name="//; s/" value="/=/; s/" \/>$//;' \
+            | tr '\n' '&')
+
+wget --post-data "user_name=adaheads1&password=haitooph-uhahfoom&${secrets}" \
+     --keep-session-cookies \
+     --load-cookies cookies \
+     --save-cookies cookies \
+     --output-document bob.html \
+     --output-file     bob.log \
+     'https://www.myopenid.com/signin_submit'
+
+if [ $? != 0 ]; then
+   echo "Failed connecting to MyOpenID." 1>&2
+
+   let errors++
+elif [ ! -s bob.html ]; then
+   echo "Empty response from MyOpenID." 1>&2
+
+   let errors++
+else
+   logged_in=true
+fi
+
+#-----------------------------------------------------------------------------
+#--  Actual checks:
+
+check "/organisation/list"
+
+check "/organization/list"
+check "/organization/list?a=b"
+
+check "/organization"
+check "/organization?a=b"
+check "/organization?org_id=1"
+check "/organization?org_id=1&a=b"
+
+#-----------------------------------------------------------------------------
+#--  Stop Alice:
+
+if [ -d /proc/${alice_pid} ]; then
+   kill ${alice_pid}
+
+   counter=0
+
+   while [ ${counter} -lt 100 ]; do
+      let counter++
+      sleep 0.1
+
+      if [ ! -d /proc/${alice_pid} ]; then
+         break
+      fi
+   done
+
+   if [ -d /proc/${alice_pid} ]; then
+      echo "Killing Alice the hard way..." 1>&2
+      kill -9 ${alice_pid}
+      exit 105
+   fi
+fi
+
+#-----------------------------------------------------------------------------
+#--  Report errors:
+
+if [ ${errors} -gt 0 ]; then
+   echo "Failed at ${errors} tests."
+else
+   rm -rf session configuration cookies alice.{errors,output} myopenid.html bob.html
+fi
+
+#-----------------------------------------------------------------------------
+#--  Exit status:
+
+exit ${errors}
+
+#-----------------------------------------------------------------------------
