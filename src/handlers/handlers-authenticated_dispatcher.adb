@@ -21,6 +21,8 @@ with Common,
      Handlers.OpenID,
      HTTP_Codes,
      MIME_Types,
+     Response,
+     System_Message.Critical,
      View;
 
 package body Handlers.Authenticated_Dispatcher is
@@ -84,6 +86,19 @@ package body Handlers.Authenticated_Dispatcher is
       else
          return Default_Action (Method (Request)) (Request);
       end if;
+   exception
+      when Event : others =>
+         --  For now we assume that "other" exceptions caught here are bad
+         --  enough to warrant a critical level log entry and response.
+         declare
+            Response_Object : Response.Object := Response.Factory (Request);
+         begin
+            System_Message.Critical.Response_Exception
+              (Event           => Event,
+               Message         => Response_Object.To_Debug_String,
+               Response_Object => Response_Object);
+            return Response_Object.Build;
+         end;
    end Run;
 
    procedure Set_Default (Method : in     AWS.Status.Request_Method;
