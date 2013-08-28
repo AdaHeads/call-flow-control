@@ -27,17 +27,17 @@ with Alice_Configuration,
 
 package body Handlers.Users.List is
 
-   function Public_User_Information return Boolean;
-   function Public_User_Information return Boolean is
+   function Public_User_Identification return Boolean;
+   function Public_User_Identification return Boolean is
       use Alice_Configuration;
    begin
-      return Config.Get (Public_User_Information);
+      return Config.Get (Public_User_Identification);
    exception
       when others =>
          raise Constraint_Error
-           with "The 'Public_User_Information' configuration field is a " &
+           with "The 'Public_User_Identification' configuration field is a " &
                 "Boolean.";
-   end Public_User_Information;
+   end Public_User_Identification;
 
    ----------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ package body Handlers.Users.List is
 
    function JSON_Response is
       new Response.Not_Cached.Generate_Response
-            (Public            => Public_User_Information,
+            (Public            => Public_User_Identification,
              Allowed           => (Model.User.Receptionist  => False,
                                    Model.User.Service_Agent => False,
                                    Model.User.Administrator => True),
@@ -70,7 +70,7 @@ package body Handlers.Users.List is
    begin
       Data := Create_Object;
 
-      if Public_User_Information then
+      if Public_User_Identification then
          if Instance.Parameter_Count = 0 then
             Data.Set_Field (Field_Name => View.Status,
                             Field      => "okay");

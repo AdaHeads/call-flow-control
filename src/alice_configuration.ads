@@ -27,7 +27,7 @@ package Alice_Configuration is
 
    type Keys is (Cache_Max_Element_Age,
                  Host_Name,
-                 Public_User_Information,
+                 Public_User_Identification,
                  DB_Host,
                  DB_Name,
                  DB_Password,
@@ -45,7 +45,7 @@ package Alice_Configuration is
                        => U ("86_400"),
                        Host_Name
                        => U ("alice.adaheads.com"),
-                       Public_User_Information
+                       Public_User_Identification
                        => U ("FALSE"),
                        DB_Host
                        => U ("pgprimary.adaheads.com"),

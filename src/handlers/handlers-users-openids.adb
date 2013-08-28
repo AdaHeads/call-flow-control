@@ -26,17 +26,17 @@ with Alice_Configuration,
 
 package body Handlers.Users.OpenIDs is
 
-   function Public_User_Information return Boolean;
-   function Public_User_Information return Boolean is
+   function Public_User_Identification return Boolean;
+   function Public_User_Identification return Boolean is
       use Alice_Configuration;
    begin
-      return Config.Get (Public_User_Information);
+      return Config.Get (Public_User_Identification);
    exception
       when others =>
          raise Constraint_Error
-           with "The 'Public_User_Information' configuration field is a " &
+           with "The 'Public_User_Identification' configuration field is a " &
                 "Boolean.";
-   end Public_User_Information;
+   end Public_User_Identification;
 
    ----------------------------------------------------------------------------
 
@@ -45,7 +45,7 @@ package body Handlers.Users.OpenIDs is
 
    function JSON_Response is
       new Response.Not_Cached.Generate_Response
-            (Public            => Public_User_Information,
+            (Public            => Public_User_Identification,
              Allowed           => (Model.User.Receptionist  => False,
                                    Model.User.Service_Agent => False,
                                    Model.User.Administrator => True),
@@ -54,9 +54,9 @@ package body Handlers.Users.OpenIDs is
 
    ----------------------------------------------------------------------------
 
-   function Callback return AWS.Dispatchers.Callback.Handler is
+   function Callback return AWS.Response.Callback is
    begin
-      return AWS.Dispatchers.Callback.Create (JSON_Response'Access);
+      return JSON_Response'Access;
    end Callback;
 
    procedure Generate_Document
@@ -70,7 +70,7 @@ package body Handlers.Users.OpenIDs is
       function Parameters_Okay return Boolean;
       function User_Name return Model.User.Name;
 
-      function Public_User_Information return Boolean;
+      function Public_User_Identification return Boolean;
 
       function Parameters_Okay return Boolean is
       begin
@@ -81,16 +81,16 @@ package body Handlers.Users.OpenIDs is
             raise Bad_Parameters;
       end Parameters_Okay;
 
-      function Public_User_Information return Boolean is
+      function Public_User_Identification return Boolean is
          use Alice_Configuration;
       begin
-         return Config.Get (Public_User_Information);
+         return Config.Get (Public_User_Identification);
       exception
          when others =>
             raise Constraint_Error
-              with "The 'Public_User_Information' configuration field is a " &
+              with "The 'Public_User_Identification' configuration field is a " &
                    "Boolean.";
-      end Public_User_Information;
+      end Public_User_Identification;
 
       function User_Name return Model.User.Name is
       begin
@@ -104,7 +104,7 @@ package body Handlers.Users.OpenIDs is
    begin
       Data := Create_Object;
 
-      if Public_User_Information then
+      if Public_User_Identification then
          if Parameters_Okay then
             Data.Set_Field (Field_Name => View.Status,
                             Field      => "okay");
