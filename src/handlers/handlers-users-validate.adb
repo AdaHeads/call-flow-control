@@ -15,14 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Status,
-     GNATCOLL.JSON;
+with Ada.Characters.Latin_1,
+     Ada.Strings.Unbounded;
 
-with Common,
-     Handlers.OpenID,
-     HTTP_Codes,
-     MIME_Types,
-     View;
+with AWS.Parameters,
+     AWS.Status;
+
+with Handlers.OpenID,
+     System_Message.Info;
 
 package body Handlers.Users.Validate is
    function Generate_Response (Request : in AWS.Status.Data)
@@ -35,45 +35,26 @@ package body Handlers.Users.Validate is
 
    function Generate_Response (Request : in AWS.Status.Data)
                               return AWS.Response.Data is
-      use GNATCOLL.JSON;
-      use Common;
-
-      function Parameters_Okay return Boolean;
-      function Bad_Parameters return AWS.Response.Data;
-
-      function Bad_Parameters return AWS.Response.Data is
-         Data : JSON_Value;
+      function Format_Parameters return String;
+      function Format_Parameters return String is
+         use Ada.Characters, Ada.Strings.Unbounded;
+         use AWS.Parameters, AWS.Status;
+         Data   : constant AWS.Parameters.List := Parameters (Request);
+         Result : Unbounded_String := Null_Unbounded_String;
       begin
-         Data := Create_Object;
-
-         Data.Set_Field (Field_Name => View.Status,
-                         Field      => "bad parameters");
-
-         return AWS.Response.Build
-                  (Content_Type => MIME_Types.JSON,
-                   Message_Body => To_String (To_JSON_String (Data)),
-                   Status_Code  => HTTP_Codes.Bad_Request);
-      end Bad_Parameters;
-
-      function Parameters_Okay return Boolean is
-         use AWS.Status;
-      begin
-         return
-           Parameters (Request).Exist ("openid.assoc_handle") and
-           Parameters (Request).Exist ("openid.identity") and
-           Parameters (Request).Exist ("openid.response_nonce") and
-           Parameters (Request).Exist ("openid.sig");
-      exception
-         when others =>
-            return False;
-      end Parameters_Okay;
-
+         for Index in 1 .. Count (Data) loop
+            Append (Result, String'(Data.Get_Name (Index)));
+            Append (Result, ": ");
+            Append (Result, String'(Data.Get_Value (Index)));
+            Append (Result, Latin_1.LF);
+         end loop;
+         return To_String (Result);
+      end Format_Parameters;
    begin
-      if Parameters_Okay then
-         return Handlers.OpenID.Validate (Request);
-      else
-         return Bad_Parameters;
-      end if;
+      System_Message.Info.OpenID_Log_In_Attempt
+        (Message => Format_Parameters);
+
+      return Handlers.OpenID.Validate (Request);
    end Generate_Response;
 
 end Handlers.Users.Validate;
