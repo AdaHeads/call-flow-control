@@ -1,0 +1,33 @@
+#! /bin/bash
+
+name="$(basename "$0")"
+
+echo "Not really testing OpenID log-in using Google."; exit 0
+
+wget --keep-session-cookies \
+     --save-cookies    "${name}.cookies" \
+     --output-document "${name}.fetch-1.html" \
+     --output-file     "${name}.fetch-1.log" \
+     'http://localhost:4242/users/log_in?openid=https://www.google.com/accounts/o8/id'
+
+grep -A1000 '<form' "${name}.fetch-1.html" \
+  | grep -B1000 '</form>' \
+  | tr '\n' ' ' \
+  | perl -lpe 's/>/>\n/g; s/  +/ /g;' \
+  | egrep '<form|<input' \
+  > "${name}.fetch-1.form"
+
+url=$(egrep '<form .*action="' "${name}.fetch-1.form" | perl -lpe 's/^.+action="//; s/".+$//;')
+
+hidden=$(egrep '<input .*type="(hidden|checkbox)"' "${name}.fetch-1.form" | perl -lpe 's/^.+name="([^"]+)" .*value=["'"'"']([^"'"'"']*)["'"'"'].+$/$1=$2/;'| tr '\n' '&')
+
+secrets='Email=adaheads1@gmail.com&Passwd=wopeP9Li-Et6vah1k'
+
+wget --post-data "${hidden}${secrets}" \
+     --keep-session-cookies \
+     --load-cookies    "${name}.cookies" \
+     --save-cookies    "${name}.cookies" \
+     --output-document "${name}.fetch-2.html" \
+     --output-file     "${name}.fetch-2.log" \
+     "${url}"
+
