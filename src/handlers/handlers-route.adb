@@ -44,7 +44,7 @@ with Handlers.Agent,
      Handlers.Users.OpenIDs,
      Handlers.Users.Validate;
 
-package body Alice_Handlers is
+package body Handlers.Route is
 
    function Callback (Request : in AWS.Status.Data) return AWS.Response.Data is
    begin
@@ -61,7 +61,6 @@ package body Alice_Handlers is
      return AWS.Services.Dispatchers.Method.Handler
    is
       use AWS.Services;
-      use Handlers;
 
       Method_Dispatcher   : Dispatchers.Method.Handler;
       URI_GET_Dispatcher  : Dispatchers.URI.Handler;
@@ -137,7 +136,7 @@ package body Alice_Handlers is
      renames Alice_Configuration.Public_User_Identification;
 
    use AWS.Status;
-   use Handlers, Handlers.Authenticated_Dispatcher;
+   use Handlers.Authenticated_Dispatcher;
    use Permission_Operations;
 begin
    Set_Default (Action => Not_Found.Callback);
@@ -193,4 +192,4 @@ begin
      (URI     => "/notifications",
       Factory => Notifications.Create'Access);
 
-end Alice_Handlers;
+end Handlers.Route;

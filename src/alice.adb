@@ -20,7 +20,7 @@ with AWS.Dispatchers.Callback;
 --  with AGI.Callbacks; --  Initializes with a call to AMI.Observers.Register.
 --  pragma Unreferenced (AGI.Callbacks);
 
-with Alice_Handlers;
+with Handlers.Route;
 with PBX;
 with SIGHUP;
 with SIGHUP_Handler;
@@ -45,7 +45,7 @@ begin
    PBX.Start;
    Web_Server.Start
      (Dispatchers => AWS.Dispatchers.Callback.Create
-                       (Alice_Handlers.Callback'Access));
+                       (Handlers.Route.Callback'Access));
 
    Info.Alice_Start (Message => "Server version " & Alice_Version);
 

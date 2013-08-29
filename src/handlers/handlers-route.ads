@@ -20,9 +20,9 @@
 with AWS.Response,
      AWS.Status;
 
-package Alice_Handlers is
+package Handlers.Route is
 
    function Callback (Request : in AWS.Status.Data) return AWS.Response.Data;
    --  Register content dispatchers for the server.
 
-end Alice_Handlers;
+end Handlers.Route;
