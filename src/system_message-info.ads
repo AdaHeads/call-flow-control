@@ -73,4 +73,8 @@ package System_Message.Info is
      (Log_Trace   => Yolk.Log.Info,
       Status      => "not authorized");
 
+   procedure OpenID_Log_In_Attempt is new Logger
+     (Log_Trace   => Yolk.Log.Info,
+      Status      => "OpenID log-in attempt");
+
 end System_Message.Info;
