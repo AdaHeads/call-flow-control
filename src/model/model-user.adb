@@ -110,11 +110,13 @@ package body Model.User is
          Prepared_Statement => SQL_Prepared_Statements.Users.Permissions,
          Query_Parameters   => (1 => +User_Name'Access));
 
-      if Results = 1 then
+      if Results = 0 then
+         return (others => False);
+      elsif Results = 1 then
          return Result;
       else
          raise Constraint_Error
-           with "Expected exactly one row from the database when querying " &
+           with "Expected zero or one rows from the database when querying " &
                 "permisions by user name.  Got" & Natural'Image (Results) &
                 " rows.";
       end if;
@@ -140,11 +142,13 @@ package body Model.User is
          Prepared_Statement => SQL_Prepared_Statements.Users.Permissions_By_ID,
          Query_Parameters   => (1 => +ID_String'Access));
 
-      if Results = 1 then
+      if Results = 0 then
+         return (others => False);
+      elsif Results = 1 then
          return Result;
       else
          raise Constraint_Error
-           with "Expected exactly one row from the database when querying " &
+           with "Expected zero or one rows from the database when querying " &
                 "permisions by OpenID.  Got" & Natural'Image (Results) &
                 " rows.";
       end if;
