@@ -139,7 +139,6 @@ check "/users/list"
 check "/users/openids?user=Tux"
 check "/users/openids?user=Jacob"
 
-check "/users/log_in"
 #echo "WARNING: Not really testing OpenID log-in."
 check "/users/log_in?openid=https://adaheads1.myopenid.com/"
 
