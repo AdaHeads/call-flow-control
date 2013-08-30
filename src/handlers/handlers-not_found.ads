@@ -20,6 +20,7 @@ with AWS.Dispatchers.Callback,
 
 with Response.Not_Cached;
 
+private
 package Handlers.Not_Found is
 
    function Callback

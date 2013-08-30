@@ -18,6 +18,7 @@
 with AWS.Response;
 with AWS.Status;
 
+private
 package Handlers.Agent is
 
    function Agent

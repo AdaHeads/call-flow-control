@@ -19,6 +19,7 @@ with AWS.Response;
 
 with Response.Not_Cached;
 
+private
 package Handlers.Organization is
 
    function Callback

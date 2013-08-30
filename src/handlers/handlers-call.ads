@@ -18,6 +18,7 @@
 with AWS.Response;
 with AWS.Status;
 
+private
 package Handlers.Call is
 
    Package_Name : constant String := "Handlers.Call";

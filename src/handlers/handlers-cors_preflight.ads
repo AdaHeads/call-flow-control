@@ -18,6 +18,7 @@
 with AWS.Response;
 with Response.Not_Cached;
 
+private
 package Handlers.CORS_Preflight is
 
    function Callback

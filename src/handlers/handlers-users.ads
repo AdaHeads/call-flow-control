@@ -15,6 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+private
 package Handlers.Users is
    pragma Pure;
 end Handlers.Users;

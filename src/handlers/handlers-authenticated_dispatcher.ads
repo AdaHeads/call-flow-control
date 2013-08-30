@@ -24,6 +24,7 @@ private
 with Ada.Containers.Indefinite_Hashed_Maps,
      Ada.Strings.Hash;
 
+private
 package Handlers.Authenticated_Dispatcher is
    function Run (Request : in     AWS.Status.Data) return AWS.Response.Data;
 

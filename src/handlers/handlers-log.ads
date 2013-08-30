@@ -20,6 +20,7 @@ with AWS.Dispatchers.Callback,
 
 with Response.Not_Cached;
 
+private
 package Handlers.Log is
 
    function Callback_Critical
