@@ -83,4 +83,8 @@ package System_Message.Critical is
      (Log_Trace => Yolk.Log.Critical,
       Status    => "Configuration error");
 
+   procedure Running_In_Unsafe_Mode is new Logger
+     (Log_Trace => Yolk.Log.Critical,
+      Status    => "Running in unsafe mode.  Anybody can access Alice.");
+
 end System_Message.Critical;

@@ -36,7 +36,8 @@ package Alice_Configuration is
                  SQLite_Database,
                  PBX_Secret,
                  PBX_Host,
-                 PBX_Port);
+                 PBX_Port,
+                 Unsafe_Mode);
 
    type Defaults_Array is array (Keys) of Unbounded_String;
 
@@ -64,7 +65,9 @@ package Alice_Configuration is
                        PBX_Host
                        => U ("FreeSWITCH_Host"),
                        PBX_Port
-                       => U ("8021"));
+                       => U ("8021"),
+                       Unsafe_Mode
+                       => U ("FALSE"));
 
    package Config is new Yolk.Config_File_Parser
      (Key_Type            => Keys,
