@@ -80,7 +80,12 @@ package body Handlers.OpenID is
    function Permissions (Request : in     AWS.Status.Data)
                         return Model.User.Permission_List is
    begin
-      if OpenID.Is_Authenticated (Request) then
+      if Alice_Configuration.Unsafe_Mode then
+         System_Message.Critical.Running_In_Unsafe_Mode
+           (Message => "Returning fake authorizations from Handlers.OpenID.");
+
+         return (others => True);
+      elsif OpenID.Is_Authenticated (Request) then
          return Model.User.Permissions (Model.User.Parse
                                           (OpenID.Authenticated_As (Request)));
       else
