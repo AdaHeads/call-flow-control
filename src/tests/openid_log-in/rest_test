@@ -2,6 +2,8 @@
 #-----------------------------------------------------------------------------
 #--  Set up:
 
+echo "WARNING: Not really testing OpenID log-in using MyOpenID."; exit 0
+
 cd "$(dirname "$0")" || exit 101
 
 export LANG=C

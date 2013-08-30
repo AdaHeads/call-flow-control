@@ -1,8 +1,17 @@
 #! /bin/bash
+#-----------------------------------------------------------------------------
+#--  Set up:
+
+echo "WARNING: Not really testing OpenID log-in using Google."; exit 0
+
+cd "$(dirname "$0")" || exit 101
+
+export LANG=C
 
 name="$(basename "$0")"
 
-echo "Not really testing OpenID log-in using Google."; exit 0
+#-----------------------------------------------------------------------------
+#--  Log in (Alice):
 
 wget --keep-session-cookies \
      --save-cookies    "${name}.cookies" \
@@ -16,6 +25,16 @@ grep -A1000 '<form' "${name}.fetch-1.html" \
   | perl -lpe 's/>/>\n/g; s/  +/ /g;' \
   | egrep '<form|<input' \
   > "${name}.fetch-1.form"
+
+if [ ! -s "${name}.fetch-1.form" ]; then
+   rm -f "${name}.fetch-1.html"
+else
+   echo "No form data." 1>&2
+   exit 102
+fi
+
+#-----------------------------------------------------------------------------
+#--  Log in (Google):
 
 url=$(egrep '<form .*action="' "${name}.fetch-1.form" | perl -lpe 's/^.+action="//; s/".+$//;')
 
@@ -31,3 +50,4 @@ wget --post-data "${hidden}${secrets}" \
      --output-file     "${name}.fetch-2.log" \
      "${url}"
 
+#-----------------------------------------------------------------------------
