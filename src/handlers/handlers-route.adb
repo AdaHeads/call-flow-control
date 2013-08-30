@@ -32,6 +32,7 @@ with Handlers.Agent,
      Handlers.CORS_Preflight,
      Handlers.Debug,
      Handlers.Log,
+     Handlers.Message,
      Handlers.Not_Found,
      Handlers.Notifications,
      Handlers.Organization,
@@ -172,6 +173,8 @@ begin
    Register (POST, "/log/critical",       Logged_In,              Log.Critical);
    Register (POST, "/log/error",          Logged_In,              Log.Error);
    Register (POST, "/log/info",           Logged_In,              Log.Info);
+
+   Register (GET,  "/message/send",       Receptionist,           Message.Send.Callback);
 
    Register (GET,  "/organization",       Receptionist or Service_Agent,
                                                                   Organization.Callback);
