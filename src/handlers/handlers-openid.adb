@@ -68,7 +68,14 @@ package body Handlers.OpenID is
    function Log_In (Request : in     AWS.Status.Data)
                    return AWS.Response.Data is
    begin
-      return OpenID.Log_In.Service (Request);
+      if Alice_Configuration.Unsafe_Mode then
+         System_Message.Critical.Running_In_Unsafe_Mode
+           (Message => "Handlers.OpenID: OpenID authentication inactive.");
+
+         return AWS.Response.URL ("http://bob.adaheads.com/bob_webui.html");
+      else
+         return OpenID.Log_In.Service (Request);
+      end if;
    end Log_In;
 
    function Log_Out (Request : in     AWS.Status.Data)
@@ -82,7 +89,7 @@ package body Handlers.OpenID is
    begin
       if Alice_Configuration.Unsafe_Mode then
          System_Message.Critical.Running_In_Unsafe_Mode
-           (Message => "Returning fake authorizations from Handlers.OpenID.");
+           (Message => "Handlers.OpenID: Returning fake authorizations.");
 
          return (others => True);
       elsif OpenID.Is_Authenticated (Request) then
@@ -96,7 +103,15 @@ package body Handlers.OpenID is
    function Validate (Request : in     AWS.Status.Data)
                    return AWS.Response.Data is
    begin
-      return OpenID.Validate.Service (Request);
+      if Alice_Configuration.Unsafe_Mode then
+         System_Message.Critical.Running_In_Unsafe_Mode
+           (Message => "Handlers.OpenID: Not validating OpenID " &
+                       "authentication.");
+
+         return AWS.Response.URL ("http://bob.adaheads.com/bob_webui.html");
+      else
+         return OpenID.Validate.Service (Request);
+      end if;
    end Validate;
 
 end Handlers.OpenID;
