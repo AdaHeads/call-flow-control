@@ -79,5 +79,6 @@ package Alice_Configuration is
                                 "configuration/alice_config.ini"));
 
    function Public_User_Identification return Boolean;
+   function Unsafe_Mode return Boolean;
 
 end Alice_Configuration;

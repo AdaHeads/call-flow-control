@@ -18,6 +18,7 @@
 with System_Message.Critical;
 
 package body Alice_Configuration is
+
    function Public_User_Identification return Boolean is
    begin
       return Config.Get (Public_User_Identification);
@@ -25,20 +26,23 @@ package body Alice_Configuration is
       when others =>
          System_Message.Critical.Configuration_Error
            (Message => "The 'Public_User_Identification' configuration " &
-                       "field is a Boolean.");
+                       "parameter is a Boolean.");
          return False;
    end Public_User_Identification;
-begin
 
-   Log_Unsafe_Mode :
+   function Unsafe_Mode return Boolean is
    begin
-      if Config.Get (Unsafe_Mode) then
-         System_Message.Critical.Running_In_Unsafe_Mode;
-      end if;
+      return Config.Get (Unsafe_Mode);
    exception
       when others =>
          System_Message.Critical.Configuration_Error
-            (Message => "The 'Unsafe_Mode' configuration field is a Boolean.");
-   end Log_Unsafe_Mode;
+           (Message => "The 'Unsafe_Mode' configuration parameter is a " &
+                       "Boolean.");
+         return False;
+   end Unsafe_Mode;
 
+begin
+   if Unsafe_Mode then
+      System_Message.Critical.Running_In_Unsafe_Mode;
+   end if;
 end Alice_Configuration;
