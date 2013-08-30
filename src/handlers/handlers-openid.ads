@@ -20,8 +20,7 @@ with AWS.Response,
 
 with Model.User;
 
---  Jacob would still like this package to be private, but it means
---  that the Response packages have to be made children of Handlers.
+private
 package Handlers.OpenID is
 
    function Log_In (Request : in     AWS.Status.Data)
