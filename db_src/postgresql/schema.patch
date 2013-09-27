@@ -1,0 +1,42 @@
+--- schema.sql	2013-09-27 15:02:34.000000000 +0000
++++ postgresql/schema.sql	2013-09-27 15:12:03.000000000 +0000
+@@ -114,3 +114,39 @@
+ );
+ 
+ -------------------------------------------------------------------------------
++--  Create and enable sequences:
++
++CREATE SEQUENCE contact_id_seq
++ START WITH 1
++ INCREMENT BY 1
++ NO MINVALUE
++ NO MAXVALUE
++ CACHE 1;
++ALTER SEQUENCE contact_id_seq OWNED BY contacts.id;
++ALTER TABLE ONLY contacts ALTER COLUMN id SET DEFAULT nextval ('contact_id_seq'::regclass);
++
++CREATE SEQUENCE organization_id_seq
++ START WITH 1
++ INCREMENT BY 1
++ NO MINVALUE
++ NO MAXVALUE
++ CACHE 1;
++ALTER SEQUENCE organization_id_seq OWNED BY organizations.id;
++ALTER TABLE ONLY organizations ALTER COLUMN id SET DEFAULT nextval ('organization_id_seq'::regclass);
++
++-------------------------------------------------------------------------------
++--  Set ownership:
++
++ALTER TABLE dial_plans            OWNER TO alice;
++ALTER TABLE kinds                 OWNER TO alice;
++ALTER TABLE special_days          OWNER TO alice;
++ALTER TABLE contacts              OWNER TO alice;
++ALTER TABLE organizations         OWNER TO alice;
++ALTER TABLE organization_contacts OWNER TO alice;
++ALTER TABLE users                 OWNER TO alice;
++ALTER TABLE user_ids              OWNER TO alice;
++
++ALTER TABLE public.contact_id_seq      OWNER TO alice;
++ALTER TABLE public.organization_id_seq OWNER TO alice;
++
++-------------------------------------------------------------------------------

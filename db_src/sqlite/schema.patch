@@ -1,0 +1,87 @@
+--- schema.sql	2013-09-27 15:02:34.000000000 +0000
++++ sqlite/schema.sql	2013-09-27 17:53:59.000000000 +0000
+@@ -3,7 +3,7 @@
+ 
+ CREATE TABLE dial_plans (
+    phone_number TEXT NOT NULL PRIMARY KEY,
+-   dial_plan    XML  NOT NULL
++   dial_plan    TEXT NOT NULL
+ );
+ 
+ -------------------------------------------------------------------------------
+@@ -25,16 +25,16 @@
+ --  Contacts and organizations:
+ 
+ CREATE TABLE contacts (
+-   id        INTEGER NOT NULL PRIMARY KEY, --  AUTOINCREMENT
++   id        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    full_name TEXT    NOT NULL,
+-   is_human  BOOLEAN NOT NULL DEFAULT TRUE
++   is_human  BOOLEAN NOT NULL DEFAULT 1
+ );
+ 
+ CREATE TABLE organizations (
+-   id        INTEGER NOT NULL PRIMARY KEY, --  AUTOINCREMENT
++   id        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    full_name TEXT    NOT NULL,
+    uri       TEXT    NOT NULL UNIQUE,
+-   json      JSON    NOT NULL
++   json      TEXT    NOT NULL
+ );
+ 
+ CREATE INDEX organization_uri_index ON organizations (uri);
+@@ -42,8 +42,8 @@
+ CREATE TABLE organization_contacts (
+    organization_id      INTEGER NOT NULL REFERENCES organizations (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    contact_id           INTEGER NOT NULL REFERENCES contacts (id) ON UPDATE CASCADE ON DELETE CASCADE,
+-   wants_messages       BOOLEAN NOT NULL DEFAULT TRUE,
+-   free_form_attributes JSON,
++   wants_messages       BOOLEAN NOT NULL DEFAULT 1,
++   free_form_attributes TEXT,
+ 
+    PRIMARY KEY (organization_id, contact_id)
+ );
+@@ -62,8 +62,8 @@
+    organization_id INTEGER NOT NULL,
+    address         TEXT    NOT NULL,
+    address_type    TEXT    NOT NULL REFERENCES address_types (value),
+-   confidential    BOOLEAN NOT NULL DEFAULT TRUE,
+-   messaging       BOOLEAN NOT NULL DEFAULT FALSE,
++   confidential    BOOLEAN NOT NULL DEFAULT 1,
++   messaging       BOOLEAN NOT NULL DEFAULT 0,
+ 
+    PRIMARY KEY (contact_id, organization_id,
+                 address, address_type),
+@@ -102,9 +102,9 @@
+ 
+ CREATE TABLE users (
+    name             TEXT    NOT NULL PRIMARY KEY,
+-   is_receptionist  BOOLEAN NOT NULL DEFAULT FALSE,
+-   is_service_Agent BOOLEAN NOT NULL DEFAULT FALSE,
+-   is_administrator BOOLEAN NOT NULL DEFAULT FALSE
++   is_receptionist  BOOLEAN NOT NULL DEFAULT 0,
++   is_service_agent BOOLEAN NOT NULL DEFAULT 0,
++   is_administrator BOOLEAN NOT NULL DEFAULT 0
+ );
+ 
+ CREATE TABLE user_ids (
+@@ -114,3 +114,19 @@
+ );
+ 
+ -------------------------------------------------------------------------------
++--  Primary key indexes:
++
++CREATE INDEX dial_plans_primary_key ON dial_plans (phone_number);
++CREATE INDEX kinds_primary_key ON kinds (id);
++CREATE INDEX special_days_primary_key ON special_days (kind, day);
++CREATE INDEX contacts_primary_key ON contacts (id);
++CREATE INDEX organizations_primary_key ON organizations (id);
++CREATE INDEX organization_contacts_primary_key ON organization_contacts (organization_id, contact_id);
++CREATE INDEX address_types_primary_key ON address_types (value);
++CREATE INDEX end_points_primary_key ON end_points (contact_id, organization_id, address, address_type);
++CREATE INDEX recipient_visibilities_primary_key ON recipient_visibilities (value);
++CREATE INDEX distribution_lists_primary_key ON distribution_lists (owner_contact_id, owner_organization_id, send_to_contact_id, send_to_organization_id);
++CREATE INDEX users_primary_key ON users (name);
++CREATE TABLE user_ids_primary_key ON user_ids (openid);
++
++-------------------------------------------------------------------------------
