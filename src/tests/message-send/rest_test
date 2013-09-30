@@ -1,0 +1,187 @@
+#! /bin/bash
+#-----------------------------------------------------------------------------
+#--  Set up:
+
+cd "$(dirname "$0")" || exit 101
+
+export LANG=C
+
+errors=0
+
+#-----------------------------------------------------------------------------
+#--  Helper functions:
+
+function check() {
+   local failed=no
+   local uri="$1"
+
+   local name="${uri#/}"
+   local name="${name//\//-}"
+
+   local url="http://localhost:4242${uri}"
+
+   local status_file="${name}.status"
+   local data_file="${name}.expected"
+
+   local data="${name}.data"
+   local log="${name}.log"
+   local differences="${name}.differences"
+
+   if [ ! -f "${status_file}" ]; then
+      echo "Please put the expected HTTP status code for <${url}> in '${status_file}'."
+      let errors++
+      return
+   fi
+
+   local expected_status="$(cat "${status_file}" | tr -cd '0-9')"
+
+   if [ -z "${expected_status}" ]; then
+      echo "'${status_file}' should contain the expected 3 digit HTTP status code for <${url}>."
+      let errors++
+      return
+   fi
+
+   if [ ! -f "${data_file}" ]; then
+      echo "Please put the expected data from <${url}> in '${data_file}'."
+      let errors++
+      return
+   fi
+   
+   curl -k -v "${url}" 1>"${data}" 2>"${log}"
+
+   diff -u "${data_file}" "${data}" > "${differences}"
+
+   if [ -s "${differences}" ]; then
+      echo "Mismatch in output from the REST interface <${url}>:"
+      cat "${differences}"
+      echo
+
+      let errors++
+      local failed=yes
+   fi
+
+   if grep "^< HTTP/1.1 "${expected_status}' ' "${log}" 1>/dev/null; then
+      true
+   else
+      echo "Incorrect HTTP status from the REST interface <${url}>:"
+      egrep '^< HTTP/1.1 [0-9]{3] ' "${log}"
+
+      let errors++
+      local failed=yes
+   fi
+
+   if [ "${failed}" = "no" ]; then
+      rm -f "${data}" "${log}" "${differences}"
+   fi
+}
+
+#-----------------------------------------------------------------------------
+#--  Make sure no "old" Alice is running:
+
+if [ ! -z "$(pidof alice)" ]; then
+   echo "An instance of Alice is already running.  Killing it..." 1>&2
+   killall -9 alice
+fi 
+
+if netstat -lt | grep ':4242 ' 1>/dev/null; then
+   echo "An instance of Alice is already blocking port 4242." 1>&2
+   exit 102
+fi 
+
+#-----------------------------------------------------------------------------
+#--  Set up environment for Alice:
+
+rm -rf   session configuration
+mkdir -p session configuration
+
+touch session/session.data
+
+egrep -iv '^(Public_User_Identification|Unsafe_Mode)' \
+      ../../../exe/configuration/alice_config.ini \
+  >  configuration/alice_config.ini
+echo Public_User_Identification False \
+  >> configuration/alice_config.ini
+echo Unsafe_Mode                True \
+  >> configuration/alice_config.ini
+
+grep -iv ^Security ../../../exe/configuration/config.ini.dist \
+  >  configuration/config.ini
+echo Security False \
+  >> configuration/config.ini
+
+cp -p ../../../exe/configuration/mime.types configuration/
+
+#-----------------------------------------------------------------------------
+#--  Make sure Alice is running:
+
+../../../exe/alice 1>alice.output 2>alice.errors &
+
+alice_pid=$!
+
+if [ -z "${alice_pid}" ]; then
+   echo "Failed to start Alice." 1>&2
+   exit 103
+elif [ ! -d "/proc/${alice_pid}" ]; then
+   echo "No process information directory for the started Alice." 1>&2
+   exit 104
+fi
+
+#-----------------------------------------------------------------------------
+#--  Wait for Alice to become ready:
+
+sleep 1
+
+#-----------------------------------------------------------------------------
+#--  Actual checks:
+
+#  No arguments:
+check "/message/send"
+
+#  Bad message encoding:
+check "/message/send?message=blåbærgrød&to=1@1"
+
+# Empty message:
+check "/message/send?message=&to=1@1"
+
+# Minimal, but okay:
+check "/message/send?message=BlÃ¥bÃ¦rgrÃ¸d&to=1@1"
+
+#-----------------------------------------------------------------------------
+#--  Stop Alice:
+
+if [ -d /proc/${alice_pid} ]; then
+   kill ${alice_pid}
+
+   counter=0
+
+   while [ ${counter} -lt 100 ]; do
+      let counter++
+      sleep 0.1
+
+      if [ ! -d /proc/${alice_pid} ]; then
+         break
+      fi
+   done
+
+   if [ -d /proc/${alice_pid} ]; then
+      echo "Killing Alice the hard way..." 1>&2
+      kill -9 ${alice_pid}
+      exit 105
+   fi
+fi
+
+#-----------------------------------------------------------------------------
+#--  Report errors:
+
+if [ ${errors} -gt 0 ]; then
+   echo "Failed at ${errors} tests."
+else
+   rm -rf session configuration alice.{errors,output}
+fi
+
+#-----------------------------------------------------------------------------
+#--  Exit status:
+
+exit ${errors}
+
+#-----------------------------------------------------------------------------
