@@ -8,10 +8,12 @@ test.db: sqlite/schema.sql sqlite/test_data.sql
 	sqlite3 test.db < sqlite/test_data.sql
 
 %/schema.sql: %/schema.patch schema.sql
+	rm -f $@
 	cp -p schema.sql $@
 	cd `dirname $@` && patch < schema.patch
 
 %/test_data.sql: %/test_data.patch test_data.sql
+	rm -f $@
 	cp -p test_data.sql $@
 	cd `dirname $@` && patch < test_data.patch
 

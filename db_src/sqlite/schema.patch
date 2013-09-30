@@ -13,11 +13,10 @@
  --  Contacts and organizations:
  
  CREATE TABLE contacts (
--   id        INTEGER NOT NULL PRIMARY KEY, --  AUTOINCREMENT
-+   id        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    full_name TEXT    NOT NULL,
--   is_human  BOOLEAN NOT NULL DEFAULT TRUE
-+   is_human  BOOLEAN NOT NULL DEFAULT 1
+-   id           INTEGER NOT NULL PRIMARY KEY, --  AUTOINCREMENT
++   id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    full_name    TEXT    NOT NULL,
+    contact_type TEXT    NOT NULL REFERENCES contact_types (value) DEFAULT 'human'
  );
  
  CREATE TABLE organizations (

@@ -1,14 +1,5 @@
 --- ../test_data.sql	2013-09-30 08:00:57.000000000 +0000
 +++ test_data.sql	2013-09-30 08:01:38.000000000 +0000
-@@ -10,7 +10,7 @@
-        (7, 'Ulrik Hørlyk Hjort');
- 
- INSERT INTO contacts (id, full_name, is_human)
--VALUES (8, 'Support', FALSE);
-+VALUES (8, 'Support', 0);
- 
- INSERT INTO organizations (id, full_name, uri, json)
- VALUES (1, 'AdaHeads K/S', 'adaheads_ks_1', '{"website":"http://adaheads.com","greeting":"Velkommen til AdaHeads, hvad kan jeg hjælpe med?"}'),
 @@ -41,17 +41,17 @@
                          address_type, address,
                          confidential, messaging)

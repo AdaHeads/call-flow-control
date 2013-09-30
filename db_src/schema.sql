@@ -24,10 +24,13 @@ CREATE TABLE special_days (
 -------------------------------------------------------------------------------
 --  Contacts and organizations:
 
+CREATE TABLE contact_types (value TEXT NOT NULL PRIMARY KEY);
+INSERT INTO contact_types VALUES ('human'), ('function'), ('invisible');
+
 CREATE TABLE contacts (
-   id        INTEGER NOT NULL PRIMARY KEY, --  AUTOINCREMENT
-   full_name TEXT    NOT NULL,
-   is_human  BOOLEAN NOT NULL DEFAULT TRUE
+   id           INTEGER NOT NULL PRIMARY KEY, --  AUTOINCREMENT
+   full_name    TEXT    NOT NULL,
+   contact_type TEXT    NOT NULL REFERENCES contact_types (value) DEFAULT 'human'
 );
 
 CREATE TABLE organizations (

@@ -9,8 +9,8 @@ VALUES (1, 'Thomas Løcke'),
        (6, 'Sidsel Schomacker'),
        (7, 'Ulrik Hørlyk Hjort');
 
-INSERT INTO contacts (id, full_name, is_human)
-VALUES (8, 'Support', FALSE);
+INSERT INTO contacts (id, full_name, contact_type)
+VALUES (8, 'Support', 'function');
 
 INSERT INTO organizations (id, full_name, uri, json)
 VALUES (1, 'AdaHeads K/S', 'adaheads_ks_1', '{"website":"http://adaheads.com","greeting":"Velkommen til AdaHeads, hvad kan jeg hjælpe med?"}'),
