@@ -1,20 +1,20 @@
 BEGIN TRANSACTION;
 
 INSERT INTO contacts (id, full_name)
-VALUES (1, 'Thomas Løcke'),
-       (2, 'Trine Løcke'),
-       (3, 'Steen Løcke'),
+VALUES (1, 'Thomas LÃ¸cke'),
+       (2, 'Trine LÃ¸cke'),
+       (3, 'Steen LÃ¸cke'),
        (4, 'Kim Rostgaard Christensen'),
        (5, 'Jacob Sparre Andersen'),
        (6, 'Sidsel Schomacker'),
-       (7, 'Ulrik Hørlyk Hjort');
+       (7, 'Ulrik HÃ¸rlyk Hjort');
 
 INSERT INTO contacts (id, full_name, contact_type)
 VALUES (8, 'Support', 'function');
 
 INSERT INTO organizations (id, full_name, uri, json)
-VALUES (1, 'AdaHeads K/S', 'adaheads_ks_1', '{"website":"http://adaheads.com","greeting":"Velkommen til AdaHeads, hvad kan jeg hjælpe med?"}'),
-       (2, 'Fishermans Friends A/S', 'fishermans_friends_as_2', '{"website":"http://fishermansfriends.dk","greeting":"Fishermans Friends du taler med ... - hvad kan jeg hjælpe med?"}'),
+VALUES (1, 'AdaHeads K/S', 'adaheads_ks_1', '{"website":"http://adaheads.com","greeting":"Velkommen til AdaHeads, hvad kan jeg hjÃ¦lpe med?"}'),
+       (2, 'Fishermans Friends A/S', 'fishermans_friends_as_2', '{"website":"http://fishermansfriends.dk","greeting":"Fishermans Friends du taler med ... - hvad kan jeg hjÃ¦lpe med?"}'),
        (3, 'Responsum K/S', 'responsum_ks_3', '{"website":"http://responsum.dk","greeting":"Velkommen til Responsum - du taler med ..."}'),
        (4, 'Hansen VVS A/S', 'hansen_vvs_4', '{"website":"http://hansenvvs.dk","greeting":"Hansen VVS goddag"}');
 
@@ -34,7 +34,7 @@ VALUES --  Adaheads
        --  Responsum
        (3, 1, '}'),
        (3, 2, '{"tags":["IT","Support","Printer"]}'),
-       (3, 3, '{"tags":["jobansøger","2730","3660","3520"]}'),
+       (3, 3, '{"tags":["jobansÃ¸ger","2730","3660","3520"]}'),
        (3, 4, '{"tags":["Ny kunde","Salg","Uadresserede"]}');
 
 INSERT INTO end_points (contact_id, organization_id,
