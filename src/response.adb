@@ -366,6 +366,7 @@ package body Response is
       procedure Action
         (N          : in     Positive;
          Key, Value : in     String;
+         Kind       : in     AWS.Session.Value_Kind := AWS.Session.Str;
          Quit       : in out Boolean);
       --  Create a human-readable string from users session data.
 
@@ -375,6 +376,7 @@ package body Response is
       procedure Action
         (N          : in     Positive;
          Key, Value : in     String;
+         Kind       : in     AWS.Session.Value_Kind := AWS.Session.Str;
          Quit       : in out Boolean)
       is
          pragma Unreferenced (N, Quit);
