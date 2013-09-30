@@ -18,7 +18,13 @@ test.db: sqlite/schema.sql sqlite/test_data.sql
 	cd `dirname $@` && patch < test_data.patch
 
 clean:
+	rm -f */schema.sql.orig
+	rm -f */schema.sql.rej
+	rm -f */test_data.sql.orig
+	rm -f */test_data.sql.rej
 
 distclean: clean
-	rm -f test.db */{schema,test_data}.sql
+	rm -f test.db
+	rm -f */schema.sql
+	rm -f */test_data.sql
 
