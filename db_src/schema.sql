@@ -74,7 +74,7 @@ CREATE TABLE end_points (
 );
 
 CREATE TABLE recipient_visibilities (value TEXT NOT NULL PRIMARY KEY);
-INSERT INTO address_types VALUES ('to'), ('cc'), ('bcc');
+INSERT INTO recipient_visibilities VALUES ('to'), ('cc'), ('bcc');
 
 CREATE TABLE distribution_lists (
    owner_contact_id        INTEGER NOT NULL,
