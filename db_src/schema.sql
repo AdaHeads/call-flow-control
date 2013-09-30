@@ -86,7 +86,7 @@ CREATE TABLE distribution_lists (
    PRIMARY KEY (owner_contact_id, owner_organization_id, 
                 send_to_contact_id, send_to_organization_id),
       
-   FOREIGN KEY (contact_id, organization_id)      
+   FOREIGN KEY (owner_contact_id, owner_organization_id)      
       REFERENCES organization_contacts (contact_id, organization_id)      
       ON UPDATE CASCADE ON DELETE CASCADE,
       

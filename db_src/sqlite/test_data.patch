@@ -1,0 +1,38 @@
+--- ../test_data.sql	2013-09-30 08:00:57.000000000 +0000
++++ test_data.sql	2013-09-30 08:01:38.000000000 +0000
+@@ -10,7 +10,7 @@
+        (7, 'Ulrik Hørlyk Hjort');
+ 
+ INSERT INTO contacts (id, full_name, is_human)
+-VALUES (8, 'Support', FALSE);
++VALUES (8, 'Support', 0);
+ 
+ INSERT INTO organizations (id, full_name, uri, json)
+ VALUES (1, 'AdaHeads K/S', 'adaheads_ks_1', '{"website":"http://adaheads.com","greeting":"Velkommen til AdaHeads, hvad kan jeg hjælpe med?"}'),
+@@ -41,17 +41,17 @@
+                         address_type, address,
+                         confidential, messaging)
+ VALUES --  Adaheads
+-       (1, 1, 'e-mail', 'tl@adaheads.com',       FALSE, TRUE),
+-       (1, 1, 'sms',    '+4560431992',           FALSE, FALSE),
+-       (1, 4, 'e-mail', 'jsa@adaheads.com',      FALSE, TRUE),
+-       (1, 4, 'sms',    '+4521490804',           FALSE, TRUE),
+-       (1, 4, 'e-mail', 'jacob@jacob-sparre.dk', TRUE,  FALSE),
++       (1, 1, 'e-mail', 'tl@adaheads.com',       0, 1),
++       (1, 1, 'sms',    '+4560431992',           0, 0),
++       (1, 4, 'e-mail', 'jsa@adaheads.com',      0, 1),
++       (1, 4, 'sms',    '+4521490804',           0, 1),
++       (1, 4, 'e-mail', 'jacob@jacob-sparre.dk', 1, 0),
+        --  Fishermans Friends
+-       (2, 1, 'e-mail', 'thomas@responsum.dk',   FALSE, TRUE),
+-       (2, 1, 'sms',    '+4588329100',           FALSE, FALSE),
++       (2, 1, 'e-mail', 'thomas@responsum.dk',   0, 1),
++       (2, 1, 'sms',    '+4588329100',           0, 0),
+        --  Responsum
+-       (3, 1, 'e-mail', 'thomas@responsum.dk',   FALSE, TRUE),
+-       (3, 2, 'e-mail', 'trine@responsum.dk',    FALSE, TRUE);
++       (3, 1, 'e-mail', 'thomas@responsum.dk',   0, 1),
++       (3, 2, 'e-mail', 'trine@responsum.dk',    0, 1);
+ 
+ INSERT INTO distribution_lists (owner_contact_id,   owner_organization_id,
+                                 send_to_contact_id, send_to_organization_id,
