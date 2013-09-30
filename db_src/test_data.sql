@@ -18,7 +18,7 @@ VALUES (1, 'AdaHeads K/S', 'adaheads_ks_1', '{"website":"http://adaheads.com","g
        (3, 'Responsum K/S', 'responsum_ks_3', '{"website":"http://responsum.dk","greeting":"Velkommen til Responsum - du taler med ..."}'),
        (4, 'Hansen VVS A/S', 'hansen_vvs_4', '{"website":"http://hansenvvs.dk","greeting":"Hansen VVS goddag"}');
 
-INSERT INTO organization_contacts (organization_id, contact_id, free_form_attributes)
+INSERT INTO organization_contacts (organization_id, contact_id, attributes)
 VALUES --  Adaheads
        (1, 1, '{"tags":["AWS","Slackware"]}'),
        (1, 2, '{"tags":["usability"]}'),
@@ -73,7 +73,7 @@ VALUES ('helligdag', '2013-12-25'),
        ('helligdag', '2014-01-01');
 
 INSERT INTO dial_plans (phone_number, dial_plan)
-VALUES ('+4521490804', '<xml/>');
+VALUES ('+4521490804', '<?xml version="1.0"?> <!DOCTYPE dial-plan> <dial-plan title="Jacob: Hang up on anonymous callers"> <start do="Start"/> <decision-tree title="Start"> <branch> <conditions> <caller number=""/> </conditions> <action do="Hang up"/> </branch> <fall-back do="Pass through"/> </decision-tree> <end-point title="Hang up"> <hang-up/> </end-point> <end-point title="Pass through"> <redirect to="+45 21 49 08 04"/> </end-point> </dial-plan>');
 
 INSERT INTO users (name)
 VALUES ('Tux'),
@@ -81,7 +81,7 @@ VALUES ('Tux'),
        ('AdaHeads Test User Two'),
        ('AdaHeads Test User Three');
 
-INSERT INTO user_ids (name, openid, rank)
+INSERT INTO user_ids (name, openid, priority)
 VALUES ('Tux','https://tux.myopenid.com/', 1), 
        ('Tux','https://accounts.google.com/we-love-tux/', 2),
        ('AdaHeads Test User One', 'https://adaheads1.myopenid.com/', 1),

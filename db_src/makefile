@@ -1,4 +1,11 @@
-all: postgresql/schema.sql postgresql/test_data.sql sqlite/schema.sql sqlite/test_data.sql
+all: test.db
+
+sources: postgresql/schema.sql postgresql/test_data.sql sqlite/schema.sql sqlite/test_data.sql
+
+test.db: sqlite/schema.sql sqlite/test_data.sql
+	rm -f test.db
+	sqlite3 test.db < sqlite/schema.sql
+	sqlite3 test.db < sqlite/test_data.sql
 
 %/schema.sql: %/schema.patch schema.sql
 	cp -p schema.sql $@
@@ -11,5 +18,5 @@ all: postgresql/schema.sql postgresql/test_data.sql sqlite/schema.sql sqlite/tes
 clean:
 
 distclean: clean
-	rm -f */{schema,test_data}.sql
+	rm -f test.db */{schema,test_data}.sql
 

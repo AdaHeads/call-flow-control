@@ -2,3 +2,7 @@
 
 */*.sql
 
+# Generated SQLite database:
+
+test.db
+

@@ -32,12 +32,12 @@
  CREATE INDEX organization_uri_index ON organizations (uri);
 @@ -42,8 +42,8 @@
  CREATE TABLE organization_contacts (
-    organization_id      INTEGER NOT NULL REFERENCES organizations (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    contact_id           INTEGER NOT NULL REFERENCES contacts (id) ON UPDATE CASCADE ON DELETE CASCADE,
--   wants_messages       BOOLEAN NOT NULL DEFAULT TRUE,
--   free_form_attributes JSON,
-+   wants_messages       BOOLEAN NOT NULL DEFAULT 1,
-+   free_form_attributes TEXT,
+    organization_id  INTEGER NOT NULL REFERENCES organizations (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    contact_id       INTEGER NOT NULL REFERENCES contacts (id) ON UPDATE CASCADE ON DELETE CASCADE,
+-   wants_messages   BOOLEAN NOT NULL DEFAULT TRUE,
+-   attributes       JSON,
++   wants_messages   BOOLEAN NOT NULL DEFAULT 1,
++   attributes       TEXT,
  
     PRIMARY KEY (organization_id, contact_id)
  );
@@ -82,6 +82,6 @@
 +CREATE INDEX recipient_visibilities_primary_key ON recipient_visibilities (value);
 +CREATE INDEX distribution_lists_primary_key ON distribution_lists (owner_contact_id, owner_organization_id, send_to_contact_id, send_to_organization_id);
 +CREATE INDEX users_primary_key ON users (name);
-+CREATE TABLE user_ids_primary_key ON user_ids (openid);
++CREATE INDEX user_ids_primary_key ON user_ids (openid);
 +
 +-------------------------------------------------------------------------------

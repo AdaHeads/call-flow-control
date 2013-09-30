@@ -40,10 +40,10 @@ CREATE TABLE organizations (
 CREATE INDEX organization_uri_index ON organizations (uri);
 
 CREATE TABLE organization_contacts (
-   organization_id      INTEGER NOT NULL REFERENCES organizations (id) ON UPDATE CASCADE ON DELETE CASCADE,
-   contact_id           INTEGER NOT NULL REFERENCES contacts (id) ON UPDATE CASCADE ON DELETE CASCADE,
-   wants_messages       BOOLEAN NOT NULL DEFAULT TRUE,
-   free_form_attributes JSON,
+   organization_id INTEGER NOT NULL REFERENCES organizations (id) ON UPDATE CASCADE ON DELETE CASCADE,
+   contact_id      INTEGER NOT NULL REFERENCES contacts (id) ON UPDATE CASCADE ON DELETE CASCADE,
+   wants_messages  BOOLEAN NOT NULL DEFAULT TRUE,
+   attributes      JSON,
 
    PRIMARY KEY (organization_id, contact_id)
 );
@@ -108,9 +108,9 @@ CREATE TABLE users (
 );
 
 CREATE TABLE user_ids (
-   name   TEXT    NOT NULL REFERENCES users (name) ON UPDATE CASCADE ON DELETE CASCADE,
-   openid TEXT    NOT NULL PRIMARY KEY,
-   rank   INTEGER NOT NULL
+   name     TEXT    NOT NULL REFERENCES users (name) ON UPDATE CASCADE ON DELETE CASCADE,
+   openid   TEXT    NOT NULL PRIMARY KEY,
+   priority INTEGER NOT NULL
 );
 
 -------------------------------------------------------------------------------
