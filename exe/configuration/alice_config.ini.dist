@@ -65,7 +65,7 @@ DB_User alice
 # SQLite Database #
 ###################
 
-SQLite_Database sqlite/customers.db
+SQLite_Database ../db_src/test.db
 # String.
 # Default: sqlite/customers.db
 #

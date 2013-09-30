@@ -38,6 +38,7 @@ clean: cleanup_messy_temp_files
 	BUILDTYPE=Debug gnatclean -P alice
 
 tests: all
+	@make -C db_src
 	@./src/tests/build
 	@./src/tests/run
 
