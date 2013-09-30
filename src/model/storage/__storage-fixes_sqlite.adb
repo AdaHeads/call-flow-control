@@ -15,14 +15,16 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.SQL.Exec;
-
-package Storage.Fixes is
-
-   use GNATCOLL.SQL.Exec;
+package body Storage.Fixes is
 
    function Value (Item  : Forward_Cursor'Class;
-                   Field : Field_Index) return Boolean;
-   --  GNATCOLL.SQL.Exec.Boolean_Value does not work correctly with SQLite.
+                   Field : Field_Index) return Boolean is
+   begin
+      return Boolean'Val (Item.Integer_Value (Field));
+   exception
+      when Constraint_Error =>
+         --  For when we get a 'FALSE'/'TRUE' response:
+         return Boolean'Value (Item.Value (Field));
+   end Value;
 
 end Storage.Fixes;
