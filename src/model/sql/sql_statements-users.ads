@@ -29,7 +29,7 @@ package SQL_Statements.Users is
      := SQL_Select (Fields   => DB.User_IDs.OpenID,
                     From     => DB.User_IDs,
                     Where    => DB.User_IDs.Name = Text_Param (1),
-                    Order_By => DB.User_IDs.Rank);
+                    Order_By => DB.User_IDs.Priority);
 
    Permission_List_Query : constant SQL_Query
      := SQL_Select (Fields   => DB.Users.Is_Receptionist &

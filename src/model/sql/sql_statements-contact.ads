@@ -27,39 +27,39 @@ package SQL_Statements.Contact is
    ----------------------------------------------------------------------------
 
    Contacts_Join_1 : constant SQL_Left_Join_Table
-     := Join (Table1 => DB.Organization,
+     := Join (Table1 => DB.Organizations,
               Table2 => DB.Organization_Contacts,
               On     =>
-                DB.Organization_Contacts.FK (DB.Organization));
+                DB.Organization_Contacts.FK (DB.Organizations));
 
    Contacts_Join_2 : constant SQL_Left_Join_Table
      := Join (Table1 => Contacts_Join_1,
-              Table2 => DB.Contact,
-              On     => DB.Organization_Contacts.FK (DB.Contact));
+              Table2 => DB.Contacts,
+              On     => DB.Organization_Contacts.FK (DB.Contacts));
 
    Contacts_Attributes_Left_Join : constant SQL_Left_Join_Table
      := Left_Join (Full    => Contacts_Join_2,
-                   Partial => DB.Contact_Attributes,
+                   Partial => DB.Organization_Contacts,
                    On      =>
-                     DB.Contact_Attributes.FK (DB.Contact));
+                     DB.Organization_Contacts.FK (DB.Contacts));
 
    Contacts_Query : constant SQL_Query
      := SQL_Select (Fields =>
-                      DB.Contact.Id &                          --  0
-                      DB.Contact.Full_Name &                   --  1
-                      DB.Contact.Is_Human &                    --  2
-                      DB.Contact_Attributes.Json &             --  3
-                      DB.Contact_Attributes.Contact_Id &       --  4
-                      DB.Contact_Attributes.Organization_Id &  --  5
-                      DB.Organization.Id,                      --  6
+                      DB.Contacts.ID &                           --  0
+                      DB.Contacts.Full_Name &                    --  1
+                      DB.Contacts.Contact_Type &                 --  2
+                      DB.Organization_Contacts.Attributes &      --  3
+                      DB.Organization_Contacts.Contact_ID &      --  4
+                      DB.Organization_Contacts.Organization_ID & --  5
+                      DB.Organizations.ID,                       --  6
                     From   => Contacts_Attributes_Left_Join,
                     Where  =>
-                      DB.Organization.Id = Integer_Param (1)
+                      DB.Organizations.ID = Integer_Param (1)
                     and
-                      (DB.Contact_Attributes.Organization_Id =
+                      (DB.Organization_Contacts.Organization_ID =
                                                        Integer_Param (1)
                        or Is_Null
-                         (DB.Contact_Attributes.Organization_Id)));
+                         (DB.Organization_Contacts.Organization_ID)));
 
    ----------------------------------------------------------------------------
    --  SQL for fetching a contact with ALL its associated attributes, ie.    --
@@ -67,24 +67,24 @@ package SQL_Statements.Contact is
    ----------------------------------------------------------------------------
 
    Contact_Query_Full_Left_Join : constant SQL_Left_Join_Table
-     :=  Left_Join (Full    => DB.Contact,
-                    Partial => DB.Contact_Attributes,
+     :=  Left_Join (Full    => DB.Contacts,
+                    Partial => DB.Organization_Contacts,
                     On      =>
-                      DB.Contact_Attributes.FK (DB.Contact));
+                      DB.Organization_Contacts.FK (DB.Contacts));
 
    Contact_Query_Full : constant SQL_Query
      := SQL_Select (Fields =>
-                      DB.Contact.Id &                         --  0
-                      DB.Contact.Full_Name &                  --  1
-                      DB.Contact.Is_Human &                   --  2
-                      DB.Contact_Attributes.Json &            --  3
-                      DB.Contact_Attributes.Contact_Id &      --  4
-                      DB.Contact_Attributes.Organization_Id,  --  5
+                      DB.Contacts.ID &                          --  0
+                      DB.Contacts.Full_Name &                   --  1
+                      DB.Contacts.Contact_Type &                --  2
+                      DB.Organization_Contacts.Attributes &     --  3
+                      DB.Organization_Contacts.Contact_ID &     --  4
+                      DB.Organization_Contacts.Organization_ID, --  5
                     From   => Contact_Query_Full_Left_Join);
 
-   Contact_With_Id_Query_Full : constant SQL_Query
+   Contact_With_ID_Query_Full : constant SQL_Query
      := Where_And (Query => Contact_Query_Full,
-                   Where => DB.Contact.Id = Integer_Param (1));
+                   Where => DB.Contacts.ID = Integer_Param (1));
 
    ----------------------------------------------------------------------------
    --  SQL for fetching a contact specified by its relation to an            --
@@ -95,9 +95,9 @@ package SQL_Statements.Contact is
    Contact_Org_Specified_Query : constant SQL_Query
      := Where_And (Query => Contact_Query_Full,
                    Where =>
-                     DB.Contact.Id = Integer_Param (1)
+                     DB.Contacts.ID = Integer_Param (1)
                    and
-                     DB.Contact_Attributes.Organization_Id =
+                     DB.Organization_Contacts.Organization_ID =
                        Integer_Param (2));
 
 end SQL_Statements.Contact;
