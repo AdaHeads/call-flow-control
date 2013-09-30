@@ -75,11 +75,11 @@ VALUES ('helligdag', '2013-12-25'),
 INSERT INTO dial_plans (phone_number, dial_plan)
 VALUES ('+4521490804', '<?xml version="1.0"?> <!DOCTYPE dial-plan> <dial-plan title="Jacob: Hang up on anonymous callers"> <start do="Start"/> <decision-tree title="Start"> <branch> <conditions> <caller number=""/> </conditions> <action do="Hang up"/> </branch> <fall-back do="Pass through"/> </decision-tree> <end-point title="Hang up"> <hang-up/> </end-point> <end-point title="Pass through"> <redirect to="+45 21 49 08 04"/> </end-point> </dial-plan>');
 
-INSERT INTO users (name)
-VALUES ('Tux'),
-       ('AdaHeads Test User One'),
-       ('AdaHeads Test User Two'),
-       ('AdaHeads Test User Three');
+INSERT INTO users (name, is_receptionist, is_service_agent, is_administrator)
+VALUES ('Tux',                      FALSE, FALSE, TRUE),
+       ('AdaHeads Test User One',   TRUE,  FALSE, FALSE),
+       ('AdaHeads Test User Two',   TRUE,  TRUE,  FALSE),
+       ('AdaHeads Test User Three', TRUE,  TRUE,  TRUE);
 
 INSERT INTO user_ids (name, openid, priority)
 VALUES ('Tux','https://tux.myopenid.com/', 1), 

@@ -49,18 +49,6 @@
  
     PRIMARY KEY (contact_id, organization_id,
                  address, address_type),
-@@ -105,9 +105,9 @@
- 
- CREATE TABLE users (
-    name             TEXT    NOT NULL PRIMARY KEY,
--   is_receptionist  BOOLEAN NOT NULL DEFAULT FALSE,
--   is_service_Agent BOOLEAN NOT NULL DEFAULT FALSE,
--   is_administrator BOOLEAN NOT NULL DEFAULT FALSE
-+   is_receptionist  BOOLEAN NOT NULL DEFAULT 0,
-+   is_service_agent BOOLEAN NOT NULL DEFAULT 0,
-+   is_administrator BOOLEAN NOT NULL DEFAULT 0
- );
- 
  CREATE TABLE user_ids (
 @@ -117,3 +117,19 @@
  );

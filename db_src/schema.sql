@@ -105,9 +105,9 @@ CREATE INDEX distribution_list_owner_index ON distribution_lists (owner_contact_
 
 CREATE TABLE users (
    name             TEXT    NOT NULL PRIMARY KEY,
-   is_receptionist  BOOLEAN NOT NULL DEFAULT FALSE,
-   is_service_Agent BOOLEAN NOT NULL DEFAULT FALSE,
-   is_administrator BOOLEAN NOT NULL DEFAULT FALSE
+   is_receptionist  BOOLEAN NOT NULL,
+   is_service_agent BOOLEAN NOT NULL,
+   is_administrator BOOLEAN NOT NULL
 );
 
 CREATE TABLE user_ids (
