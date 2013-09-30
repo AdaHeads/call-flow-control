@@ -1,5 +1,5 @@
---- schema.sql	2013-09-27 15:02:34.000000000 +0000
-+++ sqlite/schema.sql	2013-09-27 17:53:59.000000000 +0000
+--- ../schema.sql	2013-09-30 10:08:01.000000000 +0000
++++ schema.sql	2013-09-30 10:25:58.000000000 +0000
 @@ -3,7 +3,7 @@
  
  CREATE TABLE dial_plans (
@@ -9,8 +9,8 @@
  );
  
  -------------------------------------------------------------------------------
-@@ -25,16 +25,16 @@
- --  Contacts and organizations:
+@@ -28,16 +28,16 @@
+ INSERT INTO contact_types VALUES ('human'), ('function'), ('invisible');
  
  CREATE TABLE contacts (
 -   id           INTEGER NOT NULL PRIMARY KEY, --  AUTOINCREMENT
@@ -29,18 +29,16 @@
  );
  
  CREATE INDEX organization_uri_index ON organizations (uri);
-@@ -42,8 +42,8 @@
+@@ -45,7 +45,7 @@
  CREATE TABLE organization_contacts (
-    organization_id  INTEGER NOT NULL REFERENCES organizations (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    contact_id       INTEGER NOT NULL REFERENCES contacts (id) ON UPDATE CASCADE ON DELETE CASCADE,
--   wants_messages   BOOLEAN NOT NULL DEFAULT TRUE,
--   attributes       JSON,
-+   wants_messages   BOOLEAN NOT NULL DEFAULT 1,
-+   attributes       TEXT,
+    organization_id INTEGER NOT NULL REFERENCES organizations (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    contact_id      INTEGER NOT NULL REFERENCES contacts (id) ON UPDATE CASCADE ON DELETE CASCADE,
+-   wants_messages  BOOLEAN NOT NULL DEFAULT TRUE,
++   wants_messages  BOOLEAN NOT NULL DEFAULT 1,
+    attributes      JSON,
  
     PRIMARY KEY (organization_id, contact_id)
- );
-@@ -62,8 +62,8 @@
+@@ -65,8 +65,8 @@
     organization_id INTEGER NOT NULL,
     address         TEXT    NOT NULL,
     address_type    TEXT    NOT NULL REFERENCES address_types (value),
@@ -51,7 +49,7 @@
  
     PRIMARY KEY (contact_id, organization_id,
                  address, address_type),
-@@ -102,9 +102,9 @@
+@@ -105,9 +105,9 @@
  
  CREATE TABLE users (
     name             TEXT    NOT NULL PRIMARY KEY,
@@ -64,7 +62,7 @@
  );
  
  CREATE TABLE user_ids (
-@@ -114,3 +114,19 @@
+@@ -117,3 +117,19 @@
  );
  
  -------------------------------------------------------------------------------
