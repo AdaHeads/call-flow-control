@@ -46,7 +46,7 @@ begin
 
    declare
       OpenID : User.OpenID :=
-                 User.Parse ("https://accounts.google.com/we-love-tux");
+                 User.Parse ("https://accounts.google.com/we-love-tux/");
    begin
       Put_Line ("<" & User.URL (OpenID) & "> ...");
 
