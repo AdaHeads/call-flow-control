@@ -93,11 +93,11 @@ package SQL_Statements.Contact is
    ----------------------------------------------------------------------------
 
    Contact_Org_Specified_Query : constant SQL_Query
-     := Where_And (Query => Contact_Query_Full,
-                   Where =>
-                     DB.Contacts.ID = Integer_Param (1)
-                   and
-                     DB.Organization_Contacts.Organization_ID =
-                       Integer_Param (2));
+     := Where_And
+          (Query =>
+             Contact_Query_Full,
+           Where =>
+             DB.Organization_Contacts.Contact_ID      = Integer_Param (1) and
+             DB.Organization_Contacts.Organization_ID = Integer_Param (2));
 
 end SQL_Statements.Contact;
