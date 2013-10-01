@@ -37,4 +37,8 @@ package System_Message.Debug is
      (Log_Trace => Yolk.Log.Debug,
       Status    => "libdialplan");
 
+   procedure Jacob_Wants_To_See_This is new Logger
+     (Log_Trace => Yolk.Log.Debug,
+      Status    => "Jacob wants to see this.");
+
 end System_Message.Debug;

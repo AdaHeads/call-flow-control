@@ -26,6 +26,7 @@ with Common,
      HTTP_Codes,
      MIME_Types,
      Model,
+     Model.Contact,
      System_Message.Debug,
      View;
 
@@ -175,7 +176,9 @@ package body Handlers.Message is
          function Bad_Or_Missing_Message return Boolean;
          function No_Contacts_Selected return Boolean;
          function Contact_Does_Not_Exist
-                    (ID :    out Contact_In_Organization) return Boolean;
+                    (ID :    out Contact_In_Organization) return Integer;
+         --  function Contact_Does_Not_Exist
+         --             (ID :    out Contact_In_Organization) return Boolean;
          function Contact_Without_Messaging_Addresses
                     (ID :    out Contact_In_Organization) return Boolean;
 
@@ -217,7 +220,9 @@ package body Handlers.Message is
          end Bad_Or_Missing_Message;
 
          function Contact_Does_Not_Exist
-                    (ID :    out Contact_In_Organization) return Boolean is
+           (ID :    out Contact_In_Organization) return Integer is
+         --  function Contact_Does_Not_Exist
+         --    (ID :    out Contact_In_Organization) return Boolean is
             procedure Look_Up (Contacts  : in     String;
                                Found_All :    out Boolean;
                                Missing   :    out Contact_In_Organization);
@@ -229,10 +234,28 @@ package body Handlers.Message is
                function Exists_In_Database
                           (Item : in Contact_In_Organization) return Boolean is
                begin
-                  raise Program_Error
-                    with "Looking up <contact@organization> in database not " &
-                         "implemented.";
-                  return False;
+                  System_Message.Debug.Entered_Subprogram
+                    (Message => "Exists_In_Database (Item => " & Image (Item) & ")?");
+
+                  declare
+                     use type Model.Contact_Identifier;
+                     Contact : constant Model.Contact.Object :=
+                                 Model.Contact.Get (Item);
+                  begin
+                     System_Message.Debug.Leaving_Subprogram
+                       (Message => "return " & Boolean'Image (Contact.ID = Item.Contact_ID));
+
+                     return Contact.ID = Item.Contact_ID;
+                  end;
+               exception
+                  when E : others =>
+                     System_Message.Debug.Leaving_Subprogram
+                       (Message => "return False");
+                     System_Message.Debug.Leaving_Subprogram
+                       (Event   => E,
+                        Message => "Handlers.Message.Send." &
+                                   "Contact_Does_Not_Exist.Look_Up");
+                     return False;
                end Exists_In_Database;
 
                List    : Parser.Instance'Class := Parser.Create (Contacts);
@@ -240,6 +263,7 @@ package body Handlers.Message is
                Contact : Contact_In_Organization;
                Error   : Boolean;
             begin
+               Check_Contacts :
                loop
                   List.Get_Next (Found   => Found,
                                  Contact => Contact,
@@ -251,19 +275,28 @@ package body Handlers.Message is
                             "Could not parse contact list.";
                   elsif Found then
                      if Exists_In_Database (Contact) then
+                        System_Message.Debug.Jacob_Wants_To_See_This
+                          (Message => "Found " & Image (Contact) & ".");
                         null;
                      else
+                        System_Message.Debug.Jacob_Wants_To_See_This
+                          (Message => "Could not find " & Image (Contact) & ".");
+
                         Found_All := False;
                         Missing := Contact;
-                        exit;
+                        exit Check_Contacts;
                      end if;
                   else
                      Found_All := True;
-                     exit;
+                     exit Check_Contacts;
                   end if;
-               end loop;
+               end loop Check_Contacts;
+
+               System_Message.Debug.Leaving_Subprogram
+                 (Message => "Contacts => """ & Contacts & """, Found_All => " & Boolean'Image (Found_All) & ", Missing => " & Image (Missing) & ".");
             end Look_Up;
 
+            Result : Boolean := False;
             Okay : Boolean;
          begin
             ID := (0, 0); --  Should really make ID a conditional variable.
@@ -273,29 +306,38 @@ package body Handlers.Message is
                         Found_All => Okay,
                         Missing   => ID);
                if not Okay then
-                  return True;
+                  System_Message.Debug.Leaving_Subprogram
+                    (Message => "1: Could not find " & Image (ID) & " in database.");
+                  Result := True; --  return True;
                end if;
             end if;
 
-            if Parameters.Exist ("cc") then
+            if not Result and then Parameters.Exist ("cc") then
                Look_Up (Contacts  => Parameters.Get ("cc"),
                         Found_All => Okay,
                         Missing   => ID);
                if not Okay then
-                  return True;
+                  Result := True; --  return True;
                end if;
             end if;
 
-            if Parameters.Exist ("bcc") then
+            if not Result and then Parameters.Exist ("bcc") then
                Look_Up (Contacts  => Parameters.Get ("bcc"),
                         Found_All => Okay,
                         Missing   => ID);
                if not Okay then
-                  return True;
+                  Result := True; --  return True;
                end if;
             end if;
 
-            return False;
+            System_Message.Debug.Leaving_Subprogram
+              (Message => "Contact_Does_Not_Exist returns " & Boolean'Image (Result));
+            if Result then
+               return 42;
+            else
+               return -1;
+            end if;
+            --return Result; --  False;
          end Contact_Does_Not_Exist;
 
          function Contact_Does_Not_Exist
@@ -303,6 +345,9 @@ package body Handlers.Message is
                     return AWS.Response.Data is
             Data : JSON_Value;
          begin
+            System_Message.Debug.Entered_Subprogram
+              (Message => "Composing Contact_Does_Not_Exist response.");
+
             Data := Create_Object;
 
             Data.Set_Field (Field_Name => View.Status,
@@ -318,6 +363,12 @@ package body Handlers.Message is
               (Content_Type => MIME_Types.JSON,
                Message_Body => To_String (To_JSON_String (Data)),
                Status_Code  => HTTP_Codes.Not_Found);
+         exception
+            when E : others =>
+               System_Message.Debug.Leaving_Subprogram
+                 (Event   => E,
+                  Message => "Bug in Contact_Does_Not_Exist : AWS.Response.Data");
+               raise;
          end Contact_Does_Not_Exist;
 
          function Contact_Without_Messaging_Addresses
@@ -389,11 +440,21 @@ package body Handlers.Message is
 
          ID : Contact_In_Organization;
       begin
+         declare
+            Dummy : Integer := -1;
+         begin
+            Dummy := Contact_Does_Not_Exist (ID);
+            System_Message.Debug.Jacob_Wants_To_See_This
+              (Message => "Contact_Does_Not_Exist returned " & Integer'Image (Dummy));
+         end;
+
          if Bad_Or_Missing_Message then
             return Bad_Or_Missing_Message;
          elsif No_Contacts_Selected then
             return No_Contacts_Selected;
-         elsif Contact_Does_Not_Exist (ID) then
+         elsif Contact_Does_Not_Exist (ID) = 42 then
+            System_Message.Debug.Jacob_Wants_To_See_This
+              (Message => "3: TRUE");
             return Contact_Does_Not_Exist (ID);
          elsif Contact_Without_Messaging_Addresses (ID) then
             return Contact_Without_Messaging_Addresses (ID);
