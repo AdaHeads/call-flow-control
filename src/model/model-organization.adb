@@ -282,7 +282,8 @@ package body Model.Organization is
                Contact.Add_Attribute
                  (Model.Attribute.Create
                     (ID   => Attribute_Identifier'
-                       (CID => Contact.ID, OID => Organization.ID),
+                       (Contact_ID      => Contact.ID,
+                        Organization_ID => Organization.ID),
                      JSON =>
                        String_To_JSON_Object (Cursor.Json_Text_Value (7))));
             end if;

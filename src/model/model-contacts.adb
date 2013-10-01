@@ -52,8 +52,8 @@ package body Model.Contacts is
    begin
       Instance.Contacts.Include
         (Key      => Organization_Contact_Identifier'
-           (CID => Contact.ID,
-            OID => ID),
+           (Contact_ID      => Contact.ID,
+            Organization_ID => ID),
          New_Item => Contact);
    end Add_Contact;
 
@@ -183,8 +183,8 @@ package body Model.Contacts is
    is
    begin
       return Ada.Strings.Hash
-        (Contact_Identifier'Image (Key.CID) &
-           Organization_Identifier'Image (Key.OID));
+        (Contact_Identifier'Image (Key.Contact_ID) &
+           Organization_Identifier'Image (Key.Organization_ID));
    end Key_Hash;
 
    ---------------------

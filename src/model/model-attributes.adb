@@ -162,8 +162,8 @@ package body Model.Attributes is
    is
    begin
       return Ada.Strings.Hash
-        (Contact_Identifier'Image (Key.CID) &
-           Organization_Identifier'Image (Key.OID));
+        (Contact_Identifier'Image (Key.Contact_ID) &
+           Organization_Identifier'Image (Key.Organization_ID));
    end Key_Hash;
 
    ---------------------

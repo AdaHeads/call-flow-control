@@ -51,9 +51,10 @@ package body Model.Attribute is
    begin
       Instance :=
         (ID   => Attribute_Identifier'
-           (CID => Contact_Identifier (C.Integer_Value (0, Default => 0)),
-            OID => Organization_Identifier
-              (C.Integer_Value (1, Default => 0))),
+           (Contact_ID      => Contact_Identifier
+                                 (C.Integer_Value (0, Default => 0)),
+            Organization_ID => Organization_Identifier
+                                 (C.Integer_Value (1, Default => 0))),
          JSON => String_To_JSON_Object (C.Json_Text_Value (2)));
 
       C.Next;
@@ -70,7 +71,7 @@ package body Model.Attribute is
       return Contact_Identifier
    is
    begin
-      return Instance.ID.CID;
+      return Instance.ID.Contact_ID;
    end Contact_ID;
 
    --------------
@@ -83,7 +84,7 @@ package body Model.Attribute is
       return Object
    is
    begin
-      return (ID   => Attribute_Identifier'(CID => ID.CID, OID => ID.OID),
+      return (ID   => ID,
               JSON => JSON);
    end Create;
 
@@ -111,8 +112,9 @@ package body Model.Attribute is
          Attribute := Instance;
       end Get_Element;
 
-      Parameters : constant SQL_Parameters := (1 => +Integer (ID.CID),
-                                               2 => +Integer (ID.OID));
+      Parameters : constant SQL_Parameters :=
+                     (1 => +Integer (ID.Contact_ID),
+                      2 => +Integer (ID.Organization_ID));
    begin
       Process_Select_Query
         (Process_Element    => Get_Element'Access,
@@ -155,7 +157,7 @@ package body Model.Attribute is
       return Organization_Identifier
    is
    begin
-      return Instance.ID.OID;
+      return Instance.ID.Organization_ID;
    end Organization_ID;
 
    ----------------------

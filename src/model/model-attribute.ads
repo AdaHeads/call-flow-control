@@ -71,7 +71,8 @@ private
          JSON : GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.JSON_Null;
       end record;
 
-   Null_Object : constant Object := (ID   => (CID => 0, OID => 0),
+   Null_Object : constant Object := (ID   => (Contact_ID      => 0,
+                                              Organization_ID => 0),
                                      JSON => GNATCOLL.JSON.JSON_Null);
 
 end Model.Attribute;

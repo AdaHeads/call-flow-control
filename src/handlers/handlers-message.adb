@@ -25,29 +25,34 @@ with AWS.Parameters,
 with Common,
      HTTP_Codes,
      MIME_Types,
+     Model,
      System_Message.Debug,
      View;
 
 package body Handlers.Message is
-   type Contact_In_Organization is
-      record
-         Contact      : Integer;
-         Organization : Integer;
-      end record;
+   subtype Contact_In_Organization is Model.Organization_Contact_Identifier;
 
-   function Image (Item : in Integer) return String;
+   function Image (Item : in Model.Contact_Identifier) return String;
+   function Image (Item : in Model.Organization_Identifier) return String;
    function Image (Item : in Contact_In_Organization) return String;
 
-   function Image (Item : in Integer) return String is
+   function Image (Item : in Model.Contact_Identifier) return String is
       use Ada.Strings, Ada.Strings.Fixed;
    begin
-      return Trim (Integer'Image (Item), Both);
+      return Trim (Model.Contact_Identifier'Image (Item), Both);
+   end Image;
+
+   function Image (Item : in Model.Organization_Identifier) return String is
+      use Ada.Strings, Ada.Strings.Fixed;
+   begin
+      return Trim (Model.Organization_Identifier'Image (Item), Both);
    end Image;
 
    function Image (Item : in Contact_In_Organization) return String is
    begin
       return
-        "<" & Image (Item.Contact) & "@" & Image (Item.Organization) & ">";
+        "<" & Image (Item.Contact_ID) &
+        "@" & Image (Item.Organization_ID) & ">";
    end Image;
 
    package Parser is
@@ -77,7 +82,8 @@ package body Handlers.Message is
          end return;
       exception
          when Constraint_Error =>
-            raise Constraint_Error with "Handlers.Message.Parser.Create failed.";
+            raise Constraint_Error
+              with "Handlers.Message.Parser.Create failed.";
       end Create;
 
       procedure Get_Next (Source  : in out Instance;
@@ -95,14 +101,16 @@ package body Handlers.Message is
          else
             Next := Just_Before (Source.Source (Source.Last + 1 ..
                                                 Source.Length), "@");
-            Contact.Contact :=
-              Integer'Value (Source.Source (Source.Last + 1 .. Next));
+            Contact.Contact_ID :=
+              Model.Contact_Identifier'Value
+                (Source.Source (Source.Last + 1 .. Next));
             Source.Last := Next + 1;
 
             Next := Just_Before (Source.Source (Source.Last + 1 ..
                                                 Source.Length), ",");
-            Contact.Organization :=
-              Integer'Value (Source.Source (Source.Last + 1 .. Next));
+            Contact.Organization_ID :=
+              Model.Organization_Identifier'Value
+                (Source.Source (Source.Last + 1 .. Next));
             Source.Last := Next + 1;
 
             Found := True;
@@ -301,9 +309,9 @@ package body Handlers.Message is
                             Field      => "not_found");
             Data.Set_Field (Field_Name => View.Description,
                             Field      => "there is no contact with id " &
-                                          Image (ID.Contact) & "in the " &
+                                          Image (ID.Contact_ID) & "in the " &
                                           "organization with id "&
-                                          Image (ID.Organization) &
+                                          Image (ID.Organization_ID) &
                                           "in the database");
 
             return AWS.Response.Build

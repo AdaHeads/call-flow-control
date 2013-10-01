@@ -27,14 +27,15 @@ package Model is
 
    type Organization_Contact_Identifier is
       record
-         CID : Contact_Identifier := 0;
-         OID : Organization_Identifier := 0;
+         Contact_ID      : Contact_Identifier := 0;
+         Organization_ID : Organization_Identifier := 0;
       end record;
-   --  Identifies the CID contact in the context of the OID organization.
+   --  Identifies the Contact_ID contact in the context of the
+   --  Organization_ID organization.
 
    type Attribute_Identifier is new Organization_Contact_Identifier;
-   --  Identifies a set of contact attributes for the CID contact in the
-   --  context of the OID organization.
+   --  Identifies a set of contact attributes for the Contact_ID
+   --  contact in the context of the Organization_ID organization.
 
 private
 

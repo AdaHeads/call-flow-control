@@ -87,9 +87,9 @@ package body Model.Contact is
             CO.Attributes.Add_Attribute
               (Model.Attribute.Create
                  (ID   => Attribute_Identifier'
-                    (CID => Contact_Identifier
+                    (Contact_ID => Contact_Identifier
                        (C.Integer_Value (4, Default => 0)),
-                     OID => Organization_Identifier
+                     Organization_ID => Organization_Identifier
                        (C.Integer_Value (5, Default => 0))),
                   JSON => String_To_JSON_Object (C.Json_Text_Value (3))));
          end if;
@@ -189,8 +189,8 @@ package body Model.Contact is
          Contact := Instance;
       end Get_Element;
 
-      Parameters : constant SQL_Parameters := (1 => +Integer (ID.CID),
-                                               2 => +Integer (ID.OID));
+      Parameters : constant SQL_Parameters := (1 => +Integer (ID.Contact_ID),
+                                               2 => +Integer (ID.Organization_ID));
    begin
       Process_Select_Query
         (Process_Element    => Get_Element'Access,
