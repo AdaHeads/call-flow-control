@@ -161,6 +161,9 @@ check "/message/send?message=Besked+til+AdaHeads.&cc=1@1&bcc=2@1"
 # Multiple recipients (mixed to, cc and bcc):
 check "/message/send?message=Besked+til+AdaHeads.&to=1@1&cc=4@1&bcc=2@1"
 
+# Recipient does not exist:
+check "/message/send?message=Besked+til+AdaHeads.&to=42@1"
+
 #-----------------------------------------------------------------------------
 #--  Stop Alice:
 
