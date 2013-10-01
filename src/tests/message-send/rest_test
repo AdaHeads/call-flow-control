@@ -146,6 +146,21 @@ check "/message/send?message=&to=1@1"
 # Minimal, but okay:
 check "/message/send?message=Blåbærgrød&to=1@1"
 
+# Multiple recipients (to):
+check "/message/send?message=Besked+til+AdaHeads.&to=1@1,4@1"
+
+# Multiple recipients (mixed to and cc):
+check "/message/send?message=Besked+til+AdaHeads.&to=1@1&cc=4@1"
+
+# Multiple recipients (mixed to and bcc):
+check "/message/send?message=Besked+til+AdaHeads.&to=1@1&bcc=2@1"
+
+# Multiple recipients (mixed cc and bcc):
+check "/message/send?message=Besked+til+AdaHeads.&cc=1@1&bcc=2@1"
+
+# Multiple recipients (mixed to, cc and bcc):
+check "/message/send?message=Besked+til+AdaHeads.&to=1@1&cc=4@1&bcc=2@1"
+
 #-----------------------------------------------------------------------------
 #--  Stop Alice:
 
