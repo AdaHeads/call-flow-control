@@ -93,10 +93,6 @@ package body Handlers.Message is
                           Contact :    out Contact_In_Organization) is
          Next : Natural;
       begin
-         System_Message.Debug.Leaving_Subprogram
-           (Message => "Get_Next: Source = (Source => """ & Source.Source &
-                       """, Last =>" & Natural'Image (Source.Last) & ")");
-
          if Source.Last >= Source.Length then
             Found := False;
          else
@@ -119,13 +115,7 @@ package body Handlers.Message is
 
          Error := False;
       exception
-         when E : others =>
-            System_Message.Debug.Leaving_Subprogram
-              (Event   => E,
-               Message => "Get_Next: Source = (Source => """ & Source.Source &
-                          """, Last =>" & Natural'Image (Source.Last) &
-                          "), Next =" & Natural'Image (Next));
-
+         when others =>
             Source.Last := Source.Length;
             Found := False;
             Error := True;
@@ -138,12 +128,8 @@ package body Handlers.Message is
       begin
          Position := Index (Source, Pattern);
          if Position = 0 then
-            System_Message.Debug.Leaving_Subprogram
-              (Message => "Just_Before found """ & Pattern & """ just after position" & Natural'Image (Source'Last) & " in """ & Source & """ (indexed from" & Positive'Image (Source'First) & " to" & Natural'Image (Source'Last) & ").");
             return Source'Last;
          else
-            System_Message.Debug.Leaving_Subprogram
-              (Message => "Just_Before found """ & Pattern & """ just after position" & Natural'Image (Position - 1) & " in """ & Source & """ (indexed from" & Positive'Image (Source'First) & " to" & Natural'Image (Source'Last) & ").");
             return Position - 1;
          end if;
       exception
@@ -176,9 +162,7 @@ package body Handlers.Message is
          function Bad_Or_Missing_Message return Boolean;
          function No_Contacts_Selected return Boolean;
          function Contact_Does_Not_Exist
-                    (ID :    out Contact_In_Organization) return Integer;
-         --  function Contact_Does_Not_Exist
-         --             (ID :    out Contact_In_Organization) return Boolean;
+                    (ID :    out Contact_In_Organization) return Boolean;
          function Contact_Without_Messaging_Addresses
                     (ID :    out Contact_In_Organization) return Boolean;
 
@@ -220,9 +204,7 @@ package body Handlers.Message is
          end Bad_Or_Missing_Message;
 
          function Contact_Does_Not_Exist
-           (ID :    out Contact_In_Organization) return Integer is
-         --  function Contact_Does_Not_Exist
-         --    (ID :    out Contact_In_Organization) return Boolean is
+                    (ID :    out Contact_In_Organization) return Boolean is
             procedure Look_Up (Contacts  : in     String;
                                Found_All :    out Boolean;
                                Missing   :    out Contact_In_Organization);
@@ -250,11 +232,8 @@ package body Handlers.Message is
                exception
                   when E : others =>
                      System_Message.Debug.Leaving_Subprogram
-                       (Message => "return False");
-                     System_Message.Debug.Leaving_Subprogram
                        (Event   => E,
-                        Message => "Handlers.Message.Send." &
-                                   "Contact_Does_Not_Exist.Look_Up");
+                        Message => "return False");
                      return False;
                end Exists_In_Database;
 
@@ -275,13 +254,8 @@ package body Handlers.Message is
                             "Could not parse contact list.";
                   elsif Found then
                      if Exists_In_Database (Contact) then
-                        System_Message.Debug.Jacob_Wants_To_See_This
-                          (Message => "Found " & Image (Contact) & ".");
                         null;
                      else
-                        System_Message.Debug.Jacob_Wants_To_See_This
-                          (Message => "Could not find " & Image (Contact) & ".");
-
                         Found_All := False;
                         Missing := Contact;
                         exit Check_Contacts;
@@ -307,7 +281,7 @@ package body Handlers.Message is
                         Missing   => ID);
                if not Okay then
                   System_Message.Debug.Leaving_Subprogram
-                    (Message => "1: Could not find " & Image (ID) & " in database.");
+                    (Message => "Could not find " & Image (ID) & " in database.");
                   Result := True; --  return True;
                end if;
             end if;
@@ -332,12 +306,7 @@ package body Handlers.Message is
 
             System_Message.Debug.Leaving_Subprogram
               (Message => "Contact_Does_Not_Exist returns " & Boolean'Image (Result));
-            if Result then
-               return 42;
-            else
-               return -1;
-            end if;
-            --return Result; --  False;
+            return Result; --  False;
          end Contact_Does_Not_Exist;
 
          function Contact_Does_Not_Exist
@@ -441,20 +410,19 @@ package body Handlers.Message is
          ID : Contact_In_Organization;
       begin
          declare
-            Dummy : Integer := -1;
+            Dummy : Boolean;
          begin
             Dummy := Contact_Does_Not_Exist (ID);
             System_Message.Debug.Jacob_Wants_To_See_This
-              (Message => "Contact_Does_Not_Exist returned " & Integer'Image (Dummy));
+              (Message => "Contact_Does_Not_Exist returned " &
+                          Boolean'Image (Dummy));
          end;
 
          if Bad_Or_Missing_Message then
             return Bad_Or_Missing_Message;
          elsif No_Contacts_Selected then
             return No_Contacts_Selected;
-         elsif Contact_Does_Not_Exist (ID) = 42 then
-            System_Message.Debug.Jacob_Wants_To_See_This
-              (Message => "3: TRUE");
+         elsif Contact_Does_Not_Exist (ID)  then
             return Contact_Does_Not_Exist (ID);
          elsif Contact_Without_Messaging_Addresses (ID) then
             return Contact_Without_Messaging_Addresses (ID);
