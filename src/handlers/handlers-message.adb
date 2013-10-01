@@ -25,6 +25,7 @@ with AWS.Parameters,
 with Common,
      HTTP_Codes,
      MIME_Types,
+     System_Message.Debug,
      View;
 
 package body Handlers.Message is
@@ -74,6 +75,9 @@ package body Handlers.Message is
          return Result : Instance (Length => Source'Length) do
             Result.Source := Source;
          end return;
+      exception
+         when Constraint_Error =>
+            raise Constraint_Error with "Handlers.Message.Parser.Create failed.";
       end Create;
 
       procedure Get_Next (Source  : in out Instance;
@@ -82,6 +86,10 @@ package body Handlers.Message is
                           Contact :    out Contact_In_Organization) is
          Next : Natural;
       begin
+         System_Message.Debug.Leaving_Subprogram
+           (Message => "Get_Next: Source = (Source => """ & Source.Source &
+                       """, Last =>" & Natural'Image (Source.Last) & ")");
+
          if Source.Last >= Source.Length then
             Found := False;
          else
@@ -89,19 +97,26 @@ package body Handlers.Message is
                                                 Source.Length), "@");
             Contact.Contact :=
               Integer'Value (Source.Source (Source.Last + 1 .. Next));
+            Source.Last := Next + 1;
 
-            Next := Just_Before (Source.Source (Next + 2 ..
+            Next := Just_Before (Source.Source (Source.Last + 1 ..
                                                 Source.Length), ",");
             Contact.Organization :=
               Integer'Value (Source.Source (Source.Last + 1 .. Next));
-
             Source.Last := Next + 1;
+
             Found := True;
          end if;
 
          Error := False;
       exception
-         when others =>
+         when E : others =>
+            System_Message.Debug.Leaving_Subprogram
+              (Event   => E,
+               Message => "Get_Next: Source = (Source => """ & Source.Source &
+                          """, Last =>" & Natural'Image (Source.Last) &
+                          "), Next =" & Natural'Image (Next));
+
             Source.Last := Source.Length;
             Found := False;
             Error := True;
@@ -114,10 +129,22 @@ package body Handlers.Message is
       begin
          Position := Index (Source, Pattern);
          if Position = 0 then
+            System_Message.Debug.Leaving_Subprogram
+              (Message => "Just_Before found """ & Pattern & """ just after position" & Natural'Image (Source'Last) & " in """ & Source & """ (indexed from" & Positive'Image (Source'First) & " to" & Natural'Image (Source'Last) & ").");
             return Source'Last;
          else
+            System_Message.Debug.Leaving_Subprogram
+              (Message => "Just_Before found """ & Pattern & """ just after position" & Natural'Image (Position - 1) & " in """ & Source & """ (indexed from" & Positive'Image (Source'First) & " to" & Natural'Image (Source'Last) & ").");
             return Position - 1;
          end if;
+      exception
+         when E : others =>
+            System_Message.Debug.Leaving_Subprogram
+              (Event   => E,
+               Message => "Just_Before: Source = """ & Source &
+                          """, Pattern = """ & Pattern & """, Position =" &
+                          Natural'Image (Position));
+            raise;
       end Just_Before;
    end Parser;
 
