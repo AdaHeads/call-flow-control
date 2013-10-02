@@ -36,13 +36,7 @@ package PBX is
    function Status return PBX_Status_Type;
    --  Retrieve the current status of the
 
-private
-   type Reply_Ticket is tagged null record;
-   --  Null_Reply : constant Reply_Ticket := Reply_Ticket (AMI.Null_Action_ID);
-
-   Connection_Delay        : Duration     := 1.0;
-   Shutdown                : Boolean      := False;
-
+   --  TODO: The following should be private:
    procedure Authenticate;
 
    procedure Connect;
@@ -52,5 +46,12 @@ private
    Client         : ESL.Client.Tasking.Instance
      (On_Connect_Handler    => Authenticate'Access,
       On_Disconnect_Handler => Connect'Access);
+
+private
+   type Reply_Ticket is tagged null record;
+   --  Null_Reply : constant Reply_Ticket := Reply_Ticket (AMI.Null_Action_ID);
+
+   Connection_Delay        : Duration     := 1.0;
+   Shutdown                : Boolean      := False;
 
 end PBX;
