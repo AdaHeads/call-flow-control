@@ -160,19 +160,13 @@ package body Handlers.Message is
 
          function Bad_Or_Missing_Message return Boolean;
          function No_Contacts_Selected return Boolean;
-         function Contact_Does_Not_Exist
-                    (ID :    out Contact_In_Organization) return Boolean;
-         function Contact_Without_Messaging_Addresses
-                    (ID :    out Contact_In_Organization) return Boolean;
+         function Contact_Does_Not_Exist return Boolean;
+         function No_Messaging_Addresses return Boolean;
 
          function Bad_Or_Missing_Message return AWS.Response.Data;
          function No_Contacts_Selected return AWS.Response.Data;
-         function Contact_Does_Not_Exist
-                    (ID : in     Contact_In_Organization)
-                    return AWS.Response.Data;
-         function Contact_Without_Messaging_Addresses
-                    (ID : in     Contact_In_Organization)
-                    return AWS.Response.Data;
+         function Contact_Does_Not_Exist return AWS.Response.Data;
+         function No_Messaging_Addresses return AWS.Response.Data;
          function Message_Sent return AWS.Response.Data;
 
          function Bad_Or_Missing_Message return Boolean is
@@ -202,8 +196,7 @@ package body Handlers.Message is
                Status_Code  => HTTP_Codes.Bad_Request);
          end Bad_Or_Missing_Message;
 
-         function Contact_Does_Not_Exist
-                    (ID :    out Contact_In_Organization) return Boolean is
+         function Contact_Does_Not_Exist return Boolean is
             procedure Look_Up (Contacts  : in     String;
                                Found_All :    out Boolean;
                                Missing   :    out Contact_In_Organization);
@@ -274,50 +267,42 @@ package body Handlers.Message is
                              ", Missing => " & Image (Missing) & ".");
             end Look_Up;
 
-            Result : Boolean := False;
+            ID   : Contact_In_Organization := (0, 0);
             Okay : Boolean;
          begin
-            ID := (0, 0); --  Should really make ID a conditional variable.
-
             if Parameters.Exist ("to") then
                Look_Up (Contacts  => Parameters.Get ("to"),
                         Found_All => Okay,
                         Missing   => ID);
                if not Okay then
-                  System_Message.Debug.Leaving_Subprogram
-                    (Message => "Could not find " & Image (ID) &
-                                " in database.");
-                  Result := True; --  return True;
+                  return True;
                end if;
             end if;
 
-            if not Result and then Parameters.Exist ("cc") then
+            if Parameters.Exist ("cc") then
                Look_Up (Contacts  => Parameters.Get ("cc"),
                         Found_All => Okay,
                         Missing   => ID);
                if not Okay then
-                  Result := True; --  return True;
+                  return True;
                end if;
             end if;
 
-            if not Result and then Parameters.Exist ("bcc") then
+            if Parameters.Exist ("bcc") then
                Look_Up (Contacts  => Parameters.Get ("bcc"),
                         Found_All => Okay,
                         Missing   => ID);
                if not Okay then
-                  Result := True; --  return True;
+                  return True;
                end if;
             end if;
 
             System_Message.Debug.Leaving_Subprogram
-              (Message => "Contact_Does_Not_Exist returns " &
-                          Boolean'Image (Result));
-            return Result; --  False;
+              (Message => "Contact_Does_Not_Exist returns False.");
+            return False;
          end Contact_Does_Not_Exist;
 
-         function Contact_Does_Not_Exist
-                    (ID : in     Contact_In_Organization)
-                    return AWS.Response.Data is
+         function Contact_Does_Not_Exist return AWS.Response.Data is
             Data : JSON_Value;
          begin
             System_Message.Debug.Entered_Subprogram
@@ -328,11 +313,8 @@ package body Handlers.Message is
             Data.Set_Field (Field_Name => View.Status,
                             Field      => "not_found");
             Data.Set_Field (Field_Name => View.Description,
-                            Field      => "there is no contact with id " &
-                                          Image (ID.Contact_ID) & "in the " &
-                                          "organization with id "&
-                                          Image (ID.Organization_ID) &
-                                          "in the database");
+                            Field      => "one of the passed contacts could " &
+                                          "not be found in the database");
 
             return AWS.Response.Build
               (Content_Type => MIME_Types.JSON,
@@ -346,35 +328,6 @@ package body Handlers.Message is
                              "AWS.Response.Data)");
                raise;
          end Contact_Does_Not_Exist;
-
-         function Contact_Without_Messaging_Addresses
-                    (ID :    out Contact_In_Organization) return Boolean is
-         begin
-            raise Program_Error
-              with "Check ""Contact_Without_Messaging_Addresses"" not " &
-	           "implemented yet.";
-            return True;
-         end Contact_Without_Messaging_Addresses;
-
-         function Contact_Without_Messaging_Addresses
-                    (ID : in     Contact_In_Organization)
-                    return AWS.Response.Data is
-            Data : JSON_Value;
-         begin
-            Data := Create_Object;
-
-            Data.Set_Field (Field_Name => View.Status,
-                            Field      => "not_found");
-            Data.Set_Field (Field_Name => View.Description,
-                            Field      => "contact " & Image (ID) &
-                                          " has no messaging addresses in " &
-                                          "the database");
-
-            return AWS.Response.Build
-              (Content_Type => MIME_Types.JSON,
-               Message_Body => To_String (To_JSON_String (Data)),
-               Status_Code  => HTTP_Codes.Not_Found);
-         end Contact_Without_Messaging_Addresses;
 
          function Message_Sent return AWS.Response.Data is
             Data : JSON_Value;
@@ -417,25 +370,41 @@ package body Handlers.Message is
                Status_Code  => HTTP_Codes.Bad_Request);
          end No_Contacts_Selected;
 
-         ID : Contact_In_Organization;
-      begin
-         declare
-            Dummy : Boolean;
+         function No_Messaging_Addresses return Boolean is
          begin
-            Dummy := Contact_Does_Not_Exist (ID);
-            System_Message.Debug.Jacob_Wants_To_See_This
-              (Message => "Contact_Does_Not_Exist returned " &
-                          Boolean'Image (Dummy));
-         end;
+            raise Program_Error
+              with "Check ""Contact_Without_Messaging_Addresses"" not " &
+                   "implemented yet.";
+            return True;
+         end No_Messaging_Addresses;
 
+         function No_Messaging_Addresses return AWS.Response.Data is
+            Data : JSON_Value;
+         begin
+            Data := Create_Object;
+
+            Data.Set_Field (Field_Name => View.Status,
+                            Field      => "not_found");
+            Data.Set_Field (Field_Name => View.Description,
+                            Field      => "none of the passed contacts have " &
+                                          "an enabled messaging address in " &
+                                          "the database");
+
+            return AWS.Response.Build
+              (Content_Type => MIME_Types.JSON,
+               Message_Body => To_String (To_JSON_String (Data)),
+               Status_Code  => HTTP_Codes.Not_Found);
+         end No_Messaging_Addresses;
+
+      begin
          if Bad_Or_Missing_Message then
             return Bad_Or_Missing_Message;
          elsif No_Contacts_Selected then
             return No_Contacts_Selected;
-         elsif Contact_Does_Not_Exist (ID)  then
-            return Contact_Does_Not_Exist (ID);
-         elsif Contact_Without_Messaging_Addresses (ID) then
-            return Contact_Without_Messaging_Addresses (ID);
+         elsif Contact_Does_Not_Exist then
+            return Contact_Does_Not_Exist;
+         elsif No_Messaging_Addresses then
+            return No_Messaging_Addresses;
          else
             --  Send message and then ...
             return Message_Sent;

@@ -1,1 +1,1 @@
-{"status": "not found","description": "there is no contact with id 42 in the organization with id 1 in the database"}
+{"status": "not_found","description": "one of the passed contacts could not be found in the database"}
