@@ -37,9 +37,9 @@ VALUES --  Adaheads
        (3, 3, '{"tags":["jobansøger","2730","3660","3520"]}'),
        (3, 4, '{"tags":["Ny kunde","Salg","Uadresserede"]}');
 
-INSERT INTO end_points (contact_id, organization_id,
-                        address_type, address,
-                        confidential, messaging)
+INSERT INTO messaging_end_points (contact_id, organization_id,
+                                  address_type, address,
+                                  confidential, messaging)
 VALUES --  Adaheads
        (1, 1, 'e-mail', 'tl@adaheads.com',       FALSE, TRUE),
        (1, 1, 'sms',    '+4560431992',           FALSE, FALSE),

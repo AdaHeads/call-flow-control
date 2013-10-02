@@ -1,10 +1,10 @@
---- schema.sql	2013-09-30 10:08:01.000000000 +0000
-+++ postgresql/schema.sql	2013-09-30 10:27:56.000000000 +0000
-@@ -117,3 +117,39 @@
+--- schema.sql	2013-10-02 13:12:24.000000000 +0000
++++ /tmp/schema.sql	2013-10-02 13:13:26.000000000 +0000
+@@ -124,3 +124,55 @@
  );
  
  -------------------------------------------------------------------------------
-+--  Create and enable sequences:
++--  Create and enable sequences (AUTOINCREMENT):
 +
 +CREATE SEQUENCE contact_id_seq
 + START WITH 1
@@ -24,19 +24,35 @@
 +ALTER SEQUENCE organization_id_seq OWNED BY organizations.id;
 +ALTER TABLE ONLY organizations ALTER COLUMN id SET DEFAULT nextval ('organization_id_seq'::regclass);
 +
++CREATE SEQUENCE address_id_seq
++ START WITH 1
++ INCREMENT BY 1
++ NO MINVALUE
++ NO MAXVALUE
++ CACHE 1;
++ALTER SEQUENCE address_id_seq OWNED BY messaging_addresses.id;
++ALTER TABLE ONLY messaging_addresses ALTER COLUMN id SET DEFAULT nextval ('address_id_seq'::regclass);
++
 +-------------------------------------------------------------------------------
 +--  Set ownership:
 +
-+ALTER TABLE dial_plans            OWNER TO alice;
-+ALTER TABLE kinds                 OWNER TO alice;
-+ALTER TABLE special_days          OWNER TO alice;
-+ALTER TABLE contacts              OWNER TO alice;
-+ALTER TABLE organizations         OWNER TO alice;
-+ALTER TABLE organization_contacts OWNER TO alice;
-+ALTER TABLE users                 OWNER TO alice;
-+ALTER TABLE user_ids              OWNER TO alice;
++ALTER TABLE dial_plans              OWNER TO alice;
++ALTER TABLE kinds                   OWNER TO alice;
++ALTER TABLE special_days            OWNER TO alice;
++ALTER TABLE contact_types           OWNER TO alice;
++ALTER TABLE contacts                OWNER TO alice;
++ALTER TABLE organizations           OWNER TO alice;
++ALTER TABLE organization_contacts   OWNER TO alice;
++ALTER TABLE messaging_address_types OWNER TO alice;
++ALTER TABLE messaging_addresses     OWNER TO alice;
++ALTER TABLE messaging_end_points    OWNER TO alice;
++ALTER TABLE recipient_visibilities  OWNER TO alice;
++ALTER TABLE distribution_lists      OWNER TO alice;
++ALTER TABLE users                   OWNER TO alice;
++ALTER TABLE user_ids               OWNER TO alice;
 +
-+ALTER TABLE public.contact_id_seq      OWNER TO alice;
-+ALTER TABLE public.organization_id_seq OWNER TO alice;
++ALTER SEQUENCE contact_id_seq      OWNER TO alice;
++ALTER SEQUENCE organization_id_seq OWNER TO alice;
++ALTER SEQUENCE address_id_seq      OWNER TO alice;
 +
 +-------------------------------------------------------------------------------
