@@ -189,13 +189,12 @@ package body Model.Contact is
          Contact := Instance;
       end Get_Element;
 
-      Parameters : constant SQL_Parameters := (1 => +Integer (ID.Contact_ID),
-                                               2 => +Integer (ID.Organization_ID));
    begin
       Process_Select_Query
         (Process_Element    => Get_Element'Access,
          Prepared_Statement => SQL.Contact_Org_Specified_Prepared,
-         Query_Parameters   => Parameters);
+         Query_Parameters   => (1 => +Integer (ID.Contact_ID),
+                                2 => +Integer (ID.Organization_ID)));
 
       return Contact;
    end Get;
