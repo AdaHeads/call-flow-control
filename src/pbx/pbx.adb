@@ -41,12 +41,16 @@ package body PBX is
    task Connect_Task is
       entry Start;
    end Connect_Task;
-   --  The sole purpose of the connect task is to ensure that we return to the
-   --  main context, and don't get caught in an infinite reconnect loop.
+   --  The sole purpose of the connect task is to ensure that we can
+   --  return to the main context, and don't get caught in an
+   --  infinite reconnect loop.
 
-   procedure Connect;
-   --  Wraps the connection and wait mechanism and provides a neat callback
-   --  for the On_Disconnect event in the AMI.Client.
+   procedure Authenticate is
+   begin
+      System_Messages.Notify
+           (Information, "PBX.Authenticate: Authenticating");
+      Client.Authenticate (Password => Config.Get (PBX_Secret));
+   end Authenticate;
 
    ---------------
    --  Connect  --
@@ -54,18 +58,25 @@ package body PBX is
 
    procedure Connect is
    begin
-      delay until Next_Reconnect;
-      Next_Reconnect := Clock + 3.0;
+      while not Client.Connected loop
+         exit when Shutdown;
+         delay until Next_Reconnect;
+         Next_Reconnect := Clock + 2.0;
 
-      if not Shutdown then
+         if not Shutdown then
+            System_Messages.Notify
+              (Information, "PBX.Connect: Connecting");
+            Client.Connect (Hostname => Config.Get (PBX_Host),
+                            Port     => Config.Get (PBX_Port));
+         end if;
+      end loop;
+
+      if Client.Connected then
          System_Messages.Notify
-           (Information, "PBX.Connect: Connecting");
-         Client.Connect (Hostname => Config.Get (PBX_Host),
-                         Port     => Config.Get (PBX_Port));
-         Client.Authenticate (Password => Config.Get (PBX_Secret));
-
+           (Information, "PBX.Connect: subscribing for events");
          Client.Send (Item => "event plain all");
-
+         System_Messages.Notify
+           (Information, "PBX.Connect: subscribed for events");
       end if;
 
    end Connect;

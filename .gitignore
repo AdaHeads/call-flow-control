@@ -2,6 +2,8 @@
 build*/*
 !build*/.gitignore
 src/tests/*/b~*.ad[sb]
+*.ali
+*.o
 
 # Do not track the .ini and json files in exe/configuration
 exe/configuration/*.ini

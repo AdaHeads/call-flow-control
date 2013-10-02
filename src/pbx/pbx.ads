@@ -18,7 +18,6 @@
 with ESL.Client.Tasking;
 
 package PBX is
-   --  use AMI;
 
    --
    type Reply_Ticket is tagged private;
@@ -27,11 +26,6 @@ package PBX is
 
    type PBX_Status_Type is (Shut_Down, Shutting_Down, Running, Connecting,
                            Failure);
-
-   --  TODO: make this private and wrap every call to AMI
-   Client        : ESL.Client.Tasking.Instance
-     (On_Connect_Handler    => ESL.Client.Ignore_Event,
-      On_Disconnect_Handler => ESL.Client.Ignore_Event);
 
    procedure Start;
    --  Startup the PBX subsystem
@@ -48,4 +42,15 @@ private
 
    Connection_Delay        : Duration     := 1.0;
    Shutdown                : Boolean      := False;
+
+   procedure Authenticate;
+
+   procedure Connect;
+   --  Wraps the connection and wait mechanism and provides a neat callback
+   --  for the On_Disconnect event in the ESL.Client.
+
+   Client         : ESL.Client.Tasking.Instance
+     (On_Connect_Handler    => Authenticate'Access,
+      On_Disconnect_Handler => Connect'Access);
+
 end PBX;
