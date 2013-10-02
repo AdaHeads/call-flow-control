@@ -137,8 +137,7 @@ package body Handlers.Message is
             System_Message.Debug.Leaving_Subprogram
               (Event   => E,
                Message => "Just_Before: Source = """ & Source &
-                          """, Pattern = """ & Pattern & """, Position =" &
-                          Natural'Image (Position));
+                          """, Pattern = """ & Pattern & """");
             raise;
       end Just_Before;
    end Parser;
@@ -343,14 +342,17 @@ package body Handlers.Message is
             when E : others =>
                System_Message.Debug.Leaving_Subprogram
                  (Event   => E,
-                  Message => "Bug in Contact_Does_Not_Exist : AWS.Response.Data");
+                  Message => "Bug in Contact_Does_Not_Exist (returning " &
+                             "AWS.Response.Data)");
                raise;
          end Contact_Does_Not_Exist;
 
          function Contact_Without_Messaging_Addresses
                     (ID :    out Contact_In_Organization) return Boolean is
          begin
-            raise Program_Error with "Not implemented yet.";
+            raise Program_Error
+              with "Check ""Contact_Without_Messaging_Addresses"" not " &
+	           "implemented yet.";
             return True;
          end Contact_Without_Messaging_Addresses;
 
@@ -379,8 +381,9 @@ package body Handlers.Message is
          begin
             Data := Create_Object;
 
-            Data.Set_Field (Field_Name => View.Status,
-                            Field      => "not implemented yet");
+            Data.Set_Field
+              (Field_Name => View.Status,
+               Field      => "message sending not fully implemented yet");
 
             return AWS.Response.Build
               (Content_Type => MIME_Types.JSON,
