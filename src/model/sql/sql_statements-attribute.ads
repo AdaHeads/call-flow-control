@@ -27,15 +27,15 @@ package SQL_Statements.Attribute is
 
    Contact_Attributes_Query : constant SQL_Query
      := SQL_Select (Fields =>
-                      DB.Contact_Attributes.Contact_Id &       --  0
-                      DB.Contact_Attributes.Organization_Id &  --  1
-                      DB.Contact_Attributes.Json,              --  2
-                    From   => DB.Contact_Attributes);
+                      DB.Organization_Contacts.Contact_ID &       --  0
+                      DB.Organization_Contacts.Organization_ID &  --  1
+                      DB.Organization_Contacts.Attributes,              --  2
+                    From   => DB.Organization_Contacts);
 
-   Contact_With_Id_Attributes_Query : constant SQL_Query
+   Contact_With_ID_Attributes_Query : constant SQL_Query
      := Where_And (Query => Contact_Attributes_Query,
                    Where =>
-                     DB.Contact_Attributes.Contact_Id = Integer_Param (1));
+                     DB.Organization_Contacts.Contact_ID = Integer_Param (1));
 
    ----------------------------------------------------------------------------
    --  SQL for fetching the attributes of a contact related to a specific    --
@@ -45,9 +45,9 @@ package SQL_Statements.Attribute is
    Contact_Organization_Attributes_Query : constant SQL_Query
      := Where_And (Query => Contact_Attributes_Query,
                    Where =>
-                     DB.Contact_Attributes.Contact_Id = Integer_Param (1)
+                     DB.Organization_Contacts.Contact_ID = Integer_Param (1)
                    and
-                     DB.Contact_Attributes.Organization_Id =
+                     DB.Organization_Contacts.Organization_ID =
                        Integer_Param (2));
 
 end SQL_Statements.Attribute;

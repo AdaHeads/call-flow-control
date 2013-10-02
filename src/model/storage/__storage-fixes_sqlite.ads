@@ -22,8 +22,7 @@ package Storage.Fixes is
    use GNATCOLL.SQL.Exec;
 
    function Value (Item  : Forward_Cursor'Class;
-                   Field : Field_Index) return Boolean is
-      (Boolean'Value (Item.Value (Field)));
+                   Field : Field_Index) return Boolean;
    --  GNATCOLL.SQL.Exec.Boolean_Value does not work correctly with SQLite.
 
 end Storage.Fixes;

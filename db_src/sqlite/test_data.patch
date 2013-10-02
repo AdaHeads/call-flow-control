@@ -1,0 +1,44 @@
+--- test_data.sql	2013-09-30 10:51:48.000000000 +0000
++++ sqlite/test_data.sql	2013-09-30 10:52:42.000000000 +0000
+@@ -41,17 +41,17 @@
+                         address_type, address,
+                         confidential, messaging)
+ VALUES --  Adaheads
+-       (1, 1, 'e-mail', 'tl@adaheads.com',       FALSE, TRUE),
+-       (1, 1, 'sms',    '+4560431992',           FALSE, FALSE),
+-       (1, 4, 'e-mail', 'jsa@adaheads.com',      FALSE, TRUE),
+-       (1, 4, 'sms',    '+4521490804',           FALSE, TRUE),
+-       (1, 4, 'e-mail', 'jacob@jacob-sparre.dk', TRUE,  FALSE),
++       (1, 1, 'e-mail', 'tl@adaheads.com',       0, 1),
++       (1, 1, 'sms',    '+4560431992',           0, 0),
++       (1, 4, 'e-mail', 'jsa@adaheads.com',      0, 1),
++       (1, 4, 'sms',    '+4521490804',           0, 1),
++       (1, 4, 'e-mail', 'jacob@jacob-sparre.dk', 1, 0),
+        --  Fishermans Friends
+-       (2, 1, 'e-mail', 'thomas@responsum.dk',   FALSE, TRUE),
+-       (2, 1, 'sms',    '+4588329100',           FALSE, FALSE),
++       (2, 1, 'e-mail', 'thomas@responsum.dk',   0, 1),
++       (2, 1, 'sms',    '+4588329100',           0, 0),
+        --  Responsum
+-       (3, 1, 'e-mail', 'thomas@responsum.dk',   FALSE, TRUE),
+-       (3, 2, 'e-mail', 'trine@responsum.dk',    FALSE, TRUE);
++       (3, 1, 'e-mail', 'thomas@responsum.dk',   0, 1),
++       (3, 2, 'e-mail', 'trine@responsum.dk',    0, 1);
+ 
+ INSERT INTO distribution_lists (owner_contact_id,   owner_organization_id,
+                                 send_to_contact_id, send_to_organization_id,
+@@ -76,10 +76,10 @@
+ VALUES ('+4521490804', '<?xml version="1.0"?> <!DOCTYPE dial-plan> <dial-plan title="Jacob: Hang up on anonymous callers"> <start do="Start"/> <decision-tree title="Start"> <branch> <conditions> <caller number=""/> </conditions> <action do="Hang up"/> </branch> <fall-back do="Pass through"/> </decision-tree> <end-point title="Hang up"> <hang-up/> </end-point> <end-point title="Pass through"> <redirect to="+45 21 49 08 04"/> </end-point> </dial-plan>');
+ 
+ INSERT INTO users (name, is_receptionist, is_service_agent, is_administrator)
+-VALUES ('Tux',                      FALSE, FALSE, TRUE),
+-       ('AdaHeads Test User One',   TRUE,  FALSE, FALSE),
+-       ('AdaHeads Test User Two',   TRUE,  TRUE,  FALSE),
+-       ('AdaHeads Test User Three', TRUE,  TRUE,  TRUE);
++VALUES ('Tux',                      0, 0, 1),
++       ('AdaHeads Test User One',   1, 0, 0),
++       ('AdaHeads Test User Two',   1, 1, 0),
++       ('AdaHeads Test User Three', 1, 1, 1);
+ 
+ INSERT INTO user_ids (name, openid, priority)
+ VALUES ('Tux','https://tux.myopenid.com/', 1), 

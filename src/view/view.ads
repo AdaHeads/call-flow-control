@@ -30,6 +30,7 @@ package View is
    Channel           : constant String := "channel";
    Contact_ID        : constant String := "contact_id";
    Contacts          : constant String := "contacts";
+   Description       : constant String := "description";
    Full_Name         : constant String := "full_name";
    ID                : constant String := "id";
    Inbound           : constant String := "inbound";

@@ -31,7 +31,7 @@ package SQL_Prepared_Statements.Attribute is
    ----------------------------------------------------------------------------
 
    Contact_Attributes_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Contact_With_Id_Attributes_Query,
+     := Prepare (Query         => Contact_With_ID_Attributes_Query,
                  Auto_Complete => True,
                  On_Server     => Configuration.On_Server,
                  Name          => "contact_attributes");

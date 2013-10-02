@@ -43,7 +43,7 @@ package SQL_Prepared_Statements.Contact is
    ----------------------------------------------------------------------------
 
    Contact_Full_Prepared : constant Prepared_Statement
-     := Prepare (Query         => Contact_With_Id_Query_Full,
+     := Prepare (Query         => Contact_With_ID_Query_Full,
                  Auto_Complete => True,
                  On_Server     => Configuration.On_Server,
                  Name          => "contact_full");

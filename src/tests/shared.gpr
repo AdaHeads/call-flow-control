@@ -47,6 +47,8 @@ abstract project Shared is
               "__storage-connection_sqlite.ads";
             for Specification ("Storage.Fixes") use
               "__storage-fixes_sqlite.ads";
+            for Body ("Storage.Fixes") use
+              "__storage-fixes_sqlite.adb";
             for Specification ("SQL_Prepared_Statements.Configuration") use
               "__sql_prepared_statements-configuration_sqlite.ads";
       end case;

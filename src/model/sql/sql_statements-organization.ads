@@ -27,92 +27,92 @@ package SQL_Statements.Organization is
 
    Organizations_Mini_Query : constant SQL_Query
      := SQL_Select (Fields =>
-                      DB.Organization.Full_Name &  --  0
-                      DB.Organization.Uri &        --  1
-                      DB.Organization.Id,          --  2
-                    From   => DB.Organization);
+                      DB.Organizations.Full_Name &  --  0
+                      DB.Organizations.URI &        --  1
+                      DB.Organizations.ID,          --  2
+                    From   => DB.Organizations);
 
    Organizations_Midi_Query : constant SQL_Query
      := SQL_Select (Fields =>
-                      DB.Organization.Full_Name &  --  0
-                      DB.Organization.Uri &        --  1
-                      DB.Organization.Json &       --  2
-                      DB.Organization.Id,          --  3
-                    From => DB.Organization);
+                      DB.Organizations.Full_Name &  --  0
+                      DB.Organizations.URI &        --  1
+                      DB.Organizations.JSON &       --  2
+                      DB.Organizations.ID,          --  3
+                    From => DB.Organizations);
 
    Organization_Midi_Query : constant SQL_Query
      := Where_And (Organizations_Midi_Query,
-                   DB.Organization.Id = Integer_Param (1));
+                   DB.Organizations.ID = Integer_Param (1));
 
    Organization_URI_Midi_Query : constant SQL_Query
      := Where_And (Organizations_Midi_Query,
-                   DB.Organization.Uri = Text_Param (1));
+                   DB.Organizations.URI = Text_Param (1));
 
    Organization_Mini_Query : constant SQL_Query
      := Where_And (Organizations_Mini_Query,
-                   DB.Organization.Id = Integer_Param (1));
+                   DB.Organizations.ID = Integer_Param (1));
 
    Organization_URI_Mini_Query : constant SQL_Query
      := Where_And (Organizations_Mini_Query,
-                   DB.Organization.Uri = Text_Param (1));
+                   DB.Organizations.URI = Text_Param (1));
 
    ----------------------------------------------------------------------------
    --  SQL for fetching an organization and all associated contacts          --
    ----------------------------------------------------------------------------
 
    Org_Contacts_Join_1 : constant SQL_Left_Join_Table
-     := Left_Join (Full    => DB.Organization,
+     := Left_Join (Full    => DB.Organizations,
                    Partial => DB.Organization_Contacts,
                    On      =>
-                     DB.Organization_Contacts.FK (DB.Organization));
+                     DB.Organization_Contacts.FK (DB.Organizations));
 
    Org_Contacts_Join_2 : constant SQL_Left_Join_Table
      := Left_Join (Full    => Org_Contacts_Join_1,
-                   Partial => DB.Contact,
-                   On      => DB.Organization_Contacts.FK (DB.Contact));
+                   Partial => DB.Contacts,
+                   On      => DB.Organization_Contacts.FK (DB.Contacts));
 
    Org_Contacts_Attributes_Left_Join : constant SQL_Left_Join_Table
      := Left_Join (Full    => Org_Contacts_Join_2,
-                   Partial => DB.Contact_Attributes,
+                   Partial => DB.Organization_Contacts,
                    On      =>
-                     DB.Contact_Attributes.FK (DB.Contact));
+                     DB.Organization_Contacts.FK (DB.Contacts));
 
    Org_Contacts_Query : constant SQL_Query
      := SQL_Select (Fields =>
-                      DB.Organization.Full_Name &  --  0
-                      DB.Organization.Uri &        --  1
-                      DB.Organization.Json &       --  2
-                      DB.Organization.Id &         --  3
-                      DB.Contact.Id &              --  4
-                      DB.Contact.Full_Name &       --  5
-                      DB.Contact.Is_Human &        --  6
-                      DB.Contact_Attributes.Json,  --  7
+                      DB.Organizations.Full_Name &  --  0
+                      DB.Organizations.URI &        --  1
+                      DB.Organizations.JSON &       --  2
+                      DB.Organizations.ID &         --  3
+                      DB.Contacts.ID &              --  4
+                      DB.Contacts.Full_Name &       --  5
+                      DB.Contacts.Contact_Type &           --  6
+                      DB.Organization_Contacts.Attributes, --  7
                     From   => Org_Contacts_Attributes_Left_Join,
                     Where  =>
-                      DB.Organization.Id = Integer_Param (1)
+                      DB.Organizations.ID = Integer_Param (1)
                     and
-                      (DB.Contact_Attributes.Organization_Id =
+                      (DB.Organization_Contacts.Organization_ID =
                                                        Integer_Param (1)
                        or Is_Null
-                         (DB.Contact_Attributes.Organization_Id)));
+                         (DB.Organization_Contacts.Organization_ID)));
 
    Org_URI_Contacts_Query : constant SQL_Query
      := SQL_Select (Fields =>
-                      DB.Organization.Full_Name &  --  0
-                      DB.Organization.Uri &        --  1
-                      DB.Organization.Json &       --  2
-                      DB.Organization.Id &         --  3
-                      DB.Contact.Id &              --  4
-                      DB.Contact.Full_Name &       --  5
-                      DB.Contact.Is_Human &        --  6
-                      DB.Contact_Attributes.Json,  --  7
+                      DB.Organizations.Full_Name &         --  0
+                      DB.Organizations.URI &               --  1
+                      DB.Organizations.JSON &              --  2
+                      DB.Organizations.ID &                --  3
+                      DB.Contacts.ID &                     --  4
+                      DB.Contacts.Full_Name &              --  5
+                      DB.Contacts.Contact_Type &           --  6
+                      DB.Organization_Contacts.Attributes, --  7
                     From   => Org_Contacts_Attributes_Left_Join,
                     Where  =>
-                      DB.Organization.Uri = Text_Param (1)
+                      DB.Organizations.URI = Text_Param (1)
                     and
-                      (DB.Contact_Attributes.Organization_Id =
-                                                       DB.Organization.Id
+                      (DB.Organization_Contacts.Organization_ID =
+                                                       DB.Organizations.ID
                        or Is_Null
-                         (DB.Contact_Attributes.Organization_Id)));
+                         (DB.Organization_Contacts.Organization_Id)));
 
 end SQL_Statements.Organization;

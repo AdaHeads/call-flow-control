@@ -15,35 +15,16 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.SQL;
+package body Storage.Fixes is
 
-package SQL_Statements.Users is
+   function Value (Item  : Forward_Cursor'Class;
+                   Field : Field_Index) return Boolean is
+   begin
+      return Boolean'Val (Item.Integer_Value (Field));
+   exception
+      when Constraint_Error =>
+         --  For when we get a 'FALSE'/'TRUE' response:
+         return Boolean'Value (Item.Value (Field));
+   end Value;
 
-   use GNATCOLL.SQL;
-
-   User_List_Query : constant SQL_Query
-     := Distinct (SQL_Select (Fields => DB.User_IDs.Name,
-                              From   => DB.User_IDs));
-
-   OpenID_List_Query : constant SQL_Query
-     := SQL_Select (Fields   => DB.User_IDs.OpenID,
-                    From     => DB.User_IDs,
-                    Where    => DB.User_IDs.Name = Text_Param (1),
-                    Order_By => DB.User_IDs.Priority);
-
-   Permission_List_Query : constant SQL_Query
-     := SQL_Select (Fields   => DB.Users.Is_Receptionist &
-                                DB.Users.Is_Service_Agent &
-                                DB.Users.Is_Administrator,
-                    From     => DB.Users,
-                    Where    => DB.Users.Name = Text_Param (1));
-
-   Permissions_By_ID : constant SQL_Query
-     := SQL_Select (Fields   => DB.Users.Is_Receptionist &
-                                DB.Users.Is_Service_Agent &
-                                DB.Users.Is_Administrator,
-                    From     => DB.User_IDs & DB.Users,
-                    Where    => DB.User_IDs.Name   = DB.Users.Name and
-                                DB.User_IDs.OpenID = Text_Param (1));
-
-end SQL_Statements.Users;
+end Storage.Fixes;
