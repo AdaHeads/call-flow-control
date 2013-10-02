@@ -217,7 +217,8 @@ package body Handlers.Message is
                           (Item : in Contact_In_Organization) return Boolean is
                begin
                   System_Message.Debug.Entered_Subprogram
-                    (Message => "Exists_In_Database (Item => " & Image (Item) & ")?");
+                    (Message => "Exists_In_Database (Item => " & Image (Item) &
+                                ")?");
 
                   declare
                      use type Model.Contact_Identifier;
@@ -225,7 +226,9 @@ package body Handlers.Message is
                                  Model.Contact.Get (Item);
                   begin
                      System_Message.Debug.Leaving_Subprogram
-                       (Message => "return " & Boolean'Image (Contact.ID = Item.Contact_ID));
+                       (Message => "return " &
+                                   Boolean'Image
+                                     (Contact.ID = Item.Contact_ID));
 
                      return Contact.ID = Item.Contact_ID;
                   end;
@@ -267,7 +270,9 @@ package body Handlers.Message is
                end loop Check_Contacts;
 
                System_Message.Debug.Leaving_Subprogram
-                 (Message => "Contacts => """ & Contacts & """, Found_All => " & Boolean'Image (Found_All) & ", Missing => " & Image (Missing) & ".");
+                 (Message => "Contacts => """ & Contacts & """, " &
+                             "Found_All => " & Boolean'Image (Found_All) &
+                             ", Missing => " & Image (Missing) & ".");
             end Look_Up;
 
             Result : Boolean := False;
@@ -281,7 +286,8 @@ package body Handlers.Message is
                         Missing   => ID);
                if not Okay then
                   System_Message.Debug.Leaving_Subprogram
-                    (Message => "Could not find " & Image (ID) & " in database.");
+                    (Message => "Could not find " & Image (ID) &
+                                " in database.");
                   Result := True; --  return True;
                end if;
             end if;
@@ -305,7 +311,8 @@ package body Handlers.Message is
             end if;
 
             System_Message.Debug.Leaving_Subprogram
-              (Message => "Contact_Does_Not_Exist returns " & Boolean'Image (Result));
+              (Message => "Contact_Does_Not_Exist returns " &
+                          Boolean'Image (Result));
             return Result; --  False;
          end Contact_Does_Not_Exist;
 
