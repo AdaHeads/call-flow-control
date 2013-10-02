@@ -1,5 +1,5 @@
 --- schema.sql	2013-10-02 13:12:24.000000000 +0000
-+++ sqlite/schema.sql	2013-10-02 13:38:50.000000000 +0000
++++ sqlite/schema.sql	2013-10-02 13:49:46.000000000 +0000
 @@ -3,7 +3,7 @@
  
  CREATE TABLE dial_plans (
@@ -100,7 +100,7 @@
 +CREATE INDEX organizations_primary_key ON organizations (id);
 +CREATE INDEX organization_contacts_primary_key ON organization_contacts (organization_id, contact_id);
 +CREATE INDEX address_types_primary_key ON messaging_address_types (value);
-+CREATE INDEX end_points_primary_key ON messaging_end_points (contact_id, organization_id, address, address_type);
++CREATE INDEX end_points_primary_key ON messaging_end_points (contact_id, organization_id, address_id);
 +CREATE INDEX recipient_visibilities_primary_key ON recipient_visibilities (value);
 +CREATE INDEX distribution_lists_primary_key ON distribution_lists (id);
 +CREATE INDEX users_primary_key ON users (name);

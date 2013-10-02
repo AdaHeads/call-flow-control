@@ -1,16 +1,14 @@
 BEGIN TRANSACTION;
 
-INSERT INTO contacts (id, full_name)
-VALUES (1, 'Thomas Løcke'),
-       (2, 'Trine Løcke'),
-       (3, 'Steen Løcke'),
-       (4, 'Kim Rostgaard Christensen'),
-       (5, 'Jacob Sparre Andersen'),
-       (6, 'Sidsel Schomacker'),
-       (7, 'Ulrik Hørlyk Hjort');
-
 INSERT INTO contacts (id, full_name, contact_type)
-VALUES (8, 'Support', 'function');
+VALUES (1, 'Thomas Løcke', 'human'),
+       (2, 'Trine Løcke', 'human'),
+       (3, 'Steen Løcke', 'human'),
+       (4, 'Kim Rostgaard Christensen', 'human'),
+       (5, 'Jacob Sparre Andersen', 'human'),
+       (6, 'Sidsel Schomacker', 'human'),
+       (7, 'Ulrik Hørlyk Hjort', 'human'),
+       (8, 'Support', 'function');
 
 INSERT INTO organizations (id, full_name, uri, json)
 VALUES (1, 'AdaHeads K/S', 'adaheads_ks_1', '{"website":"http://adaheads.com","greeting":"Velkommen til AdaHeads, hvad kan jeg hjælpe med?"}'),
@@ -18,51 +16,61 @@ VALUES (1, 'AdaHeads K/S', 'adaheads_ks_1', '{"website":"http://adaheads.com","g
        (3, 'Responsum K/S', 'responsum_ks_3', '{"website":"http://responsum.dk","greeting":"Velkommen til Responsum - du taler med ..."}'),
        (4, 'Hansen VVS A/S', 'hansen_vvs_4', '{"website":"http://hansenvvs.dk","greeting":"Hansen VVS goddag"}');
 
-INSERT INTO organization_contacts (organization_id, contact_id, attributes)
+INSERT INTO organization_contacts (organization_id, contact_id, attributes, distribution_list_id)
 VALUES --  Adaheads
-       (1, 1, '{"tags":["AWS","Slackware"]}'),
-       (1, 2, '{"tags":["usability"]}'),
-       (1, 3, '{"tags":["CFO"]}'),
-       (1, 4, '{"tags":["Ada","Linux"]}'),
-       (1, 5, '{"tags":["Ada","physics"]}'),
-       (1, 6, ''),
-       (1, 7, '{"tags":["embedded"]}'),
+       (1, 1, '{"tags":["AWS","Slackware"]}', 1),
+       (1, 2, '{"tags":["usability"]}', 1),
+       (1, 3, '{"tags":["CFO"]}', 2),
+       (1, 4, '{"tags":["Ada","Linux"]}', 2),
+       (1, 5, '{"tags":["Ada","physics"]}', 2),
+       (1, 6, '', 3),
+       (1, 7, '{"tags":["embedded"]}', 3),
        --  Fishermans Friends
-       (2, 1, '{"tags":["Ada","Slackware","Linux"]}'),
-       (2, 4, '{"tags":["Ada","Slackware","Linux"]}'),
-       (2, 8, ''),
+       (2, 1, '{"tags":["Ada","Slackware","Linux"]}', 4),
+       (2, 4, '{"tags":["Ada","Slackware","Linux"]}', 4),
+       (2, 8, '', 5),
        --  Responsum
-       (3, 1, '}'),
-       (3, 2, '{"tags":["IT","Support","Printer"]}'),
-       (3, 3, '{"tags":["jobansøger","2730","3660","3520"]}'),
-       (3, 4, '{"tags":["Ny kunde","Salg","Uadresserede"]}');
+       (3, 1, '}', 5),
+       (3, 2, '{"tags":["IT","Support","Printer"]}', 5),
+       (3, 3, '{"tags":["jobansøger","2730","3660","3520"]}', 5),
+       (3, 4, '{"tags":["Ny kunde","Salg","Uadresserede"]}', 5);
+
+INSERT INTO messaging_addresses (id, address_type, address)
+VALUES (1, 'e-mail', 'tl@adaheads.com'),
+       (2, 'sms',    '+4560431992'),
+       (3, 'e-mail', 'jsa@adaheads.com'),
+       (4, 'sms',    '+4521490804'),
+       (5, 'e-mail', 'jacob@jacob-sparre.dk'),
+       (6, 'e-mail', 'thomas@responsum.dk'),
+       (7, 'sms',    '+4588329100'),
+       (9, 'e-mail', 'trine@responsum.dk');
 
 INSERT INTO messaging_end_points (contact_id, organization_id,
-                                  address_type, address,
-                                  confidential, messaging)
+                                  address_id,
+                                  confidential, enabled)
 VALUES --  Adaheads
-       (1, 1, 'e-mail', 'tl@adaheads.com',       FALSE, TRUE),
-       (1, 1, 'sms',    '+4560431992',           FALSE, FALSE),
-       (1, 4, 'e-mail', 'jsa@adaheads.com',      FALSE, TRUE),
-       (1, 4, 'sms',    '+4521490804',           FALSE, TRUE),
-       (1, 4, 'e-mail', 'jacob@jacob-sparre.dk', TRUE,  FALSE),
-       --  Fishermans Friends
-       (2, 1, 'e-mail', 'thomas@responsum.dk',   FALSE, TRUE),
-       (2, 1, 'sms',    '+4588329100',           FALSE, FALSE),
+       (1, 1, 1, FALSE, TRUE),
+       (2, 1, 2, FALSE, FALSE),
+       (3, 4, 3, FALSE, TRUE),
+       (4, 4, 4, FALSE, TRUE),
+       (5, 4, 5, TRUE,  FALSE),
+       --  Fishermans Friends                
+       (6, 1, 6, FALSE, TRUE),
+       (7, 1, 7, FALSE, FALSE),
        --  Responsum
-       (3, 1, 'e-mail', 'thomas@responsum.dk',   FALSE, TRUE),
-       (3, 2, 'e-mail', 'trine@responsum.dk',    FALSE, TRUE);
+       (8, 1, 8, FALSE, TRUE),
+       (9, 2, 9, FALSE, TRUE);
 
-INSERT INTO distribution_lists (owner_contact_id,   owner_organization_id,
-                                send_to_contact_id, send_to_organization_id,
-                                recipient_visibility)
-VALUES (1, 1, 1, 1, 'to'),
-       (1, 1, 1, 2, 'cc'),
-       (1, 2, 1, 2, 'to'),
-       (1, 2, 1, 1, 'cc'),
-       (1, 4, 1, 4, 'to'),
-       (2, 8, 3, 1, 'to'),
-       (2, 8, 3, 4, 'to');
+INSERT INTO distribution_lists (id,
+                                          send_to_contact_id, send_to_organization_id,
+                                          recipient_visibility)
+VALUES (1, 1, 1, 'to'),
+       (2, 1, 2, 'cc'),
+       (3, 1, 2, 'to'),
+       (4, 1, 1, 'cc'),
+       (5, 1, 4, 'to'),
+       (6, 3, 1, 'to'),
+       (7, 3, 4, 'to');
 
 INSERT INTO kinds (id)
 VALUES ('helligdag');
