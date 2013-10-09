@@ -105,7 +105,7 @@ ALTER TABLE organization_contacts
   ADD CONSTRAINT organization_contacts_distribution_list_id_foreign_key
     FOREIGN KEY (distribution_list_id)
       REFERENCES distribution_lists (id) MATCH SIMPLE
-      ON UPDATE CASCADE ON DELETE SET DEFAULT
+      ON UPDATE CASCADE ON DELETE SET DEFAULT;
 
 -------------------------------------------------------------------------------
 --  System users:
