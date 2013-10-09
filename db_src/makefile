@@ -7,6 +7,14 @@ test.db: sqlite/schema.sql sqlite/test_data.sql
 	sqlite3 test.db < sqlite/schema.sql
 	sqlite3 test.db < sqlite/test_data.sql
 
+sqlite/schema.sql: schema.sql to_sqlite
+	mkdir -p sqlite
+	./to_sqlite schema.sql
+
+sqlite/test_data.sql: test_data.sql to_sqlite
+	mkdir -p sqlite
+	./to_sqlite test_data.sql
+
 %/schema.sql: %/schema.patch schema.sql
 	rm -f $@
 	cp -p schema.sql $@
