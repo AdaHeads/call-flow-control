@@ -252,7 +252,7 @@ INSERT INTO phone_number_types (value) VALUES ('SIP'), ('PSTN');
 CREATE TABLE phone_numbers (
    id    INTEGER NOT NULL PRIMARY KEY, --  AUTOINCREMENT
    value TEXT    NOT NULL UNIQUE,
-   type  TEXT    NOT NULL REFERENCES phone_number_types (value)
+   kind  TEXT    NOT NULL REFERENCES phone_number_types (value)
 );
 
 CREATE TABLE contact_phone_numbers (
