@@ -10,7 +10,7 @@ VALUES (1, 'Thomas Løcke', 'human'),
        (7, 'Ulrik Hørlyk Hjort', 'human'),
        (8, 'Support', 'function');
 
-INSERT INTO organizations (id, full_name, uri, json)
+INSERT INTO organizations (id, full_name, uri, attributes)
 VALUES (1, 'AdaHeads K/S', 'adaheads_ks_1', '{"website":"http://adaheads.com","greeting":"Velkommen til AdaHeads, hvad kan jeg hjælpe med?"}'),
        (2, 'Fishermans Friends A/S', 'fishermans_friends_as_2', '{"website":"http://fishermansfriends.dk","greeting":"Fishermans Friends du taler med ... - hvad kan jeg hjælpe med?"}'),
        (3, 'Responsum K/S', 'responsum_ks_3', '{"website":"http://responsum.dk","greeting":"Velkommen til Responsum - du taler med ..."}'),

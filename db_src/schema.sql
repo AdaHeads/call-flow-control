@@ -1,4 +1,20 @@
 -------------------------------------------------------------------------------
+--  System users:
+
+CREATE TABLE users (
+   name             TEXT    NOT NULL PRIMARY KEY,
+   is_receptionist  BOOLEAN NOT NULL,
+   is_service_agent BOOLEAN NOT NULL,
+   is_administrator BOOLEAN NOT NULL
+);
+
+CREATE TABLE user_ids (
+   name     TEXT    NOT NULL REFERENCES users (name) ON UPDATE CASCADE ON DELETE CASCADE,
+   openid   TEXT    NOT NULL PRIMARY KEY,
+   priority INTEGER NOT NULL
+);
+
+-------------------------------------------------------------------------------
 --  Dial-plans:
 
 CREATE TABLE dial_plans (
@@ -30,14 +46,16 @@ INSERT INTO contact_types VALUES ('human'), ('function'), ('invisible');
 CREATE TABLE contacts (
    id           INTEGER NOT NULL PRIMARY KEY, --  AUTOINCREMENT
    full_name    TEXT    NOT NULL,
-   contact_type TEXT    NOT NULL REFERENCES contact_types (value)
+   contact_type TEXT    NOT NULL REFERENCES contact_types (value),
+   enabled      BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE organizations (
-   id        INTEGER NOT NULL PRIMARY KEY, --  AUTOINCREMENT
-   full_name TEXT    NOT NULL,
-   uri       TEXT    NOT NULL UNIQUE,
-   json      JSON    NOT NULL
+   id         INTEGER NOT NULL PRIMARY KEY, --  AUTOINCREMENT
+   full_name  TEXT    NOT NULL,
+   uri        TEXT    NOT NULL UNIQUE,
+   attributes JSON    NOT NULL,
+   enabled    BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE INDEX organization_uri_index ON organizations (uri);
@@ -48,6 +66,7 @@ CREATE TABLE organization_contacts (
    wants_messages       BOOLEAN NOT NULL DEFAULT TRUE,
    distribution_list_id INTEGER, --  Reference constraint added further down
    attributes           JSON,
+   enabled              BOOLEAN NOT NULL DEFAULT TRUE,
 
    PRIMARY KEY (organization_id, contact_id)
 );
@@ -102,25 +121,150 @@ CREATE TABLE distribution_lists (
 --  Late reference from organization_contacts to distribution_lists:
 
 ALTER TABLE organization_contacts
-  ADD CONSTRAINT organization_contacts_distribution_list_id_foreign_key
-    FOREIGN KEY (distribution_list_id)
-      REFERENCES distribution_lists (id) MATCH SIMPLE
-      ON UPDATE CASCADE ON DELETE SET DEFAULT;
+   ADD CONSTRAINT organization_contacts_distribution_list_id_foreign_key
+      FOREIGN KEY (distribution_list_id)
+         REFERENCES distribution_lists (id) MATCH SIMPLE
+         ON UPDATE CASCADE ON DELETE SET DEFAULT;
 
 -------------------------------------------------------------------------------
---  System users:
+--  Message dispatching:
 
-CREATE TABLE users (
-   name             TEXT    NOT NULL PRIMARY KEY,
-   is_receptionist  BOOLEAN NOT NULL,
-   is_service_agent BOOLEAN NOT NULL,
-   is_administrator BOOLEAN NOT NULL
+CREATE TABLE message_queue (
+   id                INTEGER   NOT NULL PRIMARY KEY, --  AUTOINCREMENT
+   message           TEXT      NOT NULL,
+   subject           TEXT      NOT NULL,
+   to_contact_id     INTEGER   NOT NULL REFERENCES contacts (id),
+   taken_from        TEXT      NOT NULL,
+   taken_by_agent_id INTEGER   NOT NULL REFERENCES users (id),
+   urgent            BOOLEAN   NOT NULL DEFAULT FALSE,
+   created_at        TIMESTAMP NOT NULL,
+   last_try          TIMESTAMP,
+   tries             INTEGER   NOT NULL DEFAULT 0
 );
 
-CREATE TABLE user_ids (
-   name     TEXT    NOT NULL REFERENCES users (name) ON UPDATE CASCADE ON DELETE CASCADE,
-   openid   TEXT    NOT NULL PRIMARY KEY,
-   priority INTEGER NOT NULL
+CREATE TABLE message_queue_recipients (
+   contact_id      INTEGER NOT NULL,
+   organization_id INTEGER NOT NULL,
+   message_id      INTEGER NOT NULL,
+   recipient_role  TEXT    NOT NULL  REFERENCES recipient_visibilities (value),
+
+   PRIMARY KEY (contact_id, organization_id, message_id),
+
+   FOREIGN KEY (contact_id, organization_id)
+      REFERENCES organization_contacts (contact_id, organization_id)
+      ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE archive_message_queue (
+   id                INTEGER   NOT NULL PRIMARY KEY,
+   message           TEXT      NOT NULL,
+   subject           TEXT      NOT NULL,
+   to_contact_id     INTEGER   NOT NULL REFERENCES contacts (id),
+   taken_from        TEXT      NOT NULL,
+   taken_by_agent_id INTEGER   NOT NULL REFERENCES users (id),
+   urgent            BOOLEAN   NOT NULL,
+   created_at        TIMESTAMP NOT NULL,
+   last_try          TIMESTAMP NOT NULL,
+   tries             INTEGER   NOT NULL
+);
+
+CREATE TABLE archive_message_queue_recipients (
+   contact_id         INTEGER NOT NULL,
+   organization_id    INTEGER NOT NULL,
+   message_id         INTEGER NOT NULL,
+   recipient_role     TEXT    NOT NULL REFERENCES recipient_visibilities (value),
+   resolved_addresses TEXT    NOT NULL,
+
+   PRIMARY KEY (contact_id, organization_id, message_id),
+
+   FOREIGN KEY (contact_id, organization_id)
+      REFERENCES organization_contacts (contact_id, organization_id)
+      ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-------------------------------------------------------------------------------
+--  Calendar events:
+
+CREATE TABLE calendar_events (
+   id      INTEGER   NOT NULL PRIMARY KEY, --  AUTOINCREMENT
+   start   TIMESTAMP NOT NULL,
+   stop    TIMESTAMP NOT NULL,
+   message TEXT      NOT NULL
+);
+
+CREATE TABLE contact_calendar (
+   organization_id INTEGER NOT NULL,
+   contact_id      INTEGER NOT NULL,
+   event_id        INTEGER NOT NULL REFERENCES calendar_events (id) ON UPDATE CASCADE ON DELETE CASCADE,
+
+   PRIMARY KEY (contact_id, organization_id, event_id),
+
+   FOREIGN KEY (contact_id, organization_id)
+      REFERENCES organization_contacts (contact_id, organization_id)
+      ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE organization_calendar (
+   organization_id INTEGER NOT NULL REFERENCES organizations (id)   ON UPDATE CASCADE ON DELETE CASCADE,
+   event_id        INTEGER NOT NULL REFERENCES calendar_events (id) ON UPDATE CASCADE ON DELETE CASCADE,
+
+   PRIMARY KEY (organization_id, event_id)
+);
+
+-------------------------------------------------------------------------------
+--  Recurring calendar events:
+
+CREATE TABLE recurring_calendar_events (
+  id               INTEGER   NOT NULL PRIMARY KEY, --  AUTOINCREMENT
+  start            TIME      NOT NULL,
+  stop             TIME      NOT NULL,
+  message          TEXT      NOT NULL,
+  pattern          JSON      NOT NULL,
+  first_occurrence TIMESTAMP NOT NULL,
+  expires          TIMESTAMP NOT NULL
+);
+
+CREATE TABLE contact_recurring_calendar (
+   organization_id INTEGER NOT NULL,
+   contact_id      INTEGER NOT NULL,
+   event_id        INTEGER NOT NULL REFERENCES recurring_calendar_events (id) ON UPDATE CASCADE ON DELETE CASCADE,
+
+   PRIMARY KEY (contact_id, organization_id, event_id),
+
+   FOREIGN KEY (contact_id, organization_id)
+      REFERENCES organization_contacts (contact_id, organization_id)
+      ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE organization_recurring_calendar (
+   organization_id INTEGER NOT NULL REFERENCES organizations (id) ON UPDATE CASCADE ON DELETE CASCADE,
+   event_id        INTEGER NOT NULL REFERENCES recurring_calendar_events (id) ON UPDATE CASCADE ON DELETE CASCADE,
+
+   PRIMARY KEY (organization_id, event_id)
+);
+
+-------------------------------------------------------------------------------
+--  Phones
+
+CREATE TABLE phone_number_types (value TEXT NOT NULL PRIMARY KEY);
+INSERT INTO phone_number_types (value) VALUES ('SIP'), ('PSTN');
+
+CREATE TABLE phone_numbers (
+   id    INTEGER NOT NULL PRIMARY KEY, --  AUTOINCREMENT
+   value TEXT    NOT NULL UNIQUE,
+   type  TEXT    NOT NULL REFERENCES phone_number_types (value)
+);
+
+CREATE TABLE contact_phone_numbers (
+   organization_id INTEGER NOT NULL,
+   contact_id      INTEGER NOT NULL,
+   phone_number_id INTEGER NOT NULL REFERENCES phone_numbers (id) ON UPDATE CASCADE ON DELETE CASCADE,
+
+   PRIMARY KEY (contact_id, organization_id, phone_number_id),
+
+   FOREIGN KEY (contact_id, organization_id)
+      REFERENCES organization_contacts (contact_id, organization_id)
+      ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 -------------------------------------------------------------------------------

@@ -14,9 +14,9 @@ fi
 #-----------------------------------------------------------------------------
 #--  Simple substitutions:
 
-perl -lpe 's/TRUE/1/g;
-           s/FALSE/0/g;
-           s/(XML|JSON)/TEXT/g;
+perl -lpe 's/\bTRUE\b/1/g;
+           s/\bFALSE\b/0/g;
+           s/\b(XML|JSON|TIMESTAMP|TIME)\b/TEXT/g;
            s/, -- +AUTOINCREMENT *$/ AUTOINCREMENT,/;' \
      "${source}" \
   > "${target}"
@@ -40,7 +40,7 @@ mv "${buffer}" "${target}"
 
 if grep -q 'CREATE TABLE' "${source}"; then
    cat >> "${target}" << HEAD
---  Primary key indexes:
+--  Primary key indices:
 
 HEAD
 
