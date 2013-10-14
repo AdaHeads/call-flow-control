@@ -15,8 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.SQL.Exec;
-with GNATCOLL.SQL.Sqlite;
+with GNATCOLL.SQL.Exec,
+     GNATCOLL.SQL.Exec.Tasking,
+     GNATCOLL.SQL.Sqlite;
 
 with Alice_Configuration;
 
@@ -29,6 +30,6 @@ private package Storage.Connection is
 
    function Get_Connection
      return GNATCOLL.SQL.Exec.Database_Connection is
-      (GNATCOLL.SQL.Exec.Get_Task_Connection (Description));
+      (GNATCOLL.SQL.Exec.Tasking.Get_Task_Connection (Description));
 
 end Storage.Connection;
