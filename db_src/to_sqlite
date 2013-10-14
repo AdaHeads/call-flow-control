@@ -4,7 +4,7 @@
 
 if [ $# = 1 -a -r "$1" ]; then
    source="$1"
-   target="$(dirname "$1")/sqlite/$(basename "$1")"
+   target="$(dirname "${source}")/sqlite/$(basename "${source}")"
 else
    echo "Usage:"                 1>&2
    echo "  $0 <source_sql_file>" 1>&2
@@ -46,7 +46,7 @@ HEAD
 
    normalised="$(mktemp)"
 
-   perl -lpe 's/--.*$//;' "$1" \
+   perl -lpe 's/--.*$//;' "${source}" \
      | tr '\n' ' ' \
      | perl -lpe 's/; +/;/g; s/;/;\n/g; s/^ +//; s/  +/ /g;' \
      > "${normalised}"
