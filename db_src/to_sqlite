@@ -30,7 +30,7 @@ grep -B4 -A4 'ALTER TABLE organization_contacts' "${target}" \
   | diff - "${target}" \
   | grep '^> ' \
   | cut -c3- \
-  | perl -lpe 's/^( *distribution_list_id) .*$/$1 INTEGER NOT NULL REFERENCES distribution_lists (id) ON UPDATE CASCADE ON DELETE CASCADE,/;' \
+  | perl -lpe 's/^( *distribution_list_id) .*$/$1 INTEGER REFERENCES distribution_lists (id) ON UPDATE CASCADE ON DELETE CASCADE,/;' \
   > "${buffer}"
 
 mv "${buffer}" "${target}"
