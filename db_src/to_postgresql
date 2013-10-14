@@ -14,7 +14,9 @@ fi
 #-----------------------------------------------------------------------------
 #--  Simple substitutions:
 
-cp -p "${source}" "${target}"
+perl -lpe 's/\b(TIME)\b(.*)$/INTEGER$2 --  Time of day in seconds/g;' \
+     "${source}" \
+  > "${target}"
 
 #-----------------------------------------------------------------------------
 #--  Sequences/autoincrement:
