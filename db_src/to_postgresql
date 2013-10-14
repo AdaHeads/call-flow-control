@@ -19,7 +19,7 @@ cp -p "${source}" "${target}"
 #-----------------------------------------------------------------------------
 #--  Sequences/autoincrement:
 
-if grep -q -- '-- +AUTOINCREMENT$' "${source}"; then
+if egrep -q -- '-- +AUTOINCREMENT$' "${source}"; then
    cat >> "${target}" << HEAD
 --  Create and enable sequences (AUTOINCREMENT):
 
