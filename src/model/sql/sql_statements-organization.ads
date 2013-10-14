@@ -36,7 +36,7 @@ package SQL_Statements.Organization is
      := SQL_Select (Fields =>
                       DB.Organizations.Full_Name &  --  0
                       DB.Organizations.URI &        --  1
-                      DB.Organizations.JSON &       --  2
+                      DB.Organizations.Attributes & --  2
                       DB.Organizations.ID,          --  3
                     From => DB.Organizations);
 
@@ -81,7 +81,7 @@ package SQL_Statements.Organization is
      := SQL_Select (Fields =>
                       DB.Organizations.Full_Name &  --  0
                       DB.Organizations.URI &        --  1
-                      DB.Organizations.JSON &       --  2
+                      DB.Organizations.Attributes & --  2
                       DB.Organizations.ID &         --  3
                       DB.Contacts.ID &              --  4
                       DB.Contacts.Full_Name &       --  5
@@ -100,7 +100,7 @@ package SQL_Statements.Organization is
      := SQL_Select (Fields =>
                       DB.Organizations.Full_Name &         --  0
                       DB.Organizations.URI &               --  1
-                      DB.Organizations.JSON &              --  2
+                      DB.Organizations.Attributes &        --  2
                       DB.Organizations.ID &                --  3
                       DB.Contacts.ID &                     --  4
                       DB.Contacts.Full_Name &              --  5
