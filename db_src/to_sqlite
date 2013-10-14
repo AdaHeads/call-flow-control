@@ -1,8 +1,15 @@
 #! /bin/bash
 #-----------------------------------------------------------------------------
+#--  Source and target file:
 
-source="$1"
-target="$(dirname "$1")/sqlite/$(basename "$1")"
+if [ $# = 1 -a -r "$1" ]; then
+   source="$1"
+   target="$(dirname "$1")/sqlite/$(basename "$1")"
+else
+   echo "Usage:"                 1>&2
+   echo "  $0 <source_sql_file>" 1>&2
+   exit 1
+fi
 
 #-----------------------------------------------------------------------------
 #--  Simple substitutions:
