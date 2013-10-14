@@ -29,6 +29,7 @@ endif
 
 all:
 	DATABASE=${DATABASE} gnatmake -j${PROCESSORS} -P alice
+	$(MAKE) -C db_src sources
 
 debug:
 	BUILDTYPE=Debug DATABASE=${DATABASE} gnatmake -j${PROCESSORS} -P alice
