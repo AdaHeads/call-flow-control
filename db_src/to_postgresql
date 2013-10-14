@@ -19,7 +19,7 @@ cp -p "${source}" "${target}"
 #-----------------------------------------------------------------------------
 #--  Sequences/autoincrement:
 
-if grep -q -- '--  AUTOINCREMENT$' "${source}"; then
+if grep -q -- '-- +AUTOINCREMENT$' "${source}"; then
    cat >> "${target}" << HEAD
 --  Create and enable sequences (AUTOINCREMENT):
 
@@ -27,7 +27,7 @@ HEAD
 
    normalised="$(mktemp)"
 
-   perl -lpe 's/(,?) +--  AUTOINCREMENT/ AUTOINCREMENT$1/;
+   perl -lpe 's/(,?) +-- +AUTOINCREMENT/ AUTOINCREMENT$1/;
               s/--.*$//;' "${source}" \
      | tr '\n' ' ' \
      | perl -lpe 's/; +/;/g; s/;/;\n/g; s/^ +//; s/  +/ /g;' \
