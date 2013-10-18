@@ -71,12 +71,6 @@ package SQL_Statements.Organization is
                    Partial => DB.Contacts,
                    On      => DB.Organization_Contacts.FK (DB.Contacts));
 
---     Org_Contacts_Attributes_Left_Join : constant SQL_Left_Join_Table
---       := Left_Join (Full    => Org_Contacts_Join_2,
---                     Partial => DB.Organization_Contacts,
---                     On      =>
---                       DB.Organization_Contacts.FK (DB.Contacts));
-
    Org_Contacts_Query : constant SQL_Query
      := SQL_Select (Fields =>
                       DB.Organizations.Full_Name &  --  0
