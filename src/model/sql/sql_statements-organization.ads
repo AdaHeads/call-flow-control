@@ -71,12 +71,6 @@ package SQL_Statements.Organization is
                    Partial => DB.Contacts,
                    On      => DB.Organization_Contacts.FK (DB.Contacts));
 
-   Org_Contacts_Attributes_Left_Join : constant SQL_Left_Join_Table
-     := Left_Join (Full    => Org_Contacts_Join_2,
-                   Partial => DB.Organization_Contacts,
-                   On      =>
-                     DB.Organization_Contacts.FK (DB.Contacts));
-
    Org_Contacts_Query : constant SQL_Query
      := SQL_Select (Fields =>
                       DB.Organizations.Full_Name &  --  0
@@ -87,7 +81,7 @@ package SQL_Statements.Organization is
                       DB.Contacts.Full_Name &       --  5
                       DB.Contacts.Contact_Type &           --  6
                       DB.Organization_Contacts.Attributes, --  7
-                    From   => Org_Contacts_Attributes_Left_Join,
+                    From   => Org_Contacts_Join_2,
                     Where  =>
                       DB.Organizations.ID = Integer_Param (1)
                     and
@@ -106,7 +100,7 @@ package SQL_Statements.Organization is
                       DB.Contacts.Full_Name &              --  5
                       DB.Contacts.Contact_Type &           --  6
                       DB.Organization_Contacts.Attributes, --  7
-                    From   => Org_Contacts_Attributes_Left_Join,
+                    From   => Org_Contacts_Join_2,
                     Where  =>
                       DB.Organizations.URI = Text_Param (1)
                     and

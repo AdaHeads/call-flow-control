@@ -27,4 +27,14 @@ kill -HUP $pid
 
 wait $pid
 
-exit $?
+result=$?
+
+if tail /var/log/messages | egrep -q ' sighup-test\[[0-9]+\]: \[INFO\] Stopping SIGHUP watcher - 2'; then
+   echo "Logging to syslog seems to work." 1>&2
+else
+   echo "Logging to syslog does not work.  Is syslog running?" 1>&2
+
+   let result=${result}+64
+fi
+
+exit ${result}
