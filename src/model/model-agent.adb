@@ -91,6 +91,7 @@ package body Model.Agent is
    begin
       Agent.Current_Call := Call;
    end Current_Call;
+
    ---------------------
    --  Current_State  --
    ---------------------

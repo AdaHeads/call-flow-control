@@ -17,11 +17,17 @@
 
 with Ada.Containers.Hashed_Maps;
 
---  with ESL.Response;
+with ESL.Reply;
+with ESL.UUID;
+with GNATCOLL.JSON;
 with PBX.Trace;
+with ESL.Command.Core;
+with ESL.Command.Call_Management;
 
 package body PBX.Action is
+   use GNATCOLL.JSON;
    use type PBX.Call.Identification;
+   use type ESL.Reply.Responses;
 
    function Remote_End (ID : in Call.Identification) return String;
    --  Determines which end of a call is the remote end.
@@ -116,39 +122,21 @@ package body PBX.Action is
    --  Bridge  --
    --------------
 
-   --  TODO
-   function Bridge (Source      : in PBX.Call.Identification;
-                    Destination : in PBX.Call.Identification;
-                    On_Response : in Response_Handler := Ignore)
-                    return Reply_Ticket
-
-   is
-      pragma Unreferenced (Source);
-      pragma Unreferenced (Destination);
-      pragma Unreferenced (On_Response);
-
+   procedure Bridge (Source      : in PBX.Call.Identification;
+                     Destination : in PBX.Call.Identification) is
       use PBX.Call;
-      Ticket : Reply_Ticket;
-      --        Bridge_Action : AMI.Packet.Action.Request :=
-      --                          AMI.Packet.Action.Bridge
-      --                            (Channel1    => To_String (Source),
-      --                             Channel2    => To_String (Destination),
-      --                             On_Response => Value (On_Response));
+
+      Reply         : ESL.Reply.Instance;
+      Bridge_Action : constant ESL.Command.Call_Management.Instance :=
+        ESL.Command.Call_Management.UUID_Bridge
+          (UUID       => Source,
+           UUID_Other => Destination);
    begin
-      null;
-      --        if
-      --          Source      = Call.Null_Channel_Identification or
-      --          Destination = Call.Null_Channel_Identification
-      --        then
-      --           raise Call.Null_Channel with
-      --             "Source "     & To_String (Source) & " " &
-      --             "Destination" & To_String (Destination);
-      --        end if;
-      --
-      --        PBX.Client.Send (Bridge_Action.To_AMI_Packet);
-      --
-      --        return Value (Bridge_Action.Action_ID);
-      return Ticket;
+      PBX.Client.API (Bridge_Action, Reply);
+
+      if Reply.Response /= ESL.Reply.OK then
+         raise Not_Found;
+      end if;
    end Bridge;
 
    -----------------------
@@ -165,26 +153,18 @@ package body PBX.Action is
    -- Hangup --
    ------------
 
-   --  TODO
-
-   function Hangup (ID : in PBX.Call.Identification) return Reply_Ticket is
+   procedure Hangup (ID : in PBX.Call.Identification) is
       use PBX.Call;
-      pragma Unreferenced (ID);
-
-      --        Hangup_Action : AMI.Packet.Action.Request :=
-      --                          AMI.Packet.Action.Hangup
-      --                            (Channel => To_String (Get (ID).Channel));
-      Ticket : Reply_Ticket;
+      Hangup_Action : constant ESL.Command.Call_Management.Instance :=
+        ESL.Command.Call_Management.UUID_Kill (UUID => ID.Image);
+      Reply : ESL.Reply.Instance;
 
    begin
-      --        if ID /= Null_Identification then
-      --           PBX.Client.Send (Hangup_Action.To_AMI_Packet);
-      --
-      --           return Value (Hangup_Action.Action_ID);
-      --        end if;
+      PBX.Client.API (Hangup_Action, Reply);
 
-      return Ticket;
-
+      if Reply.Response /= ESL.Reply.OK then
+         raise Not_Found;
+      end if;
    end Hangup;
 
    ------------
@@ -200,41 +180,72 @@ package body PBX.Action is
       return 1;
    end Hash;
 
-   -------------------
-   -- List_Channels --
-   -------------------
+   -----------------------
+   -- Update_Call_List  --
+   -----------------------
 
-   --  TODO
+   procedure Update_Call_List is
+      use ESL.Command;
 
-   function List_Channels (On_Response : in Response_Handler :=
-                             Ignore) return Reply_Ticket
-   is
-      --        List_Channels_Action  : AMI.Packet.Action.Request :=
-      --                                  AMI.Packet.Action.Core_Show_Channels
-      --
-      --  (On_Response => Value (On_Response));
-      pragma Unreferenced (On_Response);
-      Ticket : Reply_Ticket;
+      Context               : constant String :=
+        Package_Name & ".Update_Call_List";
+
+      Reply                 : ESL.Reply.Instance;
+      List_Channels_Action  : ESL.Command.Core.Instance :=
+        ESL.Command.Core.Show (Report => "calls");
    begin
-      --        Client.Send (List_Channels_Action);
-      --
-      --        return Value (List_Channels_Action.Action_ID);
-      return Ticket;
-   end List_Channels;
+      List_Channels_Action.Set_Format (Format => JSON);
+      PBX.Client.API (List_Channels_Action, Reply);
+
+      if Reply.Response = ESL.Reply.Error then
+         raise Error with "Update_Channel_List failed";
+      end if;
+
+      declare
+         JSON : constant JSON_Value :=
+           GNATCOLL.JSON.Read (Strm => Reply.Response_Body);
+         Arr  : JSON_Array;
+      begin
+
+         if JSON.Has_Field (Field => "rows") then
+            Arr := JSON.Get (Field => "rows");
+
+            for I in 1 .. Length (Arr) loop
+               declare
+                  Call_JSON : JSON_Value renames Get (Arr => Arr, Index => I);
+                  UUID      : constant PBX.Call.Identification :=
+                    ESL.UUID.Create (Call_JSON.Get (Field => "uuid"));
+               begin
+                  PBX.Call.Create_And_Insert
+                    (Inbound         =>
+                       (if   Call_JSON.Get ("direction") = "inbound"
+                        then True
+                        else False),
+                     ID              => UUID);
+                  if Call_JSON.Get (Field => "application") = "fifo" then
+                     PBX.Call.Get (Call => UUID).Change_State
+                       (New_State => PBX.Call.Queued);
+                  end if;
+               end;
+
+            end loop;
+         end if;
+      end;
+   end Update_Call_List;
 
    ---------------------
    --  List_SIP_Peers --
    ---------------------
 
-   --  TODO
    function List_SIP_Peers (On_Response : in Response_Handler :=
                               Ignore) return Reply_Ticket is
---        List_Peers_Action : AMI.Packet.Action.Request :=
---          AMI.Packet.Action.SIP_Peers
---            (On_Response => Value (On_Response));
+      --        List_Peers_Action : AMI.Packet.Action.Request :=
+      --          AMI.Packet.Action.SIP_Peers
+      --            (On_Response => Value (On_Response));
       pragma Unreferenced (On_Response);
       Ticket : Reply_Ticket;
    begin
+      raise Program_Error with "Not implemented!";
       --  Client.Send (List_Peers_Action);
 
       --  return Value (List_Peers_Action.Action_ID);
@@ -255,44 +266,21 @@ package body PBX.Action is
       end if;
    end Local_End;
 
-   -----------
-   -- Login --
-   -----------
-
-   function Login (Username    : in String;
-                   Secret      : in String;
-                   On_Response : in Response_Handler :=
-                     Ignore) return Reply_Ticket is
---        Login_Action : AMI.Packet.Action.Request :=
---          AMI.Packet.Action.Login
---            (Username    => Username,
---             Secret      => Secret,
---             On_Response => Value (On_Response));
-      pragma Unreferenced (Username);
-      pragma Unreferenced (Secret);
-      pragma Unreferenced (On_Response);
-      Ticket : Reply_Ticket;
-   begin
---        Client.Send (Login_Action);
---        return Value (Login_Action.Action_ID);
-      return Ticket;
-   end Login;
-
    ------------
    -- Logoff --
    ------------
 
    function Logoff (On_Response : in Response_Handler :=
                       Ignore) return Reply_Ticket is
---        List_Peers_Action : AMI.Packet.Action.Request :=
---          AMI.Packet.Action.Logoff
---            (On_Response => Value (On_Response));
+      --        List_Peers_Action : AMI.Packet.Action.Request :=
+      --          AMI.Packet.Action.Logoff
+      --            (On_Response => Value (On_Response));
       pragma Unreferenced (On_Response);
       Ticket : Reply_Ticket;
    begin
---        Client.Send (List_Peers_Action);
---
---        return Value (List_Peers_Action.Action_ID);
+      --        Client.Send (List_Peers_Action);
+      --
+      --        return Value (List_Peers_Action.Action_ID);
       return Ticket;
    end Logoff;
 
@@ -303,22 +291,22 @@ package body PBX.Action is
    procedure Originate (Agent       : in Model.Agent.Agent_Type;
                         Extension   : in String) is
       Context          : constant String := Package_Name & ".Originate";
---        Originate_Action : AMI.Packet.Action.Request :=
---          AMI.Packet.Action.Originate
---            (Channel     => Agent.Peer_ID.To_String,
---             Extension   => Extension,
---             Context     => Agent.Context,
---             Priority    => 1,
---             On_Response => Value (Ignore));
---        Packet           : AMI.Parser.Packet_Type;
+      --        Originate_Action : AMI.Packet.Action.Request :=
+      --          AMI.Packet.Action.Originate
+      --            (Channel     => Agent.Peer_ID.To_String,
+      --             Extension   => Extension,
+      --             Context     => Agent.Context,
+      --             Priority    => 1,
+      --             On_Response => Value (Ignore));
+      --        Packet           : AMI.Parser.Packet_Type;
       pragma Unreferenced (Agent);
    begin
       --  Outline the call. This is done prior to sending the action to assure
       --  that a request exist in the list when the action completes, thus
       --  avoiding the race condition.
---        Origination_Requests.Link
---          (Ticket  => Value (Originate_Action.Action_ID),
---           Call_ID => PBX.Call.Allocate (Assigned_To => Agent.ID));
+      --        Origination_Requests.Link
+      --          (Ticket  => Value (Originate_Action.Action_ID),
+      --           Call_ID => PBX.Call.Allocate (Assigned_To => Agent.ID));
 
       PBX.Trace.Debug
         (Message => "Sending Originate request with exten " &
@@ -327,11 +315,11 @@ package body PBX.Action is
          Level   => 1);
       --  Packet := Client.Send (Originate_Action);
 
---        if Packet.Header_Value /= "Success" then
---           Origination_Requests.Unlink (Value (Originate_Action.Action_ID));
---           --  Remove the allocated call if the request fails.
---           raise Error with Packet.Get_Value (AMI.Parser.Message);
---        end if;
+      --        if Packet.Header_Value /= "Success" then
+      --           Origination_Requests.Unlink (Value (Originate_Action.Action_ID));
+      --           --  Remove the allocated call if the request fails.
+      --           raise Error with Packet.Get_Value (AMI.Parser.Message);
+      --        end if;
    end Originate;
 
    -----------------
@@ -342,20 +330,20 @@ package body PBX.Action is
                        Extension   : in String)
                        return Reply_Ticket
    is
---        Originate_Action : AMI.Packet.Action.Request :=
---          AMI.Packet.Action.Originate
---            (Channel     => Agent.Peer_ID.To_String,
---             Extension   => Extension,
---             Context     => Agent.Context,
---             Priority    => 1,
---             On_Response => Value (Ignore));
+      --        Originate_Action : AMI.Packet.Action.Request :=
+      --          AMI.Packet.Action.Originate
+      --            (Channel     => Agent.Peer_ID.To_String,
+      --             Extension   => Extension,
+      --             Context     => Agent.Context,
+      --             Priority    => 1,
+      --             On_Response => Value (Ignore));
       pragma Unreferenced (Agent);
       pragma Unreferenced (Extension);
       Ticket : Reply_Ticket;
    begin
---        Client.Send (Originate_Action);
---
---        return Value (Originate_Action.Action_ID);
+      --        Client.Send (Originate_Action);
+      --
+      --        return Value (Originate_Action.Action_ID);
       return Ticket;
    end Originate;
 
@@ -383,27 +371,24 @@ package body PBX.Action is
    -- Park --
    ----------
 
-   function Park (ID               : in Call.Identification;
-                  Parking_Lot      : in String := "";
-                  On_Response      : in Response_Handler := Ignore)
-                  return Reply_Ticket is
-      pragma Unreferenced (ID, Parking_Lot);
+   procedure Park (ID : in Call.Identification) is
       use PBX.Call;
---        Park_Action : AMI.Packet.Action.Request :=
---          AMI.Packet.Action.Park
---            (Channel     => Remote_End (ID),
---             Channel2    => Local_End (ID),
---             Timeout     => 7200.0,
---             Parkinglot  => Parking_Lot,
---             On_Response =>
---               Value (On_Response));
-      pragma Unreferenced (On_Response);
-      Ticket : Reply_Ticket;
+      use ESL.Reply;
+      Park_Action : constant ESL.Command.Call_Management.Instance :=
+        ESL.Command.Call_Management.UUID_Park (UUID => ID.Image);
+      Reply : ESL.Reply.Instance;
+
    begin
---        Client.Send (Park_Action);
---
---        return Value (Park_Action.Action_ID);
-      return Ticket;
+      PBX.Trace.Information (Message => "Sending:" &
+                               String (Park_Action.Serialize),
+                             Context => "PBX.Action.Park");
+      PBX.Client.API (Park_Action, Reply);
+
+      --  TODO: Add more elaborate parsing here to determine if the call
+      --  really _isn't_ found.
+      if Reply.Response /= ESL.Reply.OK then
+         raise Not_Found;
+      end if;
    end Park;
 
    --------------
@@ -417,20 +402,42 @@ package body PBX.Action is
       On_Response  : in Response_Handler := Ignore) return Reply_Ticket
    is
       pragma Unreferenced (Channel, Extension, Context);
---        Redirect_Action : AMI.Packet.Action.Request :=
---          AMI.Packet.Action.Redirect
---            (Channel      => Channel,
---             Extension    => Extension,
---             Context      => Context,
---             On_Response  => Value (On_Response));
+      --        Redirect_Action : AMI.Packet.Action.Request :=
+      --          AMI.Packet.Action.Redirect
+      --            (Channel      => Channel,
+      --             Extension    => Extension,
+      --             Context      => Context,
+      --             On_Response  => Value (On_Response));
       pragma Unreferenced (On_Response);
       Ticket : Reply_Ticket;
    begin
---        Client.Send (Redirect_Action);
---
---        return Value (Redirect_Action.Action_ID);
+      --        Client.Send (Redirect_Action);
+      --
+      --        return Value (Redirect_Action.Action_ID);
       return Ticket;
    end Redirect;
+
+   procedure Transfer (Call  : in PBX.Call.Identification;
+                       Agent : in Model.Agent.Agent_Type) is
+      use PBX.Call;
+      use ESL.Reply;
+      Transfer_Action : constant ESL.Command.Call_Management.Instance :=
+        ESL.Command.Call_Management.UUID_Transfer
+          (UUID        => Call,
+           Destination => "user/" & Agent.Extension);
+      Reply : ESL.Reply.Instance;
+
+   begin
+      PBX.Trace.Information (Message => "Sending:" &
+                               String (Transfer_Action.Serialize),
+                             Context => "PBX.Action.Park");
+      PBX.Client.API (Transfer_Action, Reply);
+
+      if Reply.Response /= ESL.Reply.OK then
+         raise PBX.Action.Error with "Transfer command failed: " &
+           Reply.Response_Body;
+      end if;
+   end Transfer;
 
    ------------------
    --  Remote_End  --
@@ -450,30 +457,30 @@ package body PBX.Action is
    -- Value functions --
    ---------------------
 
---     function Value (Handler : Response_Handler)
---                     return AMI.Packet.Action.Response_Handler_Type is
---     begin
---        return AMI.Packet.Action.Response_Handler_Type (Handler);
---     end Value;
---
---     function Value (ID : AMI.Action_ID_Type)
---                     return Reply_Ticket is
---     begin
---        return Reply_Ticket (ID);
---     end Value;
+   --     function Value (Handler : Response_Handler)
+   --                     return AMI.Packet.Action.Response_Handler_Type is
+   --     begin
+   --        return AMI.Packet.Action.Response_Handler_Type (Handler);
+   --     end Value;
+   --
+   --     function Value (ID : AMI.Action_ID_Type)
+   --                     return Reply_Ticket is
+   --     begin
+   --        return Reply_Ticket (ID);
+   --     end Value;
 
    --------------
    -- Wait_For --
    --------------
 
---     procedure Wait_For (Ticket : in Reply_Ticket) is
---     begin
---        AMI.Response.Wait_For (Ticket => Action_ID_Type (Ticket));
---     end Wait_For;
---
---     function Wait_For (Ticket : in Reply_Ticket) return Response is
---     begin
---        return AMI.Response.Claim (Ticket => Action_ID_Type (Ticket));
---     end Wait_For;
+   --     procedure Wait_For (Ticket : in Reply_Ticket) is
+   --     begin
+   --        AMI.Response.Wait_For (Ticket => Action_ID_Type (Ticket));
+   --     end Wait_For;
+   --
+   --     function Wait_For (Ticket : in Reply_Ticket) return Response is
+   --     begin
+   --        return AMI.Response.Claim (Ticket => Action_ID_Type (Ticket));
+   --     end Wait_For;
 
 end PBX.Action;

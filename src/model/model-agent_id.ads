@@ -39,6 +39,7 @@ package Model.Agent_ID is
    --  Constructor.
 
    function Create (Agent_ID : in Natural) return Agent_ID_Type;
+   pragma Obsolescent (Create, "This ");
 
    function Validate (Item : in String) return Boolean;
    --  Non-exception-raising method for determining ID-valitity of a given

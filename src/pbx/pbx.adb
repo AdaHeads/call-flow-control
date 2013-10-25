@@ -19,7 +19,7 @@ with Ada.Strings.Unbounded;
 --  with Ada.Exceptions;
 with Ada.Calendar;
 
---  with PBX.Action;
+with PBX.Action;
 
 --  with PBX.Event_Handlers;
 --  pragma Unreferenced (PBX.Event_Handlers);
@@ -50,6 +50,9 @@ package body PBX is
       System_Messages.Notify
            (Information, "PBX.Authenticate: Authenticating");
       Client.Authenticate (Password => Config.Get (PBX_Secret));
+
+      PBX.Action.Update_Call_List;
+
    end Authenticate;
 
    ---------------

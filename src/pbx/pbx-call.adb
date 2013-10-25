@@ -16,6 +16,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings;
+with Ada.Strings.Unbounded;
 with Ada.Strings.Fixed;
 with View.Call;
 with PBX.Trace;
@@ -23,6 +24,11 @@ with PBX.Trace;
 with Model.Agent;
 
 package body PBX.Call is
+
+   function "=" (Left, Right : in Identification) return Boolean is
+   begin
+      return ESL.UUID."=" (Left, Right);
+   end "=";
 
    ----------------
    --  Allocate  --
@@ -270,7 +276,7 @@ package body PBX.Call is
       use Ada.Strings;
       use Ada.Strings.Unbounded;
 
-      Value : String renames To_String (Unbounded_String (Item));
+      Value : String renames Item.Image;
    begin
       return Ada.Strings.Fixed.Trim (Source => Value,
                                      Side   => Left);
@@ -291,8 +297,7 @@ package body PBX.Call is
 
    function Value (Item : in String) return Identification is
    begin
-      return Identification
-        (Ada.Strings.Unbounded.To_Unbounded_String (Item));
+      return ESL.UUID.Create (Item => Item);
    exception
       when Constraint_Error =>
          raise Invalid_ID with Item;

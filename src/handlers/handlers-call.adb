@@ -54,11 +54,11 @@ package body Handlers.Call is
       Response_Object   : Response.Object := Response.Factory (Request);
       Requested_Call_ID : String renames Parameters (Request).Get ("call_id");
    begin
-      PBX.Client.Send (Item => "api kill " & Requested_Call_ID);
+      PBX.Action.Hangup (ID => PBX.Call.Value (Item => Requested_Call_ID));
 
       Response_Object.HTTP_Status_Code (HTTP.OK);
       Response_Object.Content (Status_Message
-                                 ("Success", "Hangup sent!"));
+                                 ("Status", "Hangup sent!"));
 
       return Response_Object.Build;
 
@@ -114,8 +114,6 @@ package body Handlers.Call is
    --  Originate  --
    -----------------
 
-   --  /call/originate?[agent_id=<agent_id>|cm_id=<cm_id>|pstn_number=
-   --  <Pstn_NumbEr >  | sip =  < sip_uri > ]
    function Originate
      (Request : in AWS.Status.Data)
       return AWS.Response.Data is
@@ -143,7 +141,7 @@ package body Handlers.Call is
 
       return Response_Object.Build;
    exception
-      when E : PBX.Action.Error =>
+      when E : PBX.Action.Error | Model.Agent_ID.Invalid_ID =>
          System_Message.Critical.Response_Exception
            (Event           => E,
             Message         => Ada.Exceptions.Exception_Message (E),
@@ -177,11 +175,11 @@ package body Handlers.Call is
          Response_Object.Content (Status_Message ("status", "not found"));
       else
 
-         --  PBX.Action.Wait_For (PBX.Action.Park (Call_ID));
+         PBX.Action.Park (Call_ID);
 
          --  And let the user know that everything went according to plan.
          Response_Object.HTTP_Status_Code (HTTP.OK);
-         Response_Object.Content (Status_Message ("status", "ok"));
+         Response_Object.Content (Status_Message ("status", "request sent!"));
       end if;
 
       return Response_Object.Build;
@@ -261,13 +259,8 @@ package body Handlers.Call is
             Assigned_Call.Assign (Agent_ID);
          end if;
 
-         --  TODO: Make the transfer.
-         --           PBX.Action.Wait_For
-         --             (PBX.Action.Redirect
-         --                (Channel     => PBX.Call.To_String
-         --                                  (Assigned_Call.Channel),
-         --                 Extension   => Agent.Extension,
-         --                 Context     => "LocalSets"));
+         PBX.Action.Transfer
+           (Assigned_Call.ID, Model.Agent.Get (Agent_ID => Agent_ID));
 
          Response_Object.HTTP_Status_Code (HTTP.OK);
          Response_Object.Content

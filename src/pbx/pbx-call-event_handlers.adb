@@ -74,6 +74,12 @@ package body PBX.Call.Event_Handlers is
          Stream => ESL.Packet_Keys.CHANNEL_EXECUTE));
    pragma Unreferenced (Execute);
 
+   Park : Park_Observer
+     (Observing => ESL.Client.Tasking.Event_Stream
+        (Client => PBX.Client,
+         Stream => ESL.Packet_Keys.CHANNEL_PARK));
+   pragma Unreferenced (Park);
+
    package Notification renames Handlers.Notifications;
 
 --     procedure Dial (Packet : in ESL.Packet.Instance);
@@ -339,6 +345,32 @@ package body PBX.Call.Event_Handlers is
    begin
       PBX.Trace.Information (Message => "Ignoring execution of " &
                                Packet.Field (Application).Value,
+                             Context => Context);
+   end Notify;
+
+   ------------
+   --  Park  --
+   ------------
+
+   procedure Notify (Observer : access Park_Observer;
+                     Packet   : in     ESL.Packet.Instance;
+                     Client   : in     ESL.Client.Reference) is
+      pragma Unreferenced (Observer);
+      pragma Unreferenced (Client);
+      Context   : constant String      :=
+        Package_Name & ".Notify (Notify_Observer)";
+
+      ID  : Identification renames
+        Value (Packet.Field (Unique_ID).Value);
+
+   begin
+
+      Call.Get (Call => ID).Change_State (New_State => Parked);
+
+      Notification.Broadcast
+        (Client_Notification.Call.Park (Call.Get (Call => ID)).To_JSON);
+
+      PBX.Trace.Information (Message => "Parked call. " & ID.Image,
                              Context => Context);
    end Notify;
 

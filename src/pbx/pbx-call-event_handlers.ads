@@ -73,4 +73,12 @@ private
                      Packet   : in     ESL.Packet.Instance;
                      Client   : in     ESL.Client.Reference);
 
+   type Park_Observer is
+     new ESL.Observer.Event_Observers.Instance with null record;
+
+   overriding
+   procedure Notify (Observer : access Park_Observer;
+                     Packet   : in     ESL.Packet.Instance;
+                     Client   : in     ESL.Client.Reference);
+
 end PBX.Call.Event_Handlers;

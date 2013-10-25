@@ -19,11 +19,6 @@ with ESL.Client.Tasking;
 
 package PBX is
 
-   --
-   type Reply_Ticket is tagged private;
-
-   --  Null_Reply : constant Reply_Ticket;
-
    type PBX_Status_Type is (Shut_Down, Shutting_Down, Running, Connecting,
                            Failure);
 

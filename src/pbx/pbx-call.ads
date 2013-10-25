@@ -16,17 +16,17 @@
 -------------------------------------------------------------------------------
 
 with Ada.Containers.Indefinite_Ordered_Maps;
-with Ada.Strings.Unbounded;
 
 with GNATCOLL.JSON;
 
-with ESL.Channel;
+with ESL.UUID;
 with Model.Agent_ID;
 with Model;
 with Common;
 
 package PBX.Call is
    use Common;
+   use ESL.UUID;
    use Model.Agent_ID;
 
    Package_Name : constant String := "PBX.Call";
@@ -38,8 +38,10 @@ package PBX.Call is
    Invalid_ID      : exception;
    --  Appropriately named exceptions.
 
-   type Identification is new ESL.Channel.Channel_Key;
+   subtype Identification is ESL.UUID.Instance;
    --  Call identification.
+
+   function "=" (Left, Right : in Identification) return Boolean;
 
    function To_String (Item : in Identification) return String;
    function Image (Item : in Identification) return String renames To_String;
@@ -64,7 +66,7 @@ package PBX.Call is
    type Instance is tagged private;
    --  Call instance.
 
-   function ID (Obj : in Instance) return Identification;
+   function ID (Obj : in Instance) return PBX.Call.Identification;
    function State (Obj : in Instance) return States;
    function Inbound (Obj : in Instance) return Boolean;
    function B_Leg (Obj : in Instance) return Identification;
@@ -128,7 +130,7 @@ package PBX.Call is
 private
 
    Null_Identification : constant Identification
-     := Identification (Ada.Strings.Unbounded.Null_Unbounded_String);
+     := ESL.UUID.Null_UUID;
    Next_Identification : Identification := Null_Identification;
 
    type Instance is tagged

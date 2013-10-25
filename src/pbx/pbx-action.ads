@@ -35,66 +35,32 @@ package PBX.Action is
 --                    return Reply_Ticket;
 
    type Response_Handler is access procedure;
---     subtype Response is AMI.Parser.Packet_Type;
 
    Ignore : constant access procedure := null;
    --  Standard null-body handler for ignoring responses.
 
-   function Bridge (Source      : in PBX.Call.Identification;
-                    Destination : in PBX.Call.Identification;
-                    On_Response : in Response_Handler := Ignore)
-                    return Reply_Ticket;
+   procedure Bridge (Source      : in PBX.Call.Identification;
+                     Destination : in PBX.Call.Identification);
    --  Bridges two channels. The caller must explicitly specify which legs are
    --  bridged. Raises Null_Channel if either channel is null.
 
-   function Hangup (ID : in Call.Identification) return Reply_Ticket;
+   procedure Hangup (ID : in Call.Identification);
    --  Request a hangup on a given call.
 
-   function Login (Username    : in String;
-                   Secret      : in String;
-                   On_Response : in Response_Handler :=
-                     Ignore) return Reply_Ticket;
+--   procedure Logoff;
 
-   function Logoff (On_Response : in Response_Handler :=
-                      Ignore) return Reply_Ticket;
+   procedure Update_Call_List;
 
-   function List_Channels (On_Response : in Response_Handler :=
-                             Ignore) return Reply_Ticket;
-
-   function List_SIP_Peers (On_Response : in Response_Handler :=
-                              Ignore) return Reply_Ticket;
-
-   function Originate (Agent       : in Model.Agent.Agent_Type;
-                       Extension   : in String)
-                       return Reply_Ticket;
+--   procedure Update_SIP_Peer_List;
 
    procedure Originate (Agent       : in Model.Agent.Agent_Type;
                         Extension   : in String);
-   --  Synchronous originate. Raises Timeout or Error when either occurs.
-   --  When successful it allocated a call within the call list and
-   --  Creates a link between the ticket and the allocated call.
-   --  It can later be retrieved by calling "Origination_Request".
+   --  Start originate. Raises Timeout or Error when either occurs.
 
-   function Origination_Request (Ticket : in Reply_Ticket)
-                                 return Call.Identification;
-   --  Breaks and returns the link between a reply ticket and an allocated
-   --  call. Raises Not_Found when not link is present.
+   procedure Park (ID : in Call.Identification);
+   procedure Transfer (Call  : in PBX.Call.Identification;
+                       Agent : in Model.Agent.Agent_Type);
 
-   function Park (ID               : in Call.Identification;
-                  Parking_Lot      : in String := "";
-                  On_Response      : in Response_Handler := Ignore)
-                  return Reply_Ticket;
-
-   function Redirect
-     (Channel      : in String;
-      Extension    : in String;
-      Context      : in String;
-      On_Response  : in Response_Handler := Ignore) return Reply_Ticket;
-
-   --  procedure Wait_For (Ticket : in Reply_Ticket);
-   --  Blocking call that waits until a reply for an action is received.
-
-   --  function Wait_For (Ticket : in Reply_Ticket) return Response;
 private
 
 end PBX.Action;
