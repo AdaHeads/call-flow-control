@@ -351,32 +351,24 @@ package body Handlers.Call is
       use PBX.Call;
 
       Source          : PBX.Call.Identification := Null_Identification;
+      Destination     : PBX.Call.Identification := Null_Identification;
       Response_Object : Response.Object :=
                           Response.Factory (Request);
    begin
       --  Check valitity of the call. (Will raise exception on invalid).
-      Source := Value (Parameters (Request).Get ("source"));
-      if Source = Null_Identification then
+      Source      := Value (Parameters (Request).Get ("source"));
+      Destination := Agent.Get
+        (PBX.Call.Get
+           (Source).Assigned_To).Current_Call;
+      if
+        Source      = Null_Identification or
+        Destination = Null_Identification
+      then
          raise PBX.Call.Invalid_ID;
       end if;
 
-      if
-        PBX.Call.Get
-          (Agent.Get
-             (PBX.Call.Get (Source).Assigned_To).Current_Call).Inbound
-      then
-         raise PBX.Call.Invalid_ID
-           with "Cannot transfer with an inbound call as destination " &
-                To_String (Agent.Get (PBX.Call.Get
-                                        (Source).Assigned_To).Current_Call);
-      end if;
-
-   --  TODO: refactor.
-   --        PBX.Action.Wait_For
---          (PBX.Action.Bridge
---             (Source      => PBX.Call.Get (Source).Channel,
---              Destination => PBX.Call.Get (Agent.Get
---                (PBX.Call.Get (Source).Assigned_To).Current_Call).B_Leg));
+      PBX.Action.Bridge (Source      => Source,
+                         Destination => Destination);
 
       Response_Object.HTTP_Status_Code (HTTP.OK);
       Response_Object.Content
