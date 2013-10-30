@@ -17,7 +17,7 @@
 
 --  This is our PBX-boundry layer. It levels out the differences between
 --  various PBX communication protocols.
---  TODO: this package is in dire need of a cleanup!
+
 with PBX.Call;
 with Model.Agent;
 
@@ -26,18 +26,8 @@ package PBX.Action is
 
    Package_Name : constant String := "PBX.Action";
 
-   --  TODO add a cleanup task or housekeeping hook.
-
    Timeout   : exception;
    Error     : exception;
-
---     function Value (ID : AMI.Action_ID_Type)
---                    return Reply_Ticket;
-
-   type Response_Handler is access procedure;
-
-   Ignore : constant access procedure := null;
-   --  Standard null-body handler for ignoring responses.
 
    procedure Bridge (Source      : in PBX.Call.Identification;
                      Destination : in PBX.Call.Identification);
@@ -47,20 +37,22 @@ package PBX.Action is
    procedure Hangup (ID : in Call.Identification);
    --  Request a hangup on a given call.
 
---   procedure Logoff;
+   procedure Logoff;
+   --  Do a clean logoff by sending a logoff command to the PBX.
 
    procedure Update_Call_List;
+   --  Updates the peer list by synchronously requesting the current call list
+   --  could be preceeded by a purging of the list
 
---   procedure Update_SIP_Peer_List;
+   procedure Update_SIP_Peer_List;
 
    procedure Originate (Agent       : in Model.Agent.Agent_Type;
                         Extension   : in String);
    --  Start originate. Raises Timeout or Error when either occurs.
 
    procedure Park (ID : in Call.Identification);
+
    procedure Transfer (Call  : in PBX.Call.Identification;
                        Agent : in Model.Agent.Agent_Type);
-
-private
 
 end PBX.Action;

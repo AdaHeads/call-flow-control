@@ -15,8 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Hashed_Maps;
-
 with ESL.Reply;
 with ESL.UUID;
 with GNATCOLL.JSON;
@@ -28,95 +26,6 @@ package body PBX.Action is
    use GNATCOLL.JSON;
    use type PBX.Call.Identification;
    use type ESL.Reply.Responses;
-
-   function Remote_End (ID : in Call.Identification) return String;
-   --  Determines which end of a call is the remote end.
-   pragma Unreferenced (Remote_End);
-
-   function Local_End (ID : in Call.Identification) return String;
-   --  Determines which end of a call is the local end.
-   pragma Unreferenced (Local_End);
-
-   --     function Value (Handler : Response_Handler)
-   --                    return AMI.Packet.Action.Response_Handler_Type;
-   --  Cast function.
-
-   function Hash (Item : in PBX.Reply_Ticket)
-                  return Ada.Containers.Hash_Type;
-   --  For origination requests.
-
-   function Equivalent_Keys (Left, Right : in PBX.Reply_Ticket)
-                             return Boolean;
-   --  For origination requests.
-
-   package Origination_Request_Storage is new
-     Ada.Containers.Hashed_Maps
-       (Key_Type        => PBX.Reply_Ticket,
-        Element_Type    => PBX.Call.Identification,
-        Hash            => Hash,
-        Equivalent_Keys => Equivalent_Keys);
-   --  Storage container for origination requests.
-
-   protected Origination_Requests is
-      procedure Link (Ticket  : in Reply_Ticket;
-                      Call_ID : in Call.Identification);
-      pragma Unreferenced (Link);
-
-      procedure Unlink (Ticket  : in Reply_Ticket);
-      pragma Unreferenced (Unlink);
-
-      procedure Unlink (Ticket  : in     Reply_Ticket;
-                        Call_ID :    out Call.Identification);
-   private
-      Origination_List : Origination_Request_Storage.Map :=
-        Origination_Request_Storage.Empty_Map;
-   end Origination_Requests;
-   --  Origination requests a temporary storage that keeps track on which
-   --  calls the agents have originated, and links them with their
-   --  corresponding Action_ID/Ticket.
-
-   ----------------------------
-   --  Origination_Requests  --
-   ----------------------------
-
-   protected body Origination_Requests is
-
-      ------------
-      --  Link  --
-      ------------
-
-      procedure Link (Ticket  : in Reply_Ticket;
-                      Call_ID : in Call.Identification) is
-      begin
-         Origination_List.Insert
-           (Key      => Ticket,
-            New_Item => Call_ID);
-      end Link;
-
-      --------------
-      --  Unlink  --
-      --------------
-
-      procedure Unlink (Ticket  : in     Reply_Ticket;
-                        Call_ID :    out Call.Identification) is
-      begin
-         Call_ID := Call.Get (Origination_List.Element (Ticket)).ID;
-         Origination_List.Delete (Ticket);
-      end Unlink;
-
-      --------------
-      --  Unlink  --
-      --------------
-
-      procedure Unlink (Ticket : in Reply_Ticket) is
-         Dummy_ID : Call.Identification;
-         pragma Unreferenced (Dummy_ID);
-      begin
-         Dummy_ID := Call.Remove (Origination_List.Element (Ticket)).ID;
-         Origination_List.Delete (Ticket);
-      end Unlink;
-
-   end Origination_Requests;
 
    --------------
    --  Bridge  --
@@ -139,16 +48,6 @@ package body PBX.Action is
       end if;
    end Bridge;
 
-   -----------------------
-   --  Equivalent_Keys  --
-   -----------------------
-
-   function Equivalent_Keys (Left, Right : in PBX.Reply_Ticket)
-                             return Boolean is
-   begin
-      return Left = Right;
-   end Equivalent_Keys;
-
    ------------
    -- Hangup --
    ------------
@@ -168,17 +67,102 @@ package body PBX.Action is
    end Hangup;
 
    ------------
-   --  Hash  --
+   -- Logoff --
    ------------
 
-   --  TODO
-   function Hash (Item : in PBX.Reply_Ticket)
-                  return Ada.Containers.Hash_Type is
-      pragma Unreferenced (Item);
+   procedure Logoff is
    begin
-      --  return PBX.Reply_Ticket'Pos (Item);
-      return 1;
-   end Hash;
+      raise Program_Error with "Not implemented!";
+   end Logoff;
+
+   -----------------
+   --  Originate  --
+   -----------------
+
+   procedure Originate (Agent       : in Model.Agent.Agent_Type;
+                        Extension   : in String) is
+      Context          : constant String := Package_Name & ".Originate";
+      --        Originate_Action : AMI.Packet.Action.Request :=
+      --          AMI.Packet.Action.Originate
+      --            (Channel     => Agent.Peer_ID.To_String,
+      --             Extension   => Extension,
+      --             Context     => Agent.Context,
+      --             Priority    => 1,
+      --             On_Response => Value (Ignore));
+      --        Packet           : AMI.Parser.Packet_Type;
+      pragma Unreferenced (Agent);
+   begin
+      --  Outline the call. This is done prior to sending the action to assure
+      --  that a request exist in the list when the action completes, thus
+      --  avoiding the race condition.
+      --        Origination_Requests.Link
+      --          (Ticket  => Value (Originate_Action.Action_ID),
+      --           Call_ID => PBX.Call.Allocate (Assigned_To => Agent.ID));
+
+      PBX.Trace.Debug
+        (Message => "Sending Originate request with exten " &
+           Extension,
+         Context => Context,
+         Level   => 1);
+      --  Packet := Client.Send (Originate_Action);
+
+      --        if Packet.Header_Value /= "Success" then
+      --           Origination_Requests.Unlink
+      --  (Value (Originate_Action.Action_ID));
+      --           --  Remove the allocated call if the request fails.
+      --           raise Error with Packet.Get_Value (AMI.Parser.Message);
+      --        end if;
+   end Originate;
+
+   ----------
+   -- Park --
+   ----------
+
+   procedure Park (ID : in Call.Identification) is
+      use PBX.Call;
+      use ESL.Reply;
+      Park_Action : constant ESL.Command.Call_Management.Instance :=
+        ESL.Command.Call_Management.UUID_Park (UUID => ID.Image);
+      Reply : ESL.Reply.Instance;
+
+   begin
+      PBX.Trace.Information (Message => "Sending:" &
+                               String (Park_Action.Serialize),
+                             Context => "PBX.Action.Park");
+      PBX.Client.API (Park_Action, Reply);
+
+      --  TODO: Add more elaborate parsing here to determine if the call
+      --  really _isn't_ found.
+      if Reply.Response /= ESL.Reply.OK then
+         raise Not_Found;
+      end if;
+   end Park;
+
+   --------------
+   -- Transfer --
+   --------------
+
+   procedure Transfer (Call  : in PBX.Call.Identification;
+                       Agent : in Model.Agent.Agent_Type) is
+      use PBX.Call;
+      use ESL.Reply;
+      Transfer_Action : constant ESL.Command.Call_Management.Instance :=
+        ESL.Command.Call_Management.UUID_Transfer
+          (UUID        => Call,
+           Destination => "user/" & Agent.Extension);
+      Reply : ESL.Reply.Instance;
+
+   begin
+      PBX.Trace.Information (Message => "Sending:" &
+                               String (Transfer_Action.Serialize),
+                             Context => "PBX.Action.Park");
+      PBX.Client.API (Transfer_Action, Reply);
+
+      if Reply.Response /= ESL.Reply.OK then
+         raise PBX.Action.Error with "Transfer command failed: " &
+           Reply.Response_Body;
+      end if;
+   end Transfer;
 
    -----------------------
    -- Update_Call_List  --
@@ -189,6 +173,7 @@ package body PBX.Action is
 
       Context               : constant String :=
         Package_Name & ".Update_Call_List";
+      pragma Unreferenced (Context);
 
       Reply                 : ESL.Reply.Instance;
       List_Channels_Action  : ESL.Command.Core.Instance :=
@@ -233,254 +218,14 @@ package body PBX.Action is
       end;
    end Update_Call_List;
 
-   ---------------------
-   --  List_SIP_Peers --
-   ---------------------
+   ---------------------------
+   --  Update_SIP_Peer_List --
+   ---------------------------
 
-   function List_SIP_Peers (On_Response : in Response_Handler :=
-                              Ignore) return Reply_Ticket is
-      --        List_Peers_Action : AMI.Packet.Action.Request :=
-      --          AMI.Packet.Action.SIP_Peers
-      --            (On_Response => Value (On_Response));
-      pragma Unreferenced (On_Response);
-      Ticket : Reply_Ticket;
+   procedure Update_SIP_Peer_List is
+
    begin
       raise Program_Error with "Not implemented!";
-      --  Client.Send (List_Peers_Action);
-
-      --  return Value (List_Peers_Action.Action_ID);
-      return Ticket;
-   end List_SIP_Peers;
-
-   -----------------
-   --  Local_End  --
-   -----------------
-
-   function Local_End (ID : in Call.Identification) return String is
-      use PBX.Call;
-   begin
-      if Call.Get (ID).Inbound then
-         return To_String (Call.Get (ID).B_Leg);
-      else
-         return To_String (Call.Get (ID).ID);
-      end if;
-   end Local_End;
-
-   ------------
-   -- Logoff --
-   ------------
-
-   function Logoff (On_Response : in Response_Handler :=
-                      Ignore) return Reply_Ticket is
-      --        List_Peers_Action : AMI.Packet.Action.Request :=
-      --          AMI.Packet.Action.Logoff
-      --            (On_Response => Value (On_Response));
-      pragma Unreferenced (On_Response);
-      Ticket : Reply_Ticket;
-   begin
-      --        Client.Send (List_Peers_Action);
-      --
-      --        return Value (List_Peers_Action.Action_ID);
-      return Ticket;
-   end Logoff;
-
-   -----------------
-   --  Originate  --
-   -----------------
-
-   procedure Originate (Agent       : in Model.Agent.Agent_Type;
-                        Extension   : in String) is
-      Context          : constant String := Package_Name & ".Originate";
-      --        Originate_Action : AMI.Packet.Action.Request :=
-      --          AMI.Packet.Action.Originate
-      --            (Channel     => Agent.Peer_ID.To_String,
-      --             Extension   => Extension,
-      --             Context     => Agent.Context,
-      --             Priority    => 1,
-      --             On_Response => Value (Ignore));
-      --        Packet           : AMI.Parser.Packet_Type;
-      pragma Unreferenced (Agent);
-   begin
-      --  Outline the call. This is done prior to sending the action to assure
-      --  that a request exist in the list when the action completes, thus
-      --  avoiding the race condition.
-      --        Origination_Requests.Link
-      --          (Ticket  => Value (Originate_Action.Action_ID),
-      --           Call_ID => PBX.Call.Allocate (Assigned_To => Agent.ID));
-
-      PBX.Trace.Debug
-        (Message => "Sending Originate request with exten " &
-           Extension,
-         Context => Context,
-         Level   => 1);
-      --  Packet := Client.Send (Originate_Action);
-
-      --        if Packet.Header_Value /= "Success" then
-      --           Origination_Requests.Unlink (Value (Originate_Action.Action_ID));
-      --           --  Remove the allocated call if the request fails.
-      --           raise Error with Packet.Get_Value (AMI.Parser.Message);
-      --        end if;
-   end Originate;
-
-   -----------------
-   --  Originate  --
-   -----------------
-
-   function Originate (Agent       : in Model.Agent.Agent_Type;
-                       Extension   : in String)
-                       return Reply_Ticket
-   is
-      --        Originate_Action : AMI.Packet.Action.Request :=
-      --          AMI.Packet.Action.Originate
-      --            (Channel     => Agent.Peer_ID.To_String,
-      --             Extension   => Extension,
-      --             Context     => Agent.Context,
-      --             Priority    => 1,
-      --             On_Response => Value (Ignore));
-      pragma Unreferenced (Agent);
-      pragma Unreferenced (Extension);
-      Ticket : Reply_Ticket;
-   begin
-      --        Client.Send (Originate_Action);
-      --
-      --        return Value (Originate_Action.Action_ID);
-      return Ticket;
-   end Originate;
-
-   ---------------------------
-   --  Origination_Request  --
-   ---------------------------
-
-   function Origination_Request (Ticket : in Reply_Ticket)
-                                 return Call.Identification is
-      Context : constant String := Package_Name & ".Origination_Request";
-      ID : Call.Identification := Call.Null_Identification;
-   begin
-      Origination_Requests.Unlink (Ticket  => Ticket,
-                                   Call_ID => ID);
-
-      return ID;
-   exception
-      when Constraint_Error =>
-         PBX.Trace.Error (Message => "No request found for origination",
-                          Context => Context);
-         raise Constraint_Error with "No request found for origination ";
-   end Origination_Request;
-
-   ----------
-   -- Park --
-   ----------
-
-   procedure Park (ID : in Call.Identification) is
-      use PBX.Call;
-      use ESL.Reply;
-      Park_Action : constant ESL.Command.Call_Management.Instance :=
-        ESL.Command.Call_Management.UUID_Park (UUID => ID.Image);
-      Reply : ESL.Reply.Instance;
-
-   begin
-      PBX.Trace.Information (Message => "Sending:" &
-                               String (Park_Action.Serialize),
-                             Context => "PBX.Action.Park");
-      PBX.Client.API (Park_Action, Reply);
-
-      --  TODO: Add more elaborate parsing here to determine if the call
-      --  really _isn't_ found.
-      if Reply.Response /= ESL.Reply.OK then
-         raise Not_Found;
-      end if;
-   end Park;
-
-   --------------
-   -- Redirect --
-   --------------
-
-   function Redirect
-     (Channel      : in String;
-      Extension    : in String;
-      Context      : in String;
-      On_Response  : in Response_Handler := Ignore) return Reply_Ticket
-   is
-      pragma Unreferenced (Channel, Extension, Context);
-      --        Redirect_Action : AMI.Packet.Action.Request :=
-      --          AMI.Packet.Action.Redirect
-      --            (Channel      => Channel,
-      --             Extension    => Extension,
-      --             Context      => Context,
-      --             On_Response  => Value (On_Response));
-      pragma Unreferenced (On_Response);
-      Ticket : Reply_Ticket;
-   begin
-      --        Client.Send (Redirect_Action);
-      --
-      --        return Value (Redirect_Action.Action_ID);
-      return Ticket;
-   end Redirect;
-
-   procedure Transfer (Call  : in PBX.Call.Identification;
-                       Agent : in Model.Agent.Agent_Type) is
-      use PBX.Call;
-      use ESL.Reply;
-      Transfer_Action : constant ESL.Command.Call_Management.Instance :=
-        ESL.Command.Call_Management.UUID_Transfer
-          (UUID        => Call,
-           Destination => "user/" & Agent.Extension);
-      Reply : ESL.Reply.Instance;
-
-   begin
-      PBX.Trace.Information (Message => "Sending:" &
-                               String (Transfer_Action.Serialize),
-                             Context => "PBX.Action.Park");
-      PBX.Client.API (Transfer_Action, Reply);
-
-      if Reply.Response /= ESL.Reply.OK then
-         raise PBX.Action.Error with "Transfer command failed: " &
-           Reply.Response_Body;
-      end if;
-   end Transfer;
-
-   ------------------
-   --  Remote_End  --
-   ------------------
-
-   function Remote_End (ID : in Call.Identification) return String is
-      use PBX.Call;
-   begin
-      if Call.Get (ID).Inbound then
-         return To_String (Call.Get (ID).ID);
-      else
-         return To_String (Call.Get (ID).B_Leg);
-      end if;
-   end Remote_End;
-
-   ---------------------
-   -- Value functions --
-   ---------------------
-
-   --     function Value (Handler : Response_Handler)
-   --                     return AMI.Packet.Action.Response_Handler_Type is
-   --     begin
-   --        return AMI.Packet.Action.Response_Handler_Type (Handler);
-   --     end Value;
-   --
-   --     function Value (ID : AMI.Action_ID_Type)
-   --                     return Reply_Ticket is
-   --     begin
-   --        return Reply_Ticket (ID);
-   --     end Value;
-
-   --------------
-   -- Wait_For --
-   --------------
-
-   --     procedure Wait_For (Ticket : in Reply_Ticket) is
-   --     begin
-   --        AMI.Response.Wait_For (Ticket => Action_ID_Type (Ticket));
-   --     end Wait_For;
-   --
-   --     function Wait_For (Ticket : in Reply_Ticket) return Response is
-   --     begin
-   --        return AMI.Response.Claim (Ticket => Action_ID_Type (Ticket));
-   --     end Wait_For;
+   end Update_SIP_Peer_List;
 
 end PBX.Action;
