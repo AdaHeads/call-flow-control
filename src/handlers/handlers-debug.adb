@@ -25,9 +25,14 @@ with Common,
      Response,
      View;
 
+with System_Messages;
+with Model.Agent;
+
 package body Handlers.Debug is
    use ESL;
    use Common;
+   use System_Messages;
+   use Model.Agent;
 
    function Channel_List (Request : in AWS.Status.Data)
                           return AWS.Response.Data is
@@ -37,6 +42,10 @@ package body Handlers.Debug is
       Response_Object : Response.Object := Response.Factory (Request);
       Data            : JSON_Value;
    begin
+
+      System_Messages.Notify (Level   => System_Messages.Debug,
+                              Message => "Agent: " & Agent_Of (Request => Request).To_JSON.Write);
+
       Response_Object.HTTP_Status_Code (OK);
       --  TODO:
       Data := Create_Object;

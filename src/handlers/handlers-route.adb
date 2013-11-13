@@ -190,6 +190,7 @@ begin
    Register (GET,  "/users/openids",      Public_User_Identification or Administrator,
                                                                   Users.OpenIDs.Callback);
    Register (GET,  "/users/validate",     Public,                 Users.Validate.Callback);
+   Register (GET,  "/login",              Public,                 Agent.Login_User'Access);
 
    AWS.Net.WebSocket.Registry.Register
      (URI     => "/notifications",

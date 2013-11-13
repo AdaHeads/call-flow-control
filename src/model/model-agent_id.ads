@@ -36,10 +36,8 @@ package Model.Agent_ID is
    --  Debug-friendly representation of an agent ID
 
    function Create (Agent_ID : in String) return Agent_ID_Type;
-   --  Constructor.
-
    function Create (Agent_ID : in Natural) return Agent_ID_Type;
-   pragma Obsolescent (Create, "This ");
+   --  Constructors.
 
    function Validate (Item : in String) return Boolean;
    --  Non-exception-raising method for determining ID-valitity of a given

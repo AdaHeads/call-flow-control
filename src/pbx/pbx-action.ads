@@ -50,7 +50,8 @@ package PBX.Action is
                         Extension   : in String);
    --  Start originate. Raises Timeout or Error when either occurs.
 
-   procedure Park (ID : in Call.Identification);
+   procedure Park (Call  : in PBX.Call.Identification;
+                   Agent : in Model.Agent.Agent_Type);
 
    procedure Transfer (Call  : in PBX.Call.Identification;
                        Agent : in Model.Agent.Agent_Type);

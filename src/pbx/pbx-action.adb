@@ -118,17 +118,22 @@ package body PBX.Action is
    -- Park --
    ----------
 
-   procedure Park (ID : in Call.Identification) is
+   procedure Park (Call  : in PBX.Call.Identification;
+                   Agent : in Model.Agent.Agent_Type) is
       use PBX.Call;
       use ESL.Reply;
+
+      Context     : constant String := Package_Name & ".Park";
       Park_Action : constant ESL.Command.Call_Management.Instance :=
-        ESL.Command.Call_Management.UUID_Park (UUID => ID.Image);
+        ESL.Command.Call_Management.UUID_Transfer
+          (UUID        => Call,
+           Destination => "park+" & Agent.ID.To_String);
       Reply : ESL.Reply.Instance;
 
    begin
       PBX.Trace.Information (Message => "Sending:" &
                                String (Park_Action.Serialize),
-                             Context => "PBX.Action.Park");
+                             Context => Context);
       PBX.Client.API (Park_Action, Reply);
 
       --  TODO: Add more elaborate parsing here to determine if the call
@@ -146,16 +151,19 @@ package body PBX.Action is
                        Agent : in Model.Agent.Agent_Type) is
       use PBX.Call;
       use ESL.Reply;
+
+      Context     : constant String := Package_Name & ".Transfer";
+
       Transfer_Action : constant ESL.Command.Call_Management.Instance :=
         ESL.Command.Call_Management.UUID_Transfer
           (UUID        => Call,
-           Destination => "user/" & Agent.Extension);
+           Destination => Agent.Extension);
       Reply : ESL.Reply.Instance;
 
    begin
       PBX.Trace.Information (Message => "Sending:" &
                                String (Transfer_Action.Serialize),
-                             Context => "PBX.Action.Park");
+                             Context => Context);
       PBX.Client.API (Transfer_Action, Reply);
 
       if Reply.Response /= ESL.Reply.OK then
@@ -177,7 +185,7 @@ package body PBX.Action is
 
       Reply                 : ESL.Reply.Instance;
       List_Channels_Action  : ESL.Command.Core.Instance :=
-        ESL.Command.Core.Show (Report => "calls");
+        ESL.Command.Core.Show (Report => "detailed_calls");
    begin
       List_Channels_Action.Set_Format (Format => JSON);
       PBX.Client.API (List_Channels_Action, Reply);

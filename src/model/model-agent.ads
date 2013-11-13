@@ -16,17 +16,23 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
+
+with AWS.Status;
+
+with GNATCOLL.JSON;
+
 with Model.Agent_ID;
 with ESL.Peer;
 with ESL.Peer_ID;
 with PBX.Call;
-with GNATCOLL.JSON;
 
 package Model.Agent is
    use Ada.Strings.Unbounded;
    use Model.Agent_ID;
    use ESL.Peer;
    use ESL.Peer_ID;
+
+   Not_Found : exception;
 
    type Agent_Type is tagged private;
    type State is (Signed_Out, Idle, Paused, Away);
@@ -63,6 +69,8 @@ package Model.Agent is
 
    function Get (Agent_ID : in Agent_ID_Type) return Agent_Type;
    --  Locate an agent by Agent_ID
+
+   function Agent_Of (Request : AWS.Status.Data) return Agent_Type;
 
    function Get (Peer_ID : Peer_ID_Type) return Agent_Type;
    --  Locate an agent by Peer_ID

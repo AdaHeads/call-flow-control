@@ -22,7 +22,7 @@ package ESL.Peer_ID is
 
    Invalid_ID : exception;
 
-   type Channel_Type is (Unknown, Agent, Console,
+   type Channel_Type is (Unknown, Agent, Console, User,
                                H323, IAX, IAX2, Local,
                                MGCP, MISDN, Modem, NBS,
                                Phone, SIP, Skinny, Gtalk,

@@ -23,7 +23,6 @@ with Common,
      Model.Agent_ID,
      Response;
 
-with ESL.Peer;
 with View.Call;
 
 with PBX;
@@ -107,7 +106,6 @@ package body Handlers.Call is
             Message         => "List failed",
             Response_Object => Response_Object);
          return Response_Object.Build;
-
    end List;
 
    -----------------
@@ -126,7 +124,6 @@ package body Handlers.Call is
                             Parameters (Request).Get ("extension");
       Originating_Agent : Model.Agent.Agent_Type := Agent.Null_Agent;
       Response_Object   : Response.Object := Response.Factory (Request);
-
    begin
       Originating_Agent :=
         Model.Agent.Get (Model.Agent_ID.Create (Agent_ID_String));
@@ -165,6 +162,8 @@ package body Handlers.Call is
       package Call_List renames PBX.Call;
 
       Response_Object   : Response.Object := Response.Factory (Request);
+      Agent_ID_String   : String renames
+                            Parameters (Request).Get (Name => "agent_id");
       Call_ID           : Call_List.Identification renames
                             Call_List.Value
                               (Parameters (Request).Get ("call_id"));
@@ -175,7 +174,9 @@ package body Handlers.Call is
          Response_Object.Content (Status_Message ("status", "not found"));
       else
 
-         PBX.Action.Park (Call_ID);
+         PBX.Action.Park (Call  => Call_ID,
+                          Agent => Model.Agent.Get
+                            (Agent_ID => Agent_ID.Create (Agent_ID_String)));
 
          --  And let the user know that everything went according to plan.
          Response_Object.HTTP_Status_Code (HTTP.OK);
@@ -210,20 +211,19 @@ package body Handlers.Call is
 
       use Model.Agent_ID;
       use Model.Agent;
-      use ESL.Peer;
 
       Call_ID_String    : String renames
                             Parameters (Request).Get (Name => "call_id");
       Agent_ID_String   : String renames
                             Parameters (Request).Get (Name => "agent_id");
       Response_Object   : Response.Object   := Response.Factory (Request);
-      Agent_ID          : Agent_ID_Type     := Null_Agent_ID;
-      --  Agent             : Agent_Type        := Null_Agent;
-      Peer              : Instance         := Null_Peer;
+      Agent             : Agent_Type        := Null_Agent;
       Assigned_Call     : PBX.Call.Instance;
    begin
       --  We want a valid agent ID, so we let the exception propogate.
-      Agent_ID := Create (Agent_ID => Agent_ID_String);
+      Agent := Model.Agent.Get (Agent_ID => Agent_ID.Create (Agent_ID_String));
+
+      System_Messages.Notify (Information, "Looked up agent to be " & Agent.ID.To_String);
 
       --  If we do not have any calls at this point, return HTTP 204.
       if PBX.Call.List_Empty then
@@ -231,41 +231,38 @@ package body Handlers.Call is
          return Response_Object.Build;
       end if;
 
-      --  Lookup the peer from the agent_id.
-      Peer := ESL.Peer.List.Get
-        (Model.Agent.Get (Agent_ID => Agent_ID).Peer_ID);
+      System_Messages.Notify (Debug, "List is non-empty");
 
-      if not Peer.Available then
-         System_Messages.Notify
-           (Critical, "Get_Call: " &
-              "The following agent is unavailable: " &
-              Agent_ID.To_String);
-         Response_Object.HTTP_Status_Code (HTTP.Bad_Request);
-         Response_Object.Content
-           (Status_Message
-              ("Bad request", "Agent peer unavailable"));
-
-         return Response_Object.Build;
-      else
+--        if not Peer.Available then
+--           System_Messages.Notify
+--             (Critical, "Get_Call: " &
+--                "The following agent is unavailable: " &
+--                Agent.ID.To_String);
+--           Response_Object.HTTP_Status_Code (HTTP.Bad_Request);
+--           Response_Object.Content
+--             (Status_Message
+--                ("Bad request", "Agent peer unavailable"));
+--
+--           return Response_Object.Build;
+--        else
          --  We're good - transfer the call.
          --  Agent := Model.Agent.Get (Agent_ID => Agent_ID);
 
          if Call_ID_String /= "" then
             Assigned_Call := PBX.Call.Get
               (Call => PBX.Call.Value (Call_ID_String));
-            Assigned_Call.Assign (Agent_ID);
+            Assigned_Call.Assign (Agent.ID);
          else
             Assigned_Call := PBX.Call.Highest_Prioirity;
-            Assigned_Call.Assign (Agent_ID);
+            Assigned_Call.Assign (Agent.ID);
          end if;
 
-         PBX.Action.Transfer
-           (Assigned_Call.ID, Model.Agent.Get (Agent_ID => Agent_ID));
+         PBX.Action.Transfer (Assigned_Call.ID, Agent);
 
          Response_Object.HTTP_Status_Code (HTTP.OK);
          Response_Object.Content
            ((To_JSON_String (Assigned_Call.To_JSON)));
-      end if;
+      --  end if;
 
       return Response_Object.Build;
 
@@ -285,13 +282,6 @@ package body Handlers.Call is
            (Status_Message
               ("Already assigned",
                "Agent tried to claim call that is already assigned"));
-         return Response_Object.Build;
-
-      when Peer_Not_Found =>
-         Response_Object.HTTP_Status_Code (HTTP.Bad_Request);
-         Response_Object.Content
-           (Status_Message
-              ("No Parameter", "There exsist no agent by that name"));
          return Response_Object.Build;
 
       when E : others =>

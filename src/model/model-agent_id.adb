@@ -58,11 +58,12 @@ package body Model.Agent_ID is
    end To_JSON;
 
    function To_String (Agent_ID : in Agent_ID_Type) return String is
+      use Ada.Strings;
    begin
       if Agent_ID = Null_Agent_ID then
          return "<null>";
       else
-         return Agent_ID.ID'Img;
+         return Ada.Strings.Fixed.Trim (Agent_ID.ID'Img, Both);
       end if;
    end To_String;
 

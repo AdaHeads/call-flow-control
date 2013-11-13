@@ -50,7 +50,7 @@ package Common is
 
    Null_JSON_String : constant JSON_String :=
                         JSON_String
-                          (Ada.Strings.Unbounded.Null_Unbounded_String);
+                          (Ada.Strings.Unbounded.To_Unbounded_String ("{}"));
 
    function String_To_JSON_Object
      (Value : in String)

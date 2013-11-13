@@ -15,9 +15,35 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Fixed;
 with Ada.Containers.Ordered_Maps;
 
+with AWS.Session;
+
+with System_Messages;
+
 package body Model.Agent is
+
+   ----------------
+   --  Agent_Of  --
+   ----------------
+
+   function Agent_Of (Request : AWS.Status.Data) return Agent_Type is
+      Session_ID : constant AWS.Session.Id  := AWS.Status.Session (Request);
+      A_ID       : Model.Agent_ID.Agent_ID_Type :=
+        Model.Agent_ID.Null_Agent_ID;
+   begin
+      A_ID := Model.Agent_ID.Create
+        (Agent_ID => Integer'(AWS.Session.Get (SID => Session_ID,
+                                               Key => "user_id")));
+      return Model.Agent.Get (Agent_ID => A_ID);
+
+   exception
+      when Constraint_Error =>
+         System_Messages.Notify (Level   => System_Messages.Error,
+                                 Message => "No agent with id:" & A_ID.To_String);
+         return Null_Agent;
+   end Agent_Of;
 
    --  TODO: Change this to a real database.
    package Agent_Storage is new
@@ -182,6 +208,7 @@ package body Model.Agent is
       Peer_JSON.Set_Field ("extension", Agent.Extension);
       Peer_JSON.Set_Field ("current_call",
                            PBX.Call.Get (Agent.Current_Call).To_JSON);
+
       JSON.Set_Field ("agent", Peer_JSON);
 
       return JSON;
@@ -205,48 +232,21 @@ package body Model.Agent is
    end Update;
 begin
 
-   Agent_List.Insert
-     (Agent_ID.Create (1),
-      Agent.Create
-        (ID        => Agent_ID.Create (1),
-         Peer_ID   => ESL.Peer_ID.Create ("SIP/softphone1"),
-         Extension => "101"));
+   for I in 1 .. 20 loop
+      declare
 
-   Agent_List.Insert
-     (Agent_ID.Create (2),
-      Agent.Create
-        (ID        => Agent_ID.Create (2),
-         Peer_ID   =>  ESL.Peer_ID.Create ("SIP/softphone1"),
-         Extension => "102"));
-   Agent_List.Insert
-     (Agent_ID.Create (3),
-      Agent.Create
-        (ID        => Agent_ID.Create (3),
-         Peer_ID   =>  ESL.Peer_ID.Create ("SIP/softphone1"),
-         Extension => "103"));
-   Agent_List.Insert
-     (Agent_ID.Create (4),
-      Agent.Create
-        (ID        => Agent_ID.Create (4),
-         Peer_ID   =>  ESL.Peer_ID.Create ("SIP/softphone1"),
-         Extension => "104"));
-   Agent_List.Insert
-     (Agent_ID.Create (5),
-      Agent.Create
-        (ID        => Agent_ID.Create (5),
-         Peer_ID   =>  ESL.Peer_ID.Create ("SIP/softphone1"),
-         Extension => "105"));
-   Agent_List.Insert
-     (Agent_ID.Create (6),
-      Agent.Create
-        (ID        => Agent_ID.Create (6),
-         Peer_ID   =>  ESL.Peer_ID.Create ("SIP/softphone1"),
-         Extension => "106"));
-   Agent_List.Insert
-     (Agent_ID.Create (7),
-      Agent.Create
-        (ID        => Agent_ID.Create (7),
-         Peer_ID   =>  ESL.Peer_ID.Create ("SIP/uhh"),
-         Extension => "107"));
+         A_ID      : constant Agent_ID.Agent_ID_Type := Agent_ID.Create (I);
+         Extension : constant String := Ada.Strings.Fixed.Trim
+           (Source => Natural'Image (1000 + I),
+            Side   => Ada.Strings.Both);
+      begin
+         Agent_List.Insert
+           (A_ID,
+            Agent.Create
+              (ID        => A_ID,
+               Peer_ID   => ESL.Peer_ID.Create ("user/" & Extension),
+               Extension => Extension));
+      end;
+   end loop;
 
 end Model.Agent;

@@ -21,6 +21,8 @@ with AWS.Status;
 private
 package Handlers.Agent is
 
+   Package_Name : constant String := "Handlers.Agent";
+
    function Agent
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
@@ -30,4 +32,9 @@ package Handlers.Agent is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
    --  Return the current list of agents.
+
+   function Login_User
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+
 end Handlers.Agent;

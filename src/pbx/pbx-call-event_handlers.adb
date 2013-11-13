@@ -82,24 +82,6 @@ package body PBX.Call.Event_Handlers is
 
    package Notification renames Handlers.Notifications;
 
---     procedure Dial (Packet : in ESL.Packet.Instance);
---
---     procedure Join (Packet : in ESL.Packet.Instance);
---
---     procedure Leave (Packet : in ESL.Packet.Instance);
---     --  A Leave event occurs when a channel leaves a Queue for any reason.
---     --  E.g. hangup or pickup. This procedure is responsible for
---  changing the
---     --  state of the to transferring and broadcasts the event.
---
---     procedure Hangup (Packet : in ESL.Packet.Instance);
---
---     procedure Originate_Response (Packet : in ESL.Packet.Instance);
---
---     procedure Parked_Call (Packet : in ESL.Packet.Instance);
---
---     procedure Unlink (Packet : in ESL.Packet.Instance);
-
    --------------
    --  Bridge  --
    --------------
@@ -125,23 +107,10 @@ package body PBX.Call.Event_Handlers is
         (Context => Context,
          Message => "ID 1: " & To_String (ID_A) &
            ": ID 2: " & To_String (ID_B));
---        PBX.Trace.Information
---            (Context => Context,
---             Message => Client_Notification.Call.Pickup
---               (C => Get (ID_A)).To_JSON.Write);
-
       --  Either side should be represented.
       --  TODO
       Call.Link (ID_1 => ID_A,
                  ID_2 => ID_B);
-
---        if Call.Has (Channel1) then
---           Get (Channel1).Link (Channel => Channel2);
---           Get (Channel1).Change_State (New_State => Speaking);
---        else
---           Get (Channel2).Change_State (New_State => Speaking);
---           Get (Channel2).Link (Channel => Channel1);
---        end if;
 
       PBX.Trace.Information
         (Message => Client_Notification.Call.Pickup
@@ -558,7 +527,6 @@ package body PBX.Call.Event_Handlers is
    -------------------
    --  Parked_Call  --
    -------------------
-
 --     procedure Parked_Call (Packet : in Parser.Packet_Type) is
 --        Context : constant String := Package_Name & ".Parked_Call";
 --        Channel : Channel_Identification renames

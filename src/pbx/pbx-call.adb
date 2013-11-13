@@ -132,6 +132,10 @@ package body PBX.Call is
 
    function Get (Call : Identification) return Instance is
    begin
+      if Call = Null_Identification then
+         return Null_Instance;
+      end if;
+
       return Call_List.Get (Call);
    end Get;
 
