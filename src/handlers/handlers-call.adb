@@ -162,8 +162,6 @@ package body Handlers.Call is
       package Call_List renames PBX.Call;
 
       Response_Object   : Response.Object := Response.Factory (Request);
-      Agent_ID_String   : String renames
-                            Parameters (Request).Get (Name => "agent_id");
       Call_ID           : Call_List.Identification renames
                             Call_List.Value
                               (Parameters (Request).Get ("call_id"));
@@ -175,8 +173,7 @@ package body Handlers.Call is
       else
 
          PBX.Action.Park (Call  => Call_ID,
-                          Agent => Model.Agent.Get
-                            (Agent_ID => Agent_ID.Create (Agent_ID_String)));
+                          Agent => Agent.Agent_Of (Request => Request));
 
          --  And let the user know that everything went according to plan.
          Response_Object.HTTP_Status_Code (HTTP.OK);
@@ -214,16 +211,15 @@ package body Handlers.Call is
 
       Call_ID_String    : String renames
                             Parameters (Request).Get (Name => "call_id");
-      Agent_ID_String   : String renames
-                            Parameters (Request).Get (Name => "agent_id");
       Response_Object   : Response.Object   := Response.Factory (Request);
       Agent             : Agent_Type        := Null_Agent;
       Assigned_Call     : PBX.Call.Instance;
    begin
       --  We want a valid agent ID, so we let the exception propogate.
-      Agent := Model.Agent.Get (Agent_ID => Agent_ID.Create (Agent_ID_String));
+      Agent := Agent_Of (Request => Request);
 
-      System_Messages.Notify (Information, "Looked up agent to be " & Agent.ID.To_String);
+      System_Messages.Notify
+        (Information, "Looked up agent to be " & Agent.ID.To_String);
 
       --  If we do not have any calls at this point, return HTTP 204.
       if PBX.Call.List_Empty then
