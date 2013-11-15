@@ -49,6 +49,8 @@ PID=`realpath ${LOCATION}`/${NAME}.pid
 # User to run Alice as:
 USER=thomas
 
+LOG_FILE=${LOCATION}/../${NAME}.log
+
 ##############################################################
 # Do not edit below here, unless you know what you're doing. #
 ##############################################################
@@ -94,7 +96,7 @@ yolk_start() {
 
     if [ -f ${ALICE_CONFIG} -a -f ${YOLK_CONFIG} ]
     then
-        su --shell /bin/sh -c "./${NAME} --alice-config-file ${ALICE_CONFIG} --yolk-config-file ${YOLK_CONFIG} 1>/dev/null 2>/dev/null & echo "'$!' ${USER} > $PID
+        su --shell /bin/sh -c "./${NAME} --alice-config-file ${ALICE_CONFIG} --yolk-config-file ${YOLK_CONFIG} > ${LOG_FILE} & echo "'$!' ${USER} > $PID
 
         # Check that everything went well.
 	if [ -f ${PID} ]
