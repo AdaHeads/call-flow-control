@@ -40,7 +40,7 @@ package PBX is
 
    Client         : ESL.Client.Tasking.Instance
      (On_Connect_Handler    => Authenticate'Access,
-      On_Disconnect_Handler => Connect'Access);
+      On_Disconnect_Handler => ESL.Client.Ignore_Event);
 
 private
    type Reply_Ticket is tagged null record;
