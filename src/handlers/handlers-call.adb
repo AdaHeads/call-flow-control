@@ -118,15 +118,12 @@ package body Handlers.Call is
       use Common;
       use PBX.Call;
 
-      Agent_ID_String   : String renames
-                            Parameters (Request).Get ("agent_id");
       Extension_String  : constant String :=
                             Parameters (Request).Get ("extension");
       Originating_Agent : Model.Agent.Agent_Type := Agent.Null_Agent;
       Response_Object   : Response.Object := Response.Factory (Request);
    begin
-      Originating_Agent :=
-        Model.Agent.Get (Model.Agent_ID.Create (Agent_ID_String));
+      Originating_Agent := Agent_Of (Request => Request);
 
       PBX.Action.Originate
         (Agent       => Originating_Agent,
