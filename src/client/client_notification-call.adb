@@ -43,6 +43,12 @@ package body Client_Notification.Call is
       return Park_Header;
    end Header_Name;
 
+   function Header_Name (O : in Unpark_Event) return String is
+      pragma Unreferenced (O);
+   begin
+      return Unpark_Header;
+   end Header_Name;
+
    function Header_Name (O : in Bridge_Event) return String is
       pragma Unreferenced (O);
    begin
@@ -100,6 +106,15 @@ package body Client_Notification.Call is
       return (Instance with Persistent => False, Call => C);
    end Pickup;
 
+   --------------
+   --  Unpark  --
+   --------------
+
+   function Unpark (C : in PBX.Call.Instance) return Unpark_Event is
+   begin
+      return (Instance with Persistent => False, Call => C);
+   end Unpark;
+
    --------------------------
    --  To_JSON for Hangup  --
    --------------------------
@@ -136,11 +151,25 @@ package body Client_Notification.Call is
 
       return Notification_JSON;
    end To_JSON;
+
    ------------------------
    --  To_JSON for Park  --
    ------------------------
 
    function To_JSON (O : in Park_Event) return JSON_Value is
+      Notification_JSON : constant JSON_Value := O.JSON_Root;
+   begin
+      JSON_Append (Notification_JSON, "call", O.Call.To_JSON);
+
+      return Notification_JSON;
+
+   end To_JSON;
+
+   --------------------------
+   --  To_JSON for Unpark  --
+   --------------------------
+
+   function To_JSON (O : in Unpark_Event) return JSON_Value is
       Notification_JSON : constant JSON_Value := O.JSON_Root;
    begin
       JSON_Append (Notification_JSON, "call", O.Call.To_JSON);

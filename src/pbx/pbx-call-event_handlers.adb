@@ -191,31 +191,67 @@ package body PBX.Call.Event_Handlers is
         Package_Name & ".Notify (Custom_Observer)";
 
       Subevent : String renames Packet.Field (Event_Subclass).Decoded_Value;
+
+      function Is_Parking_Lot (FIFO_Name : in String) return Boolean;
+
+      function Is_Parking_Lot (FIFO_Name : in String) return Boolean is
+      begin
+         if Constants.Park_Prefix'Length > FIFO_Name'Length then
+            return False;
+         else
+            return Constants.Park_Prefix =
+              FIFO_Name (Constants.Park_Prefix'Range);
+         end if;
+
+      end Is_Parking_Lot;
+
    begin
       --  Check which application caused the event.
       if Subevent = Constants.FIFO_Info then
          declare
             ID  : Identification renames
               Value (Packet.Field (Unique_ID).Value);
-            Action : String renames Packet.Field (FIFO_Action).Decoded_Value;
+            Action    : String renames
+              Packet.Field (FIFO_Action).Decoded_Value;
+            Name : String renames
+              Packet.Field (FIFO_Name).Decoded_Value;
          begin
             if Action = Constants.FIFO_Push then
-               Call.Get (Call => ID).Change_State (New_State => Queued);
-               Notification.Broadcast
-                 (Client_Notification.Queue.Join
-                    (Get (Call => ID)).To_JSON);
-               PBX.Trace.Information (Client_Notification.Queue.Join
-                                      (Get (Call => ID)).To_JSON.Write);
+               if not Is_Parking_Lot (FIFO_Name => Name) then
+                  Call.Get (Call => ID).Change_State (New_State => Queued);
+                  Notification.Broadcast
+                    (Client_Notification.Queue.Join
+                       (Get (Call => ID)).To_JSON);
+                  PBX.Trace.Information (Client_Notification.Queue.Join
+                                         (Get (Call => ID)).To_JSON.Write);
+               else
+                  Notification.Broadcast
+                    (Client_Notification.Call.Park
+                       (Call.Get (Call => ID)).To_JSON);
+
+                  PBX.Trace.Information (Message => "Parked call. " & ID.Image,
+                                         Context => Context);
+               end if;
 
             elsif
-              Action = Constants.FIFO_Pop or
+              Action = Constants.FIFO_Pop   or
               Action = Constants.FIFO_Abort
             then
                Call.Get (Call => ID).Change_State (New_State => Speaking);
-               Notification.Broadcast
-                 (Client_Notification.Queue.Leave
-                    (Get (Call => ID)).To_JSON);
 
+               if not Is_Parking_Lot (FIFO_Name => Name) then
+                  Notification.Broadcast
+                    (Client_Notification.Queue.Leave
+                       (Get (Call => ID)).To_JSON);
+               else
+                  Notification.Broadcast
+                    (Client_Notification.Call.Unpark
+                       (Call.Get (Call => ID)).To_JSON);
+
+                  PBX.Trace.Information (Message => "Unparked call. "
+                                         & ID.Image,
+                                         Context => Context);
+               end if;
             elsif Action = Constants.Sofia_Register then
                declare
                   ID : constant Peer_ID.Peer_ID_Type :=

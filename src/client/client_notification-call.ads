@@ -48,6 +48,16 @@ package Client_Notification.Call is
 
    function Park (C : in PBX.Call.Instance) return Park_Event;
 
+   type Unpark_Event is new Client_Notification.Instance
+     (Persistent => False) with
+      record
+         Call : PBX.Call.Instance;
+      end record;
+   function To_JSON (O : in Unpark_Event) return JSON_Value;
+   function Header_Name (O : in Unpark_Event) return String;
+
+   function Unpark (C : in PBX.Call.Instance) return Unpark_Event;
+
    type Bridge_Event is new Client_Notification.Instance
      (Persistent => False) with
       record
@@ -82,6 +92,7 @@ private
    Pickup_Header            : constant String := "call_pickup";
    Hangup_Header            : constant String := "call_hangup";
    Park_Header              : constant String := "call_park";
+   Unpark_Header            : constant String := "call_unpark";
    Bridge_Header            : constant String := "call_bridge";
    Originate_Failed_Header  : constant String := "originate_failed";
    Originate_Success_Header : constant String := "originate_success";
