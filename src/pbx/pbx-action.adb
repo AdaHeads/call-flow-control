@@ -82,36 +82,29 @@ package body PBX.Action is
    procedure Originate (Agent       : in Model.Agent.Agent_Type;
                         Extension   : in String) is
       Context          : constant String := Package_Name & ".Originate";
-      --        Originate_Action : AMI.Packet.Action.Request :=
-      --          AMI.Packet.Action.Originate
-      --            (Channel     => Agent.Peer_ID.To_String,
-      --             Extension   => Extension,
-      --             Context     => Agent.Context,
-      --             Priority    => 1,
-      --             On_Response => Value (Ignore));
-      --        Packet           : AMI.Parser.Packet_Type;
-      pragma Unreferenced (Agent);
+      Originate_Action : constant ESL.Command.Call_Management.Instance :=
+        ESL.Command.Call_Management.Originate
+          (Call_URL  => Agent.Peer_ID.To_String,
+           Extension => Extension);
+      Reply : ESL.Reply.Instance;
+
    begin
-      --  Outline the call. This is done prior to sending the action to assure
-      --  that a request exist in the list when the action completes, thus
-      --  avoiding the race condition.
-      --        Origination_Requests.Link
-      --          (Ticket  => Value (Originate_Action.Action_ID),
-      --           Call_ID => PBX.Call.Allocate (Assigned_To => Agent.ID));
+      PBX.Trace.Information (Message => "Sending:" &
+                               String (Originate_Action.Serialize),
+                             Context => Context);
+      PBX.Client.API (Originate_Action, Reply);
+
+      --  TODO: Add more elaborate parsing here to determine if the call
+      --  really _isn't_ found.
+      if Reply.Response /= ESL.Reply.OK then
+         raise Error;
+      end if;
 
       PBX.Trace.Debug
         (Message => "Sending Originate request with exten " &
            Extension,
          Context => Context,
          Level   => 1);
-      --  Packet := Client.Send (Originate_Action);
-
-      --        if Packet.Header_Value /= "Success" then
-      --           Origination_Requests.Unlink
-      --  (Value (Originate_Action.Action_ID));
-      --           --  Remove the allocated call if the request fails.
-      --           raise Error with Packet.Get_Value (AMI.Parser.Message);
-      --        end if;
    end Originate;
 
    ----------
