@@ -117,6 +117,7 @@ package body Handlers.Call is
       return AWS.Response.Data is
       use Common;
       use PBX.Call;
+      use Agent;
 
       Extension_String  : constant String :=
                             Parameters (Request).Get ("extension");
