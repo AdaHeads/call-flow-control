@@ -341,9 +341,10 @@ package body Handlers.Call is
    begin
       --  Check valitity of the call. (Will raise exception on invalid).
       Source      := Value (Parameters (Request).Get ("source"));
-      Destination := Agent.Get
-        (PBX.Call.Get
-           (Source).Assigned_To).Current_Call;
+      Destination := Value (Parameters (Request).Get ("destination"));
+--        Destination := Agent.Get
+--          (PBX.Call.Get
+--             (Source).Assigned_To).Current_Call;
       if
         Source      = Null_Identification or
         Destination = Null_Identification
