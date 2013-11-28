@@ -164,9 +164,15 @@ package body PBX.Call.Event_Handlers is
 
       ID  : Identification renames
         Value (Packet.Field (Unique_ID).Value);
+
+      Inbound : Boolean := True;
    begin
 
-      Create_And_Insert (Inbound         => True,
+      if (Packet.Field (Key => Call_Direction).Decoded_Value) /= "inbound" then
+         Inbound := False;
+      end if;
+
+      Create_And_Insert (Inbound         => Inbound,
                          ID              => ID,
                          State           => Created,
                          Organization_ID => 1);
