@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2013-, AdaHeads K/S                     --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,29 +15,28 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
+with GNATCOLL.JSON;
+with Model.Agent_ID;
 
-private
-package Handlers.Message is
+package Model.Draft_Stack is
+   use GNATCOLL.JSON;
 
-   function Push_Draft
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+   type Instance is tagged null record;
 
-   function Delete_Draft
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+   subtype Draft_ID is Natural;
 
-   function Drafts
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+   function Stack_Of (Agent : Model.Agent_ID.Agent_ID_Type) return Instance;
+   pragma Obsolescent (Stack_Of, "Implement me!");
 
-   function List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+   function To_JSON (Object : in Instance) return JSON_Value;
+   pragma Obsolescent (To_JSON, "Implement me!");
 
-   package Send is
-      function Callback return AWS.Response.Callback;
-   end Send;
-end Handlers.Message;
+   procedure Delete (Object : in Instance;
+                     Id     : in Draft_ID);
+   pragma Obsolescent (Delete, "Implement me!");
+
+   function Push (Object : in Instance;
+                  Draft  : in JSON_Value) return Draft_ID;
+   pragma Obsolescent (Push, "Implement me!");
+
+end Model.Draft_Stack;

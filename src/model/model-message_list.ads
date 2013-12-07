@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2013-, AdaHeads K/S                     --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,29 +15,20 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
+with GNATCOLL.JSON;
+with Model.Agent_ID;
 
-private
-package Handlers.Message is
+package Model.Message_List is
+   use GNATCOLL.JSON;
 
-   function Push_Draft
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+   type Instance is tagged null record;
 
-   function Delete_Draft
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+   subtype Message_ID is Natural;
 
-   function Drafts
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+   function List_Of (Agent : Model.Agent_ID.Agent_ID_Type) return Instance;
+   pragma Obsolescent (List_Of, "Implement me!");
 
-   function List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+   function To_JSON (Object : in Instance) return JSON_Value;
+   pragma Obsolescent (To_JSON, "Implement me!");
 
-   package Send is
-      function Callback return AWS.Response.Callback;
-   end Send;
-end Handlers.Message;
+end Model.Message_List;

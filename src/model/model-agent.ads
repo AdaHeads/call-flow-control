@@ -22,6 +22,8 @@ with AWS.Status;
 with GNATCOLL.JSON;
 
 with Model.Agent_ID;
+with Model.Draft_Stack;
+with Model.Message_List;
 with ESL.Peer;
 with ESL.Peer_ID;
 with PBX.Call;
@@ -78,6 +80,11 @@ package Model.Agent is
    procedure Update (Agent : in Agent_Type);
 
    function To_JSON return GNATCOLL.JSON.JSON_Value;
+
+   function Draft_Stack (Agent : in Agent_Type) return Model.Draft_Stack.Instance;
+
+   function Messages (Agent : in Agent_Type) return Model.Message_List.Instance;
+
 private
    type Agent_Type is tagged
       record

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2013-, AdaHeads K/S                     --
+--                     Copyright (C) 2012-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,29 +15,30 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
+package body Model.Draft_Stack is
+   use GNATCOLL.JSON;
 
-private
-package Handlers.Message is
+   function Stack_Of (Agent : Model.Agent_ID.Agent_ID_Type) return Instance is
+      Obj : Instance;
+   begin
+      return Obj;
+   end Stack_Of;
 
-   function Push_Draft
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+   function To_JSON (Object : in Instance) return JSON_Value is
+   begin
+      return GNATCOLL.JSON.Create;
+   end To_JSON;
 
-   function Delete_Draft
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+   procedure Delete (Object : in Instance;
+                     Id     : in Draft_ID) is
+   begin
+      raise Program_Error with "Model.Draft_Stack.Delete - not implemented";
+   end Delete;
 
-   function Drafts
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+   function Push (Object : in Instance;
+                  Draft  : in JSON_Value) return Draft_ID is
+   begin
+      return 0;
+   end Push;
 
-   function List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-
-   package Send is
-      function Callback return AWS.Response.Callback;
-   end Send;
-end Handlers.Message;
+end Model.Draft_Stack;

@@ -230,6 +230,21 @@ package body Model.Agent is
    begin
       Agent_List.Replace (Agent.ID, Agent);
    end Update;
+
+   function Draft_Stack (Agent : in Agent_Type)
+                         return Model.Draft_Stack.Instance
+   is
+   begin
+      return Model.Draft_Stack.Stack_Of (Agent.ID);
+   end Draft_Stack;
+
+   function Messages (Agent : in Agent_Type)
+                      return Model.Message_List.Instance
+   is
+   begin
+      return Model.Message_List.List_Of (Agent.ID);
+   end Messages;
+
 begin
 
    for I in 1 .. 20 loop

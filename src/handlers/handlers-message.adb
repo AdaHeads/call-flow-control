@@ -18,7 +18,6 @@
 with Ada.Strings.Fixed;
 
 with AWS.Parameters,
-     AWS.Status,
      AWS.Utils,
      GNATCOLL.JSON;
 
@@ -26,16 +25,83 @@ with Common,
      HTTP_Codes,
      MIME_Types,
      Model,
+     Model.Agent,
      Model.Contact,
+     Response,
      System_Message.Debug,
      View;
 
 package body Handlers.Message is
+
+   package HTTP renames HTTP_Codes;
+
    subtype Contact_In_Organization is Model.Organization_Contact_Identifier;
 
    function Image (Item : in Model.Contact_Identifier) return String;
    function Image (Item : in Model.Organization_Identifier) return String;
    function Image (Item : in Contact_In_Organization) return String;
+
+   function Delete_Draft
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+      use Model.Agent;
+      Response_Object : Response.Object :=
+        Response.Factory (Request);
+   begin
+      Agent_Of (Request).Draft_Stack.Delete
+        (Natural'Value (AWS.Status.Parameters (Request).Get ("draft_id")));
+
+      Response_Object.HTTP_Status_Code (HTTP.OK);
+
+      return Response_Object.Build;
+   end Delete_Draft;
+
+   function Push_Draft
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+      use Model.Agent;
+      Response_Object : Response.Object :=
+        Response.Factory (Request);
+      New_ID          : Natural := 0;
+   begin
+      New_ID := Agent_Of (Request).Draft_Stack.Push (GNATCOLL.JSON.Create);
+      Response_Object.HTTP_Status_Code (HTTP.OK);
+
+      return Response_Object.Build;
+   end Push_Draft;
+
+   function Drafts
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+      use Model.Agent;
+      Response_Object : Response.Object :=
+        Response.Factory (Request);
+   begin
+      Response_Object.HTTP_Status_Code (HTTP.OK);
+      Response_Object.Content
+        (Value => Agent_Of (Request).
+           Draft_Stack.To_JSON);
+
+      return Response_Object.Build;
+   end Drafts;
+
+   function List
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+      use Model.Agent;
+      Response_Object : Response.Object :=
+        Response.Factory (Request);
+   begin
+      Response_Object.HTTP_Status_Code (HTTP.OK);
+      Response_Object.Content
+        (Value => Agent_Of (Request).Messages.To_JSON);
+
+      return Response_Object.Build;
+   end List;
 
    function Image (Item : in Model.Contact_Identifier) return String is
       use Ada.Strings, Ada.Strings.Fixed;
@@ -97,14 +163,14 @@ package body Handlers.Message is
             Found := False;
          else
             Next := Just_Before (Source.Source (Source.Last + 1 ..
-                                                Source.Length), "@");
+                                   Source.Length), "@");
             Contact.Contact_ID :=
               Model.Contact_Identifier'Value
                 (Source.Source (Source.Last + 1 .. Next));
             Source.Last := Next + 1;
 
             Next := Just_Before (Source.Source (Source.Last + 1 ..
-                                                Source.Length), ",");
+                                   Source.Length), ",");
             Contact.Organization_ID :=
               Model.Organization_Identifier'Value
                 (Source.Source (Source.Last + 1 .. Next));
@@ -137,7 +203,7 @@ package body Handlers.Message is
             System_Message.Debug.Leaving_Subprogram
               (Event   => E,
                Message => "Just_Before: Source = """ & Source &
-                          """, Pattern = """ & Pattern & """");
+                 """, Pattern = """ & Pattern & """");
             raise;
       end Just_Before;
    end Parser;
@@ -151,12 +217,12 @@ package body Handlers.Message is
       end Callback;
 
       function Service (Request : in AWS.Status.Data)
-                       return AWS.Response.Data is
+                        return AWS.Response.Data is
          use GNATCOLL.JSON;
          use Common;
 
          Parameters : AWS.Parameters.List
-                        renames AWS.Status.Parameters (Request);
+         renames AWS.Status.Parameters (Request);
 
          function Bad_Or_Missing_Message return Boolean;
          function No_Contacts_Selected return Boolean;
@@ -173,9 +239,9 @@ package body Handlers.Message is
          begin
             return not
               (
-                 Parameters.Exist ("message") and then
-                 Parameters.Get ("message")'Length > 0 and then
-                 AWS.Utils.Is_Valid_UTF8 (Parameters.Get ("message"))
+               Parameters.Exist ("message") and then
+               Parameters.Get ("message")'Length > 0 and then
+               AWS.Utils.Is_Valid_UTF8 (Parameters.Get ("message"))
               );
          end Bad_Or_Missing_Message;
 
@@ -188,7 +254,7 @@ package body Handlers.Message is
                             Field      => "bad request");
             Data.Set_Field (Field_Name => View.Description,
                             Field      => "passed message argument is too " &
-                                          "long, missing or invalid");
+                              "long, missing or invalid");
 
             return AWS.Response.Build
               (Content_Type => MIME_Types.JSON,
@@ -204,23 +270,23 @@ package body Handlers.Message is
                                Found_All :    out Boolean;
                                Missing   :    out Contact_In_Organization) is
                function Exists_In_Database
-                          (Item : in Contact_In_Organization) return Boolean;
+                 (Item : in Contact_In_Organization) return Boolean;
                function Exists_In_Database
-                          (Item : in Contact_In_Organization) return Boolean is
+                 (Item : in Contact_In_Organization) return Boolean is
                begin
                   System_Message.Debug.Entered_Subprogram
                     (Message => "Exists_In_Database (Item => " & Image (Item) &
-                                ")?");
+                       ")?");
 
                   declare
                      use type Model.Contact_Identifier;
                      Contact : constant Model.Contact.Object :=
-                                 Model.Contact.Get (Item);
+                       Model.Contact.Get (Item);
                   begin
                      System_Message.Debug.Leaving_Subprogram
                        (Message => "return " &
-                                   Boolean'Image
-                                     (Contact.ID = Item.Contact_ID));
+                          Boolean'Image
+                          (Contact.ID = Item.Contact_ID));
 
                      return Contact.ID = Item.Contact_ID;
                   end;
@@ -246,7 +312,7 @@ package body Handlers.Message is
                   if Error then
                      raise Program_Error
                        with "Logic error in Handlers.Message.Send: " &
-                            "Could not parse contact list.";
+                       "Could not parse contact list.";
                   elsif Found then
                      if Exists_In_Database (Contact) then
                         null;
@@ -263,8 +329,8 @@ package body Handlers.Message is
 
                System_Message.Debug.Leaving_Subprogram
                  (Message => "Contacts => """ & Contacts & """, " &
-                             "Found_All => " & Boolean'Image (Found_All) &
-                             ", Missing => " & Image (Missing) & ".");
+                    "Found_All => " & Boolean'Image (Found_All) &
+                    ", Missing => " & Image (Missing) & ".");
             end Look_Up;
 
             ID   : Contact_In_Organization := (0, 0);
@@ -314,7 +380,7 @@ package body Handlers.Message is
                             Field      => "not_found");
             Data.Set_Field (Field_Name => View.Description,
                             Field      => "one of the passed contacts could " &
-                                          "not be found in the database");
+                              "not be found in the database");
 
             return AWS.Response.Build
               (Content_Type => MIME_Types.JSON,
@@ -325,7 +391,7 @@ package body Handlers.Message is
                System_Message.Debug.Leaving_Subprogram
                  (Event   => E,
                   Message => "Bug in Contact_Does_Not_Exist (returning " &
-                             "AWS.Response.Data)");
+                    "AWS.Response.Data)");
                raise;
          end Contact_Does_Not_Exist;
 
@@ -348,9 +414,9 @@ package body Handlers.Message is
          begin
             return not
               (
-                 Parameters.Exist ("to") or else
-                 Parameters.Exist ("cc") or else
-                 Parameters.Exist ("bcc")
+               Parameters.Exist ("to") or else
+               Parameters.Exist ("cc") or else
+               Parameters.Exist ("bcc")
               );
          end No_Contacts_Selected;
 
@@ -374,7 +440,7 @@ package body Handlers.Message is
          begin
             raise Program_Error
               with "Check ""Contact_Without_Messaging_Addresses"" not " &
-                   "implemented yet.";
+              "implemented yet.";
             return True;
          end No_Messaging_Addresses;
 
@@ -387,8 +453,8 @@ package body Handlers.Message is
                             Field      => "not_found");
             Data.Set_Field (Field_Name => View.Description,
                             Field      => "none of the passed contacts have " &
-                                          "an enabled messaging address in " &
-                                          "the database");
+                              "an enabled messaging address in " &
+                              "the database");
 
             return AWS.Response.Build
               (Content_Type => MIME_Types.JSON,
