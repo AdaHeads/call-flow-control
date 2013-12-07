@@ -175,6 +175,10 @@ begin
    Register (POST, "/log/info",           Logged_In,              Log.Info);
 
    Register (GET,  "/message/send",       Receptionist,           Message.Send.Callback);
+   Register (GET,  "/message/list",       Receptionist,           Message.List'Access);
+   Register (PUT,  "/message/draft",      Receptionist,           Message.Push_Draft'Access);
+   Register (DELETE,"/message/draft",     Receptionist,          Message.Delete_Draft'Access);
+   Register (GET,  "/message/drafts",     Receptionist,           Message.Drafts'Access);
 
    Register (GET,  "/organization",       Receptionist or Service_Agent,
                                                                   Organization.Callback);
