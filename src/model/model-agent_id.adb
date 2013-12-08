@@ -19,11 +19,19 @@ with Ada.Strings.Fixed;
 
 package body Model.Agent_ID is
 
+   -----------
+   --  "<"  --
+   -----------
+
    function "<" (Left  : in Agent_ID_Type;
                  Right : in Agent_ID_Type) return Boolean is
    begin
       return Left.ID < Right.ID;
    end "<";
+
+   --------------
+   --  Create  --
+   --------------
 
    function Create (Agent_ID : in String) return Agent_ID_Type is
    begin
@@ -33,6 +41,10 @@ package body Model.Agent_ID is
          raise Invalid_ID with "Bad value: " & Agent_ID;
    end Create;
 
+   --------------
+   --  Create  --
+   --------------
+
    function Create (Agent_ID : in Natural) return Agent_ID_Type is
    begin
       return (ID => Agent_ID);
@@ -41,10 +53,27 @@ package body Model.Agent_ID is
          raise Invalid_ID with "Bad value:" & Agent_ID'Img;
    end Create;
 
+   ------------
+   --  Hash  --
+   ------------
+
+   function Hash (Agent_ID : Agent_ID_Type) return Ada.Containers.Hash_Type is
+   begin
+      return Ada.Containers.Hash_Type (Agent_ID.ID);
+   end Hash;
+
+   ----------
+   --  ID  --
+   ----------
+
    function ID (Agent_ID : in Agent_ID_Type) return Natural is
    begin
       return Agent_ID.ID;
    end ID;
+
+   ---------------
+   --  To_JSON  --
+   ---------------
 
    function To_JSON (Obj : in Agent_ID_Type) return GNATCOLL.JSON.JSON_Value is
       use Ada.Strings;
@@ -57,6 +86,10 @@ package body Model.Agent_ID is
       end if;
    end To_JSON;
 
+   -----------------
+   --  To_String  --
+   -----------------
+
    function To_String (Agent_ID : in Agent_ID_Type) return String is
       use Ada.Strings;
    begin
@@ -66,6 +99,10 @@ package body Model.Agent_ID is
          return Ada.Strings.Fixed.Trim (Agent_ID.ID'Img, Both);
       end if;
    end To_String;
+
+   ----------------
+   --  Validate  --
+   ----------------
 
    function Validate (Item : in String) return Boolean is
       Agent_ID : Agent_ID_Type := Null_Agent_ID;

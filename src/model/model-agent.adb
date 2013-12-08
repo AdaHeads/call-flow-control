@@ -24,6 +24,12 @@ with System_Messages;
 
 package body Model.Agent is
 
+   --  TODO: Change this to a real database.
+   package Agent_Storage is new
+     Ada.Containers.Ordered_Maps (Key_Type     => Agent_ID_Type,
+                                  Element_Type => Agent_Type);
+
+   Agent_List : Agent_Storage.Map := Agent_Storage.Empty_Map;
    ----------------
    --  Agent_Of  --
    ----------------
@@ -44,13 +50,6 @@ package body Model.Agent is
                                  Message => "No agent with id:" & A_ID.To_String);
          return Null_Agent;
    end Agent_Of;
-
-   --  TODO: Change this to a real database.
-   package Agent_Storage is new
-     Ada.Containers.Ordered_Maps (Key_Type     => Agent_ID_Type,
-                                  Element_Type => Agent_Type);
-
-   Agent_List : Agent_Storage.Map := Agent_Storage.Empty_Map;
 
    --------------
    --  Assign  --

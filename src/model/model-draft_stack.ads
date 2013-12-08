@@ -21,7 +21,7 @@ with Model.Agent_ID;
 package Model.Draft_Stack is
    use GNATCOLL.JSON;
 
-   type Instance is tagged null record;
+   type Instance is tagged private;
 
    subtype Draft_ID is Natural;
 
@@ -38,5 +38,11 @@ package Model.Draft_Stack is
    function Push (Object : in Instance;
                   Draft  : in JSON_Value) return Draft_ID;
    pragma Obsolescent (Push, "Implement me!");
+
+private
+   type Instance is tagged
+      record
+         Identifier : Model.Agent_ID.Agent_ID_Type;
+      end record;
 
 end Model.Draft_Stack;

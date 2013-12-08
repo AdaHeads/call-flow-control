@@ -16,6 +16,7 @@
 -------------------------------------------------------------------------------
 
 with GNATCOLL.JSON;
+with Ada.Containers;
 
 package Model.Agent_ID is
 
@@ -42,6 +43,8 @@ package Model.Agent_ID is
    function Validate (Item : in String) return Boolean;
    --  Non-exception-raising method for determining ID-valitity of a given
    --  String
+
+   function Hash (Agent_ID : Agent_ID_Type) return Ada.Containers.Hash_Type;
 
 private
    type Agent_ID_Type is tagged record
