@@ -20,7 +20,6 @@ with GNATCOLL.JSON;
 with Common,
      Handlers.OpenID,
      HTTP_Codes,
-     MIME_Types,
      Response,
      System_Message.Critical,
      View;
@@ -35,19 +34,17 @@ package body Handlers.Authenticated_Dispatcher is
 
    function Not_Authorized (Request : in     AWS.Status.Data)
                            return AWS.Response.Data is
-      pragma Unreferenced (Request);
-
       JSON : GNATCOLL.JSON.JSON_Value;
+      Response_Object   : Response.Object := Response.Factory (Request);
    begin
       JSON := GNATCOLL.JSON.Create_Object;
       JSON.Set_Field (Field_Name => View.Status,
                       Field      => "not authorized");
 
+      Response_Object.HTTP_Status_Code (Value => HTTP_Codes.Unauthorized);
+      Response_Object.Content (Common.To_JSON_String (JSON));
       return
-        AWS.Response.Build (Content_Type => MIME_Types.JSON,
-                            Message_Body => Common.To_String
-                                              (Common.To_JSON_String (JSON)),
-                            Status_Code  => HTTP_Codes.Unauthorized);
+        Response_Object.Build;
    end Not_Authorized;
 
    procedure Register (Method     : in     AWS.Status.Request_Method;
