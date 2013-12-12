@@ -162,7 +162,7 @@ begin
    Register (POST, "/call/pickup",        Receptionist,           Call.Pickup'Access);
    Register (POST, "/call/transfer",      Receptionist,           Call.Transfer'Access);
 
-   Register (GET,  "/configuration",      Receptionist,           Configuration.Callback);
+   Register (GET,  "/configuration",      Public,           Configuration.Callback);
 
    Register (GET,  "/contact",            Receptionist or Service_Agent,
                                                                   Contact.Callback);
