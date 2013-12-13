@@ -28,6 +28,9 @@ package View.User is
                      Label : in     User_Name_Labels)
                     return GNATCOLL.JSON.JSON_Value;
 
+   function To_JSON (Item  : in     Model.User.Instance)
+                    return GNATCOLL.JSON.JSON_Value;
+
    subtype OpenID_URL_Labels is String
      with Dynamic_Predicate => (OpenID_URL_Labels = View.OpenID or
                                 OpenID_URL_Labels = View.URL);

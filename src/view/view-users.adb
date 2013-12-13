@@ -25,8 +25,7 @@ package body View.Users is
    begin
       for User of Item loop
          Append (Arr => Data,
-                 Val => View.User.To_JSON (Item  => User,
-                                           Label => View.Name));
+                 Val => View.User.To_JSON (Item  => User));
       end loop;
 
       return Data;

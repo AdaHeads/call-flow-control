@@ -17,9 +17,6 @@
 
 with AWS.Dispatchers.Callback;
 
---  with AGI.Callbacks; --  Initializes with a call to AMI.Observers.Register.
---  pragma Unreferenced (AGI.Callbacks);
-
 with Handlers.Route;
 with PBX;
 with SIGHUP;

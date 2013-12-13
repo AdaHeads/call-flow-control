@@ -27,6 +27,24 @@ package body View.User is
       Data.Set_Field (Field_Name => Label,
                       Field      => String (Item));
 
+      Data.Set_Field (Field_Name => Label,
+                      Field      => String (ID));
+      return Data;
+   end To_JSON;
+
+   function To_JSON (Item  : in     Model.User.Instance)
+                     return GNATCOLL.JSON.JSON_Value is
+      use GNATCOLL.JSON;
+      Data : JSON_Value;
+   begin
+      Data := Create_Object;
+
+      Data.Set_Field (Field_Name => View.Name,
+                      Field      => Item.User_Name);
+
+      Data.Set_Field (Field_Name => View.ID,
+                      Field      => Item.ID);
+
       return Data;
    end To_JSON;
 

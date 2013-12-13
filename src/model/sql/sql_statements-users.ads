@@ -22,28 +22,34 @@ package SQL_Statements.Users is
    use GNATCOLL.SQL;
 
    User_List_Query : constant SQL_Query
-     := Distinct (SQL_Select (Fields => DB.User_IDs.Name,
-                              From   => DB.User_IDs));
+     := Distinct (SQL_Select (Fields => DB.Users.Name & DB.Users.ID,
+                              From   => DB.Users));
+
+   User_ID_Of_Identity_Query : constant SQL_Query
+     := SQL_Select (Fields   => DB.Auth_Identities.User_ID,
+                    From     => DB.Auth_Identities,
+                    Where    => DB.Auth_Identities.Identity = Text_Param (1));
+   --  Determines the User_ID of a given identity.
 
    OpenID_List_Query : constant SQL_Query
-     := SQL_Select (Fields   => DB.User_IDs.OpenID,
-                    From     => DB.User_IDs,
-                    Where    => DB.User_IDs.Name = Text_Param (1),
-                    Order_By => DB.User_IDs.Priority);
+     := SQL_Select (Fields   => DB.User_Ids.OpenID,
+                    From     => DB.User_Ids,
+                    Where    => DB.User_Ids.User_Id = Integer_Param (1),
+                    Order_By => DB.User_Ids.Priority);
 
    Permission_List_Query : constant SQL_Query
      := SQL_Select (Fields   => DB.Users.Is_Receptionist &
-                                DB.Users.Is_Service_Agent &
-                                DB.Users.Is_Administrator,
+                      DB.Users.Is_Service_Agent &
+                      DB.Users.Is_Administrator,
                     From     => DB.Users,
                     Where    => DB.Users.Name = Text_Param (1));
 
    Permissions_By_ID : constant SQL_Query
      := SQL_Select (Fields   => DB.Users.Is_Receptionist &
-                                DB.Users.Is_Service_Agent &
-                                DB.Users.Is_Administrator,
-                    From     => DB.User_IDs & DB.Users,
-                    Where    => DB.User_IDs.Name   = DB.Users.Name and
-                                DB.User_IDs.OpenID = Text_Param (1));
+                      DB.Users.Is_Service_Agent &
+                      DB.Users.Is_Administrator,
+                    From     => DB.User_Ids & DB.Users,
+                    Where    => DB.User_Ids.User_Id = DB.Users.Id and
+                      DB.User_Ids.OpenId = Text_Param (1));
 
 end SQL_Statements.Users;

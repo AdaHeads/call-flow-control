@@ -79,9 +79,9 @@ package body Handlers.Users.OpenIDs is
                          Field      => "okay");
          Data.Set_Field (Field_Name => View.User_S,
                          Field      => String (User_Name));
-         Data.Set_Field (Field_Name => View.OpenIDs,
-                         Field      => View.User.To_JSON
-                                         (Model.User.OpenIDs (User_Name)));
+--           Data.Set_Field (Field_Name => View.OpenIDs,
+--                           Field      => View.User.To_JSON
+--                                           (Model.User.OpenIDs (User_Name)));
 
          Instance.Content (To_JSON_String (Data));
       else

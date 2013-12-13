@@ -40,9 +40,4 @@ package body Alice_Configuration is
                        "Boolean.");
          return False;
    end Unsafe_Mode;
-
-begin
-   if Unsafe_Mode then
-      System_Message.Critical.Running_In_Unsafe_Mode;
-   end if;
 end Alice_Configuration;

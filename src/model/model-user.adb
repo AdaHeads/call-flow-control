@@ -23,6 +23,32 @@ with SQL_Prepared_Statements.Users,
 
 package body Model.User is
 
+   function User_Name (Object : in Instance) return String is
+   begin
+      return To_String (Object.Name);
+   end User_Name;
+
+   function ID (Object : in Instance) return Natural is
+   begin
+      return Object.ID;
+   end ID;
+
+   function "<" (Left, Right : in Instance) return Boolean is
+   begin
+      return Left.ID < Right.ID;
+   end "<";
+
+   function "=" (Left, Right : in Instance) return Boolean is
+   begin
+      return Left.ID = Right.ID;
+   end "=";
+
+   function Create (Name : in String;
+                    ID   : in Natural) return Instance is
+   begin
+      return (Name => To_Unbounded_String (Name), ID => ID);
+   end Create;
+
    function List (C : in out Database_Cursor'Class) return OpenID_List;
    function List (C : in out Database_Cursor'Class) return OpenID_List is
    begin

@@ -1,5 +1,8 @@
 all: test.db
 
+install:
+	cp test.db ../exe/sqlite/customers.db 
+
 sources: postgresql/schema.sql postgresql/test_data.sql sqlite/schema.sql sqlite/test_data.sql
 
 test.db: sqlite/schema.sql sqlite/test_data.sql

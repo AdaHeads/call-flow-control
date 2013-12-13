@@ -8,13 +8,13 @@ package Database is
       is abstract new SQL_Table (Ta_Archive_Message_Queue, Instance, Index) with
    record
       Created_At : SQL_Field_Time (Ta_Archive_Message_Queue, Instance, N_Created_At, Index);
-      ID : SQL_Field_Integer (Ta_Archive_Message_Queue, Instance, N_ID, Index);
+      Id : SQL_Field_Integer (Ta_Archive_Message_Queue, Instance, N_Id, Index);
       Last_Try : SQL_Field_Time (Ta_Archive_Message_Queue, Instance, N_Last_Try, Index);
       Message : SQL_Field_Text (Ta_Archive_Message_Queue, Instance, N_Message, Index);
       Subject : SQL_Field_Text (Ta_Archive_Message_Queue, Instance, N_Subject, Index);
-      Taken_By_Agent : SQL_Field_Text (Ta_Archive_Message_Queue, Instance, N_Taken_By_Agent, Index);
+      Taken_By_Agent : SQL_Field_Integer (Ta_Archive_Message_Queue, Instance, N_Taken_By_Agent, Index);
       Taken_From : SQL_Field_Text (Ta_Archive_Message_Queue, Instance, N_Taken_From, Index);
-      To_Contact_ID : SQL_Field_Integer (Ta_Archive_Message_Queue, Instance, N_To_Contact_ID, Index);
+      To_Contact_Id : SQL_Field_Integer (Ta_Archive_Message_Queue, Instance, N_To_Contact_Id, Index);
       Tries : SQL_Field_Integer (Ta_Archive_Message_Queue, Instance, N_Tries, Index);
       Urgent : SQL_Field_Boolean (Ta_Archive_Message_Queue, Instance, N_Urgent, Index);
    end record;
@@ -27,9 +27,9 @@ package Database is
    type T_Abstract_Archive_Message_Queue_Recipients (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Archive_Message_Queue_Recipients, Instance, Index) with
    record
-      Contact_ID : SQL_Field_Integer (Ta_Archive_Message_Queue_Recipients, Instance, N_Contact_ID, Index);
-      Message_ID : SQL_Field_Integer (Ta_Archive_Message_Queue_Recipients, Instance, N_Message_ID, Index);
-      Organization_ID : SQL_Field_Integer (Ta_Archive_Message_Queue_Recipients, Instance, N_Organization_ID, Index);
+      Contact_Id : SQL_Field_Integer (Ta_Archive_Message_Queue_Recipients, Instance, N_Contact_Id, Index);
+      Message_Id : SQL_Field_Integer (Ta_Archive_Message_Queue_Recipients, Instance, N_Message_Id, Index);
+      Organization_Id : SQL_Field_Integer (Ta_Archive_Message_Queue_Recipients, Instance, N_Organization_Id, Index);
       Recipient_Role : SQL_Field_Text (Ta_Archive_Message_Queue_Recipients, Instance, N_Recipient_Role, Index);
       Resolved_Addresses : SQL_Field_Text (Ta_Archive_Message_Queue_Recipients, Instance, N_Resolved_Addresses, Index);
    end record;
@@ -39,10 +39,22 @@ package Database is
    type T_Numbered_Archive_Message_Queue_Recipients (Index : Integer)
       is new T_Abstract_Archive_Message_Queue_Recipients (null, Index) with null record;
 
+   type T_Abstract_Auth_Identities (Instance : Cst_String_Access; Index : Integer)
+      is abstract new SQL_Table (Ta_Auth_Identities, Instance, Index) with
+   record
+      Identity : SQL_Field_Text (Ta_Auth_Identities, Instance, N_Identity, Index);
+      User_Id : SQL_Field_Integer (Ta_Auth_Identities, Instance, N_User_Id, Index);
+   end record;
+
+   type T_Auth_Identities (Instance : Cst_String_Access)
+      is new T_Abstract_Auth_Identities (Instance, -1) with null record;
+   type T_Numbered_Auth_Identities (Index : Integer)
+      is new T_Abstract_Auth_Identities (null, Index) with null record;
+
    type T_Abstract_Calendar_Events (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Calendar_Events, Instance, Index) with
    record
-      ID : SQL_Field_Integer (Ta_Calendar_Events, Instance, N_ID, Index);
+      Id : SQL_Field_Integer (Ta_Calendar_Events, Instance, N_Id, Index);
       Message : SQL_Field_Text (Ta_Calendar_Events, Instance, N_Message, Index);
       Start : SQL_Field_Time (Ta_Calendar_Events, Instance, N_Start, Index);
       Stop : SQL_Field_Time (Ta_Calendar_Events, Instance, N_Stop, Index);
@@ -56,9 +68,9 @@ package Database is
    type T_Abstract_Contact_Calendar (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Contact_Calendar, Instance, Index) with
    record
-      Contact_ID : SQL_Field_Integer (Ta_Contact_Calendar, Instance, N_Contact_ID, Index);
-      Event_ID : SQL_Field_Integer (Ta_Contact_Calendar, Instance, N_Event_ID, Index);
-      Organization_ID : SQL_Field_Integer (Ta_Contact_Calendar, Instance, N_Organization_ID, Index);
+      Contact_Id : SQL_Field_Integer (Ta_Contact_Calendar, Instance, N_Contact_Id, Index);
+      Event_Id : SQL_Field_Integer (Ta_Contact_Calendar, Instance, N_Event_Id, Index);
+      Organization_Id : SQL_Field_Integer (Ta_Contact_Calendar, Instance, N_Organization_Id, Index);
    end record;
 
    type T_Contact_Calendar (Instance : Cst_String_Access)
@@ -69,9 +81,9 @@ package Database is
    type T_Abstract_Contact_Phone_Numbers (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Contact_Phone_Numbers, Instance, Index) with
    record
-      Contact_ID : SQL_Field_Integer (Ta_Contact_Phone_Numbers, Instance, N_Contact_ID, Index);
-      Organization_ID : SQL_Field_Integer (Ta_Contact_Phone_Numbers, Instance, N_Organization_ID, Index);
-      Phone_Number_ID : SQL_Field_Integer (Ta_Contact_Phone_Numbers, Instance, N_Phone_Number_ID, Index);
+      Contact_Id : SQL_Field_Integer (Ta_Contact_Phone_Numbers, Instance, N_Contact_Id, Index);
+      Organization_Id : SQL_Field_Integer (Ta_Contact_Phone_Numbers, Instance, N_Organization_Id, Index);
+      Phone_Number_Id : SQL_Field_Integer (Ta_Contact_Phone_Numbers, Instance, N_Phone_Number_Id, Index);
    end record;
 
    type T_Contact_Phone_Numbers (Instance : Cst_String_Access)
@@ -82,9 +94,9 @@ package Database is
    type T_Abstract_Contact_Recurring_Calendar (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Contact_Recurring_Calendar, Instance, Index) with
    record
-      Contact_ID : SQL_Field_Integer (Ta_Contact_Recurring_Calendar, Instance, N_Contact_ID, Index);
-      Event_ID : SQL_Field_Integer (Ta_Contact_Recurring_Calendar, Instance, N_Event_ID, Index);
-      Organization_ID : SQL_Field_Integer (Ta_Contact_Recurring_Calendar, Instance, N_Organization_ID, Index);
+      Contact_Id : SQL_Field_Integer (Ta_Contact_Recurring_Calendar, Instance, N_Contact_Id, Index);
+      Event_Id : SQL_Field_Integer (Ta_Contact_Recurring_Calendar, Instance, N_Event_Id, Index);
+      Organization_Id : SQL_Field_Integer (Ta_Contact_Recurring_Calendar, Instance, N_Organization_Id, Index);
    end record;
 
    type T_Contact_Recurring_Calendar (Instance : Cst_String_Access)
@@ -109,7 +121,7 @@ package Database is
       Contact_Type : SQL_Field_Text (Ta_Contacts, Instance, N_Contact_Type, Index);
       Enabled : SQL_Field_Boolean (Ta_Contacts, Instance, N_Enabled, Index);
       Full_Name : SQL_Field_Text (Ta_Contacts, Instance, N_Full_Name, Index);
-      ID : SQL_Field_Integer (Ta_Contacts, Instance, N_ID, Index);
+      Id : SQL_Field_Integer (Ta_Contacts, Instance, N_Id, Index);
    end record;
 
    type T_Contacts (Instance : Cst_String_Access)
@@ -132,10 +144,10 @@ package Database is
    type T_Abstract_Distribution_Lists (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Distribution_Lists, Instance, Index) with
    record
-      ID : SQL_Field_Integer (Ta_Distribution_Lists, Instance, N_ID, Index);
+      Id : SQL_Field_Integer (Ta_Distribution_Lists, Instance, N_Id, Index);
       Recipient_Visibility : SQL_Field_Text (Ta_Distribution_Lists, Instance, N_Recipient_Visibility, Index);
-      Send_To_Contact_ID : SQL_Field_Integer (Ta_Distribution_Lists, Instance, N_Send_To_Contact_ID, Index);
-      Send_To_Organization_ID : SQL_Field_Integer (Ta_Distribution_Lists, Instance, N_Send_To_Organization_ID, Index);
+      Send_To_Contact_Id : SQL_Field_Integer (Ta_Distribution_Lists, Instance, N_Send_To_Contact_Id, Index);
+      Send_To_Organization_Id : SQL_Field_Integer (Ta_Distribution_Lists, Instance, N_Send_To_Organization_Id, Index);
    end record;
 
    type T_Distribution_Lists (Instance : Cst_String_Access)
@@ -147,7 +159,7 @@ package Database is
       is abstract new SQL_Table (Ta_Kinds, Instance, Index) with
    record
       Description : SQL_Field_Text (Ta_Kinds, Instance, N_Description, Index);
-      ID : SQL_Field_Text (Ta_Kinds, Instance, N_ID, Index);
+      Id : SQL_Field_Text (Ta_Kinds, Instance, N_Id, Index);
    end record;
 
    type T_Kinds (Instance : Cst_String_Access)
@@ -155,17 +167,30 @@ package Database is
    type T_Numbered_Kinds (Index : Integer)
       is new T_Abstract_Kinds (null, Index) with null record;
 
+   type T_Abstract_Message_Draft (Instance : Cst_String_Access; Index : Integer)
+      is abstract new SQL_Table (Ta_Message_Draft, Instance, Index) with
+   record
+      Id : SQL_Field_Integer (Ta_Message_Draft, Instance, N_Id, Index);
+      Json : SQL_Field_Text (Ta_Message_Draft, Instance, N_Json, Index);
+      Owner : SQL_Field_Integer (Ta_Message_Draft, Instance, N_Owner, Index);
+   end record;
+
+   type T_Message_Draft (Instance : Cst_String_Access)
+      is new T_Abstract_Message_Draft (Instance, -1) with null record;
+   type T_Numbered_Message_Draft (Index : Integer)
+      is new T_Abstract_Message_Draft (null, Index) with null record;
+
    type T_Abstract_Message_Queue (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Message_Queue, Instance, Index) with
    record
       Created_At : SQL_Field_Time (Ta_Message_Queue, Instance, N_Created_At, Index);
-      ID : SQL_Field_Integer (Ta_Message_Queue, Instance, N_ID, Index);
+      Id : SQL_Field_Integer (Ta_Message_Queue, Instance, N_Id, Index);
       Last_Try : SQL_Field_Time (Ta_Message_Queue, Instance, N_Last_Try, Index);
       Message : SQL_Field_Text (Ta_Message_Queue, Instance, N_Message, Index);
       Subject : SQL_Field_Text (Ta_Message_Queue, Instance, N_Subject, Index);
-      Taken_By_Agent : SQL_Field_Text (Ta_Message_Queue, Instance, N_Taken_By_Agent, Index);
+      Taken_By_Agent : SQL_Field_Integer (Ta_Message_Queue, Instance, N_Taken_By_Agent, Index);
       Taken_From : SQL_Field_Text (Ta_Message_Queue, Instance, N_Taken_From, Index);
-      To_Contact_ID : SQL_Field_Integer (Ta_Message_Queue, Instance, N_To_Contact_ID, Index);
+      To_Contact_Id : SQL_Field_Integer (Ta_Message_Queue, Instance, N_To_Contact_Id, Index);
       Tries : SQL_Field_Integer (Ta_Message_Queue, Instance, N_Tries, Index);
       Urgent : SQL_Field_Boolean (Ta_Message_Queue, Instance, N_Urgent, Index);
    end record;
@@ -178,9 +203,9 @@ package Database is
    type T_Abstract_Message_Queue_Recipients (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Message_Queue_Recipients, Instance, Index) with
    record
-      Contact_ID : SQL_Field_Integer (Ta_Message_Queue_Recipients, Instance, N_Contact_ID, Index);
-      Message_ID : SQL_Field_Integer (Ta_Message_Queue_Recipients, Instance, N_Message_ID, Index);
-      Organization_ID : SQL_Field_Integer (Ta_Message_Queue_Recipients, Instance, N_Organization_ID, Index);
+      Contact_Id : SQL_Field_Integer (Ta_Message_Queue_Recipients, Instance, N_Contact_Id, Index);
+      Message_Id : SQL_Field_Integer (Ta_Message_Queue_Recipients, Instance, N_Message_Id, Index);
+      Organization_Id : SQL_Field_Integer (Ta_Message_Queue_Recipients, Instance, N_Organization_Id, Index);
       Recipient_Role : SQL_Field_Text (Ta_Message_Queue_Recipients, Instance, N_Recipient_Role, Index);
    end record;
 
@@ -205,7 +230,7 @@ package Database is
    record
       Address : SQL_Field_Text (Ta_Messaging_Addresses, Instance, N_Address, Index);
       Address_Type : SQL_Field_Text (Ta_Messaging_Addresses, Instance, N_Address_Type, Index);
-      ID : SQL_Field_Integer (Ta_Messaging_Addresses, Instance, N_ID, Index);
+      Id : SQL_Field_Integer (Ta_Messaging_Addresses, Instance, N_Id, Index);
    end record;
 
    type T_Messaging_Addresses (Instance : Cst_String_Access)
@@ -216,11 +241,11 @@ package Database is
    type T_Abstract_Messaging_End_Points (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Messaging_End_Points, Instance, Index) with
    record
-      Address_ID : SQL_Field_Integer (Ta_Messaging_End_Points, Instance, N_Address_ID, Index);
+      Address_Id : SQL_Field_Integer (Ta_Messaging_End_Points, Instance, N_Address_Id, Index);
       Confidential : SQL_Field_Boolean (Ta_Messaging_End_Points, Instance, N_Confidential, Index);
-      Contact_ID : SQL_Field_Integer (Ta_Messaging_End_Points, Instance, N_Contact_ID, Index);
+      Contact_Id : SQL_Field_Integer (Ta_Messaging_End_Points, Instance, N_Contact_Id, Index);
       Enabled : SQL_Field_Boolean (Ta_Messaging_End_Points, Instance, N_Enabled, Index);
-      Organization_ID : SQL_Field_Integer (Ta_Messaging_End_Points, Instance, N_Organization_ID, Index);
+      Organization_Id : SQL_Field_Integer (Ta_Messaging_End_Points, Instance, N_Organization_Id, Index);
       Priority : SQL_Field_Integer (Ta_Messaging_End_Points, Instance, N_Priority, Index);
    end record;
 
@@ -232,8 +257,8 @@ package Database is
    type T_Abstract_Organization_Calendar (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Organization_Calendar, Instance, Index) with
    record
-      Event_ID : SQL_Field_Integer (Ta_Organization_Calendar, Instance, N_Event_ID, Index);
-      Organization_ID : SQL_Field_Integer (Ta_Organization_Calendar, Instance, N_Organization_ID, Index);
+      Event_Id : SQL_Field_Integer (Ta_Organization_Calendar, Instance, N_Event_Id, Index);
+      Organization_Id : SQL_Field_Integer (Ta_Organization_Calendar, Instance, N_Organization_Id, Index);
    end record;
 
    type T_Organization_Calendar (Instance : Cst_String_Access)
@@ -244,11 +269,11 @@ package Database is
    type T_Abstract_Organization_Contacts (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Organization_Contacts, Instance, Index) with
    record
-      Attributes : SQL_Field_JSON (Ta_Organization_Contacts, Instance, N_Attributes, Index);
-      Contact_ID : SQL_Field_Integer (Ta_Organization_Contacts, Instance, N_Contact_ID, Index);
-      Distribution_List_ID : SQL_Field_Integer (Ta_Organization_Contacts, Instance, N_Distribution_List_ID, Index);
+      Attributes : SQL_Field_Json (Ta_Organization_Contacts, Instance, N_Attributes, Index);
+      Contact_Id : SQL_Field_Integer (Ta_Organization_Contacts, Instance, N_Contact_Id, Index);
+      Distribution_List_Id : SQL_Field_Integer (Ta_Organization_Contacts, Instance, N_Distribution_List_Id, Index);
       Enabled : SQL_Field_Boolean (Ta_Organization_Contacts, Instance, N_Enabled, Index);
-      Organization_ID : SQL_Field_Integer (Ta_Organization_Contacts, Instance, N_Organization_ID, Index);
+      Organization_Id : SQL_Field_Integer (Ta_Organization_Contacts, Instance, N_Organization_Id, Index);
       Wants_Messages : SQL_Field_Boolean (Ta_Organization_Contacts, Instance, N_Wants_Messages, Index);
    end record;
 
@@ -260,8 +285,8 @@ package Database is
    type T_Abstract_Organization_Recurring_Calendar (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Organization_Recurring_Calendar, Instance, Index) with
    record
-      Event_ID : SQL_Field_Integer (Ta_Organization_Recurring_Calendar, Instance, N_Event_ID, Index);
-      Organization_ID : SQL_Field_Integer (Ta_Organization_Recurring_Calendar, Instance, N_Organization_ID, Index);
+      Event_Id : SQL_Field_Integer (Ta_Organization_Recurring_Calendar, Instance, N_Event_Id, Index);
+      Organization_Id : SQL_Field_Integer (Ta_Organization_Recurring_Calendar, Instance, N_Organization_Id, Index);
    end record;
 
    type T_Organization_Recurring_Calendar (Instance : Cst_String_Access)
@@ -272,11 +297,11 @@ package Database is
    type T_Abstract_Organizations (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Organizations, Instance, Index) with
    record
-      Attributes : SQL_Field_JSON (Ta_Organizations, Instance, N_Attributes, Index);
+      Attributes : SQL_Field_Json (Ta_Organizations, Instance, N_Attributes, Index);
       Enabled : SQL_Field_Boolean (Ta_Organizations, Instance, N_Enabled, Index);
       Full_Name : SQL_Field_Text (Ta_Organizations, Instance, N_Full_Name, Index);
-      ID : SQL_Field_Integer (Ta_Organizations, Instance, N_ID, Index);
-      URI : SQL_Field_Text (Ta_Organizations, Instance, N_URI, Index);
+      Id : SQL_Field_Integer (Ta_Organizations, Instance, N_Id, Index);
+      Uri : SQL_Field_Text (Ta_Organizations, Instance, N_Uri, Index);
    end record;
 
    type T_Organizations (Instance : Cst_String_Access)
@@ -298,7 +323,7 @@ package Database is
    type T_Abstract_Phone_Numbers (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Phone_Numbers, Instance, Index) with
    record
-      ID : SQL_Field_Integer (Ta_Phone_Numbers, Instance, N_ID, Index);
+      Id : SQL_Field_Integer (Ta_Phone_Numbers, Instance, N_Id, Index);
       Kind : SQL_Field_Text (Ta_Phone_Numbers, Instance, N_Kind, Index);
       Value : SQL_Field_Text (Ta_Phone_Numbers, Instance, N_Value, Index);
    end record;
@@ -324,11 +349,11 @@ package Database is
    record
       Expires : SQL_Field_Time (Ta_Recurring_Calendar_Events, Instance, N_Expires, Index);
       First_Occurrence : SQL_Field_Time (Ta_Recurring_Calendar_Events, Instance, N_First_Occurrence, Index);
-      ID : SQL_Field_Integer (Ta_Recurring_Calendar_Events, Instance, N_ID, Index);
+      Id : SQL_Field_Integer (Ta_Recurring_Calendar_Events, Instance, N_Id, Index);
       Message : SQL_Field_Text (Ta_Recurring_Calendar_Events, Instance, N_Message, Index);
-      Pattern : SQL_Field_JSON (Ta_Recurring_Calendar_Events, Instance, N_Pattern, Index);
-      Start : SQL_Field_Integer (Ta_Recurring_Calendar_Events, Instance, N_Start, Index);
-      Stop : SQL_Field_Integer (Ta_Recurring_Calendar_Events, Instance, N_Stop, Index);
+      Pattern : SQL_Field_Json (Ta_Recurring_Calendar_Events, Instance, N_Pattern, Index);
+      Start : SQL_Field_Time (Ta_Recurring_Calendar_Events, Instance, N_Start, Index);
+      Stop : SQL_Field_Time (Ta_Recurring_Calendar_Events, Instance, N_Stop, Index);
    end record;
 
    type T_Recurring_Calendar_Events (Instance : Cst_String_Access)
@@ -348,22 +373,23 @@ package Database is
    type T_Numbered_Special_Days (Index : Integer)
       is new T_Abstract_Special_Days (null, Index) with null record;
 
-   type T_Abstract_User_IDs (Instance : Cst_String_Access; Index : Integer)
-      is abstract new SQL_Table (Ta_User_IDs, Instance, Index) with
+   type T_Abstract_User_Ids (Instance : Cst_String_Access; Index : Integer)
+      is abstract new SQL_Table (Ta_User_Ids, Instance, Index) with
    record
-      Name : SQL_Field_Text (Ta_User_IDs, Instance, N_Name, Index);
-      OpenID : SQL_Field_Text (Ta_User_IDs, Instance, N_OpenID, Index);
-      Priority : SQL_Field_Integer (Ta_User_IDs, Instance, N_Priority, Index);
+      Openid : SQL_Field_Text (Ta_User_Ids, Instance, N_Openid, Index);
+      Priority : SQL_Field_Integer (Ta_User_Ids, Instance, N_Priority, Index);
+      User_Id : SQL_Field_Integer (Ta_User_Ids, Instance, N_User_Id, Index);
    end record;
 
-   type T_User_IDs (Instance : Cst_String_Access)
-      is new T_Abstract_User_IDs (Instance, -1) with null record;
-   type T_Numbered_User_IDs (Index : Integer)
-      is new T_Abstract_User_IDs (null, Index) with null record;
+   type T_User_Ids (Instance : Cst_String_Access)
+      is new T_Abstract_User_Ids (Instance, -1) with null record;
+   type T_Numbered_User_Ids (Index : Integer)
+      is new T_Abstract_User_Ids (null, Index) with null record;
 
    type T_Abstract_Users (Instance : Cst_String_Access; Index : Integer)
       is abstract new SQL_Table (Ta_Users, Instance, Index) with
    record
+      Id : SQL_Field_Integer (Ta_Users, Instance, N_Id, Index);
       Is_Administrator : SQL_Field_Boolean (Ta_Users, Instance, N_Is_Administrator, Index);
       Is_Receptionist : SQL_Field_Boolean (Ta_Users, Instance, N_Is_Receptionist, Index);
       Is_Service_Agent : SQL_Field_Boolean (Ta_Users, Instance, N_Is_Service_Agent, Index);
@@ -379,6 +405,7 @@ package Database is
    function FK (Self : T_Archive_Message_Queue'Class; Foreign : T_Users'Class) return SQL_Criteria;
    function FK (Self : T_Archive_Message_Queue_Recipients'Class; Foreign : T_Organization_Contacts'Class) return SQL_Criteria;
    function FK (Self : T_Archive_Message_Queue_Recipients'Class; Foreign : T_Recipient_Visibilities'Class) return SQL_Criteria;
+   function FK (Self : T_Auth_Identities'Class; Foreign : T_Users'Class) return SQL_Criteria;
    function FK (Self : T_Contact_Calendar'Class; Foreign : T_Organization_Contacts'Class) return SQL_Criteria;
    function FK (Self : T_Contact_Calendar'Class; Foreign : T_Calendar_Events'Class) return SQL_Criteria;
    function FK (Self : T_Contact_Phone_Numbers'Class; Foreign : T_Organization_Contacts'Class) return SQL_Criteria;
@@ -388,6 +415,7 @@ package Database is
    function FK (Self : T_Contacts'Class; Foreign : T_Contact_Types'Class) return SQL_Criteria;
    function FK (Self : T_Distribution_Lists'Class; Foreign : T_Organization_Contacts'Class) return SQL_Criteria;
    function FK (Self : T_Distribution_Lists'Class; Foreign : T_Recipient_Visibilities'Class) return SQL_Criteria;
+   function FK (Self : T_Message_Draft'Class; Foreign : T_Users'Class) return SQL_Criteria;
    function FK (Self : T_Message_Queue'Class; Foreign : T_Contacts'Class) return SQL_Criteria;
    function FK (Self : T_Message_Queue'Class; Foreign : T_Users'Class) return SQL_Criteria;
    function FK (Self : T_Message_Queue_Recipients'Class; Foreign : T_Organization_Contacts'Class) return SQL_Criteria;
@@ -408,6 +436,7 @@ package Database is
 
    Archive_Message_Queue : T_Archive_Message_Queue (null);
    Archive_Message_Queue_Recipients : T_Archive_Message_Queue_Recipients (null);
+   Auth_Identities : T_Auth_Identities (null);
    Calendar_Events : T_Calendar_Events (null);
    Contact_Calendar : T_Contact_Calendar (null);
    Contact_Phone_Numbers : T_Contact_Phone_Numbers (null);
@@ -417,6 +446,7 @@ package Database is
    Dial_Plans : T_Dial_Plans (null);
    Distribution_Lists : T_Distribution_Lists (null);
    Kinds : T_Kinds (null);
+   Message_Draft : T_Message_Draft (null);
    Message_Queue : T_Message_Queue (null);
    Message_Queue_Recipients : T_Message_Queue_Recipients (null);
    Messaging_Address_Types : T_Messaging_Address_Types (null);
@@ -431,6 +461,6 @@ package Database is
    Recipient_Visibilities : T_Recipient_Visibilities (null);
    Recurring_Calendar_Events : T_Recurring_Calendar_Events (null);
    Special_Days : T_Special_Days (null);
-   User_IDs : T_User_IDs (null);
+   User_Ids : T_User_Ids (null);
    Users : T_Users (null);
 end Database;

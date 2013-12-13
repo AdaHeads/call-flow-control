@@ -16,6 +16,8 @@
 -------------------------------------------------------------------------------
 
 with Ada.Containers.Indefinite_Vectors;
+--  with Ada.Containers.Doubly_Linked_Lists;
+private with Ada.Strings.Unbounded;
 
 with AWS.URL;
 
@@ -24,11 +26,27 @@ package Model.User is
    type Name is new String
      with Dynamic_Predicate => (Name'Length > 0);
 
+   type Instance is tagged private;
+
+   function Create (Name : in String;
+                    ID   : in Natural) return Instance;
+
+   function "<" (Left, Right : in Instance) return Boolean;
+
+   function "=" (Left, Right : in Instance) return Boolean;
+
+   function User_Name (Object : in Instance) return String;
+   function ID (Object : in Instance) return Natural;
+
    type OpenID is new AWS.URL.Object;
    package OpenID_Lists is new Ada.Containers.Indefinite_Vectors
                                  (Element_Type => OpenID,
                                   Index_Type   => Positive);
    subtype OpenID_List is OpenID_Lists.Vector;
+
+--     package User_Lists is new Ada.Containers.Doubly_Linked_Lists
+--       (Element_Type => User.Instance);
+--     subtype User_List is User_Lists.Vector;
 
    type Permission is (Receptionist, Service_Agent, Administrator);
    type Permission_List is array (Permission) of Boolean;
@@ -40,5 +58,13 @@ package Model.User is
    function Permissions (User : in     Name) return Permission_List;
 
    function Permissions (ID : in     OpenID) return Permission_List;
+
+private
+   use Ada.Strings.Unbounded;
+
+   type Instance is tagged record
+      ID     : Natural;
+      Name : Unbounded_String;
+   end record;
 
 end Model.User;

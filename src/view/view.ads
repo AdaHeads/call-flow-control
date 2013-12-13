@@ -45,6 +45,7 @@ package View is
    Rank              : constant String := "rank";
    State_S           : constant String := "state";
    Status            : constant String := "status";
+   OK                : constant String := "ok";
    URI               : constant String := "uri";
    URL               : constant String := "url";
    User_S            : constant String := "user";

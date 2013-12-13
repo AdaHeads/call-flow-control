@@ -21,9 +21,10 @@ with Model.User;
 
 package Model.Users is
 
-   use type Model.User.Name;
+   use Model.User;
+
    package User_Lists is new Ada.Containers.Indefinite_Ordered_Sets
-                               (Element_Type => Model.User.Name);
+                               (Element_Type => Model.User.Instance);
 
    subtype Instance is User_Lists.Set;
 

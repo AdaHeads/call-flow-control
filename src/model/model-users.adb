@@ -25,13 +25,13 @@ package body Model.Users is
    begin
       return Result : Instance do
          while C.Has_Row loop
-            Result.Insert (User.Name (Value (C, 0)));
+            Result.Insert (User.Create (Value (C, 0), Natural'Value (Value (C, 1))));
             C.Next;
          end loop;
       end return;
    end List;
 
-   procedure User_Names_Only is
+   procedure User_Objects is
       new Storage.Process_Select_Query
             (Element           => Instance,
              Database_Cursor   => Database_Cursor,
@@ -48,7 +48,7 @@ package body Model.Users is
          Result := E;
       end Copy;
    begin
-      User_Names_Only
+      User_Objects
         (Process_Element    => Copy'Access,
          Prepared_Statement => SQL_Prepared_Statements.Users.List);
 

@@ -5,6 +5,8 @@ package Database_Names is
    Ta_Archive_Message_Queue : constant Cst_String_Access := TC_Archive_Message_Queue'Access;
    TC_Archive_Message_Queue_Recipients : aliased constant String := "archive_message_queue_recipients";
    Ta_Archive_Message_Queue_Recipients : constant Cst_String_Access := TC_Archive_Message_Queue_Recipients'Access;
+   TC_Auth_Identities : aliased constant String := "auth_identities";
+   Ta_Auth_Identities : constant Cst_String_Access := TC_Auth_Identities'Access;
    TC_Calendar_Events : aliased constant String := "calendar_events";
    Ta_Calendar_Events : constant Cst_String_Access := TC_Calendar_Events'Access;
    TC_Contact_Calendar : aliased constant String := "contact_calendar";
@@ -23,6 +25,8 @@ package Database_Names is
    Ta_Distribution_Lists : constant Cst_String_Access := TC_Distribution_Lists'Access;
    TC_Kinds : aliased constant String := "kinds";
    Ta_Kinds : constant Cst_String_Access := TC_Kinds'Access;
+   TC_Message_Draft : aliased constant String := "message_draft";
+   Ta_Message_Draft : constant Cst_String_Access := TC_Message_Draft'Access;
    TC_Message_Queue : aliased constant String := "message_queue";
    Ta_Message_Queue : constant Cst_String_Access := TC_Message_Queue'Access;
    TC_Message_Queue_Recipients : aliased constant String := "message_queue_recipients";
@@ -92,12 +96,16 @@ package Database_Names is
    N_Full_Name : constant Cst_String_Access := NC_full_name'Access;
    NC_Id : aliased constant String := "id";
    N_Id : constant Cst_String_Access := NC_id'Access;
+   NC_Identity : aliased constant String := """identity""";
+   N_Identity : constant Cst_String_Access := NC_identity'Access;
    NC_Is_Administrator : aliased constant String := "is_administrator";
    N_Is_Administrator : constant Cst_String_Access := NC_is_administrator'Access;
    NC_Is_Receptionist : aliased constant String := "is_receptionist";
    N_Is_Receptionist : constant Cst_String_Access := NC_is_receptionist'Access;
    NC_Is_Service_Agent : aliased constant String := "is_service_agent";
    N_Is_Service_Agent : constant Cst_String_Access := NC_is_service_agent'Access;
+   NC_Json : aliased constant String := "json";
+   N_Json : constant Cst_String_Access := NC_json'Access;
    NC_Kind : aliased constant String := "kind";
    N_Kind : constant Cst_String_Access := NC_kind'Access;
    NC_Last_Try : aliased constant String := "last_try";
@@ -112,6 +120,8 @@ package Database_Names is
    N_Openid : constant Cst_String_Access := NC_openid'Access;
    NC_Organization_Id : aliased constant String := "organization_id";
    N_Organization_Id : constant Cst_String_Access := NC_organization_id'Access;
+   NC_Owner : aliased constant String := """owner""";
+   N_Owner : constant Cst_String_Access := NC_owner'Access;
    NC_Pattern : aliased constant String := "pattern";
    N_Pattern : constant Cst_String_Access := NC_pattern'Access;
    NC_Phone_Number : aliased constant String := "phone_number";
@@ -148,6 +158,8 @@ package Database_Names is
    N_Urgent : constant Cst_String_Access := NC_urgent'Access;
    NC_Uri : aliased constant String := "uri";
    N_Uri : constant Cst_String_Access := NC_uri'Access;
+   NC_User_Id : aliased constant String := "user_id";
+   N_User_Id : constant Cst_String_Access := NC_user_id'Access;
    NC_Value : aliased constant String := """value""";
    N_Value : constant Cst_String_Access := NC_value'Access;
    NC_Wants_Messages : aliased constant String := "wants_messages";

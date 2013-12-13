@@ -9,7 +9,7 @@ package body Database is
 
    function FK (Self : T_Archive_Message_Queue'Class; Foreign : T_Users'Class) return SQL_Criteria is
    begin
-      return Self.Taken_By_Agent = Foreign.Name;
+      return Self.Taken_By_Agent = Foreign.Id;
    end FK;
 
    function FK (Self : T_Archive_Message_Queue_Recipients'Class; Foreign : T_Organization_Contacts'Class) return SQL_Criteria is
@@ -21,6 +21,11 @@ package body Database is
    function FK (Self : T_Archive_Message_Queue_Recipients'Class; Foreign : T_Recipient_Visibilities'Class) return SQL_Criteria is
    begin
       return Self.Recipient_Role = Foreign.Value;
+   end FK;
+
+   function FK (Self : T_Auth_Identities'Class; Foreign : T_Users'Class) return SQL_Criteria is
+   begin
+      return Self.User_Id = Foreign.Id;
    end FK;
 
    function FK (Self : T_Contact_Calendar'Class; Foreign : T_Organization_Contacts'Class) return SQL_Criteria is
@@ -72,6 +77,11 @@ package body Database is
       return Self.Recipient_Visibility = Foreign.Value;
    end FK;
 
+   function FK (Self : T_Message_Draft'Class; Foreign : T_Users'Class) return SQL_Criteria is
+   begin
+      return Self.Owner = Foreign.Id;
+   end FK;
+
    function FK (Self : T_Message_Queue'Class; Foreign : T_Contacts'Class) return SQL_Criteria is
    begin
       return Self.To_Contact_Id = Foreign.Id;
@@ -79,7 +89,7 @@ package body Database is
 
    function FK (Self : T_Message_Queue'Class; Foreign : T_Users'Class) return SQL_Criteria is
    begin
-      return Self.Taken_By_Agent = Foreign.Name;
+      return Self.Taken_By_Agent = Foreign.Id;
    end FK;
 
    function FK (Self : T_Message_Queue_Recipients'Class; Foreign : T_Organization_Contacts'Class) return SQL_Criteria is
@@ -156,6 +166,6 @@ package body Database is
 
    function FK (Self : T_User_Ids'Class; Foreign : T_Users'Class) return SQL_Criteria is
    begin
-      return Self.Name = Foreign.Name;
+      return Self.User_Id = Foreign.Id;
    end FK;
 end Database;

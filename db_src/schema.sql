@@ -2,14 +2,20 @@
 --  System users:
 
 CREATE TABLE users (
-   name             TEXT    NOT NULL PRIMARY KEY,
+   id               INTEGER NOT NULL PRIMARY KEY, --  AUTOINCREMENT
+   name             TEXT    NOT NULL,
    is_receptionist  BOOLEAN NOT NULL,
    is_service_agent BOOLEAN NOT NULL,
    is_administrator BOOLEAN NOT NULL
 );
 
-CREATE TABLE user_ids (
-   name     TEXT    NOT NULL REFERENCES users (name) ON UPDATE CASCADE ON DELETE CASCADE,
+CREATE TABLE auth_identities (
+   identity TEXT    NOT NULL PRIMARY KEY,
+   user_id  INTEGER NOT NULL REFERENCES users (id)
+);
+
+CREATE TABLE openids (
+   user_id  INTEGER NOT NULL REFERENCES users (id),
    openid   TEXT    NOT NULL PRIMARY KEY,
    priority INTEGER NOT NULL
 );
@@ -135,7 +141,7 @@ CREATE TABLE message_queue (
    subject           TEXT      NOT NULL,
    to_contact_id     INTEGER   NOT NULL REFERENCES contacts (id),
    taken_from        TEXT      NOT NULL,
-   taken_by_agent    TEXT      NOT NULL REFERENCES users (name),
+   taken_by_agent    INTEGER   NOT NULL REFERENCES users (id),
    urgent            BOOLEAN   NOT NULL DEFAULT FALSE,
    created_at        TIMESTAMP NOT NULL,
    last_try          TIMESTAMP,
@@ -161,7 +167,7 @@ CREATE TABLE archive_message_queue (
    subject           TEXT      NOT NULL,
    to_contact_id     INTEGER   NOT NULL REFERENCES contacts (id),
    taken_from        TEXT      NOT NULL,
-   taken_by_agent    TEXT      NOT NULL REFERENCES users (name),
+   taken_by_agent    INTEGER   NOT NULL REFERENCES users (id),
    urgent            BOOLEAN   NOT NULL,
    created_at        TIMESTAMP NOT NULL,
    last_try          TIMESTAMP NOT NULL,
@@ -181,6 +187,15 @@ CREATE TABLE archive_message_queue_recipients (
       REFERENCES organization_contacts (contact_id, organization_id)
       ON UPDATE CASCADE ON DELETE CASCADE
 );
+
+-------------------------------------------------------------------------------
+--  Message draft:
+CREATE TABLE message_draft (
+   id     INTEGER   NOT NULL PRIMARY KEY,
+   owner  INTEGER   NOT NULL REFERENCES users (id),
+   json   TEXT      NOT NULL
+);
+
 
 -------------------------------------------------------------------------------
 --  Calendar events:
@@ -216,8 +231,8 @@ CREATE TABLE organization_calendar (
 
 CREATE TABLE recurring_calendar_events (
   id               INTEGER   NOT NULL PRIMARY KEY, --  AUTOINCREMENT
-  start            TIME      NOT NULL,
-  stop             TIME      NOT NULL,
+  start            TIMESTAMP NOT NULL,
+  stop             TIMESTAMP NOT NULL,
   message          TEXT      NOT NULL,
   pattern          JSON      NOT NULL,
   first_occurrence TIMESTAMP NOT NULL,
