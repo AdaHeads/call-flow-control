@@ -86,6 +86,10 @@ package body Handlers.Route is
       return Method_Dispatcher;
    end Get_Obsolecent;
 
+   -----------------------------
+   --  Permission_Operations  --
+   -----------------------------
+
    package Permission_Operations is
       use Handlers.Authenticated_Dispatcher, Model;
 
@@ -109,6 +113,10 @@ package body Handlers.Route is
       function "or" (Left  : in Boolean;
                      Right : in Authentication) return Authentication;
    end Permission_Operations;
+
+   -----------------------------
+   --  Permission_Operations  --
+   -----------------------------
 
    package body Permission_Operations is
       function "or"  (Left, Right : in Authentication) return Authentication is
@@ -163,7 +171,6 @@ begin
    Register (POST, "/call/transfer",      Receptionist,           Call.Transfer'Access);
 
    Register (GET,  "/configuration",      Public,           Configuration.Callback);
-
    Register (GET,  "/contact",            Receptionist or Service_Agent,
                                                                   Contact.Callback);
 
