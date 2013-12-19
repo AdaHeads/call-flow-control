@@ -78,7 +78,7 @@ package body Handlers.Notifications is
    is
       use Model.User, Model.User.List, System_Message;
    begin
-      if not User_Of (Request).Authenticated then
+      if not User_Of (Get_Singleton, Request).Authenticated then
          Info.Not_Authorized
            (Message => "Attempted to create a websocket without being " &
                        "logged in.");

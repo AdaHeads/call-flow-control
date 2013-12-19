@@ -28,17 +28,23 @@ package Model.User is
 
    Package_Name : constant String := "Model.User";
 
+   ID_String         : constant String := "id";
    User_String       : constant String := "user";
+   Groups_String     : constant String := "groups";
    Identity_String   : constant String := "identity";
    Identities_String : constant String := "identities";
+
+   Receptionist_String  : constant String := "Receptionist";
+   Administrator_String : constant String := "Administrator";
+   Service_Agent_String : constant String := "Service agent";
 
    type State is (Signed_Out, Idle, Paused, Away);
 
    type Name is new String
      with Dynamic_Predicate => (Name'Length > 0);
 
-   type Identities is new String
-     with Dynamic_Predicate => (Identities'Length > 0);
+   type Identities is new String;
+--     with Dynamic_Predicate => (Identities'Length > 0);
 
    type Identifications is new Natural;
 
@@ -75,6 +81,8 @@ package Model.User is
 
    function To_JSON (Object : in Instance) return JSON_Value;
 
+   No_User : constant Instance;
+
 private
    use Ada.Strings.Unbounded;
 
@@ -82,6 +90,10 @@ private
       ID         : Unbounded_String;
       Attributes : GNATCOLL.JSON.JSON_Value;
    end record;
+
+   No_User : constant Instance :=
+     (ID         => To_Unbounded_String ("null"),
+      Attributes => Create);
 
    subtype Identity_Keys is Unbounded_String;
 

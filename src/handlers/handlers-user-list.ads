@@ -15,7 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-private
-package Handlers.Users is
-   pragma Pure;
-end Handlers.Users;
+with AWS.Response;
+
+package Handlers.User.List is
+   function Callback return AWS.Response.Callback;
+end Handlers.User.List;

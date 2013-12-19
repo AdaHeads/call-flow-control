@@ -19,6 +19,8 @@ with GNATCOLL.JSON;
 
 with Common,
      Model.User.List,
+     Model.Token,
+     Model.Token.List,
      HTTP_Codes,
      Response,
      System_Message.Critical,
@@ -33,7 +35,7 @@ package body Handlers.Authenticated_Dispatcher is
    end Key;
 
    function Not_Authorized (Request : in     AWS.Status.Data)
-                           return AWS.Response.Data is
+                            return AWS.Response.Data is
       JSON : GNATCOLL.JSON.JSON_Value;
       Response_Object   : Response.Object := Response.Factory (Request);
    begin
@@ -61,15 +63,29 @@ package body Handlers.Authenticated_Dispatcher is
 
    function Run (Request : in     AWS.Status.Data) return AWS.Response.Data is
       use AWS.Status;
+      use Model;
       use Model.User;
       use Model.User.List;
 
       Request_Key : constant String := Key (Method => Method (Request),
                                             URI    => URI (Request));
-      Groups      : constant Permission_List
-        := Model.User.List.User_Of (Request).Permissions;
+      User_Token  : Token.Instance;
+      Groups      : Permission_List;
 
    begin
+
+      --  No token - no access.
+      if not Parameters (Request).Exist ("token") then
+         return Not_Authorized (Request);
+      end if;
+
+      User_Token :=
+        Token.Create (Value => Parameters (Request).Get ("token"));
+
+      Groups     := User.List.Get_Singleton.Get
+        (Identity => Token.List.Get_Singleton.Look_Up
+           (User_Token)).Permissions;
+
       if Handler_List.Contains (Request_Key) then
          declare
             Selected : constant Handler := Handler_List.Element (Request_Key);

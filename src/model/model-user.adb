@@ -126,11 +126,29 @@ package body Model.User is
 
       Context : constant String := Package_Name & ".Permissions";
 
-      Result  : Permission_List := (others => True);
+      Result   : Permission_List := (others => False);
+      Perm_Arr : JSON_Array;
    begin
 
-      System_Messages.Fixme (Message => "Call to stub function",
-                             Context => Context);
+      if User = No_User then
+         return Result;
+      end if;
+
+      Perm_Arr := User.Attributes.Get (Groups_String);
+
+      for I in 1 .. Length (Perm_Arr) loop
+         declare
+            Node : constant JSON_Value := Get (Perm_Arr, I);
+         begin
+            if Get (Node) = Receptionist_String then
+               Result (Receptionist) := True;
+            elsif Get (Node) = Administrator_String then
+               Result (Administrator) := True;
+            elsif Get (Node) = Service_Agent_String then
+               Result (Service_Agent) := True;
+            end if;
+         end;
+      end loop;
 
       return Result;
    end Permissions;
