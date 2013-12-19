@@ -8,9 +8,11 @@ Contents of this README:
 --  Introduction  --
 --------------------
 
-Alice provides the glue between a PBX such as FreeSWITCH/Asterisk, a PostgreSQL
-or SQLite database and a client. She works by accepting plain HTTP commands in
-the shape of GET/POST and returning JSON objects to the client.
+Callcontrol is a middleware component that serves as a translation/synchronization layer 
+between FreeSWITCH and our domain-specific application for routing calls through
+a human receptionist.
+
+Interaction and information is provided by a REST interface and a websocket - respectively.
 
 Alice is GPLv3, see COPYING3 and COPYING.RUNTIME.
 
@@ -18,7 +20,7 @@ Alice is GPLv3, see COPYING3 and COPYING.RUNTIME.
 --  Dependencies  --
 --------------------
 
-Alice depends on Yolk[1], libdialplan[2], libesl[3], AWS[4] and GNATColl[5]
+Alice depends on Yolk[1], libesl[2], AWS[3] and GNATColl[4]
 (compiled with PostgreSQL and/or SQLite support).
 
 ------------------
@@ -29,18 +31,14 @@ Alice depends on Yolk[1], libdialplan[2], libesl[3], AWS[4] and GNATColl[5]
     https://github.com/ThomasLocke/yolk
     Git: git clone git://github.com/ThomasLocke/yolk.git
 
-[2] libdialplan
-    https://github.com/AdaHeads/libdialplan
-    Git: git clone git://github.com/AdaHeads/libdialplan.git
-
-[3] libesl
+[2] libesl
     https://github.com/AdaHeads/libesl
     Git: git clone git://github.com/AdaHeads/libesl.git
 
-[4] Ada Web Server
+[3] Ada Web Server
     http://libre.adacore.com/libre/tools/aws/
     Git: git clone --recursive http://forge.open-do.org/anonscm/git/aws/aws.git
 
-[5] GNAT Component Collection
+[4] GNAT Component Collection
     http://libre.adacore.com/libre/tools/gnat-component-collection/AA
     SVN: svn co http://svn.eu.adacore.com/anonsvn/Dev/trunk/gps/gnatlib/
