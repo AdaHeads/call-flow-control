@@ -4,9 +4,22 @@
 CREATE TABLE users (
    id               INTEGER NOT NULL PRIMARY KEY, --  AUTOINCREMENT
    name             TEXT    NOT NULL,
+   extension        TEXT    NULL,
    is_receptionist  BOOLEAN NOT NULL,
    is_service_agent BOOLEAN NOT NULL,
    is_administrator BOOLEAN NOT NULL
+);
+
+CREATE TABLE groups (
+   gid  INTEGER NOT NULL PRIMARY KEY, --  AUTOINCREMENT
+   name TEXT    NOT NULL
+);
+
+CREATE TABLE user_groups (
+   uid INTEGER NOT NULL REFERENCES users (id),
+   gid INTEGER NOT NULL REFERENCES groups (id),
+
+  PRIMARY KEY (uid, gid)
 );
 
 CREATE TABLE auth_identities (

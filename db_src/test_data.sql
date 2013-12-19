@@ -192,18 +192,37 @@ VALUES ('helligdag', '2013-12-25'),
 INSERT INTO dial_plans (phone_number, dial_plan)
 VALUES ('+4521490804', '<dial-plan title="Jacob: Hang up on anonymous callers"> <start do="Start"/> <decision-tree title="Start"> <branch> <conditions> <caller number=""/> </conditions> <action do="Hang up"/> </branch> <fall-back do="Pass through"/> </decision-tree> <end-point title="Hang up"> <hang-up/> </end-point> <end-point title="Pass through"> <redirect to="+45 21 49 08 04"/> </end-point> </dial-plan>');
 
-INSERT INTO users (id, name, is_receptionist, is_service_agent, is_administrator)
-VALUES (1, 'Thomas Pedersen',           TRUE,  TRUE,  TRUE),
-       (2, 'Kim Rostgaard Christensen', TRUE,  TRUE,  TRUE),
-       (3, 'Jacob Sparre Andersen',     TRUE,  TRUE,  TRUE),
-       (4, 'AdaHeads Test User One',    TRUE,  FALSE, FALSE),
-       (5, 'AdaHeads Test User Two',    TRUE,  TRUE,  FALSE),
-       (6, 'Tux',                       TRUE,  TRUE,  FALSE),
-       (7, 'AdaHeads Test User Three',  TRUE,  TRUE,  TRUE);
+INSERT INTO users (id, name, extension, is_receptionist, is_service_agent, is_administrator)
+VALUES (1, 'Thomas Pedersen',           1001, TRUE,  TRUE,  TRUE),
+       (2, 'Kim Rostgaard Christensen', 1002, TRUE,  TRUE,  TRUE),
+       (3, 'Jacob Sparre Andersen',     1003, TRUE,  TRUE,  TRUE),
+       (4, 'AdaHeads Test User One',    1004, TRUE,  FALSE, FALSE),
+       (5, 'AdaHeads Test User Two',    1005, TRUE,  TRUE,  FALSE),
+       (6, 'Tux',                       1006, TRUE,  TRUE,  FALSE),
+       (7, 'AdaHeads Test User Three',  1007, TRUE,  TRUE,  TRUE);
+
+INSERT INTO groups (gid, name)
+VALUES (1, 'Receptionist'),
+       (2, 'Administrator'),
+       (3, 'Service agent');
+
+INSERT INTO user_groups (uid, gid)
+VALUES (1, 1),
+       (1, 2),
+       (1, 3),
+       (2, 1),
+       (2, 2),
+       (2, 3),
+       (3, 1),
+       (3, 2),
+       (3, 3);
 
 INSERT INTO auth_identities (identity, user_id)
 VALUES ('kim.rostgaard@gmail.com', 2), 
-       ('devicesnull@gmail.com', 2);
+       ('devicesnull@gmail.com', 2),
+       ('krc@adaheads.com', 2),
+       ('tp@adaheads.com', 1),
+       ('jsa@adaheads.com', 3);
 
 INSERT INTO openids (user_id, openid, priority)
 VALUES (1,'https://tux.myopenid.com/', 1), 
