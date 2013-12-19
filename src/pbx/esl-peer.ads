@@ -103,7 +103,7 @@ package ESL.Peer is
    --  Package-visisble singleton.
 
 private
-      Null_Peer : constant Instance :=
+   Null_Peer : constant Instance :=
      (ID           => Null_Peer_ID,
       Agent_ID     => Null_Agent_ID,
       State        => Unregistered,

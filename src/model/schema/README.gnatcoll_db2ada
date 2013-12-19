@@ -1,9 +1,0 @@
-gnatcoll_db2ada -dbhost pgprimary -dbname customers -dbuser alice -dbpasswd secret -api=Database
-
-The -enum option can be added as a convenience. See gnatcoll_db2ada help and
-http://docs.adacore.com/gnatcoll-docs/sql.html#the-gnatcoll-db2ada-tool for more information.
-
-Fixing acronym casing:
-
-perl -i~ -lpe 's/([ ,_])Id(s)?([ ,_])/$1ID$2$3/g; s/([ ,_])Json([ ,_])/$1JSON$2/g; s/([ ,_])Xml([ ,_])/$1XML$2/g; s/([ ,_])Uri([ ,_])/$1URI$2/g; s/Openid/OpenID/g;' database.ads
-

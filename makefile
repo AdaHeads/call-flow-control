@@ -19,20 +19,16 @@
 #                                                                             #
 ###############################################################################
 
-ifeq ($(DATABASE),)
-DATABASE=SQLite
-endif
-
 ifeq ($(PROCESSORS),)
 PROCESSORS=`(test -f /proc/cpuinfo && grep -c ^processor /proc/cpuinfo) || echo 1`
 endif
 
 all:
-	DATABASE=${DATABASE} gnatmake -j${PROCESSORS} -P alice
+	gnatmake -j${PROCESSORS} -P alice
 	$(MAKE) -C db_src sources
 
 debug:
-	BUILDTYPE=Debug DATABASE=${DATABASE} gnatmake -j${PROCESSORS} -P alice
+	BUILDTYPE=Debug gnatmake -j${PROCESSORS} -P alice
 
 clean: cleanup_messy_temp_files
 	gnatclean -P alice

@@ -28,22 +28,12 @@ with Alice_Configuration,
 with Handlers.Agent,
      Handlers.Call,
      Handlers.Configuration,
-     Handlers.Contact,
      Handlers.CORS_Preflight,
      Handlers.Debug,
      Handlers.Log,
-     Handlers.Message,
      Handlers.Not_Found,
      Handlers.Notifications,
-     Handlers.Organization,
-     Handlers.Organization_List,
-     Handlers.Users.List,
-     Handlers.Users.Log_In,
-     Handlers.Users.Log_Out,
-     Handlers.Users.Logged_In,
-     Handlers.Users.Logged_Out,
-     Handlers.Users.OpenIDs,
-     Handlers.Users.Validate;
+     Handlers.User.List;
 
 package body Handlers.Route is
 
@@ -98,15 +88,15 @@ package body Handlers.Route is
                                                   As     => (others => True));
       Receptionist  : constant Authentication :=
         (Public => False,
-         As     => (User.Receptionist  => True,
+         As     => (Model.User.Receptionist  => True,
                     others              => False));
       Service_Agent : constant Authentication :=
         (Public => False,
-         As     => (User.Service_Agent => True,
+         As     => (Model.User.Service_Agent => True,
                     others              => False));
       Administrator : constant Authentication :=
         (Public => False,
-         As     => (User.Administrator => True,
+         As     => (Model.User.Administrator => True,
                     others             => False));
 
       function "or" (Left, Right : in Authentication) return Authentication;
@@ -158,51 +148,34 @@ begin
 
    pragma Style_Checks ("M100"); --  Allow long lines in the routing table
 
+   --  Agents currently in the system. Should probably be merged with
+   --  users.
    Register (GET,  "/agent",              Receptionist,           Agent.Agent'Access);
    Register (GET,  "/agent/list",         Receptionist,           Agent.Agent_List'Access);
 
+   --  Call control and information handlers.
    Register (GET,  "/call/list",          Receptionist,           Call.List'Access);
    Register (GET,  "/call/queue",         Receptionist,           Call.Queue'Access);
-
    Register (POST, "/call/hangup",        Receptionist,           Call.Hangup'Access);
    Register (POST, "/call/originate",     Receptionist,           Call.Originate'Access);
    Register (POST, "/call/park",          Receptionist,           Call.Park'Access);
    Register (POST, "/call/pickup",        Receptionist,           Call.Pickup'Access);
    Register (POST, "/call/transfer",      Receptionist,           Call.Transfer'Access);
 
+   --  Configuration handler. Only used for basic information
+   --  prior to logging in.
    Register (GET,  "/configuration",      Public,           Configuration.Callback);
-   Register (GET,  "/contact",            Receptionist or Service_Agent,
-                                                                  Contact.Callback);
 
-   Register (GET,  "/debug/channel/list", Logged_In,              Debug.Channel_List'Access);
-   Register (GET,  "/debug/peer/list",    Logged_In,              Debug.Channel_List'Access);
+   --  User related handlers.
+   Register (GET,  "/user/list",         Public_User_Identification or Administrator,
+             User.List.Callback);
+   Register (GET,  "/user",              Public,                 User.Profile'Access);
 
-   Register (POST, "/log/critical",       Logged_In,              Log.Critical);
-   Register (POST, "/log/error",          Logged_In,              Log.Error);
-   Register (POST, "/log/info",           Logged_In,              Log.Info);
+   --  Debug handles, disable when in production.
+   Register (GET,  "/debug/channel/list", Public, Debug.Channel_List'Access);
+   Register (GET,  "/debug/peer/list",    Public, Debug.Channel_List'Access);
 
-   Register (GET,  "/message/send",       Receptionist,           Message.Send.Callback);
-   Register (GET,  "/message/list",       Receptionist,           Message.List'Access);
-   Register (PUT,  "/message/draft",      Receptionist,           Message.Push_Draft'Access);
-   Register (DELETE,"/message/draft",     Receptionist,          Message.Delete_Draft'Access);
-   Register (GET,  "/message/drafts",     Receptionist,           Message.Drafts'Access);
-
-   Register (GET,  "/organization",       Receptionist or Service_Agent,
-                                                                  Organization.Callback);
-   Register (GET,  "/organization/list",  Receptionist or Service_Agent,
-                                                                  Organization_List.Callback);
-
-   Register (GET,  "/users/list",         Public_User_Identification or Administrator,
-                                                                  Users.List.Callback);
-   Register (GET,  "/users/log_in",       Public,                 Users.Log_In.Callback);
-   Register (GET,  "/users/log_out",      Public,                 Users.Log_Out.Callback);
-   Register (GET,  "/users/logged_in",    Public,                 Users.Logged_In.Callback);
-   Register (GET,  "/users/logged_out",   Public,                 Users.Logged_Out.Callback);
-   Register (GET,  "/users/openids",      Public_User_Identification or Administrator,
-                                                                  Users.OpenIDs.Callback);
-   Register (GET,  "/users/validate",     Public,                 Users.Validate.Callback);
-   Register (GET,  "/login",              Public,                 Agent.Login_User'Access);
-
+   --  Our notification socket for asynchonous event sent to the clients.
    AWS.Net.WebSocket.Registry.Register
      (URI     => "/notifications",
       Factory => Notifications.Create'Access);

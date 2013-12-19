@@ -44,7 +44,8 @@ package body Handlers.Debug is
    begin
 
       System_Messages.Notify (Level   => System_Messages.Debug,
-                              Message => "Agent: " & Agent_Of (Request => Request).To_JSON.Write);
+                              Message => "Agent: " &
+                                Agent_Of (Request => Request).To_JSON.Write);
 
       Response_Object.HTTP_Status_Code (OK);
       --  TODO:

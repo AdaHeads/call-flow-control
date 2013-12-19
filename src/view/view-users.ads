@@ -17,9 +17,9 @@
 
 with GNATCOLL.JSON;
 
-with Model.Users;
+with Model.User;
 
 package View.Users is
-   function To_JSON (Item : in     Model.Users.Instance)
+   function To_JSON (Item : in     Model.User.Instance)
                     return GNATCOLL.JSON.JSON_Array;
 end View.Users;

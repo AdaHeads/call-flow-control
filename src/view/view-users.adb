@@ -15,19 +15,22 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with View.User;
+--  with View.User;
 
 package body View.Users is
-   function To_JSON (Item : in     Model.Users.Instance)
+   function To_JSON (Item : in     Model.User.Instance)
                     return GNATCOLL.JSON.JSON_Array is
       use GNATCOLL.JSON;
       Data : JSON_Array;
    begin
-      for User of Item loop
-         Append (Arr => Data,
-                 Val => View.User.To_JSON (Item  => User));
-      end loop;
+      raise Program_Error with "View.Users.To_JSON - Not implemented";
 
       return Data;
+--        for User of Item loop
+--           Append (Arr => Data,
+--                   Val => View.User.To_JSON (Item  => User));
+--        end loop;
+--
+--        return Data;
    end To_JSON;
 end View.Users;

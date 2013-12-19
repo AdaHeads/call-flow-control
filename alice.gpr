@@ -21,8 +21,6 @@
 
 with "aws";
 with "gnatcoll";
-with "gnatcoll_postgres";
-with "gnatcoll_sqlite";
 with "yolk";
 with "esl";
 
@@ -30,8 +28,6 @@ project Alice is
    type Build_Type is ("Debug", "Production");
    Build : Build_Type := External ("BUILDTYPE", "Production");
 
-   type Databases is ("PostgreSQL", "SQLite");
-   Database : Databases := External ("DATABASE", "SQLite");
 
    Source_Options := ("src/**");
    for Source_Dirs use Source_Options;
@@ -77,25 +73,4 @@ project Alice is
 
       end case;
    end Compiler;
-
-   package Naming is
-      case Database is
-         when "PostgreSQL" =>
-            for Specification ("Storage.Connection") use
-              "__storage-connection_postgresql.ads";
-            for Specification ("Storage.Fixes") use
-              "__storage-fixes_postgresql.ads";
-            for Specification ("SQL_Prepared_Statements.Configuration") use
-              "__sql_prepared_statements-configuration_postgresql.ads";
-         when "SQLite" =>
-            for Specification ("Storage.Connection") use
-              "__storage-connection_sqlite.ads";
-            for Specification ("Storage.Fixes") use
-              "__storage-fixes_sqlite.ads";
-            for Body ("Storage.Fixes") use
-              "__storage-fixes_sqlite.adb";
-            for Specification ("SQL_Prepared_Statements.Configuration") use
-              "__sql_prepared_statements-configuration_sqlite.ads";
-      end case;
-   end Naming;
 end Alice;

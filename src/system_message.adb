@@ -17,6 +17,7 @@
 
 with Ada.Exceptions.Is_Null_Occurrence;
 with Ada.Strings.Unbounded;
+with Ada.Text_IO;
 
 with Common;
 with HTTP_Codes;
@@ -225,6 +226,8 @@ package body System_Message is
    is
       use Yolk.Log;
    begin
+      Ada.Text_IO.Put_Line
+        (Log_Trace'Img & ": " & Status & Build_String (Tail, Fore));
       Trace (Log_Trace, Status & Build_String (Tail, Fore));
    end Write_To_Log;
 
@@ -240,6 +243,9 @@ package body System_Message is
    is
       use Yolk.Log;
    begin
+      Ada.Text_IO.Put_Line (Log_Trace'Img & ": " & Status
+             & Build_String (Description, Fore)
+             & Build_String (Tail, Fore));
       Trace (Log_Trace,
              Status
              & Build_String (Description, Fore)

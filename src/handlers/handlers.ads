@@ -17,4 +17,7 @@
 
 package Handlers is
    pragma Pure;
+
+   Not_Authenticated : exception;
+
 end Handlers;

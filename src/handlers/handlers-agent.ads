@@ -33,8 +33,4 @@ package Handlers.Agent is
       return AWS.Response.Data;
    --  Return the current list of agents.
 
-   function Login_User
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-
 end Handlers.Agent;

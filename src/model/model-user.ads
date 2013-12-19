@@ -15,56 +15,94 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Indefinite_Vectors;
---  with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Containers;
+with Ada.Containers.Hashed_Maps;
+with Ada.Strings.Unbounded.Hash_Case_Insensitive;
+with Ada.Strings.Unbounded.Equal_Case_Insensitive;
+
 private with Ada.Strings.Unbounded;
-
-with AWS.URL;
-
+with GNATCOLL.JSON;
 package Model.User is
+   use GNATCOLL.JSON;
+   use Model;
+
+   Package_Name : constant String := "Model.User";
+
+   User_String       : constant String := "user";
+   Identity_String   : constant String := "identity";
+   Identities_String : constant String := "identities";
+
+   type State is (Signed_Out, Idle, Paused, Away);
 
    type Name is new String
      with Dynamic_Predicate => (Name'Length > 0);
 
+   type Identities is new String
+     with Dynamic_Predicate => (Identities'Length > 0);
+
+   type Identifications is new Natural;
+
    type Instance is tagged private;
 
-   function Create (Name : in String;
-                    ID   : in Natural) return Instance;
+   function Authenticated (Object : in Instance) return Boolean;
+
+   function Create (ID     : in Identities;
+                    Object : GNATCOLL.JSON.JSON_Value) return Instance;
 
    function "<" (Left, Right : in Instance) return Boolean;
 
    function "=" (Left, Right : in Instance) return Boolean;
 
-   function User_Name (Object : in Instance) return String;
-   function ID (Object : in Instance) return Natural;
+   function "=" (Left, Right : in Identities) return Boolean;
 
-   type OpenID is new AWS.URL.Object;
-   package OpenID_Lists is new Ada.Containers.Indefinite_Vectors
-                                 (Element_Type => OpenID,
-                                  Index_Type   => Positive);
-   subtype OpenID_List is OpenID_Lists.Vector;
+   function Hash (Identity : Identities) return Ada.Containers.Hash_Type;
 
---     package User_Lists is new Ada.Containers.Doubly_Linked_Lists
---       (Element_Type => User.Instance);
---     subtype User_List is User_Lists.Vector;
+   function Hash (Identification : Identifications)
+                  return Ada.Containers.Hash_Type;
+
+   function Identity (Object : in Instance) return Identities;
 
    type Permission is (Receptionist, Service_Agent, Administrator);
    type Permission_List is array (Permission) of Boolean;
 
-   No : constant Permission_List := (others => False);
+   No_Permissions : constant Permission_List := (others => False);
 
-   function OpenIDs (User : in     Name) return OpenID_List;
+   function Permissions (User : in Instance) return Permission_List;
 
-   function Permissions (User : in     Name) return Permission_List;
+   function Value (Item : in String) return Identifications;
 
-   function Permissions (ID : in     OpenID) return Permission_List;
+   function Value (Item : in String) return Identities;
+
+   function To_JSON (Object : in Instance) return JSON_Value;
 
 private
    use Ada.Strings.Unbounded;
 
    type Instance is tagged record
-      ID     : Natural;
-      Name : Unbounded_String;
+      ID         : Unbounded_String;
+      Attributes : GNATCOLL.JSON.JSON_Value;
    end record;
+
+   subtype Identity_Keys is Unbounded_String;
+
+   function Key_Of (Item : Identities) return Unbounded_String;
+
+   function Identity_Of (Item : Unbounded_String) return Identities;
+
+   package User_Storage is new Ada.Containers.Hashed_Maps
+     (Key_Type        => Identity_Keys,
+      Element_Type    => User.Instance,
+      Hash            => Ada.Strings.Unbounded.Hash_Case_Insensitive,
+      Equivalent_Keys => Ada.Strings.Unbounded.Equal_Case_Insensitive);
+
+   subtype User_Maps is  User_Storage.Map;
+
+   package Lookup_Storage is new Ada.Containers.Hashed_Maps
+     (Key_Type        => User.Identifications,
+      Element_Type    => Identity_Keys,
+      Hash            => User.Hash,
+      Equivalent_Keys => User."=");
+
+   subtype ID_Lookup_Maps is Lookup_Storage.Map;
 
 end Model.User;

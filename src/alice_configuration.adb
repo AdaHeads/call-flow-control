@@ -29,15 +29,4 @@ package body Alice_Configuration is
                        "parameter is a Boolean.");
          return False;
    end Public_User_Identification;
-
-   function Unsafe_Mode return Boolean is
-   begin
-      return Config.Get (Unsafe_Mode);
-   exception
-      when others =>
-         System_Message.Critical.Configuration_Error
-           (Message => "The 'Unsafe_Mode' configuration parameter is a " &
-                       "Boolean.");
-         return False;
-   end Unsafe_Mode;
 end Alice_Configuration;

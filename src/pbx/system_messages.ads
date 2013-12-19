@@ -17,7 +17,19 @@
 
 package System_Messages is
 
-   type Message_Type is (Debug, Information, Error, Warning, Critical);
+   type Message_Type is (Debug, Information, Error, Warning, Critical, Fixme);
+
+   procedure Information (Message : in String;
+                          Context : in String);
+
+   procedure Critical (Message : in String;
+                       Context : in String);
+
+   procedure Fixme (Message : in String;
+                    Context : in String);
 
    procedure Notify (Level : in Message_Type; Message : in String);
+
+private
+   Separator : constant String := ": ";
 end System_Messages;

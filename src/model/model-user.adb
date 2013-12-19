@@ -15,169 +15,155 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Characters.Handling;
+with Ada.Strings.Hash_Case_Insensitive;
+with Ada.Strings.Equal_Case_Insensitive;
 
-with SQL_Prepared_Statements.Users,
-     Storage,
-     Storage.Fixes;
+with System_Messages;
 
 package body Model.User is
 
-   function User_Name (Object : in Instance) return String is
-   begin
-      return To_String (Object.Name);
-   end User_Name;
-
-   function ID (Object : in Instance) return Natural is
-   begin
-      return Object.ID;
-   end ID;
+   -----------
+   --  "<"  --
+   -----------
 
    function "<" (Left, Right : in Instance) return Boolean is
    begin
       return Left.ID < Right.ID;
    end "<";
 
+   -----------
+   --  "="  --
+   -----------
+
    function "=" (Left, Right : in Instance) return Boolean is
    begin
       return Left.ID = Right.ID;
    end "=";
 
-   function Create (Name : in String;
-                    ID   : in Natural) return Instance is
+   -----------
+   --  "="  --
+   -----------
+
+   function "=" (Left, Right : in Identities) return Boolean is
    begin
-      return (Name => To_Unbounded_String (Name), ID => ID);
+      return Ada.Strings.Equal_Case_Insensitive
+        (Left  => String (Left),
+         Right => String (Right));
+
+   end "=";
+
+   ---------------------
+   --  Authenticated  --
+   ---------------------
+
+   function Authenticated (Object : in Instance) return Boolean is
+   begin
+      return Object.Permissions /= No_Permissions;
+   end Authenticated;
+
+   --------------
+   --  Create  --
+   --------------
+
+   function Create (ID     : in Identities;
+                    Object : GNATCOLL.JSON.JSON_Value) return Instance is
+   begin
+
+      return (ID => To_Unbounded_String (String (ID)), Attributes => Object);
    end Create;
 
-   function List (C : in out Database_Cursor'Class) return OpenID_List;
-   function List (C : in out Database_Cursor'Class) return OpenID_List is
+   -----------
+   --  Hash --
+   -----------
+
+   function Hash (Identity : Identities) return Ada.Containers.Hash_Type is
    begin
-      return Result : OpenID_List do
-         while C.Has_Row loop
-            Result.Append (Parse (Value (C, 0)));
-            C.Next;
-         end loop;
-      end return;
-   end List;
+      return Ada.Strings.Hash_Case_Insensitive (Key => String (Identity));
+   end Hash;
 
-   function List (C : in out Database_Cursor'Class) return Permission_List;
-   function List (C : in out Database_Cursor'Class) return Permission_List is
-      use Ada.Characters.Handling;
+   -----------
+   --  Hash --
+   -----------
+
+   function Hash (Identification : Identifications)
+                  return Ada.Containers.Hash_Type is
    begin
-      if To_Lower (C.Field_Name (0)) = "is_receptionist"  and
-         To_Lower (C.Field_Name (1)) = "is_service_agent" and
-         To_Lower (C.Field_Name (2)) = "is_administrator" then
+      return Ada.Containers.Hash_Type (Identification);
+   end Hash;
 
-         return Result : Permission_List do
-            Result := (Receptionist  => Storage.Fixes.Value (C, 0),
-                       Service_Agent => Storage.Fixes.Value (C, 1),
-                       Administrator => Storage.Fixes.Value (C, 2));
-            C.Next;
-         end return;
-      else
-         raise Constraint_Error
-           with "Unexpected column names from the database: (" &
-                C.Field_Name (0) & ", " &
-                C.Field_Name (1) & ", " &
-                C.Field_Name (2) & ")";
-      end if;
-   end List;
+   ----------------
+   --  Identity  --
+   ----------------
 
-   procedure OpenIDs_For_User is
-      new Storage.Process_Select_Query
-            (Element           => OpenID_List,
-             Database_Cursor   => Database_Cursor,
-             Cursor_To_Element => List);
-
-   function OpenIDs (User : in     Name) return OpenID_List is
-      use GNATCOLL.SQL.Exec;
-
-      Result : OpenID_List;
-
-      procedure Copy (E : in OpenID_List);
-      procedure Copy (E : in OpenID_List) is
-      begin
-         Result := E;
-      end Copy;
-
-      User_Name : aliased constant String := String (User);
+   function Identity (Object : in Instance) return Identities is
    begin
-      OpenIDs_For_User
-        (Process_Element    => Copy'Access,
-         Prepared_Statement => SQL_Prepared_Statements.Users.OpenIDs,
-         Query_Parameters   => (1 => +User_Name'Access));
+      return Identities (To_String (Object.ID));
+   end Identity;
+
+   -------------------
+   --  Identity_Of  --
+   -------------------
+
+   function Identity_Of (Item : Unbounded_String) return Identities is
+   begin
+      return Identities (To_String (Item));
+   end Identity_Of;
+
+   --------------
+   --  Key_Of  --
+   --------------
+
+   function Key_Of (Item : Identities) return Unbounded_String is
+   begin
+      return To_Unbounded_String (String (Item));
+   end Key_Of;
+
+   -------------------
+   --  Permissions  --
+   -------------------
+
+   function Permissions (User : in Instance) return Permission_List is
+
+      Context : constant String := Package_Name & ".Permissions";
+
+      Result  : Permission_List := (others => True);
+   begin
+
+      System_Messages.Fixme (Message => "Call to stub function",
+                             Context => Context);
 
       return Result;
-   end OpenIDs;
-
-   procedure Permissions is
-      new Storage.Process_Select_Query
-            (Element           => Permission_List,
-             Database_Cursor   => Database_Cursor,
-             Cursor_To_Element => List);
-
-   function Permissions (User : in     Name) return Permission_List is
-      use GNATCOLL.SQL.Exec;
-
-      Result  : Permission_List := (others => False);
-      Results : Natural := 0;
-
-      procedure Copy (E : in Permission_List);
-      procedure Copy (E : in Permission_List) is
-      begin
-         Result := E;
-         Results := Results + 1;
-      end Copy;
-
-      User_Name : aliased constant String := String (User);
-   begin
-      Permissions
-        (Process_Element    => Copy'Access,
-         Prepared_Statement => SQL_Prepared_Statements.Users.Permissions,
-         Query_Parameters   => (1 => +User_Name'Access));
-
-      if Results = 0 then
-         return (others => False);
-      elsif Results = 1 then
-         return Result;
-      else
-         raise Constraint_Error
-           with "Expected zero or one rows from the database when querying " &
-                "permisions by user name.  Got" & Natural'Image (Results) &
-                " rows.";
-      end if;
    end Permissions;
 
-   function Permissions (ID : in     OpenID) return Permission_List is
-      use GNATCOLL.SQL.Exec;
+   ---------------
+   --  To_JSON  --
+   ---------------
 
-      Result  : Permission_List := (others => False);
-      Results : Natural := 0;
-
-      procedure Copy (E : in Permission_List);
-      procedure Copy (E : in Permission_List) is
-      begin
-         Result := E;
-         Results := Results + 1;
-      end Copy;
-
-      ID_String : aliased constant String := URL (ID);
+   function To_JSON (Object : in Instance) return JSON_Value is
+      JSON : constant JSON_Value := Create_Object;
    begin
-      Permissions
-        (Process_Element    => Copy'Access,
-         Prepared_Statement => SQL_Prepared_Statements.Users.Permissions_By_ID,
-         Query_Parameters   => (1 => +ID_String'Access));
+      JSON.Set_Field ("identity", To_String (Object.ID));
+      JSON.Set_Field ("user", Object.Attributes);
 
-      if Results = 0 then
-         return (others => False);
-      elsif Results = 1 then
-         return Result;
-      else
-         raise Constraint_Error
-           with "Expected zero or one rows from the database when querying " &
-                "permisions by OpenID.  Got" & Natural'Image (Results) &
-                " rows.";
-      end if;
-   end Permissions;
+      return JSON;
+   end To_JSON;
+
+   -------------
+   --  Value  --
+   -------------
+
+   function Value (Item : in String) return Identifications is
+   begin
+      return Identifications'Value (Item);
+   end Value;
+
+   -------------
+   --  Value  --
+   -------------
+
+   function Value (Item : in String) return Identities is
+   begin
+      return Identities (Item);
+   end Value;
 
 end Model.User;

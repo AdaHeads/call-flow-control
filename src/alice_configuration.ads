@@ -37,7 +37,7 @@ package Alice_Configuration is
                  PBX_Secret,
                  PBX_Host,
                  PBX_Port,
-                 Unsafe_Mode);
+                 User_Map_File);
 
    type Defaults_Array is array (Keys) of Unbounded_String;
 
@@ -66,8 +66,8 @@ package Alice_Configuration is
                        => U ("FreeSWITCH_Host"),
                        PBX_Port
                        => U ("8021"),
-                       Unsafe_Mode
-                       => U ("FALSE"));
+                       User_Map_File
+                       => U ("static_json/agent.list"));
 
    package Config is new Yolk.Config_File_Parser
      (Key_Type            => Keys,
@@ -79,6 +79,5 @@ package Alice_Configuration is
                                 "configuration/alice_config.ini"));
 
    function Public_User_Identification return Boolean;
-   function Unsafe_Mode return Boolean;
 
 end Alice_Configuration;

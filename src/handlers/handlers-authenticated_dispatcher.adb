@@ -18,7 +18,7 @@
 with GNATCOLL.JSON;
 
 with Common,
-     Handlers.OpenID,
+     Model.User.List,
      HTTP_Codes,
      Response,
      System_Message.Critical,
@@ -62,10 +62,13 @@ package body Handlers.Authenticated_Dispatcher is
    function Run (Request : in     AWS.Status.Data) return AWS.Response.Data is
       use AWS.Status;
       use Model.User;
+      use Model.User.List;
 
       Request_Key : constant String := Key (Method => Method (Request),
                                             URI    => URI (Request));
-      Groups      : constant Permission_List := OpenID.Permissions (Request);
+      Groups      : constant Permission_List
+        := Model.User.List.User_Of (Request).Permissions;
+
    begin
       if Handler_List.Contains (Request_Key) then
          declare
@@ -74,7 +77,7 @@ package body Handlers.Authenticated_Dispatcher is
          begin
             if Allowed.Public then
                return Selected.Action (Request);
-            elsif (Groups and Allowed.As) = No then
+            elsif (Groups and Allowed.As) = No_Permissions then
                return Not_Authorized (Request);
             else
                return Selected.Action (Request);

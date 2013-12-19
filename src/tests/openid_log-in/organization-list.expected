@@ -1,4 +1,0 @@
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-
-{"organization_list": [{"organization_id": 1,"full_name": "AdaHeads K/S","uri": "adaheads_ks_1"},{"organization_id": 2,"full_name": "Fishermans Friends A/S","uri": "fishermans_friends_as_2"},{"organization_id": 3,"full_name": "Responsum K/S","uri": "responsum_ks_3"},{"organization_id": 4,"full_name": "Hansen VVS A/S","uri": "hansen_vvs_4"}]}

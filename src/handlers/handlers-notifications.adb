@@ -17,8 +17,8 @@
 
 with AWS.Net.WebSocket.Registry;
 
-with Handlers.OpenID,
-     Model.User,
+with Model.User,
+     Model.User.List,
      System_Message.Info;
 
 package body Handlers.Notifications is
@@ -76,14 +76,14 @@ package body Handlers.Notifications is
       Request : AWS.Status.Data)
       return AWS.Net.WebSocket.Object'Class
    is
-      use Model.User, System_Message;
+      use Model.User, Model.User.List, System_Message;
    begin
-      if OpenID.Permissions (Request) = No then
+      if not User_Of (Request).Authenticated then
          Info.Not_Authorized
            (Message => "Attempted to create a websocket without being " &
                        "logged in.");
 
-         raise Program_Error
+         raise Not_Authenticated
            with "Attempted to create a websocket without being logged in.";
       else
          Info.Notifications_WebSocket_Created;
