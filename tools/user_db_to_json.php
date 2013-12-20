@@ -30,13 +30,13 @@ $dbh = null;
 
 try {
  $dbh = new PDO('sqlite:'.$db_file);
- $dbh->setAttribute(PDO::ATTR_ERRMODE, 
+ $dbh->setAttribute(PDO::ATTR_ERRMODE,
                             PDO::ERRMODE_EXCEPTION);
 
 $identity_list = new identity_list();
 $identity_list->identities = array();
 
-$res = $dbh->query("select `identity`, `id`, `name`, `is_receptionist`, `is_service_agent`, `is_administrator`, `extension` from auth_identities left join users on auth_identities.user_id = users.id");
+$res = $dbh->query("select `identity`, `id`, `name`, `extension` from auth_identities left join users on auth_identities.user_id = users.id");
   while ($row = $res->fetch()) {
    $identity = new identity();
    $identity->user = new user();
