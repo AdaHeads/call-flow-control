@@ -44,7 +44,7 @@ package Model.User is
      with Dynamic_Predicate => (Name'Length > 0);
 
    type Identities is new String;
---     with Dynamic_Predicate => (Identities'Length > 0);
+   --     with Dynamic_Predicate => (Identities'Length > 0);
 
    type Identifications is new Natural;
 
