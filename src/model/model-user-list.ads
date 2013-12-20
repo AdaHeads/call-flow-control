@@ -15,8 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Status;
-
 package Model.User.List is
    use Model;
 
@@ -36,10 +34,6 @@ package Model.User.List is
 
 --     function Get (Object  : in Instance;
 --                   User_ID : in User.Identifications) return User.Instance;
-
-   function User_Of (Object  : in Instance;
-                     Request : AWS.Status.Data) return User.Instance;
-   --  Determine the user from a session in a request.
 
    function To_JSON (Object : in Instance) return JSON_Value;
    --  Gives back the JSON representation of the list.

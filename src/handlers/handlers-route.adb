@@ -171,6 +171,9 @@ begin
              User.List.Callback);
    Register (GET,  "/user",              Public,                 User.Profile'Access);
 
+   Register (GET,  "/users/list",         Public_User_Identification or Administrator,
+             User.List.Callback);
+
    --  Debug handles, disable when in production.
    Register (GET,  "/debug/channel/list", Public, Debug.Channel_List'Access);
    Register (GET,  "/debug/peer/list",    Public, Debug.Channel_List'Access);

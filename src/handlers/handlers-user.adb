@@ -23,7 +23,8 @@ with Common,
      System_Message.Critical,
      System_Messages;
 
-with Model.Agent;
+with Model.Agent,
+     Model.user;
 
 package body Handlers.User is
    use AWS.Response;
@@ -75,51 +76,5 @@ package body Handlers.User is
       return Response_Object.Build;
 
    end Profile;
-
-   ------------------
-   --  Login_User  --
-   ------------------
-
-   function Login_User
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data is
-      use AWS.Status;
-      use AWS.Session;
-
-      Context         : constant String := Package_Name & "Login_User";
-      User_String     : String renames Parameters (Request).Get ("user");
-
-      Response_Object : Response.Object := Response.Factory (Request);
-      User_ID         : Natural         := 0;
-      Session_ID      : constant AWS.Session.Id
-        := AWS.Status.Session (Request);
-   begin
-
-      System_Messages.Notify
-        (Level   => System_Messages.Debug,
-         Message => "Current agent: " &
-           Model.Agent.Agent_Of (Request => Request).To_JSON.Write);
-
-      User_ID := Natural'Value (User_String);
-
-      Set (SID   => Session_ID,
-           Key   => "user_id",
-           Value => User_ID);
-
-      User_ID := Get (SID   => Session_ID,
-                      Key   => "user_id");
-
-      Response_Object.HTTP_Status_Code (HTTP.OK);
-
-      return Response_Object.Build;
-
-   exception
-      when E : others =>
-         System_Message.Critical.Response_Exception
-           (Event           => E,
-            Message         => "Validation failed",
-            Response_Object => Response_Object);
-            return Response_Object.Build;
-   end Login_User;
 
 end Handlers.User;
