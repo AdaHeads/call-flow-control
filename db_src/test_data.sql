@@ -192,14 +192,14 @@ VALUES ('helligdag', '2013-12-25'),
 INSERT INTO dial_plans (phone_number, dial_plan)
 VALUES ('+4521490804', '<dial-plan title="Jacob: Hang up on anonymous callers"> <start do="Start"/> <decision-tree title="Start"> <branch> <conditions> <caller number=""/> </conditions> <action do="Hang up"/> </branch> <fall-back do="Pass through"/> </decision-tree> <end-point title="Hang up"> <hang-up/> </end-point> <end-point title="Pass through"> <redirect to="+45 21 49 08 04"/> </end-point> </dial-plan>');
 
-INSERT INTO users (id, name, extension, is_receptionist, is_service_agent, is_administrator)
-VALUES (1, 'Thomas Pedersen',           1001, TRUE,  TRUE,  TRUE),
-       (2, 'Kim Rostgaard Christensen', 1002, TRUE,  TRUE,  TRUE),
-       (3, 'Jacob Sparre Andersen',     1003, TRUE,  TRUE,  TRUE),
-       (4, 'AdaHeads Test User One',    1004, TRUE,  FALSE, FALSE),
-       (5, 'AdaHeads Test User Two',    1005, TRUE,  TRUE,  FALSE),
-       (6, 'Tux',                       1006, TRUE,  TRUE,  FALSE),
-       (7, 'AdaHeads Test User Three',  1007, TRUE,  TRUE,  TRUE);
+INSERT INTO users (id, name, extension)
+VALUES (1, 'Thomas Pedersen',           1001),
+       (2, 'Kim Rostgaard Christensen', 1002),
+       (3, 'Jacob Sparre Andersen',     1003),
+       (4, 'AdaHeads Test User One',    1004),
+       (5, 'AdaHeads Test User Two',    1005),
+       (6, 'Tux',                       1006),
+       (7, 'AdaHeads Test User Three',  1007);
 
 INSERT INTO groups (gid, name)
 VALUES (1, 'Receptionist'),
