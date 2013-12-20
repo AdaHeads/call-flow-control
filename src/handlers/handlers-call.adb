@@ -318,7 +318,7 @@ package body Handlers.Call is
       when E : others =>
          System_Message.Critical.Response_Exception
            (Event           => E,
-            Message         => "List failed",
+            Message         => "call/queue failed",
             Response_Object => Response_Object);
          return Response_Object.Build;
 

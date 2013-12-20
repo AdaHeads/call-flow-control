@@ -16,7 +16,6 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings;
-with Ada.Strings.Unbounded;
 with Ada.Strings.Fixed;
 with View.Call;
 with PBX.Trace;
@@ -39,13 +38,15 @@ package body PBX.Call is
       Context : constant String := Package_Name & ".Allocate";
       Call : constant Instance :=
         (ID             => Null_Identification,
-                Inbound        => False,
-                State          => Pending,
-                Organization   =>
-                  Model.Organization_Identifier (0),
-                Arrived        => Current_Time,
-                B_Leg          => Null_Identification,
-                Assigned_To    => Assigned_To);
+         Inbound        => False,
+         State          => Pending,
+         Extension      => Null_Unbounded_String,
+         From_Extension => Null_Unbounded_String,
+         Organization   =>
+           Model.Organization_Identifier (0),
+         Arrived        => Current_Time,
+         B_Leg          => Null_Identification,
+         Assigned_To    => Assigned_To);
    begin
       Call_List.Insert (Item => Call);
       PBX.Trace.Debug (Message => "Inserted call " &
@@ -54,6 +55,16 @@ package body PBX.Call is
                        Level   => 1);
       return Call.ID;
    end Allocate;
+
+   function Extension (Obj : in Instance) return String is
+   begin
+      return To_String (Obj.Extension);
+   end Extension;
+
+   function From_Extension (Obj : in Instance) return String is
+   begin
+      return To_String (Obj.From_Extension);
+   end From_Extension;
 
    --------------------
    --  Arrival_Time  --
@@ -110,6 +121,8 @@ package body PBX.Call is
      (Inbound         : in Boolean;
       ID              : in Identification;
       State           : in States := Unknown;
+      Extension       : in String := "";
+      From_Extension  : in String := "";
       Organization_ID : in Natural := 0;
       Assigned_To     : in Agent_ID_Type := Null_Agent_ID)
    is
@@ -117,6 +130,8 @@ package body PBX.Call is
                (ID             => ID,
                 Inbound        => Inbound,
                 State          => State,
+                Extension      => To_Unbounded_String (Extension),
+                From_Extension => To_Unbounded_String (From_Extension),
                 Organization   =>
                   Model.Organization_Identifier (Organization_ID),
                 Arrived        => Current_Time,
@@ -278,7 +293,6 @@ package body PBX.Call is
 
    function To_String (Item : in Identification) return String is
       use Ada.Strings;
-      use Ada.Strings.Unbounded;
 
       Value : String renames Item.Image;
    begin

@@ -16,7 +16,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Containers.Indefinite_Ordered_Maps;
-
+private with Ada.Strings.Unbounded;
 with GNATCOLL.JSON;
 
 with ESL.UUID;
@@ -69,6 +69,8 @@ package PBX.Call is
    function ID (Obj : in Instance) return PBX.Call.Identification;
    function State (Obj : in Instance) return States;
    function Inbound (Obj : in Instance) return Boolean;
+   function Extension (Obj : in Instance) return String;
+   function From_Extension (Obj : in Instance) return String;
    function B_Leg (Obj : in Instance) return Identification;
    function Organization (Obj : in Instance)
                           return Model.Organization_Identifier;
@@ -114,6 +116,8 @@ package PBX.Call is
      (Inbound         : in Boolean;
       ID              : in Identification;
       State           : in States := Unknown;
+      Extension       : in String := "";
+      From_Extension  : in String := "";
       Organization_ID : in Natural := 0;
       Assigned_To     : in Agent_ID_Type := Null_Agent_ID);
 
@@ -128,6 +132,7 @@ package PBX.Call is
    --  TODO: Move this to the view package.
 
 private
+   use Ada.Strings.Unbounded;
 
    Null_Identification : constant Identification
      := ESL.UUID.Null_UUID;
@@ -138,6 +143,8 @@ private
          ID           : Identification;
          State        : States;
          Inbound      : Boolean;
+         Extension      : Unbounded_String;
+         From_Extension : Unbounded_String;
          Organization : Model.Organization_Identifier;
          B_Leg        : Identification;
          Arrived      : Time := Current_Time;
@@ -148,6 +155,8 @@ private
                      (ID           => Null_Identification,
                       State        => States'First,
                       Inbound      => False,
+                      Extension      => Null_Unbounded_String,
+                      From_Extension => Null_Unbounded_String,
                       Organization => Model.Organization_Identifier (0),
                       B_Leg        => Null_Identification,
                       Arrived      => Common.Null_Time,
