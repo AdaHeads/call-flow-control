@@ -15,14 +15,30 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with GNATCOLL.JSON;
+
 with Model.User;
 
 package Model.Token.List is
-   type Instance is tagged null record;
+   use GNATCOLL.JSON;
+
+   Package_Name : constant String := "Model.Token.List";
+
+   type Instance is tagged private;
 
    function Get_Singleton return Instance;
 
    function Look_Up (Object     : Instance;
                      User_Token : Token.Instance) return User.Identities;
+
+   function To_JSON (Object : Instance) return JSON_Value;
+
+private
+   use Model;
+
+   type Instance is tagged
+      record
+         Tokens : Token.Token_Maps := Token.Token_User_Storage.Empty_Map;
+      end record;
 
 end Model.Token.List;

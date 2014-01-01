@@ -15,17 +15,32 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Unbounded.Hash_Case_Insensitive;
+with Ada.Strings.Unbounded.Equal_Case_Insensitive;
+
 package body Model.Token is
    use Model;
 
+   function "=" (Left, Right : in Instance) return Boolean is
+   begin
+      return Ada.Strings.Unbounded.Equal_Case_Insensitive
+        (Left  => Left.Token_Value,
+         Right => Right.Token_Value);
+   end "=";
+
    function Create (Value : String) return Instance is
    begin
-      return (Value => To_Unbounded_String (Value));
+      return (Token_Value => To_Unbounded_String (Value));
    end Create;
+
+   function Hash (Object : in Instance) return Ada.Containers.Hash_Type is
+   begin
+      return Ada.Strings.Unbounded.Hash_Case_Insensitive (Object.Token_Value);
+   end Hash;
 
    function To_String (Object : Instance) return String is
    begin
-      return To_String (Object.Value);
+      return To_String (Object.Token_Value);
    end To_String;
 
 end Model.Token;
