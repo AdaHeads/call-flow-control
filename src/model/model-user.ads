@@ -17,12 +17,16 @@
 
 with Ada.Containers;
 with Ada.Containers.Hashed_Maps;
+with Ada.Strings.Unbounded;
 with Ada.Strings.Unbounded.Hash_Case_Insensitive;
 with Ada.Strings.Unbounded.Equal_Case_Insensitive;
 
-private with Ada.Strings.Unbounded;
+with PBX.Call;
+with Model.Peer;
+
 with GNATCOLL.JSON;
 package Model.User is
+   use Ada.Strings.Unbounded;
    use GNATCOLL.JSON;
    use Model;
 
@@ -38,13 +42,14 @@ package Model.User is
    Administrator_String : constant String := "Administrator";
    Service_Agent_String : constant String := "Service agent";
 
-   type State is (Signed_Out, Idle, Paused, Away);
+   Call_URI_Prefix      : constant String := "user/";
+
+   type States is (Unknown, Signed_Out, Idle, Paused, Away);
 
    type Name is new String
      with Dynamic_Predicate => (Name'Length > 0);
 
-   type Identities is new String;
-   --     with Dynamic_Predicate => (Identities'Length > 0);
+   subtype Identities is Unbounded_String;
 
    type Identifications is new Natural;
 
@@ -61,12 +66,11 @@ package Model.User is
 
    function "=" (Left, Right : in Identities) return Boolean;
 
-   function Hash (Identity : Identities) return Ada.Containers.Hash_Type;
-
-   function Hash (Identification : Identifications)
-                  return Ada.Containers.Hash_Type;
-
    function Identity (Object : in Instance) return Identities;
+
+   function Identification (Object : in Instance) return Identifications;
+
+   function Identification (Object : in Instance) return String;
 
    type Permission is (Receptionist, Service_Agent, Administrator);
    type Permission_List is array (Permission) of Boolean;
@@ -81,25 +85,52 @@ package Model.User is
 
    function To_JSON (Object : in Instance) return JSON_Value;
 
-   No_User : constant Instance;
+   procedure Change_State (Object    :    out Instance;
+                           New_State : in     States);
 
+   function Current_State (Object : in Instance) return States;
+
+   function Current_Call (Object : in Instance)
+                          return PBX.Call.Instance;
+
+   function Peer (Object : in Instance) return Model.Peer.Instance;
+   --  Returns the peer currently associated with the user.
+
+   function Call_URI (Object : in Instance) return String;
+
+   No_User       : constant Instance;
+   Null_Identity : constant Identities;
 private
-   use Ada.Strings.Unbounded;
+   package Peers renames Model.Peer;
+   package Calls renames PBX.Call;
 
    type Instance is tagged record
-      ID         : Unbounded_String;
-      Attributes : GNATCOLL.JSON.JSON_Value;
+      ID            : Unbounded_String           := Null_Unbounded_String;
+      Current_State : States                     := Unknown;
+      Current_Call  : PBX.Call.Identification    := Calls.Null_Identification;
+      Peer          : Model.Peer.Identification  := Peers.Null_Identification;
+      Attributes    : GNATCOLL.JSON.JSON_Value   := Create;
    end record;
 
    No_User : constant Instance :=
-     (ID         => To_Unbounded_String ("null"),
-      Attributes => Create);
+     (ID            => <>,
+      Attributes    => <>,
+      Current_State => <>,
+      Peer          => <>,
+      Current_Call  => <>);
+
+   Null_Identity : constant Identities := Null_Unbounded_String;
 
    subtype Identity_Keys is Unbounded_String;
 
    function Key_Of (Item : Identities) return Unbounded_String;
 
    function Identity_Of (Item : Unbounded_String) return Identities;
+
+   function Hash (Identity : Identities) return Ada.Containers.Hash_Type;
+
+   function Hash (Identification : Identifications)
+                  return Ada.Containers.Hash_Type;
 
    package User_Storage is new Ada.Containers.Hashed_Maps
      (Key_Type        => Identity_Keys,

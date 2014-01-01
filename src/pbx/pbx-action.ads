@@ -19,7 +19,7 @@
 --  various PBX communication protocols.
 
 with PBX.Call;
-with Model.Agent;
+with Model.User;
 
 package PBX.Action is
    use PBX;
@@ -46,14 +46,14 @@ package PBX.Action is
 
    procedure Update_SIP_Peer_List;
 
-   procedure Originate (Agent       : in Model.Agent.Agent_Type;
-                        Extension   : in String);
+   procedure Originate (User      :  in Model.User.Instance;
+                        Extension : in String);
    --  Start originate. Raises Timeout or Error when either occurs.
 
-   procedure Park (Call  : in PBX.Call.Identification;
-                   Agent : in Model.Agent.Agent_Type);
+   procedure Park (Call : in PBX.Call.Identification;
+                   User :  in Model.User.Instance);
 
-   procedure Transfer (Call  : in PBX.Call.Identification;
-                       Agent : in Model.Agent.Agent_Type);
+   procedure Transfer (Call : in PBX.Call.Identification;
+                       User : in Model.User.Instance);
 
 end PBX.Action;

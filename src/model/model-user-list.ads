@@ -32,9 +32,6 @@ package Model.User.List is
                  Identity : in User.Identities) return User.Instance;
    --  Retrieves a user object based on the identity.
 
---     function Get (Object  : in Instance;
---                   User_ID : in User.Identifications) return User.Instance;
-
    function To_JSON (Object : in Instance) return JSON_Value;
    --  Gives back the JSON representation of the list.
 

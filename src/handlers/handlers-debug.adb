@@ -17,22 +17,18 @@
 
 with GNATCOLL.JSON;
 
-with ESL.Peer;
---  with ESL.Channel.List;
-
 with Common,
      HTTP_Codes,
      Response,
      View;
 
 with System_Messages;
-with Model.Agent;
+with Model.Token.List;
+with Model.Peer.List;
 
 package body Handlers.Debug is
-   use ESL;
    use Common;
    use System_Messages;
-   use Model.Agent;
 
    function Channel_List (Request : in AWS.Status.Data)
                           return AWS.Response.Data is
@@ -42,10 +38,6 @@ package body Handlers.Debug is
       Response_Object : Response.Object := Response.Factory (Request);
       Data            : JSON_Value;
    begin
-
-      System_Messages.Notify (Level   => System_Messages.Debug,
-                              Message => "Agent: " &
-                                Agent_Of (Request => Request).To_JSON.Write);
 
       Response_Object.HTTP_Status_Code (OK);
       --  TODO:
@@ -57,6 +49,18 @@ package body Handlers.Debug is
       return Response_Object.Build;
    end Channel_List;
 
+   function Dummy_Tokens (Request : in AWS.Status.Data)
+                       return AWS.Response.Data is
+      use HTTP_Codes;
+
+      Response_Object : Response.Object := Response.Factory (Request);
+   begin
+      Response_Object.HTTP_Status_Code (OK);
+      Response_Object.Content (Model.Token.List.Get_Singleton.To_JSON);
+
+      return Response_Object.Build;
+   end Dummy_Tokens;
+
    function Peer_List (Request : in AWS.Status.Data)
                        return AWS.Response.Data is
       use HTTP_Codes;
@@ -64,7 +68,8 @@ package body Handlers.Debug is
       Response_Object : Response.Object := Response.Factory (Request);
    begin
       Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content (To_JSON_String (Peer.List.To_JSON));
+      Response_Object.Content
+        (To_JSON_String (Model.Peer.List.Get_Singleton.To_JSON));
 
       return Response_Object.Build;
    end Peer_List;
