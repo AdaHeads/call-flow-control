@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2012-, AdaHeads K/S                     --
+--                     Copyright (C) 2013-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,22 +15,17 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
+with ESL.Client;
+with ESL.Packet;
+with ESL.Observer.Event_Observers;
 
-private
-package Handlers.Agent is
+package Model.Peer.List.Observers is
+   type Custom_Observer is
+     new ESL.Observer.Event_Observers.Instance with null record;
 
-   Package_Name : constant String := "Handlers.Agent";
+   overriding
+   procedure Notify (Observer : access Custom_Observer;
+                     Packet   : in     ESL.Packet.Instance;
+                     Client   : in     ESL.Client.Reference);
 
-   function Agent
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Returns the agent requested.
-
-   function Agent_List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Return the current list of agents.
-
-end Handlers.Agent;
+end Model.Peer.List.Observers;

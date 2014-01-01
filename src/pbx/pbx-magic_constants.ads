@@ -27,7 +27,7 @@ package PBX.Magic_Constants is
    FIFO_Pop         : constant String := "caller_pop";
    Sofia            : constant String := "sofia";
    Sofia_Register   : constant String := Sofia & Separator & "register";
-   Sofia_Unregister : constant String := Sofia & Separator & "register";
+   Sofia_Unregister : constant String := Sofia & Separator & "unregister";
    Park_Prefix      : constant String := "parking_lot";
 
 end PBX.Magic_Constants;

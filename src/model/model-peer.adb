@@ -15,32 +15,49 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded.Hash_Case_Insensitive;
-with Ada.Strings.Unbounded.Equal_Case_Insensitive;
+package body Model.Peer is
 
-package body Model.Token is
-   use Model;
-
-   function "=" (Left, Right : in Instance) return Boolean is
+   function Create (User_ID : Identification;
+                    Values  : JSON_Value) return Instance is
+      Is_Registered : Boolean := False;
    begin
-      return Ada.Strings.Unbounded.Equal_Case_Insensitive
-        (Left  => Left.Token_Value,
-         Right => Right.Token_Value);
-   end "=";
+      if Values.Get (Field => Contact_String) (1 .. 5) /= "error" then
+         Is_Registered := True;
+      end if;
 
-   function Create (Value : String) return Instance is
-   begin
-      return (Token_Value => To_Unbounded_String (Value));
+      return (User_ID    => User_ID,
+              Values     => Values,
+              Registered => Is_Registered);
    end Create;
 
-   function Hash (Object : in Instance) return Ada.Containers.Hash_Type is
+   function Get_Identification (Object : in Instance) return String is
    begin
-      return Ada.Strings.Unbounded.Hash_Case_Insensitive (Object.Token_Value);
-   end Hash;
+      return Object.Values.Get (Field => Extension_String);
+   end Get_Identification;
 
-   function To_String (Object : Instance) return String is
+   procedure Register (Object : out Instance) is
    begin
-      return To_String (Object.Token_Value);
-   end To_String;
+      Object.Registered := True;
+   end Register;
 
-end Model.Token;
+   function Registered (Object : in Instance) return Boolean is
+   begin
+      return Object.Registered;
+   end Registered;
+
+   function To_JSON (Object : in Instance) return JSON_Value is
+      Root : constant JSON_Value := Create_Object;
+   begin
+      Root.Set_Field (Field_Name => Registered_String,
+                      Field      => Object.Registered);
+      Root.Set_Field (Field_Name => To_String (Object.User_ID),
+                      Field      => Object.Values);
+      return Root;
+   end To_JSON;
+
+   procedure Unregister (Object : out Instance) is
+   begin
+      Object.Registered := False;
+   end Unregister;
+
+end Model.Peer;

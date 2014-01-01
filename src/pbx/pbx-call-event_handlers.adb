@@ -19,13 +19,10 @@ with PBX.Trace;
 --  with View.Call;
 --  with PBX.Action;
 with PBX.Call;
-with ESL.Peer;
-with ESL.Peer_ID;
 with PBX.Magic_Constants;
---  with Model.Agent;
+with Model.Peer;
 with ESL.Packet_Keys;
 with ESL.Client.Tasking;
-with Model.Agent_ID;
 with Handlers.Notifications;
 with Client_Notification.Queue;
 with Client_Notification.Call;
@@ -49,12 +46,6 @@ package body PBX.Call.Event_Handlers is
         (Client => PBX.Client,
          Stream => ESL.Packet_Keys.CHANNEL_HOLD));
    pragma Unreferenced (Channel_Hold);
-
-   Custom : Custom_Observer
-     (Observing => ESL.Client.Tasking.Event_Stream
-        (Client => PBX.Client,
-         Stream => ESL.Packet_Keys.CUSTOM));
-   pragma Unreferenced (Custom);
 
    Create : Create_Observer
      (Observing => ESL.Client.Tasking.Event_Stream
@@ -100,8 +91,6 @@ package body PBX.Call.Event_Handlers is
       ID_B  : Identification renames
         Value (Packet.Field (Bridge_B_Unique_ID).Value);
    begin
-
-      Get (ID_A).Assign (To => Model.Agent_ID.Create (1));
 
       PBX.Trace.Information
         (Context => Context,
@@ -186,8 +175,7 @@ package body PBX.Call.Event_Handlers is
          ID              => ID,
          State           => Created,
          Extension       => Extension,
-         From_Extension  => From_Extension,
-         Organization_ID => 1);
+         From_Extension  => From_Extension);
    end Notify;
 
    --------------
@@ -269,46 +257,6 @@ package body PBX.Call.Event_Handlers is
                                          & ID.Image,
                                          Context => Context);
                end if;
-            elsif Action = Constants.Sofia_Register then
-               declare
-                  ID : constant Peer_ID.Peer_ID_Type :=
-                    Peer_ID.Create
-                      (Channel_Kind => "SIP", --  Sofia = SIP.
-                       Peername     =>
-                         Packet.Field (Key => To_User).Decoded_Value);
-               begin
-                  if not Peer.List.Contains (Peer_ID => ID) then
-                     Peer.List.Put
-                       (Peer =>
-                          (ID         => ID,
-                           Agent_ID   => Null_Agent_ID,
-                           Last_Seen  => (Never => False,
-                                          Time   => Current_Time),
-                           State      => Peer.Idle,
-                           Last_State => Peer.Unregistered,
-                           Port       => Natural'Value
-                             (Packet.Field (Network_IP).Decoded_Value),
-                           Address    =>  To_Unbounded_String (Packet.Field
-                             (Network_Port).Decoded_Value)));
-                  else
-                     Peer.List.Get (Peer_ID => ID).Seen;
-                  end if;
-               end;
-            elsif Action = Constants.Sofia_Unregister then
-               declare
-                  ID : constant Peer_ID.Peer_ID_Type :=
-                    Peer_ID.Create
-                      (Channel_Kind => "SIP", --  Sofia = SIP.
-                       Peername     =>
-                         Packet.Field (Key => To_User).Decoded_Value);
-               begin
-                  Peer.List.Get (Peer_ID => ID).Change_State
-                    (Peer.Unregistered);
-               end;
-            else
-               PBX.Trace.Information
-              (Message => "Unhandled FIFO Action: " & Action,
-               Context => Context);
             end if;
          end;
       else

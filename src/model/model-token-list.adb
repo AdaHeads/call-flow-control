@@ -17,23 +17,63 @@
 
 package body Model.Token.List is
 
-   Tokens : Instance;
+   Singleton : Instance;
+   --  Singleton instance.
+
+   ---------------------
+   --  Get_Singleton  --
+   ---------------------
 
    function Get_Singleton return Instance is
    begin
-      return Tokens;
+      return Singleton;
    end Get_Singleton;
+
+   ---------------
+   --  Look_Up  --
+   ----------------
 
    function Look_Up (Object     : Instance;
                      User_Token : Token.Instance) return User.Identities is
    begin
-      if User_Token.To_String = "1" then
-         return "kim.rostgaard@gmail.com";
-      elsif User_Token.To_String = "2" then
-         return "devicesnull@gmail.com";
+      if not Object.Tokens.Contains (User_Token) then
+         return User.Null_Identity;
       end if;
 
-      return "null";
+      return Object.Tokens.Element (Key => User_Token);
    end Look_Up;
 
+   ---------------
+   --  To_JSON  --
+   ---------------
+
+   function To_JSON (Object : in Instance) return JSON_Value is
+      use Token_User_Storage;
+
+      JSON_List : JSON_Array;
+      Root      : constant JSON_Value := Create_Object;
+   begin
+      for Cursor in Object.Tokens.Iterate loop
+         declare
+            Token_Node    : constant JSON_Value := Create_Object;
+         begin
+            Token_Node.Set_Field (To_String (Key (Cursor)), Element (Cursor));
+
+            Append (JSON_List, Token_Node);
+         end;
+      end loop;
+      Root.Set_Field ("tokens", JSON_List);
+      return Root;
+   end To_JSON;
+
+begin
+   --  Creating a dummy list.
+
+   Singleton.Tokens.Insert
+     (Key      => Token.Create ("1"),
+      New_Item => User.Value ("kim.rostgaard@gmail.com"));
+
+   Singleton.Tokens.Insert
+     (Key      => Token.Create ("2"),
+      New_Item => User.Value ("devicesnull@gmail.com"));
 end Model.Token.List;

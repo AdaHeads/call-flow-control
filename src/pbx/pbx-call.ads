@@ -20,14 +20,12 @@ private with Ada.Strings.Unbounded;
 with GNATCOLL.JSON;
 
 with ESL.UUID;
-with Model.Agent_ID;
 with Model;
 with Common;
 
 package PBX.Call is
    use Common;
    use ESL.UUID;
-   use Model.Agent_ID;
 
    Package_Name : constant String := "PBX.Call";
 
@@ -72,14 +70,8 @@ package PBX.Call is
    function Extension (Obj : in Instance) return String;
    function From_Extension (Obj : in Instance) return String;
    function B_Leg (Obj : in Instance) return Identification;
-   function Organization (Obj : in Instance)
-                          return Model.Organization_Identifier;
-   function Assigned_To (Obj : in Instance)
-                         return Model.Agent_ID.Agent_ID_Type;
    function Arrival_Time (Obj : in Instance) return Common.Time;
    --  Accessor methods
-
-   procedure Assign (Obj : in Instance; To : in Agent_ID_Type);
 
    procedure Change_State (Obj : in Instance; New_State : in States);
 
@@ -117,14 +109,7 @@ package PBX.Call is
       ID              : in Identification;
       State           : in States := Unknown;
       Extension       : in String := "";
-      From_Extension  : in String := "";
-      Organization_ID : in Natural := 0;
-      Assigned_To     : in Agent_ID_Type := Null_Agent_ID);
-
-   function Allocate
-     (Assigned_To : in Agent_ID_Type) return Identification;
-   --  Allocates a call without a channel but assigning it to an agent, and
-   --  giving it a call ID.
+      From_Extension  : in String := "");
 
    --  ^Constructors
 
@@ -145,10 +130,8 @@ private
          Inbound      : Boolean;
          Extension      : Unbounded_String;
          From_Extension : Unbounded_String;
-         Organization : Model.Organization_Identifier;
          B_Leg        : Identification;
          Arrived      : Time := Current_Time;
-         Assigned_To  : Agent_ID_Type := Null_Agent_ID;
       end record;
 
    Null_Instance : constant Instance :=
@@ -157,10 +140,8 @@ private
                       Inbound      => False,
                       Extension      => Null_Unbounded_String,
                       From_Extension => Null_Unbounded_String,
-                      Organization => Model.Organization_Identifier (0),
                       B_Leg        => Null_Identification,
-                      Arrived      => Common.Null_Time,
-                      Assigned_To  => Null_Agent_ID);
+                      Arrived      => Common.Null_Time);
 
    package Call_Storage is new
      Ada.Containers.Indefinite_Ordered_Maps
@@ -168,8 +149,6 @@ private
         Element_Type => Instance);
 
    protected Call_List is
-      procedure Assign_To (ID       : in Identification;
-                           Agent_ID : in Agent_ID_Type);
       procedure Insert (Item : in Instance);
       function Empty return Boolean;
       procedure Change_State (ID        : in Identification;

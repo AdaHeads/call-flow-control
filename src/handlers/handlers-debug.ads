@@ -31,4 +31,9 @@ package Handlers.Debug is
       return AWS.Response.Data;
    --  Sends the current channel list to the client
 
+   function Dummy_Tokens
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --  Sends the current channel list to the client
+
 end Handlers.Debug;

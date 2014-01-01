@@ -15,7 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Containers.Hashed_Maps;
 private with Ada.Strings.Unbounded;
+
+with Model.User;
 
 package Model.Token is
    use Model;
@@ -26,12 +29,24 @@ package Model.Token is
 
    function To_String (Object : Instance) return String;
 
+   function "=" (Left, Right : in Instance) return Boolean;
+
 private
    use Ada.Strings.Unbounded;
 
    type Instance is tagged
       record
-         Value : Unbounded_String;
+         Token_Value : Unbounded_String;
       end record;
+
+   function Hash (Object : in Instance) return Ada.Containers.Hash_Type;
+
+   package Token_User_Storage is new Ada.Containers.Hashed_Maps
+     (Key_Type        => Instance,
+      Element_Type    => User.Identities,
+      Hash            => Hash,
+      Equivalent_Keys => "=");
+
+   subtype Token_Maps is Token_User_Storage.Map;
 
 end Model.Token;

@@ -23,8 +23,7 @@ with Common,
      System_Message.Critical,
      System_Messages;
 
-with Model.Agent,
-     Model.user;
+with Model.user;
 
 package body Handlers.User is
    use AWS.Response;

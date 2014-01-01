@@ -16,7 +16,6 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
-with Model.Agent_ID;
 with Common;
 with Model.Call_ID;
 with ESL.Channel;
@@ -26,7 +25,6 @@ package Model.Call is
    use Ada.Strings.Unbounded;
    use GNATCOLL.JSON;
    use Common;
-   use Model.Agent_ID;
    use Model.Call_ID;
 
    BAD_EXTENSION   : exception;
@@ -50,7 +48,6 @@ package Model.Call is
          Count          : Natural;
          Bridged_With   : Call_ID.Call_ID_Type;
          Arrived        : Time := Current_Time;
-         Assigned_To    : Agent_ID_Type := Create ("");
       end record;
 
    --  function Create
@@ -73,6 +70,5 @@ private
       Position       => 0,
       Count          => 0,
       Bridged_With   => Call_ID.Null_Call_ID,
-      Arrived        => Current_Time,
-      Assigned_To    => Create ("0"));
+      Arrived        => Current_Time);
 end Model.Call;

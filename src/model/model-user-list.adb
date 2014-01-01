@@ -25,17 +25,7 @@ package body Model.User.List is
    use Alice_Configuration;
 
    Users : Instance;
-
-   -----------
-   --  Get  --
-   -----------
-
---     function Get (Object  : in Instance;
---                   User_ID : in User.Identifications) return User.Instance is
---     begin
---        return Object.User_Map.Element
---  (Object.ID_Lookup_Map.Element (User_ID));
---     end Get;
+   --  Singleton instance.
 
    -----------
    --  Get  --
@@ -88,7 +78,7 @@ package body Model.User.List is
 
 --              ID := Identifications
 --                (Integer'(Node.Get
--- (User.Identity_String).Get (User.ID_String)));
+--  (User.Identity_String).Get (User.ID_String)));
 
             New_Instance.User_Map.Insert
               (Key      => Key_Of (Identity),
