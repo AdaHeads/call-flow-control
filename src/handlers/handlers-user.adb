@@ -17,9 +17,9 @@
 
 with AWS.Session;
 
-with Common,
-     HTTP_Codes,
+with HTTP_Codes,
      Response,
+     Request_Utilities,
      System_Message.Critical,
      System_Messages;
 
@@ -68,9 +68,10 @@ package body Handlers.User is
       Response_Object : Response.Object
         := Response.Factory (Request);
    begin
-      raise Program_Error with "Handlers.User.Profile not implemented";
 
       Response_Object.HTTP_Status_Code (HTTP.OK);
+
+      Response_Object.Content (Request_Utilities.User_Of (Request).To_JSON);
 
       return Response_Object.Build;
 
