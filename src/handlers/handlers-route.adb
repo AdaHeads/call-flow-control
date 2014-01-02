@@ -160,12 +160,9 @@ begin
    Register (GET,  "/configuration",      Public,           Configuration.Callback);
 
    --  User related handlers.
-   Register (GET,  "/user/list",         Public_User_Identification or Administrator,
+   Register (GET,  "/user/list",         Administrator,
              User.List.Callback);
-   Register (GET,  "/user",              Public,                 User.Profile'Access);
-
-   Register (GET,  "/users/list",         Public_User_Identification or Administrator,
-             User.List.Callback);
+   Register (GET,  "/user",              Receptionist,                 User.Profile'Access);
 
    --  Debug handles, disable when in production.
    Register (GET,  "/debug/channel/list", Public, Debug.Channel_List'Access);
