@@ -19,9 +19,12 @@ with AWS.Net.WebSocket.Registry;
 
 with Model.User,
      Model.User.List,
+     Model.Token,
+     Model.Token.List,
      System_Message.Info;
 
 package body Handlers.Notifications is
+   use Model;
 
    type Object is new AWS.Net.WebSocket.Object with null record;
 
@@ -76,22 +79,45 @@ package body Handlers.Notifications is
       Request : AWS.Status.Data)
       return AWS.Net.WebSocket.Object'Class
    is
-      use Model.User, Model.User.List, System_Message;
+      use AWS.Status,
+          Model.User,
+          Model.User.List,
+          System_Message;
+
+      User_Token    : Token.Instance;
+      Detected_User : User.Instance;
    begin
-      if not User_Of (Get_Singleton, Request).Authenticated then
+
+      if not Parameters (Request).Exist ("token") then
          Info.Not_Authorized
            (Message => "Attempted to create a websocket without being " &
                        "logged in.");
 
          raise Not_Authenticated
            with "Attempted to create a websocket without being logged in.";
-      else
-         Info.Notifications_WebSocket_Created;
-
-         return Object'(AWS.Net.WebSocket.Object
-                          (AWS.Net.WebSocket.Create (Socket, Request))
-                          with null record);
       end if;
+
+      --  The parameter is present, go lookup the user.
+      User_Token    :=
+        Token.Create (Value => Parameters (Request).Get ("token"));
+
+      Detected_User := User.List.Get_Singleton.Get
+        (Identity => Token.List.Get_Singleton.Look_Up (User_Token));
+
+      if Detected_User = User.No_User or not Detected_User.Authenticated then
+         Info.Not_Authorized
+           (Message => "Attempted to create a websocket without being " &
+                       "logged in.");
+
+         raise Not_Authenticated
+           with "Attempted to create a websocket without being logged in.";
+      end if;
+
+      Info.Notifications_WebSocket_Created;
+
+      return Object'(AWS.Net.WebSocket.Object
+                     (AWS.Net.WebSocket.Create (Socket, Request))
+                     with null record);
    end Create;
 
    ----------------

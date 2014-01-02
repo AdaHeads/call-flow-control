@@ -15,10 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Hash_Case_Insensitive;
-with Ada.Strings.Equal_Case_Insensitive;
+with Ada.Strings.Maps.Constants;
+with Ada.Strings.Fixed;
 
-with System_Messages;
+with Model.Peer.List;
 
 package body Model.User is
 
@@ -46,9 +46,9 @@ package body Model.User is
 
    function "=" (Left, Right : in Identities) return Boolean is
    begin
-      return Ada.Strings.Equal_Case_Insensitive
-        (Left  => String (Left),
-         Right => String (Right));
+      return Ada.Strings.Unbounded.Equal_Case_Insensitive
+        (Left  => Left,
+         Right => Right);
 
    end "=";
 
@@ -61,16 +61,60 @@ package body Model.User is
       return Object.Permissions /= No_Permissions;
    end Authenticated;
 
+   ----------------
+   --  Call_URI  --
+   ----------------
+
+   function Call_URI (Object : in Instance) return String is
+   begin
+      return Call_URI_Prefix & Model.Peer.List.Get_Singleton.Get
+        (Identity => Object.Peer).Get_Identification;
+   end Call_URI;
+
+   --------------------
+   --  Change_State  --
+   --------------------
+
+   procedure Change_State (Object    :    out Instance;
+                           New_State : in     States) is
+   begin
+      Object.Current_State := New_State;
+   end Change_State;
+
    --------------
    --  Create  --
    --------------
 
    function Create (ID     : in Identities;
                     Object : GNATCOLL.JSON.JSON_Value) return Instance is
+      Peer_ID : constant Model.Peer.Identification := Object.Get ("extension");
    begin
 
-      return (ID => To_Unbounded_String (String (ID)), Attributes => Object);
+      return (ID            => ID,
+              Attributes    => Object,
+              Current_State => <>,
+              Current_Call  => <>,
+              Peer          => Peer_ID);
    end Create;
+
+   --------------------
+   --  Current_Call  --
+   --------------------
+
+   function Current_Call (Object : in Instance)
+                          return PBX.Call.Instance is
+   begin
+      return PBX.Call.Get (Object.Current_Call);
+   end Current_Call;
+
+   ---------------------
+   --  Current_State  --
+   ---------------------
+
+   function Current_State (Object : in Instance) return States is
+   begin
+      return Object.Current_State;
+   end Current_State;
 
    -----------
    --  Hash --
@@ -78,7 +122,7 @@ package body Model.User is
 
    function Hash (Identity : Identities) return Ada.Containers.Hash_Type is
    begin
-      return Ada.Strings.Hash_Case_Insensitive (Key => String (Identity));
+      return Ada.Strings.Unbounded.Hash_Case_Insensitive (Key => Identity);
    end Hash;
 
    -----------
@@ -91,13 +135,32 @@ package body Model.User is
       return Ada.Containers.Hash_Type (Identification);
    end Hash;
 
+   ----------------------
+   --  Identification  --
+   ----------------------
+
+   function Identification (Object : in Instance) return Identifications is
+   begin
+      return Identifications
+        (Natural'(Object.Attributes.Get (Field => ID_String)));
+   end Identification;
+
+   ----------------------
+   --  Identification  --
+   ----------------------
+
+   function Identification (Object : in Instance) return String is
+   begin
+      return Object.Attributes.Get (Field => ID_String);
+   end Identification;
+
    ----------------
    --  Identity  --
    ----------------
 
    function Identity (Object : in Instance) return Identities is
    begin
-      return Identities (To_String (Object.ID));
+      return Identities (Object.ID);
    end Identity;
 
    -------------------
@@ -106,7 +169,7 @@ package body Model.User is
 
    function Identity_Of (Item : Unbounded_String) return Identities is
    begin
-      return Identities (To_String (Item));
+      return Identities (Item);
    end Identity_Of;
 
    --------------
@@ -115,8 +178,17 @@ package body Model.User is
 
    function Key_Of (Item : Identities) return Unbounded_String is
    begin
-      return To_Unbounded_String (String (Item));
+      return Item;
    end Key_Of;
+
+   ------------
+   --  Peer  --
+   ------------
+
+   function Peer (Object : in Instance) return Model.Peer.Instance is
+   begin
+      return Model.Peer.List.Get_Singleton.Get (Object.Peer);
+   end Peer;
 
    -------------------
    --  Permissions  --
@@ -159,9 +231,25 @@ package body Model.User is
 
    function To_JSON (Object : in Instance) return JSON_Value is
       JSON : constant JSON_Value := Create_Object;
+
+      function To_Lower (Item : in String) return String;
+
+      function To_Lower (Item : in String) return String is
+      begin
+         return Ada.Strings.Fixed.Translate
+           (Source  => Item,
+            Mapping => Ada.Strings.Maps.Constants.Lower_Case_Map);
+      end To_Lower;
+
    begin
       JSON.Set_Field ("identity", To_String (Object.ID));
       JSON.Set_Field ("user", Object.Attributes);
+      JSON.Set_Field ("current_state", To_Lower (Object.Current_State'Img));
+      JSON.Set_Field ("current_call", Object.Current_Call.Image);
+      JSON.Set_Field
+        ("peer",
+         Model.Peer.List.Get_Singleton.Get
+           (Identity => Object.Peer).To_JSON);
 
       return JSON;
    end To_JSON;
@@ -181,7 +269,7 @@ package body Model.User is
 
    function Value (Item : in String) return Identities is
    begin
-      return Identities (Item);
+      return To_Unbounded_String (Item);
    end Value;
 
 end Model.User;

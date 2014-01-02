@@ -15,8 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.SQL.Exec;
-
 package Model is
 
    type Contact_Identifier is new Natural;
@@ -36,10 +34,5 @@ package Model is
    type Attribute_Identifier is new Organization_Contact_Identifier;
    --  Identifies a set of contact attributes for the Contact_ID
    --  contact in the context of the Organization_ID organization.
-
-private
-
-   type Database_Cursor is new GNATCOLL.SQL.Exec.Forward_Cursor with null
-     record;
 
 end Model;

@@ -5,9 +5,6 @@ CREATE TABLE users (
    id               INTEGER NOT NULL PRIMARY KEY, --  AUTOINCREMENT
    name             TEXT    NOT NULL,
    extension        TEXT    NULL,
-   is_receptionist  BOOLEAN NOT NULL,
-   is_service_agent BOOLEAN NOT NULL,
-   is_administrator BOOLEAN NOT NULL
 );
 
 CREATE TABLE groups (

@@ -16,18 +16,16 @@
 -------------------------------------------------------------------------------
 
 with Ada.Containers.Indefinite_Ordered_Maps;
-
+private with Ada.Strings.Unbounded;
 with GNATCOLL.JSON;
 
 with ESL.UUID;
-with Model.Agent_ID;
 with Model;
 with Common;
 
 package PBX.Call is
    use Common;
    use ESL.UUID;
-   use Model.Agent_ID;
 
    Package_Name : constant String := "PBX.Call";
 
@@ -69,15 +67,11 @@ package PBX.Call is
    function ID (Obj : in Instance) return PBX.Call.Identification;
    function State (Obj : in Instance) return States;
    function Inbound (Obj : in Instance) return Boolean;
+   function Extension (Obj : in Instance) return String;
+   function From_Extension (Obj : in Instance) return String;
    function B_Leg (Obj : in Instance) return Identification;
-   function Organization (Obj : in Instance)
-                          return Model.Organization_Identifier;
-   function Assigned_To (Obj : in Instance)
-                         return Model.Agent_ID.Agent_ID_Type;
    function Arrival_Time (Obj : in Instance) return Common.Time;
    --  Accessor methods
-
-   procedure Assign (Obj : in Instance; To : in Agent_ID_Type);
 
    procedure Change_State (Obj : in Instance; New_State : in States);
 
@@ -114,13 +108,8 @@ package PBX.Call is
      (Inbound         : in Boolean;
       ID              : in Identification;
       State           : in States := Unknown;
-      Organization_ID : in Natural := 0;
-      Assigned_To     : in Agent_ID_Type := Null_Agent_ID);
-
-   function Allocate
-     (Assigned_To : in Agent_ID_Type) return Identification;
-   --  Allocates a call without a channel but assigning it to an agent, and
-   --  giving it a call ID.
+      Extension       : in String := "";
+      From_Extension  : in String := "");
 
    --  ^Constructors
 
@@ -128,6 +117,7 @@ package PBX.Call is
    --  TODO: Move this to the view package.
 
 private
+   use Ada.Strings.Unbounded;
 
    Null_Identification : constant Identification
      := ESL.UUID.Null_UUID;
@@ -138,20 +128,20 @@ private
          ID           : Identification;
          State        : States;
          Inbound      : Boolean;
-         Organization : Model.Organization_Identifier;
+         Extension      : Unbounded_String;
+         From_Extension : Unbounded_String;
          B_Leg        : Identification;
          Arrived      : Time := Current_Time;
-         Assigned_To  : Agent_ID_Type := Null_Agent_ID;
       end record;
 
    Null_Instance : constant Instance :=
                      (ID           => Null_Identification,
                       State        => States'First,
                       Inbound      => False,
-                      Organization => Model.Organization_Identifier (0),
+                      Extension      => Null_Unbounded_String,
+                      From_Extension => Null_Unbounded_String,
                       B_Leg        => Null_Identification,
-                      Arrived      => Common.Null_Time,
-                      Assigned_To  => Null_Agent_ID);
+                      Arrived      => Common.Null_Time);
 
    package Call_Storage is new
      Ada.Containers.Indefinite_Ordered_Maps
@@ -159,8 +149,6 @@ private
         Element_Type => Instance);
 
    protected Call_List is
-      procedure Assign_To (ID       : in Identification;
-                           Agent_ID : in Agent_ID_Type);
       procedure Insert (Item : in Instance);
       function Empty return Boolean;
       procedure Change_State (ID        : in Identification;

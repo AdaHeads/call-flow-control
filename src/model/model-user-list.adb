@@ -25,16 +25,7 @@ package body Model.User.List is
    use Alice_Configuration;
 
    Users : Instance;
-
-   -----------
-   --  Get  --
-   -----------
-
---     function Get (Object  : in Instance;
---                   User_ID : in User.Identifications) return User.Instance is
---     begin
---        return Object.User_Map.Element (Object.ID_Lookup_Map.Element (User_ID));
---     end Get;
+   --  Singleton instance.
 
    -----------
    --  Get  --
@@ -81,12 +72,13 @@ package body Model.User.List is
             Node     : constant JSON_Value      := Get (User_Arr, I);
             Identity : constant User.Identities :=
               User.Value (Node.Get (User.Identity_String));
-            ID       : Identifications;
+--            ID       : Identifications;
 
          begin
 
 --              ID := Identifications
---                (Integer'(Node.Get (User.Identity_String).Get (User.ID_String)));
+--                (Integer'(Node.Get
+--  (User.Identity_String).Get (User.ID_String)));
 
             New_Instance.User_Map.Insert
               (Key      => Key_Of (Identity),
@@ -127,24 +119,6 @@ package body Model.User.List is
       return Root;
    end To_JSON;
 
-   ---------------
-   --  User_Of  --
-   ---------------
-
-   function User_Of (Object  : in Instance;
-                     Request : AWS.Status.Data) return User.Instance is
-      Context : constant String := Package_Name & ".User_Of";
-
-      Static_User : constant String := "kim.rostgaard@gmail.com";
-   begin
-      System_Messages.Fixme (Message => "Call to stub function, returning" &
-                             " credentials of static user " & Static_User,
-                             Context => Context);
-      --  This procedure depends on the user layer, and that we have a
-      --  Valid token present in the request.
-
-      return Object.Get (Identity => Identities (Static_User));
-   end User_Of;
 begin
 
    Reload_Map (Users, Config.Get (User_Map_File));

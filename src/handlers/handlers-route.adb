@@ -25,12 +25,10 @@ with Alice_Configuration,
      Handlers.Authenticated_Dispatcher,
      Model.User;
 
-with Handlers.Agent,
-     Handlers.Call,
+with Handlers.Call,
      Handlers.Configuration,
      Handlers.CORS_Preflight,
      Handlers.Debug,
-     Handlers.Log,
      Handlers.Not_Found,
      Handlers.Notifications,
      Handlers.User.List;
@@ -148,11 +146,6 @@ begin
 
    pragma Style_Checks ("M100"); --  Allow long lines in the routing table
 
-   --  Agents currently in the system. Should probably be merged with
-   --  users.
-   Register (GET,  "/agent",              Receptionist,           Agent.Agent'Access);
-   Register (GET,  "/agent/list",         Receptionist,           Agent.Agent_List'Access);
-
    --  Call control and information handlers.
    Register (GET,  "/call/list",          Receptionist,           Call.List'Access);
    Register (GET,  "/call/queue",         Receptionist,           Call.Queue'Access);
@@ -171,9 +164,13 @@ begin
              User.List.Callback);
    Register (GET,  "/user",              Public,                 User.Profile'Access);
 
+   Register (GET,  "/users/list",         Public_User_Identification or Administrator,
+             User.List.Callback);
+
    --  Debug handles, disable when in production.
    Register (GET,  "/debug/channel/list", Public, Debug.Channel_List'Access);
-   Register (GET,  "/debug/peer/list",    Public, Debug.Channel_List'Access);
+   Register (GET,  "/debug/peer/list",    Public, Debug.Peer_List'Access);
+   Register (GET,  "/debug/token/dummy_list",    Public, Debug.Dummy_Tokens'Access);
 
    --  Our notification socket for asynchonous event sent to the clients.
    AWS.Net.WebSocket.Registry.Register

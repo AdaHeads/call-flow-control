@@ -26,12 +26,16 @@ package View is
    Call_S            : constant String := "call";
    Bridged_With      : constant String := "bridged_with";
    B_Leg             : constant String := "b_leg";
-   Call_ID_S         : constant String := "call_Id";
+   Call_ID_S         : constant String := "call_id";
+   Caller_ID         : constant String := "caller_id";
    Channel           : constant String := "channel";
    Contact_ID        : constant String := "contact_id";
    Contacts          : constant String := "contacts";
    Description       : constant String := "description";
+   Destination       : constant String := "destination";
+   Extension         : constant String := "extension";
    Full_Name         : constant String := "full_name";
+   From_Extension    : constant String := "from_extension";
    ID                : constant String := "id";
    Inbound           : constant String := "inbound";
    Is_Human          : constant String := "is_human";

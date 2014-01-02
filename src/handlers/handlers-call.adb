@@ -19,8 +19,7 @@ with Ada.Strings.Unbounded;
 with Ada.Exceptions;
 with Common,
      HTTP_Codes,
-     Model.Agent,
-     Model.Agent_ID,
+     Model.User,
      Response;
 
 with View.Call;
@@ -90,13 +89,8 @@ package body Handlers.Call is
 
       Response_Object : Response.Object := Response.Factory (Request);
    begin
-      --  Only return a call list when there actual calls in it.
-      if not PBX.Call.List_Empty then
-         Response_Object.HTTP_Status_Code (HTTP.OK);
-         Response_Object.Content (To_JSON_String (PBX.Call.List));
-      else
-         Response_Object.HTTP_Status_Code (HTTP.No_Content);
-      end if;
+      Response_Object.HTTP_Status_Code (HTTP.OK);
+      Response_Object.Content (To_JSON_String (PBX.Call.List));
 
       return Response_Object.Build;
    exception
@@ -117,17 +111,16 @@ package body Handlers.Call is
       return AWS.Response.Data is
       use Common;
       use PBX.Call;
-      use Agent;
+      use Model.User;
 
       Extension_String  : constant String :=
                             Parameters (Request).Get ("extension");
-      Originating_Agent : Model.Agent.Agent_Type := Agent.Null_Agent;
+      Originating_User  : Model.User.Instance := Model.User.No_User;
       Response_Object   : Response.Object := Response.Factory (Request);
    begin
-      Originating_Agent := Agent_Of (Request => Request);
 
       PBX.Action.Originate
-        (Agent       => Originating_Agent,
+        (User        => Originating_User,
          Extension   => Extension_String);
 
       Response_Object.HTTP_Status_Code (HTTP.OK);
@@ -136,7 +129,7 @@ package body Handlers.Call is
 
       return Response_Object.Build;
    exception
-      when E : PBX.Action.Error | Model.Agent_ID.Invalid_ID =>
+      when E : PBX.Action.Error =>
          System_Message.Critical.Response_Exception
            (Event           => E,
             Message         => Ada.Exceptions.Exception_Message (E),
@@ -162,7 +155,9 @@ package body Handlers.Call is
       Response_Object   : Response.Object := Response.Factory (Request);
       Call_ID           : Call_List.Identification renames
                             Call_List.Value
-                              (Parameters (Request).Get ("call_id"));
+          (Parameters (Request).Get ("call_id"));
+      User  : Model.User.Instance := Model.User.No_User;
+
    begin
       --  Fetch the call from the call list.
       if not Call_List.Has (ID => Call_ID) then
@@ -170,8 +165,8 @@ package body Handlers.Call is
          Response_Object.Content (Status_Message ("status", "not found"));
       else
 
-         PBX.Action.Park (Call  => Call_ID,
-                          Agent => Agent.Agent_Of (Request => Request));
+         PBX.Action.Park (Call => Call_ID,
+                          User => User);
 
          --  And let the user know that everything went according to plan.
          Response_Object.HTTP_Status_Code (HTTP.OK);
@@ -204,20 +199,17 @@ package body Handlers.Call is
       use Ada.Strings.Unbounded;
       use Common;
 
-      use Model.Agent_ID;
-      use Model.Agent;
-
       Call_ID_String    : String renames
                             Parameters (Request).Get (Name => "call_id");
       Response_Object   : Response.Object   := Response.Factory (Request);
-      Agent             : Agent_Type        := Null_Agent;
+      User  : Model.User.Instance := Model.User.No_User;
       Assigned_Call     : PBX.Call.Instance;
    begin
       --  We want a valid agent ID, so we let the exception propogate.
-      Agent := Agent_Of (Request => Request);
+      --  Agent := Agent_Of (Request => Request);
 
-      System_Messages.Notify
-        (Information, "Looked up agent to be " & Agent.ID.To_String);
+--        System_Messages.Notify
+--          (Information, "Looked up agent to be " & Agent.ID.To_String);
 
       --  If we do not have any calls at this point, return HTTP 204.
       if PBX.Call.List_Empty then
@@ -245,13 +237,13 @@ package body Handlers.Call is
          if Call_ID_String /= "" then
             Assigned_Call := PBX.Call.Get
               (Call => PBX.Call.Value (Call_ID_String));
-            Assigned_Call.Assign (Agent.ID);
+            --  TODO: Assign call
          else
             Assigned_Call := PBX.Call.Highest_Prioirity;
-            Assigned_Call.Assign (Agent.ID);
+            --  TODO: Assign call
          end if;
 
-         PBX.Action.Transfer (Assigned_Call.ID, Agent);
+         PBX.Action.Transfer (Assigned_Call.ID, User);
 
          Response_Object.HTTP_Status_Code (HTTP.OK);
          Response_Object.Content
@@ -261,14 +253,14 @@ package body Handlers.Call is
       return Response_Object.Build;
 
    exception
-      when E : Model.Agent_ID.Invalid_ID =>
-         System_Messages.Notify
-           (Error, Ada.Exceptions.Exception_Information (E));
-         Response_Object.HTTP_Status_Code (HTTP.Server_Error);
-         Response_Object.Content
-           (Status_Message
-              ("Uh-oh", "You don't seem to have a valid agent ID"));
-         return Response_Object.Build;
+--        when E : Model.Agent_ID.Invalid_ID =>
+--           System_Messages.Notify
+--             (Error, Ada.Exceptions.Exception_Information (E));
+--           Response_Object.HTTP_Status_Code (HTTP.Server_Error);
+--           Response_Object.Content
+--             (Status_Message
+--                ("Uh-oh", "You don't seem to have a valid agent ID"));
+--           return Response_Object.Build;
 
       when PBX.Call.Already_Bridged =>
          Response_Object.HTTP_Status_Code (HTTP.Bad_Request);
@@ -318,7 +310,7 @@ package body Handlers.Call is
       when E : others =>
          System_Message.Critical.Response_Exception
            (Event           => E,
-            Message         => "List failed",
+            Message         => "call/queue failed",
             Response_Object => Response_Object);
          return Response_Object.Build;
 

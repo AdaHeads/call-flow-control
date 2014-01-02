@@ -69,31 +69,31 @@ package body Handlers.Authenticated_Dispatcher is
 
       Request_Key : constant String := Key (Method => Method (Request),
                                             URI    => URI (Request));
-      User_Token  : Token.Instance;
-      Groups      : Permission_List;
-
    begin
-
-      --  No token - no access.
-      if not Parameters (Request).Exist ("token") then
-         return Not_Authorized (Request);
-      end if;
-
-      User_Token :=
-        Token.Create (Value => Parameters (Request).Get ("token"));
-
-      Groups     := User.List.Get_Singleton.Get
-        (Identity => Token.List.Get_Singleton.Look_Up
-           (User_Token)).Permissions;
 
       if Handler_List.Contains (Request_Key) then
          declare
             Selected : constant Handler := Handler_List.Element (Request_Key);
             Allowed  : Authentication renames Selected.Allowed;
+            User_Token    : Token.Instance;
+            Detected_User : User.Instance := User.No_User;
          begin
+
+            if Parameters (Request).Exist ("token") then
+               User_Token :=
+                 Token.Create (Value => Parameters (Request).Get ("token"));
+               Detected_User := User.List.Get_Singleton.Get
+                 (Identity => Token.List.Get_Singleton.Look_Up
+                    (User_Token));
+            end if;
+
             if Allowed.Public then
                return Selected.Action (Request);
-            elsif (Groups and Allowed.As) = No_Permissions then
+            elsif
+              (Detected_User.Permissions and Allowed.As) = No_Permissions
+              or
+                Detected_User = No_User
+            then
                return Not_Authorized (Request);
             else
                return Selected.Action (Request);

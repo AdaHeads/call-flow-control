@@ -28,6 +28,11 @@ with Unexpected_Exception;
 with Yolk.Process_Control;
 with Yolk.Server;
 
+with PBX.Call.Event_Handlers;
+pragma Unreferenced (PBX.Call.Event_Handlers);
+with Model.Peer.List.Observers;
+
+
 procedure Alice is
    use System_Message;
    use Yolk.Process_Control;

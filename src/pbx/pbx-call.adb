@@ -16,12 +16,9 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings;
-with Ada.Strings.Unbounded;
 with Ada.Strings.Fixed;
 with View.Call;
 with PBX.Trace;
-
-with Model.Agent;
 
 package body PBX.Call is
 
@@ -30,30 +27,16 @@ package body PBX.Call is
       return ESL.UUID."=" (Left, Right);
    end "=";
 
-   ----------------
-   --  Allocate  --
-   ----------------
 
-   function Allocate
-     (Assigned_To : in Agent_ID_Type) return Identification is
-      Context : constant String := Package_Name & ".Allocate";
-      Call : constant Instance :=
-        (ID             => Null_Identification,
-                Inbound        => False,
-                State          => Pending,
-                Organization   =>
-                  Model.Organization_Identifier (0),
-                Arrived        => Current_Time,
-                B_Leg          => Null_Identification,
-                Assigned_To    => Assigned_To);
+   function Extension (Obj : in Instance) return String is
    begin
-      Call_List.Insert (Item => Call);
-      PBX.Trace.Debug (Message => "Inserted call " &
-                         Get (Call.ID).To_JSON.Write,
-                       Context => Context,
-                       Level   => 1);
-      return Call.ID;
-   end Allocate;
+      return To_String (Obj.Extension);
+   end Extension;
+
+   function From_Extension (Obj : in Instance) return String is
+   begin
+      return To_String (Obj.From_Extension);
+   end From_Extension;
 
    --------------------
    --  Arrival_Time  --
@@ -63,26 +46,6 @@ package body PBX.Call is
    begin
       return Obj.Arrived;
    end Arrival_Time;
-
-   --------------
-   --  Assign  --
-   --------------
-
-   procedure Assign (Obj : in Instance; To : in Agent_ID_Type) is
-   begin
-      Call_List.Assign_To (ID       => Obj.ID,
-                           Agent_ID => To);
-   end Assign;
-
-   -------------------
-   --  Assigned_To  --
-   -------------------
-
-   function Assigned_To (Obj : in Instance)
-                         return Model.Agent_ID.Agent_ID_Type is
-   begin
-      return Obj.Assigned_To;
-   end Assigned_To;
 
    -------------
    --  B_Leg  --
@@ -110,18 +73,17 @@ package body PBX.Call is
      (Inbound         : in Boolean;
       ID              : in Identification;
       State           : in States := Unknown;
-      Organization_ID : in Natural := 0;
-      Assigned_To     : in Agent_ID_Type := Null_Agent_ID)
+      Extension       : in String := "";
+      From_Extension  : in String := "")
    is
       Call : constant Instance :=
                (ID             => ID,
                 Inbound        => Inbound,
                 State          => State,
-                Organization   =>
-                  Model.Organization_Identifier (Organization_ID),
+                Extension      => To_Unbounded_String (Extension),
+                From_Extension => To_Unbounded_String (From_Extension),
                 Arrived        => Current_Time,
-                B_Leg          => Null_Identification,
-                Assigned_To    => Assigned_To);
+                B_Leg          => Null_Identification);
    begin
       Call_List.Insert (Item => Call);
    end Create_And_Insert;
@@ -193,16 +155,6 @@ package body PBX.Call is
    begin
       return Call_List.Empty;
    end List_Empty;
-
-   --------------------
-   --  Organization  --
-   --------------------
-
-   function Organization (Obj : in Instance)
-                          return Model.Organization_Identifier is
-   begin
-      return Obj.Organization;
-   end Organization;
 
    -------------------
    --  Queue_Count  --
@@ -278,7 +230,6 @@ package body PBX.Call is
 
    function To_String (Item : in Identification) return String is
       use Ada.Strings;
-      use Ada.Strings.Unbounded;
 
       Value : String renames Item.Image;
    begin
@@ -312,31 +263,6 @@ package body PBX.Call is
    -----------------
 
    protected body Call_List is
-
-      -----------------
-      --  Assign_To  --
-      -----------------
-
-      procedure Assign_To (ID       : in Identification;
-                           Agent_ID : in Agent_ID_Type) is
-         procedure Update (Key     : in     Identification;
-                           Element : in out Instance);
-
-         procedure Update (Key     : in     Identification;
-                           Element : in out Instance) is
-            pragma Unreferenced (Key);
-         begin
-            Element.Assigned_To := Agent_ID;
-         end Update;
-
-         Agent : Model.Agent.Agent_Type := Model.Agent.Null_Agent;
-      begin
-         Call_List.Update (ID, Update'Access);
-
-         Agent  := Model.Agent.Get (Agent_ID);
-         Agent.Current_Call (Call => ID);
-         Model.Agent.Update (Agent);
-      end Assign_To;
 
       --------------------
       --  Change_State  --

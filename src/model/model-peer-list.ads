@@ -15,30 +15,42 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
-
-with Model.User;
-
-package Model.Token.List is
-   use GNATCOLL.JSON;
-
-   Package_Name : constant String := "Model.Token.List";
+package Model.Peer.List is
+   Package_Name : constant String := "Model.Peer.List";
 
    type Instance is tagged private;
 
-   function Get_Singleton return Instance;
+   type Reference is access all Instance;
 
-   function Look_Up (Object     : Instance;
-                     User_Token : Token.Instance) return User.Identities;
+   Not_Found : exception;
 
-   function To_JSON (Object : Instance) return JSON_Value;
+   procedure Set_Singleton (Object : in Instance);
+   function Get_Singleton return Reference;
+   --  Returns the internal singleton object for the server.
+   --  An easy ad-hoc way of storing the data locally in the package while
+   --  determining where it should really be located.
+
+   function Get (Object   : in Instance;
+                 Identity : in Peer.Identification) return Peer.Instance;
+
+   procedure Put (Object   :    out Instance;
+                  New_Peer : in     Peer.Instance);
+
+   procedure Register (Object   : in out Instance;
+                       Identity : in     Peer.Identification;
+                       Contact  : in     String;
+                       Expiry   : in     Natural);
+
+   function To_JSON (Object : in Instance) return JSON_Value;
+   --  Gives back the JSON representation of the list.
+
+   procedure Unregister (Object   : in out Instance;
+                         Identity : in     Peer.Identification);
 
 private
-   use Model;
-
    type Instance is tagged
       record
-         Tokens : Token.Token_Maps := Token.Token_User_Storage.Empty_Map;
+         Peer_Map : Peer_Maps := Peer.Peer_Storage.Empty_Map;
       end record;
 
-end Model.Token.List;
+end Model.Peer.List;

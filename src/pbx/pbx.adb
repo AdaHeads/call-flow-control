@@ -20,11 +20,10 @@ with Ada.Strings.Unbounded;
 with Ada.Calendar;
 
 with PBX.Action;
+with ESL.Trace;
 
 --  with PBX.Event_Handlers;
 --  pragma Unreferenced (PBX.Event_Handlers);
-with PBX.Call.Event_Handlers;
-pragma Unreferenced (PBX.Call.Event_Handlers);
 
 with Alice_Configuration;
 with System_Messages;
@@ -51,7 +50,9 @@ package body PBX is
            (Information, "PBX.Authenticate: Authenticating");
       Client.Authenticate (Password => Config.Get (PBX_Secret));
 
+      ESL.Trace.Unmute (ESL.Trace.Every);
       PBX.Action.Update_Call_List;
+      PBX.Action.Update_SIP_Peer_List;
 
    end Authenticate;
 

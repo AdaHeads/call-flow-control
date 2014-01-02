@@ -15,12 +15,16 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Unbounded;
+
 with ESL.Reply;
 with ESL.UUID;
 with GNATCOLL.JSON;
 with PBX.Trace;
+with Model.Peer.List;
 with ESL.Command.Core;
 with ESL.Command.Call_Management;
+with ESL.Command.Miscellaneous;
 
 package body PBX.Action is
    use GNATCOLL.JSON;
@@ -79,12 +83,12 @@ package body PBX.Action is
    --  Originate  --
    -----------------
 
-   procedure Originate (Agent       : in Model.Agent.Agent_Type;
-                        Extension   : in String) is
+   procedure Originate (User      : in Model.User.Instance;
+                        Extension : in String) is
       Context          : constant String := Package_Name & ".Originate";
       Originate_Action : constant ESL.Command.Call_Management.Instance :=
         ESL.Command.Call_Management.Originate
-          (Call_URL  => Agent.Peer_ID.To_String,
+          (Call_URL  => User.Call_URI,
            Extension => Extension);
       Reply : ESL.Reply.Instance;
 
@@ -111,8 +115,8 @@ package body PBX.Action is
    -- Park --
    ----------
 
-   procedure Park (Call  : in PBX.Call.Identification;
-                   Agent : in Model.Agent.Agent_Type) is
+   procedure Park (Call : in PBX.Call.Identification;
+                   User : in Model.User.Instance) is
       use PBX.Call;
       use ESL.Reply;
 
@@ -120,7 +124,7 @@ package body PBX.Action is
       Park_Action : constant ESL.Command.Call_Management.Instance :=
         ESL.Command.Call_Management.UUID_Transfer
           (UUID        => Call,
-           Destination => "park+" & Agent.ID.To_String);
+           Destination => "park+" & User.Identification);
       Reply : ESL.Reply.Instance;
 
    begin
@@ -140,8 +144,8 @@ package body PBX.Action is
    -- Transfer --
    --------------
 
-   procedure Transfer (Call  : in PBX.Call.Identification;
-                       Agent : in Model.Agent.Agent_Type) is
+   procedure Transfer (Call : in PBX.Call.Identification;
+                       User : in Model.User.Instance) is
       use PBX.Call;
       use ESL.Reply;
 
@@ -150,7 +154,7 @@ package body PBX.Action is
       Transfer_Action : constant ESL.Command.Call_Management.Instance :=
         ESL.Command.Call_Management.UUID_Transfer
           (UUID        => Call,
-           Destination => Agent.Extension);
+           Destination => User.Call_URI);
       Reply : ESL.Reply.Instance;
 
    begin
@@ -224,9 +228,133 @@ package body PBX.Action is
    ---------------------------
 
    procedure Update_SIP_Peer_List is
+      use Ada.Strings.Unbounded;
+      use ESL.Command;
+
+      Context               : constant String :=
+        Package_Name & ".Update_SIP_Peer_List";
+
+      Reply              : ESL.Reply.Instance;
+      List_Peers_Action  : constant ESL.Command.Miscellaneous.Instance :=
+        ESL.Command.Miscellaneous.List_Users;
+      Position           : Natural := 0;
+
+      type Peer_Packet_Items is array (Natural range <>) of Unbounded_String;
+
+      function Get_Line (Item : in     String;
+                         Last :    out Natural) return String;
+
+      function Get_Line (Item : in     String;
+                         Last :    out Natural) return String is
+      begin
+         Last := Item'First;
+         for Position in Item'Range loop
+            exit when Position = Item 'Last or Item (Position) = ASCII.LF;
+            case Item (Position) is
+            when others =>
+               Last := Position;
+            end case;
+         end loop;
+
+         return Item (Item'First .. Last);
+      end Get_Line;
+
+      function Parse_Line (Item : in     String)
+                           return Peer_Packet_Items;
+
+      function Parse_Line (Item : in     String)
+                           return Peer_Packet_Items is
+         Offset    : Natural := Item'First;
+         Key_Count : Natural := 0;
+      begin
+         --  Count number of elements.
+         for Pos in Item'Range loop
+            if Item (Pos) = '|' or Pos = Item'Last then
+               Offset := Pos + 1;
+               Key_Count := Key_Count + 1;
+            end if;
+         end loop;
+
+         Offset := Item'First;
+
+         declare
+            Headers : Peer_Packet_Items (1 .. Key_Count);
+            Index   : Natural := Headers'First;
+         begin
+            for Pos in Item'Range loop
+               if Item (Pos) = '|' then
+                  Headers (Index) :=
+                    To_Unbounded_String (Item (Offset .. Pos - 1));
+                  Offset := Pos + 1;
+                  Index := Index + 1;
+               elsif Pos = Item'Last then
+                  Headers (Index) :=
+                    To_Unbounded_String (Item (Offset .. Pos));
+                  Offset := Pos + 1;
+                  Index := Index + 1;
+               end if;
+            end loop;
+            return Headers;
+         end;
+      end Parse_Line;
 
    begin
-      raise Program_Error with "Not implemented!";
+      PBX.Client.API (List_Peers_Action, Reply);
+
+      if Reply.Response = ESL.Reply.Error then
+         PBX.Trace.Error (Message => "Update failed!",
+                          Context => Context);
+      end if;
+
+      Position := Reply.Response_Body'First;
+
+      --  Header.
+      declare
+         Header_Line    : constant String := Get_Line
+           (Item => Reply.Response_Body, Last => Position);
+         Header : constant Peer_Packet_Items := Parse_Line (Header_Line);
+         Peers  : Model.Peer.List.Instance;
+      begin
+         Position := Position + 2;
+         while Position < Reply.Response_Body'Last loop
+            declare
+               Line : constant String := Get_Line
+                 (Item => Reply.Response_Body
+                    (Position .. Reply.Response_Body'Last),
+                  Last => Position);
+               Items : constant Peer_Packet_Items := Parse_Line (Line);
+            begin
+               if Items'Length = Header'Length then
+                  declare
+                     Peer : Model.Peer.Instance;
+                     Node : constant JSON_Value := Create_Object;
+                  begin
+
+                     for I in Items'First + 1 .. Items'Last loop
+                        Node.Set_Field (Field_Name => To_String (Header (I)),
+                                        Field      => Items (I));
+                     end loop;
+
+                     Peer := Model.Peer.Create (User_ID => Items (Items'First),
+                                                Values  => Node);
+
+                     Peers.Put (New_Peer => Peer);
+
+                  end;
+               else
+                  PBX.Trace.Debug (Message => "Skipping line " &  Line,
+                                   Context => Context);
+
+               end if;
+               Model.Peer.List.Set_Singleton (Peers);
+            end;
+            Position := Position + 2;
+         end loop;
+      end;
+
+      --        PBX.Trace.Information (Message => Reply.Response_Body,
+      --                               Context => Context);
+
    end Update_SIP_Peer_List;
 
 end PBX.Action;
