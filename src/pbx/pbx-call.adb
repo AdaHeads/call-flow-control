@@ -27,17 +27,6 @@ package body PBX.Call is
       return ESL.UUID."=" (Left, Right);
    end "=";
 
-
-   function Extension (Obj : in Instance) return String is
-   begin
-      return To_String (Obj.Extension);
-   end Extension;
-
-   function From_Extension (Obj : in Instance) return String is
-   begin
-      return To_String (Obj.From_Extension);
-   end From_Extension;
-
    --------------------
    --  Arrival_Time  --
    --------------------
@@ -87,6 +76,16 @@ package body PBX.Call is
    begin
       Call_List.Insert (Item => Call);
    end Create_And_Insert;
+
+   function Extension (Obj : in Instance) return String is
+   begin
+      return To_String (Obj.Extension);
+   end Extension;
+
+   function From_Extension (Obj : in Instance) return String is
+   begin
+      return To_String (Obj.From_Extension);
+   end From_Extension;
 
    -----------
    --  Get  --

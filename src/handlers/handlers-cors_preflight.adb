@@ -16,8 +16,7 @@
 -------------------------------------------------------------------------------
 
 with Common;
-with HTTP_Codes,
-     System_Messages;
+with HTTP_Codes;
 
 package body Handlers.CORS_Preflight is
 
@@ -41,10 +40,7 @@ package body Handlers.CORS_Preflight is
    is
       use Common;
       use HTTP_Codes;
-      use System_Messages;
    begin
-      System_Messages.Notify (Level => Debug, Message => "!!CORS Preflight URI: " & Instance.Request_URL);
-
       Instance.HTTP_Status_Code (OK);
       Instance.Content (Null_JSON_String);
    end Generate_Document;

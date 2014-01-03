@@ -15,14 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Net.WebSocket.Registry,
-     AWS.Services.Dispatchers.Method,
-     AWS.Services.Dispatchers.URI;
+with AWS.Net.WebSocket.Registry;
 
-with Yolk.Static_Content;
-
-with Alice_Configuration,
-     Handlers.Authenticated_Dispatcher,
+with Handlers.Authenticated_Dispatcher,
      Model.User;
 
 with Handlers.Call,
@@ -40,40 +35,6 @@ package body Handlers.Route is
       return Handlers.Authenticated_Dispatcher.Run (Request);
    end Callback;
 
-   -----------
-   --  Get  --
-   -----------
-
-   function Get_Obsolecent
-     return AWS.Services.Dispatchers.Method.Handler;
-   function Get_Obsolecent
-     return AWS.Services.Dispatchers.Method.Handler
-   is
-      use AWS.Services;
-
-      Method_Dispatcher   : Dispatchers.Method.Handler;
-      URI_GET_Dispatcher  : Dispatchers.URI.Handler;
-   begin
-      -----------------
-      --  Bob files  --
-      -----------------
-
-      Yolk.Static_Content.Set_Cache_Options;
-      --  Set some basic cache options for the static content.
-
-      URI_GET_Dispatcher.Register_Regexp
-        (URI    => "/bob/*.",
-         Action => Yolk.Static_Content.Non_Compressable'Access);
-      --  If a request begins with /bob/, then look for a file matching the
-      --  given URI, sans domain, postfixed the WWW_Root configuration
-      --  parameter.
-      --  We keep this as simple as possible. If things like compressing and
-      --  serverside caching of files is necessary, consider using an actual
-      --  proxy / cache server like varnish in front of Alice.
-
-      return Method_Dispatcher;
-   end Get_Obsolecent;
-
    -----------------------------
    --  Permission_Operations  --
    -----------------------------
@@ -82,8 +43,6 @@ package body Handlers.Route is
       use Handlers.Authenticated_Dispatcher, Model;
 
       Public        : constant Authentication := (Public => True);
-      Logged_In     : constant Authentication := (Public => False,
-                                                  As     => (others => True));
       Receptionist  : constant Authentication :=
         (Public => False,
          As     => (Model.User.Receptionist  => True,
@@ -92,14 +51,18 @@ package body Handlers.Route is
         (Public => False,
          As     => (Model.User.Service_Agent => True,
                     others              => False));
+      pragma Unreferenced (Service_Agent);
+
       Administrator : constant Authentication :=
         (Public => False,
          As     => (Model.User.Administrator => True,
                     others             => False));
 
       function "or" (Left, Right : in Authentication) return Authentication;
+      pragma Unreferenced ("or");
       function "or" (Left  : in Boolean;
                      Right : in Authentication) return Authentication;
+      pragma Unreferenced ("or");
    end Permission_Operations;
 
    -----------------------------
@@ -129,8 +92,8 @@ package body Handlers.Route is
       end "or";
    end Permission_Operations;
 
-   function Public_User_Identification return Boolean
-     renames Alice_Configuration.Public_User_Identification;
+--     function Public_User_Identification return Boolean
+--       renames Alice_Configuration.Public_User_Identification;
 
    use AWS.Status;
    use Handlers.Authenticated_Dispatcher;
@@ -144,30 +107,30 @@ begin
                 Action => CORS_Preflight.Callback);
    --  This is for CORS preflight requests.
 
-   pragma Style_Checks ("M100"); --  Allow long lines in the routing table
+   --  pragma Style_Checks ("M100"); --  Allow long lines in the routing table
 
    --  Call control and information handlers.
-   Register (GET,  "/call/list",          Receptionist,           Call.List'Access);
-   Register (GET,  "/call/queue",         Receptionist,           Call.Queue'Access);
-   Register (POST, "/call/hangup",        Receptionist,           Call.Hangup'Access);
-   Register (POST, "/call/originate",     Receptionist,           Call.Originate'Access);
-   Register (POST, "/call/park",          Receptionist,           Call.Park'Access);
-   Register (POST, "/call/pickup",        Receptionist,           Call.Pickup'Access);
-   Register (POST, "/call/transfer",      Receptionist,           Call.Transfer'Access);
+   Register (GET,  "/call/list",      Receptionist,  Call.List'Access);
+   Register (GET,  "/call/queue",     Receptionist,  Call.Queue'Access);
+   Register (POST, "/call/hangup",    Receptionist,  Call.Hangup'Access);
+   Register (POST, "/call/originate", Receptionist,  Call.Originate'Access);
+   Register (POST, "/call/park",      Receptionist,  Call.Park'Access);
+   Register (POST, "/call/pickup",    Receptionist,  Call.Pickup'Access);
+   Register (POST, "/call/transfer",  Receptionist,  Call.Transfer'Access);
 
    --  Configuration handler. Only used for basic information
    --  prior to logging in.
-   Register (GET,  "/configuration",      Public,           Configuration.Callback);
+   Register (GET,  "/configuration", Public, Configuration.Callback);
 
    --  User related handlers.
-   Register (GET,  "/user/list",         Administrator,
-             User.List.Callback);
-   Register (GET,  "/user",              Receptionist,                 User.Profile'Access);
+   Register (GET,  "/user/list", Administrator, User.List.Callback);
+   Register (GET,  "/user",      Receptionist,  User.Profile'Access);
 
    --  Debug handles, disable when in production.
-   Register (GET,  "/debug/channel/list", Public, Debug.Channel_List'Access);
-   Register (GET,  "/debug/peer/list",    Public, Debug.Peer_List'Access);
-   Register (GET,  "/debug/token/dummy_list",    Public, Debug.Dummy_Tokens'Access);
+   Register (GET, "/debug/channel/list", Public, Debug.Channel_List'Access);
+   Register (GET, "/debug/peer/list",    Public, Debug.Peer_List'Access);
+   Register (GET, "/debug/token/dummy_list", Public,
+             Debug.Dummy_Tokens'Access);
 
    --  Our notification socket for asynchonous event sent to the clients.
    AWS.Net.WebSocket.Registry.Register

@@ -20,7 +20,6 @@ private with Ada.Strings.Unbounded;
 with GNATCOLL.JSON;
 
 with ESL.UUID;
-with Model;
 with Common;
 
 package PBX.Call is

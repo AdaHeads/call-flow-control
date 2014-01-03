@@ -69,9 +69,8 @@ package body Handlers.User is
         := Response.Factory (Request);
    begin
 
-      Response_Object.HTTP_Status_Code (HTTP.OK);
-
       Response_Object.Content (Request_Utilities.User_Of (Request).To_JSON);
+      Response_Object.HTTP_Status_Code (HTTP.OK);
 
       return Response_Object.Build;
 

@@ -16,17 +16,13 @@
 -------------------------------------------------------------------------------
 
 with PBX.Trace;
---  with View.Call;
---  with PBX.Action;
 with PBX.Call;
 with PBX.Magic_Constants;
-with Model.Peer;
 with ESL.Packet_Keys;
 with ESL.Client.Tasking;
 with Handlers.Notifications;
 with Client_Notification.Queue;
 with Client_Notification.Call;
-with System_Messages;
 
 package body PBX.Call.Event_Handlers is
    use PBX;
