@@ -234,4 +234,42 @@ VALUES (1,'https://tux.myopenid.com/', 1),
 INSERT INTO message_draft (id,owner, json)
 VALUES (1, 1 , '{"subject": "Vil gerne have du ringer tilbage.","From" : "Karen Karetkrejler", "body": "Det handler om den sølvgrå Fiat Punto."}]');
 
+
+INSERT INTO phone_numbers (id, value, kind) VALUES
+(1, '11223344', 'PSTN'),
+(2, '12312312', 'PSTN'),
+(3, '87654321', 'PSTN'),
+(4, '88447732', 'PSTN'),
+(5, '44220011', 'PSTN'),
+(6, '00001234', 'PSTN'),
+(7, '76296626', 'PSTN'),
+(8, '02850203', 'PSTN'),
+(9, '10203040', 'PSTN'),
+(10, '77773333', 'PSTN');
+
+INSERT INTO contact_phone_numbers (organization_id, contact_id, phone_number_id) VALUES
+(1, 1, 1),
+(1, 2, 2),
+(1, 2, 3),
+(1, 3, 4),
+(1, 4, 5),
+(1, 5, 6);
+
+
+INSERT INTO calendar_events (id, start, stop, message) VALUES
+(1, '2013-12-31 18:00:00', '2014-01-01 12:00:00', 'Nytårs aftensfest'),
+(2, '2014-01-02 08:00:00', '2014-01-02 18:00:00', 'Håndværker på besøg.'),
+(3, '2014-01-03 08:00:00', '2014-01-03 17:00:00', 'Er i møde, med mindre det er chefen (Hans Jørgensen)'),
+(4, '2014-01-06 08:00:00', '2014-01-08 17:00:00', 'Mus samtaler'),
+(5, '2014-01-09 10:00:00', '2014-01-09 12:00:00', 'I møde med Hans Jørgensen');
+
+INSERT INTO contact_calendar (organization_id, contact_id, event_id) VALUES
+(1, 1, 1),
+(1, 1, 2),
+(1, 1, 3),
+(1, 1, 5);
+
+INSERT INTO organization_calendar (organization_id, event_id) VALUES
+(1, 4);
+
 COMMIT;
