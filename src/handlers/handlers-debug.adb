@@ -20,15 +20,12 @@ with GNATCOLL.JSON;
 with Common,
      HTTP_Codes,
      Response,
-     View;
-
-with System_Messages;
-with Model.Token.List;
-with Model.Peer.List;
+     View,
+     Model.Token.List,
+     Model.Peer.List;
 
 package body Handlers.Debug is
    use Common;
-   use System_Messages;
 
    function Channel_List (Request : in AWS.Status.Data)
                           return AWS.Response.Data is

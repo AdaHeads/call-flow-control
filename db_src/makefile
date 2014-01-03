@@ -1,7 +1,12 @@
+-include makefile.dbsetup
+
 all: test.db
 
-install:
+install-sqlite:
 	cp test.db ../exe/sqlite/customers.db 
+
+install-pgsql:
+	@echo Deploying database schema on ${PGHOST} using databasename ${PGDBNAME}
 
 sources: postgresql/schema.sql postgresql/test_data.sql sqlite/schema.sql sqlite/test_data.sql
 

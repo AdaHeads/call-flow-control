@@ -24,11 +24,35 @@ package body Model.User.List is
    use Ada.Containers;
    use Alice_Configuration;
 
-   Users : Instance;
+   Users : aliased Instance;
    --  Singleton instance.
+
+   -------------------
+   --  Assign_Call  --
+   -------------------
+
+   procedure Assign_Call (Object  :    out Instance;
+                          User_ID : in     Model.User.Identities;
+                          Call_ID : in     PBX.Call.Identification) is
+
+      procedure Update (Key     : in     Model.User.Identities;
+                        Element : in out Model.User.Instance);
+
+      procedure Update (Key     : in     Model.User.Identities;
+                        Element : in out Model.User.Instance) is
+         pragma Unreferenced (Key);
+      begin
+         Element.Current_Call := Call_ID;
+      end Update;
+   begin
+      Object.User_Map.Update_Element
+        (Object.User_Map.Find (User_ID), Update'Access);
+   end Assign_Call;
 
    -----------
    --  Get  --
+   -----------
+
    function Get (Object   : in Instance;
                  Identity : in User.Identities) return User.Instance is
    begin
@@ -43,16 +67,16 @@ package body Model.User.List is
    --  Get_Singleton  --
    ---------------------
 
-   function Get_Singleton return Instance is
+   function Get_Singleton return Reference is
    begin
-      return Users;
+      return Users'Access;
    end Get_Singleton;
 
    ------------------
    --  Reload_Map  --
    ------------------
 
-   procedure Reload_Map (Object    :    out Instance;
+   procedure Reload_Map (Object  :    out Instance;
                          Filename : in     String) is
       use System_Messages;
 

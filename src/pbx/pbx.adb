@@ -20,10 +20,7 @@ with Ada.Strings.Unbounded;
 with Ada.Calendar;
 
 with PBX.Action;
-with ESL.Trace;
-
---  with PBX.Event_Handlers;
---  pragma Unreferenced (PBX.Event_Handlers);
+--  with ESL.Trace;
 
 with Alice_Configuration;
 with System_Messages;
@@ -46,11 +43,11 @@ package body PBX is
 
    procedure Authenticate is
    begin
-      System_Messages.Notify
-           (Information, "PBX.Authenticate: Authenticating");
+      System_Messages.Information
+        (Message => "Sending authentication information",
+         Context => "PBX.Authenticate");
       Client.Authenticate (Password => Config.Get (PBX_Secret));
 
-      ESL.Trace.Unmute (ESL.Trace.Every);
       PBX.Action.Update_Call_List;
       PBX.Action.Update_SIP_Peer_List;
 
@@ -68,19 +65,18 @@ package body PBX is
          Next_Reconnect := Clock + 2.0;
 
          if not Shutdown then
-            System_Messages.Notify
-              (Information, "PBX.Connect: Connecting");
+            System_Messages.Information
+              (Message => "Connecting to " & Client.Image,
+               Context => "PBX.Connect");
             Client.Connect (Hostname => Config.Get (PBX_Host),
                             Port     => Config.Get (PBX_Port));
          end if;
       end loop;
 
       if Client.Connected then
-         System_Messages.Notify
-           (Information, "PBX.Connect: subscribing for events");
          Client.Send (Item => "event plain all");
-         System_Messages.Notify
-           (Information, "PBX.Connect: subscribed for events");
+         System_Messages.Debug (Message => "Subscribing to all for events",
+                                Context => "PBX.Connect");
       end if;
 
    end Connect;
@@ -98,7 +94,8 @@ package body PBX is
    procedure Start is
    begin
       Connect_Task.Start;
-      System_Messages.Notify (Information, "PBX Subsystem started");
+      System_Messages.Information (Message => "PBX subsystem task started",
+                                   Context => "PBX.Start");
    end Start;
 
    function Status return PBX_Status_Type is
@@ -111,12 +108,16 @@ package body PBX is
 
    procedure Stop is
    begin
-      System_Messages.Notify (Debug, "PBX.Shutdown");
+      System_Messages.Information
+        (Message => "PBX subsystem task shutting down.",
+                                   Context => "PBX.Stop");
 
       Shutdown := True;
 
       Client.Shutdown;
-      System_Messages.Notify (Debug, "PBX.Shutdown complete");
+      System_Messages.Information
+        (Message => "PBX subsystem task shutdown complete.",
+         Context => "PBX.Stop");
 
    end Stop;
 end PBX;

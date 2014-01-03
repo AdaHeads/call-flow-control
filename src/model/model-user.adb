@@ -97,6 +97,16 @@ package body Model.User is
               Peer          => Peer_ID);
    end Create;
 
+   function Create (ID     : in Identities;
+                    Object : GNATCOLL.JSON.JSON_Value) return Reference is
+   begin
+      return New_Object : Reference do
+         New_Object     := new Instance;
+         New_Object.all := Create (ID     => ID,
+                                   Object => Object);
+      end return;
+   end Create;
+
    --------------------
    --  Current_Call  --
    --------------------
@@ -172,6 +182,12 @@ package body Model.User is
       return Identities (Item);
    end Identity_Of;
 
+   function Image (Object : in Instance) return String is
+      User_ID : Natural renames Object.Attributes.Get (Field => ID_String);
+   begin
+      return To_String (Object.Identity) & " (ID:" & User_ID'Img & ")";
+   end Image;
+
    --------------
    --  Key_Of  --
    --------------
@@ -197,6 +213,7 @@ package body Model.User is
    function Permissions (User : in Instance) return Permission_List is
 
       Context : constant String := Package_Name & ".Permissions";
+      pragma Unreferenced (Context);
 
       Result   : Permission_List := (others => False);
       Perm_Arr : JSON_Array;

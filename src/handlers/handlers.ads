@@ -15,8 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with HTTP_Codes;
+
 package Handlers is
-   pragma Pure;
+
+   package HTTP renames HTTP_Codes;
 
    Not_Authenticated : exception;
 

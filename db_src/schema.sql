@@ -4,7 +4,7 @@
 CREATE TABLE users (
    id               INTEGER NOT NULL PRIMARY KEY, --  AUTOINCREMENT
    name             TEXT    NOT NULL,
-   extension        TEXT    NULL,
+   extension        TEXT    NULL
 );
 
 CREATE TABLE groups (

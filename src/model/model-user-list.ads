@@ -22,9 +22,15 @@ package Model.User.List is
 
    type Instance is tagged private;
 
+   type Reference is access all Instance;
+
    Not_Found : exception;
 
-   function Get_Singleton return Instance;
+   procedure Assign_Call (Object  :    out Instance;
+                          User_ID : in     Model.User.Identities;
+                          Call_ID : in     PBX.Call.Identification);
+
+   function Get_Singleton return Reference;
    --  Returns the internal singleton object for the server.
    --  An easy ad-hoc way of
 

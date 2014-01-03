@@ -15,52 +15,15 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Session;
-
-with HTTP_Codes,
-     Response,
-     Request_Utilities,
-     System_Message.Critical,
-     System_Messages;
-
-with Model.user;
+with Response,
+     Request_Utilities;
 
 package body Handlers.User is
    use AWS.Response;
 
-   package HTTP renames HTTP_Codes;
-
-   function Validate (Request : in AWS.Status.Data)
-                      return AWS.Response.Data
-   is
-      use AWS.Session;
-      use AWS.Status;
-
-      Response_Object : Response.Object
-        := Response.Factory (Request);
-      Session_ID      : constant AWS.Session.Id
-        := AWS.Status.Session (Request);
-   begin
-      declare
-         Token : String renames Parameters (Request).Get ("token");
-      begin
-         Set (SID   => Session_ID,
-              Key   => "token",
-              Value => Token);
-      exception
-         when E : others =>
-            System_Message.Critical.Response_Exception
-              (Event           => E,
-               Message         => "Validation failed",
-               Response_Object => Response_Object);
-            return Response_Object.Build;
-      end;
-
-      Response_Object.HTTP_Status_Code (HTTP.OK);
-
-      return Response_Object.Build;
-
-   end Validate;
+   ---------------
+   --  Profile  --
+   ---------------
 
    function Profile (Request : in AWS.Status.Data)
                       return AWS.Response.Data

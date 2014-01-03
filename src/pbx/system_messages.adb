@@ -19,12 +19,42 @@ with Ada.Text_IO;
 
 package body System_Messages is
 
+   ----------------
+   --  Critical  --
+   ----------------
+
    procedure Critical (Message : in String;
                        Context : in String) is
    begin
       Ada.Text_IO.Put_Line (Message_Type'Image (Critical) & Separator &
                               Context & Separator & Message);
    end Critical;
+
+   --------------
+   --  Debug   --
+   --------------
+
+   procedure Debug (Message : in String;
+                    Context : in String) is
+   begin
+      Ada.Text_IO.Put_Line (Message_Type'Image (Debug) & Separator &
+                              Context & Separator & Message);
+   end Debug;
+
+   -------------
+   --  Error  --
+   -------------
+
+   procedure Error (Message : in String;
+                    Context : in String) is
+   begin
+      Ada.Text_IO.Put_Line (Message_Type'Image (Error) & Separator &
+                              Context & Separator & Message);
+   end Error;
+
+   -------------
+   --  Fixme  --
+   -------------
 
    procedure Fixme (Message : in String;
                        Context : in String) is
@@ -33,17 +63,15 @@ package body System_Messages is
                               Context & Separator & Message);
    end Fixme;
 
+   -------------------
+   --  Information  --
+   -------------------
+
    procedure Information (Message : in String;
                           Context : in String) is
    begin
       Ada.Text_IO.Put_Line (Message_Type'Image (Information) & Separator &
                               Context & Separator & Message);
    end Information;
-
-   procedure Notify (Level : in Message_Type; Message : in String) is
-   begin
-      Ada.Text_IO.Put_Line (Message_Type'Image (Level) &
-                            ": " & Message);
-   end Notify;
 
 end System_Messages;

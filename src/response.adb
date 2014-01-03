@@ -391,7 +391,7 @@ package body Response is
          Kind       : in     AWS.Session.Value_Kind := AWS.Session.Str;
          Quit       : in out Boolean)
       is
-         pragma Unreferenced (N, Quit);
+         pragma Unreferenced (N, Quit, Kind);
       begin
          Append (Session_String, Key & ":" & Value & " ");
       end Action;

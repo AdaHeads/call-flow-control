@@ -55,10 +55,15 @@ package Model.User is
 
    type Instance is tagged private;
 
+   type Reference is access all Instance;
+
    function Authenticated (Object : in Instance) return Boolean;
 
    function Create (ID     : in Identities;
                     Object : GNATCOLL.JSON.JSON_Value) return Instance;
+
+   function Create (ID     : in Identities;
+                    Object : GNATCOLL.JSON.JSON_Value) return Reference;
 
    function "<" (Left, Right : in Instance) return Boolean;
 
@@ -67,6 +72,8 @@ package Model.User is
    function "=" (Left, Right : in Identities) return Boolean;
 
    function Identity (Object : in Instance) return Identities;
+
+   function Image (Object : in Instance) return String;
 
    function Identification (Object : in Instance) return Identifications;
 
@@ -99,6 +106,7 @@ package Model.User is
    function Call_URI (Object : in Instance) return String;
 
    No_User       : constant Instance;
+   Null_User     : constant Reference;
    Null_Identity : constant Identities;
 private
    package Peers renames Model.Peer;
@@ -119,6 +127,7 @@ private
       Peer          => <>,
       Current_Call  => <>);
 
+   Null_User     : constant Reference  := null;
    Null_Identity : constant Identities := Null_Unbounded_String;
 
    subtype Identity_Keys is Unbounded_String;
@@ -133,7 +142,7 @@ private
                   return Ada.Containers.Hash_Type;
 
    package User_Storage is new Ada.Containers.Hashed_Maps
-     (Key_Type        => Identity_Keys,
+     (Key_Type        => Identities,
       Element_Type    => User.Instance,
       Hash            => Ada.Strings.Unbounded.Hash_Case_Insensitive,
       Equivalent_Keys => Ada.Strings.Unbounded.Equal_Case_Insensitive);

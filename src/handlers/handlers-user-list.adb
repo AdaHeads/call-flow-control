@@ -17,12 +17,11 @@
 
 with GNATCOLL.JSON;
 
-with Common,
+with View,
+     Common,
      Model.User,
      Model.User.List,
---     Response.Error_Messages,
-     Response.Not_Cached,
-     View.Users;
+     Response.Not_Cached;
 
 package body Handlers.User.List is
 

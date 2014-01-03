@@ -76,13 +76,14 @@ package body Handlers.Authenticated_Dispatcher is
             Selected : constant Handler := Handler_List.Element (Request_Key);
             Allowed  : Authentication renames Selected.Allowed;
             User_Token    : Token.Instance;
-            Detected_User : User.Instance := User.No_User;
+            Detected_User : User.Instance := No_User;
          begin
 
             if Parameters (Request).Exist ("token") then
                User_Token :=
                  Token.Create (Value => Parameters (Request).Get ("token"));
-               Detected_User := User.List.Get_Singleton.Get
+               Detected_User :=
+                 User.List.Get_Singleton.Get
                  (Identity => Token.List.Get_Singleton.Look_Up
                     (User_Token));
             end if;

@@ -106,15 +106,6 @@ package body Client_Notification.Call is
       return (Instance with Persistent => False, Call => C);
    end Pickup;
 
-   --------------
-   --  Unpark  --
-   --------------
-
-   function Unpark (C : in PBX.Call.Instance) return Unpark_Event is
-   begin
-      return (Instance with Persistent => False, Call => C);
-   end Unpark;
-
    --------------------------
    --  To_JSON for Hangup  --
    --------------------------
@@ -202,5 +193,14 @@ package body Client_Notification.Call is
 
       return Notification_JSON;
    end To_JSON;
+
+   --------------
+   --  Unpark  --
+   --------------
+
+   function Unpark (C : in PBX.Call.Instance) return Unpark_Event is
+   begin
+      return (Instance with Persistent => False, Call => C);
+   end Unpark;
 
 end Client_Notification.Call;
