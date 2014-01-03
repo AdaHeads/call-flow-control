@@ -16,11 +16,11 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
---  with Ada.Exceptions;
+with Ada.Exceptions;
 with Ada.Calendar;
 
 with PBX.Action;
---  with ESL.Trace;
+with ESL.Trace;
 
 with Alice_Configuration;
 with System_Messages;
@@ -31,8 +31,6 @@ package body PBX is
    use Ada.Calendar;
    use System_Messages;
    use Alice_Configuration;
-
-   Next_Reconnect : Ada.Calendar.Time := Clock;
 
    task Connect_Task is
       entry Start;
@@ -58,15 +56,18 @@ package body PBX is
    ---------------
 
    procedure Connect is
+      Next_Reconnect : Ada.Calendar.Time := Clock;
    begin
       while not Client.Connected loop
          exit when Shutdown;
          delay until Next_Reconnect;
+
          Next_Reconnect := Clock + 2.0;
 
          if not Shutdown then
             System_Messages.Information
-              (Message => "Connecting to " & Client.Image,
+              (Message => "Connecting to " & Config.Get (PBX_Host) & ":" &
+                 Config.Get (PBX_Port),
                Context => "PBX.Connect");
             Client.Connect (Hostname => Config.Get (PBX_Host),
                             Port     => Config.Get (PBX_Port));
@@ -88,14 +89,23 @@ package body PBX is
    task body Connect_Task is
    begin
       accept Start;
+      ESL.Trace.Mute (ESL.Trace.Every);
       Connect; --  Initial connect.
+      System_Messages.Information (Message => "PBX subsystem task started",
+                                   Context => "PBX.Start");
+   exception
+      when E : others =>
+         System_Messages.Critical
+           (Message => "PBX subsystem failed to start!",
+            Context => "PBX.Connect_Task");
+         System_Messages.Critical
+           (Message => Ada.Exceptions.Exception_Information (E),
+            Context => "PBX.Connect_Task");
    end Connect_Task;
 
    procedure Start is
    begin
       Connect_Task.Start;
-      System_Messages.Information (Message => "PBX subsystem task started",
-                                   Context => "PBX.Start");
    end Start;
 
    function Status return PBX_Status_Type is
