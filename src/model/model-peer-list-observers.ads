@@ -20,12 +20,19 @@ with ESL.Packet;
 with ESL.Observer.Event_Observers;
 
 package Model.Peer.List.Observers is
-   type Custom_Observer is
+   type Peer_State_Observers is
      new ESL.Observer.Event_Observers.Instance with null record;
 
    overriding
-   procedure Notify (Observer : access Custom_Observer;
+   procedure Notify (Observer : access Peer_State_Observers;
                      Packet   : in     ESL.Packet.Instance;
                      Client   : in     ESL.Client.Reference);
 
+   type Reload_Config_Observers is
+     new ESL.Observer.Event_Observers.Instance with null record;
+
+   overriding
+   procedure Notify (Observer : access Reload_Config_Observers;
+                     Packet   : in     ESL.Packet.Instance;
+                     Client   : in     ESL.Client.Reference);
 end Model.Peer.List.Observers;

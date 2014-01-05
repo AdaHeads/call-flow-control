@@ -83,6 +83,10 @@ package System_Message.Critical is
      (Log_Trace => Yolk.Log.Critical,
       Status    => "Configuration error");
 
+   procedure Unrecoverable_PBX_Error is new Logger
+     (Log_Trace => Yolk.Log.Critical,
+      Status    => "PBX module failure!");
+
    procedure Running_In_Unsafe_Mode is new Logger
      (Log_Trace => Yolk.Log.Critical,
       Status    => "Running in unsafe mode.  Anybody can access Alice.");

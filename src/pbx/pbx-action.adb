@@ -124,7 +124,7 @@ package body PBX.Action is
       Park_Action : constant ESL.Command.Call_Management.Instance :=
         ESL.Command.Call_Management.UUID_Transfer
           (UUID        => Call,
-           Destination => "park+" & User.Identification);
+           Destination => User.Parking_Lot_Identifier);
       Reply : ESL.Reply.Instance;
 
    begin
@@ -351,10 +351,6 @@ package body PBX.Action is
             Position := Position + 2;
          end loop;
       end;
-
-      --        PBX.Trace.Information (Message => Reply.Response_Body,
-      --                               Context => Context);
-
    end Update_SIP_Peer_List;
 
 end PBX.Action;

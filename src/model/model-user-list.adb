@@ -16,6 +16,8 @@
 -------------------------------------------------------------------------------
 
 with Ada.Text_IO;
+with Ada.Exceptions;
+
 with Alice_Configuration;
 with System_Messages;
 
@@ -32,13 +34,13 @@ package body Model.User.List is
    -------------------
 
    procedure Assign_Call (Object  :    out Instance;
-                          User_ID : in     Model.User.Identities;
+                          User_ID : in     Model.User.Identifications;
                           Call_ID : in     PBX.Call.Identification) is
 
-      procedure Update (Key     : in     Model.User.Identities;
+      procedure Update (Key     : in     Model.User.Identifications;
                         Element : in out Model.User.Instance);
 
-      procedure Update (Key     : in     Model.User.Identities;
+      procedure Update (Key     : in     Model.User.Identifications;
                         Element : in out Model.User.Instance) is
          pragma Unreferenced (Key);
       begin
@@ -55,12 +57,29 @@ package body Model.User.List is
 
    function Get (Object   : in Instance;
                  Identity : in User.Identities) return User.Instance is
+      use Lookup_Storage;
    begin
-      if not Object.User_Map.Contains (User.Key_Of (Identity)) then
-         return No_User;
-      end if;
 
-      return Object.User_Map.Element (User.Key_Of (Identity));
+      return Object.User_Map.Element (Object.Identity_Map.Element (Identity));
+   exception
+      when Constraint_Error =>
+         System_Messages.Debug (Message => "Identity " &
+                                  To_String (Identity) & " not found in map.",
+                                Context => "Get");
+         return No_User;
+   end Get;
+
+   -----------
+   --  Get  --
+   -----------
+
+   function Get (Object  : in Instance;
+                 User_ID : in User.Identifications) return User.Instance is
+   begin
+      return Object.User_Map.Element (User_ID);
+   exception
+      when Constraint_Error =>
+         return No_User;
    end Get;
 
    ---------------------
@@ -90,28 +109,28 @@ package body Model.User.List is
       Open (File => File, Mode => In_File,
             Name => Filename);
       In_JSON := GNATCOLL.JSON.Read (Strm => Get_Line (File));
-      User_Arr := In_JSON.Get (User.Identities_String);
+      User_Arr := In_JSON.Get (User.Users_String);
       for I in 1 .. Length (User_Arr) loop
          declare
-            Node     : constant JSON_Value      := Get (User_Arr, I);
-            Identity : constant User.Identities :=
-              User.Value (Node.Get (User.Identity_String));
---            ID       : Identifications;
-
+            Node          : constant JSON_Value      := Get (User_Arr, I);
+            Identity_List : JSON_Array renames
+              Node.Get (User.Identities_String);
+            ID_String     : String renames Node.Get (User.ID_String);
+            ID            : User.Identifications renames
+              User.Identifications'Value (ID_String);
          begin
-
---              ID := Identifications
---                (Integer'(Node.Get
---  (User.Identity_String).Get (User.ID_String)));
-
             New_Instance.User_Map.Insert
-              (Key      => Key_Of (Identity),
+              (Key      => ID,
                New_Item => Model.User.Create
-                 (ID     => Identity,
-                  Object => Node.Get (User.User_String)));
---              New_Instance.ID_Lookup_Map.Insert
---                (Key      => ID,
---                 New_Item => Key_Of (Identity));
+                 (User_ID => ID,
+                  Object  => Node));
+
+            for J in 1 .. Length (Identity_List) loop
+               New_Instance.Identity_Map.Insert
+                 (Key      => Value (Get (Get (Identity_List, J))),
+                  New_Item => ID);
+            end loop;
+
          end;
       end loop;
 
@@ -120,12 +139,13 @@ package body Model.User.List is
       Information (Message => "Loaded user information from file " & Filename,
                    Context => Context);
    exception
-      when Constraint_Error | Name_Error =>
+      when E : Constraint_Error | Name_Error =>
          Critical (Message => "Failed to load user information from file "
                    & Filename,
                    Context => Context);
-         raise;
-
+         Critical (Message => "Failed to load user information from file "
+                   & Ada.Exceptions.Exception_Information (E),
+                   Context => Context);
    end Reload_Map;
 
    ---------------
@@ -139,7 +159,7 @@ package body Model.User.List is
       for User of Object.User_Map loop
          Append (JSON_List, User.To_JSON);
       end loop;
-      Root.Set_Field ("identities", JSON_List);
+      Root.Set_Field (User.Users_String, JSON_List);
       return Root;
    end To_JSON;
 

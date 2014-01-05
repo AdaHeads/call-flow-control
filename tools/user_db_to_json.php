@@ -6,20 +6,20 @@
  **/
 $db_file = "db_src/test.db";
 
-class identity_list {
-   public $identities;
+class user_list {
+   public $users;
 }
 
 class user {
    public $id;
    public $name = "";
-   public $extension = "";
+   public $peer_id = "";
    public $groups = array();
+   public $identities = array();
 }
 
 class identity {
   public $identity;
-  public $user;
 }
 
 function print_usage() {
@@ -33,37 +33,38 @@ try {
  $dbh->setAttribute(PDO::ATTR_ERRMODE,
                             PDO::ERRMODE_EXCEPTION);
 
-$identity_list = new identity_list();
-$identity_list->identities = array();
+$user_list = new user_list();
+$user_list->users = array();
 
-$res = $dbh->query("select `identity`, `id`, `name`, `extension` from auth_identities left join users on auth_identities.user_id = users.id");
+$res = $dbh->query("select distinct `id`, `name`, `extension` from auth_identities left join users on auth_identities.user_id = users.id");
   while ($row = $res->fetch()) {
-   $identity = new identity();
-   $identity->user = new user();
+   $user = new user();
 
    // Set fields.
-   $identity->identity = $row['identity'];
-   $identity->user->name = $row['name'];
-   $identity->user->extension = $row['extension'];
-   $identity->user->id = $row['id'];
+   $user->name = $row['name'];
+   $user->peer_id = $row['extension'];
+   $user->id = $row['id'];
 
    // Push groups
    $groups = $dbh->query("select `name` from user_groups natural join groups where uid = ".$row['id']);
 
-  while ($group_row = $groups->fetch()) {
-   array_push ($identity->user->groups, $group_row['name']);
-  }
+   while ($group_row = $groups->fetch()) {
+    array_push ($user->groups, $group_row['name']);
+   }
 
-   array_push ($identity_list->identities, $identity);
+   // Push identities
+   $identities = $dbh->query("select `identity` from auth_identities where user_id = ".$row['id']);
+
+   while ($identity_row = $identities->fetch()) {
+    array_push ($user->identities, $identity_row['identity']);
+   }
+
+   array_push ($user_list->users, $user);
 
   }
-echo json_encode ($identity_list);
+echo json_encode ($user_list);
 
 } catch (Exception $e) {
     echo 'Caught exception: ',  $e->getMessage(), "\n";
 }
-
-
-
-
 ?>

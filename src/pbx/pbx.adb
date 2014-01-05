@@ -20,7 +20,7 @@ with Ada.Exceptions;
 with Ada.Calendar;
 
 with PBX.Action;
-with ESL.Trace;
+--  with ESL.Trace;
 
 with Alice_Configuration;
 with System_Messages;
@@ -41,14 +41,19 @@ package body PBX is
 
    procedure Authenticate is
    begin
-      System_Messages.Information
-        (Message => "Sending authentication information",
-         Context => "PBX.Authenticate");
       Client.Authenticate (Password => Config.Get (PBX_Secret));
 
+      System_Messages.Information
+        (Message => "Authentication success.",
+         Context => "PBX.Authenticate");
       PBX.Action.Update_Call_List;
       PBX.Action.Update_SIP_Peer_List;
 
+   exception
+      when ESL.Client.Tasking.Authentication_Failure =>
+         System_Messages.Error
+           (Message => "Authentication failure!",
+            Context => "PBX.Authenticate");
    end Authenticate;
 
    ---------------
@@ -75,9 +80,9 @@ package body PBX is
       end loop;
 
       if Client.Connected then
-         Client.Send (Item => "event plain all");
          System_Messages.Debug (Message => "Subscribing to all for events",
                                 Context => "PBX.Connect");
+         Client.Send (Item => "event plain all");
       end if;
 
    end Connect;
@@ -89,7 +94,7 @@ package body PBX is
    task body Connect_Task is
    begin
       accept Start;
-      ESL.Trace.Mute (ESL.Trace.Every);
+      --  ESL.Trace.Mute (ESL.Trace.Every);
       Connect; --  Initial connect.
       System_Messages.Information (Message => "PBX subsystem task started",
                                    Context => "PBX.Start");

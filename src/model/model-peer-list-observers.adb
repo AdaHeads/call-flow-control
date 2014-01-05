@@ -26,18 +26,24 @@ with System_Messages;
 package body Model.Peer.List.Observers is
    use ESL.Packet_Keys;
 
-   Custom : Custom_Observer
+   Peer_State_Observer : Peer_State_Observers
      (Observing => ESL.Client.Tasking.Event_Stream
         (Client => PBX.Client,
          Stream => ESL.Packet_Keys.CUSTOM));
-   pragma Unreferenced (Custom);
+   pragma Unreferenced (Peer_State_Observer);
 
-   --------------
-   --  Custom  --
-   --------------
+   Reload_Config_Observer : Reload_Config_Observers
+     (Observing => ESL.Client.Tasking.Event_Stream
+        (Client => PBX.Client,
+         Stream => ESL.Packet_Keys.RELOADXML));
+   pragma Unreferenced (Reload_Config_Observer);
+
+   ---------------------------
+   --  Peer_State Observer  --
+   ---------------------------
 
    overriding
-   procedure Notify (Observer : access Custom_Observer;
+   procedure Notify (Observer : access Peer_State_Observers;
                      Packet   : in     ESL.Packet.Instance;
                      Client   : in     ESL.Client.Reference) is
       use ESL;
@@ -47,7 +53,7 @@ package body Model.Peer.List.Observers is
       package Constants renames PBX.Magic_Constants;
 
       Context   : constant String      :=
-        Package_Name & ".Notify (Custom observer)";
+        Package_Name & ".Notify (Peer_State observer)";
       pragma Unreferenced (Context);
 
       Subevent : String renames Packet.Field (Event_Subclass).Decoded_Value;
@@ -80,6 +86,28 @@ package body Model.Peer.List.Observers is
          end;
       end if;
    end Notify;
+
+   ------------------------------
+   --  Config reload Observer  --
+   ------------------------------
+
+   overriding
+   procedure Notify (Observer : access Reload_Config_Observers;
+                     Packet   : in     ESL.Packet.Instance;
+                     Client   : in     ESL.Client.Reference) is
+      use ESL;
+
+      pragma Unreferenced (Observer, Packet, Client);
+
+      Context   : constant String      :=
+        Package_Name & ".Notify (Config reload observer)";
+   begin
+      System_Messages.Error
+        (Context => Context,
+         Message => "Reloading peer state, but no observer " &
+           " is able to respond to it, in fear of deadlocking.");
+   end Notify;
+
 begin
    System_Messages.Information (Context => Package_Name,
                                 Message => "Attaching observers.");

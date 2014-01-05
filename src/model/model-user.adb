@@ -17,6 +17,8 @@
 
 with Ada.Strings.Maps.Constants;
 with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded.Equal_Case_Insensitive;
+with Ada.Strings.Unbounded.Hash_Case_Insensitive;
 
 with Model.Peer.List;
 
@@ -49,7 +51,6 @@ package body Model.User is
       return Ada.Strings.Unbounded.Equal_Case_Insensitive
         (Left  => Left,
          Right => Right);
-
    end "=";
 
    ---------------------
@@ -85,25 +86,29 @@ package body Model.User is
    --  Create  --
    --------------
 
-   function Create (ID     : in Identities;
-                    Object : GNATCOLL.JSON.JSON_Value) return Instance is
-      Peer_ID : constant Model.Peer.Identification := Object.Get ("extension");
+   function Create (User_ID : in Identifications;
+                    Object  : GNATCOLL.JSON.JSON_Value) return Instance is
+      Peer_ID : Model.Peer.Identification renames Object.Get (Peer_ID_String);
    begin
 
-      return (ID            => ID,
+      return (ID            => User_ID,
               Attributes    => Object,
               Current_State => <>,
               Current_Call  => <>,
               Peer          => Peer_ID);
    end Create;
 
-   function Create (ID     : in Identities;
-                    Object : GNATCOLL.JSON.JSON_Value) return Reference is
+   --------------
+   --  Create  --
+   --------------
+
+   function Create (User_ID : in Identifications;
+                    Object  : GNATCOLL.JSON.JSON_Value) return Reference is
    begin
       return New_Object : Reference do
          New_Object     := new Instance;
-         New_Object.all := Create (ID     => ID,
-                                   Object => Object);
+         New_Object.all := Create (User_ID => User_ID,
+                                   Object  => Object);
       end return;
    end Create;
 
@@ -142,7 +147,7 @@ package body Model.User is
    function Hash (Identification : Identifications)
                   return Ada.Containers.Hash_Type is
    begin
-      return Ada.Containers.Hash_Type (Identification);
+      return Identifications'Pos (Identification);
    end Hash;
 
    ----------------------
@@ -151,27 +156,8 @@ package body Model.User is
 
    function Identification (Object : in Instance) return Identifications is
    begin
-      return Identifications
-        (Natural'(Object.Attributes.Get (Field => ID_String)));
+      return Object.ID;
    end Identification;
-
-   ----------------------
-   --  Identification  --
-   ----------------------
-
-   function Identification (Object : in Instance) return String is
-   begin
-      return Object.Attributes.Get (Field => ID_String);
-   end Identification;
-
-   ----------------
-   --  Identity  --
-   ----------------
-
-   function Identity (Object : in Instance) return Identities is
-   begin
-      return Identities (Object.ID);
-   end Identity;
 
    -------------------
    --  Identity_Of  --
@@ -182,10 +168,33 @@ package body Model.User is
       return Identities (Item);
    end Identity_Of;
 
+   -------------
+   --  Image  --
+   -------------
+
    function Image (Object : in Instance) return String is
-      User_ID : Natural renames Object.Attributes.Get (Field => ID_String);
    begin
-      return To_String (Object.Identity) & " (ID:" & User_ID'Img & ")";
+      return Image (Object.ID);
+   end Image;
+
+   -------------
+   --  Image  --
+   -------------
+
+   function Image (Identity : Identities) return String is
+   begin
+      return To_String (Identity);
+   end Image;
+
+   -------------
+   --  Image  --
+   -------------
+
+   function Image (Identification : Identifications) return String is
+      Untrimmed_Image : String renames Identifications'Image (Identification);
+   begin
+      return Ada.Strings.Fixed.Trim (Source => Untrimmed_Image,
+                                     Side   => Ada.Strings.Both);
    end Image;
 
    --------------
@@ -196,6 +205,15 @@ package body Model.User is
    begin
       return Item;
    end Key_Of;
+
+   -------------------------------
+   --   Parking_Lot_Identifier  --
+   -------------------------------
+
+   function Parking_Lot_Identifier (Object : in Instance) return String is
+   begin
+      return Parking_Lot_Prefix & Image (Object.ID);
+   end Parking_Lot_Identifier;
 
    ------------
    --  Peer  --
@@ -259,14 +277,18 @@ package body Model.User is
       end To_Lower;
 
    begin
-      JSON.Set_Field ("identity", To_String (Object.ID));
-      JSON.Set_Field ("user", Object.Attributes);
+      JSON.Set_Field (ID_String, Image (Object.ID));
+      JSON.Set_Field (User_String, Object.Attributes);
       JSON.Set_Field ("current_state", To_Lower (Object.Current_State'Img));
       JSON.Set_Field ("current_call", Object.Current_Call.Image);
-      JSON.Set_Field
-        ("peer",
-         Model.Peer.List.Get_Singleton.Get
-           (Identity => Object.Peer).To_JSON);
+      if Object.Peer /= Model.Peer.Null_Identification then
+         JSON.Set_Field
+           (Peer_String,
+            Model.Peer.List.Get_Singleton.Get
+              (Identity => Object.Peer).To_JSON);
+      else
+         JSON.Set_Field (Peer_String, Create);
+      end if;
 
       return JSON;
    end To_JSON;

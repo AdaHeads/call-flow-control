@@ -235,7 +235,7 @@ package body Handlers.Call is
          end if;
 
          Model.User.List.Get_Singleton.Assign_Call
-           (User_ID => Request_Utilities.User_Of (Request).Identity,
+           (User_ID => Request_Utilities.User_Of (Request).Identification,
             Call_ID => Assigned_Call.ID);
 
          PBX.Action.Transfer (Assigned_Call.ID, User);

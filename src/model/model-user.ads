@@ -18,8 +18,6 @@
 with Ada.Containers;
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded;
-with Ada.Strings.Unbounded.Hash_Case_Insensitive;
-with Ada.Strings.Unbounded.Equal_Case_Insensitive;
 
 with PBX.Call;
 with Model.Peer;
@@ -34,10 +32,14 @@ package Model.User is
 
    ID_String         : constant String := "id";
    User_String       : constant String := "user";
+   Peer_String       : constant String := "peer";
+   Peer_ID_String    : constant String := Peer_String & "_id";
+   Users_String      : constant String := User_String & "s";
    Groups_String     : constant String := "groups";
    Identity_String   : constant String := "identity";
    Identities_String : constant String := "identities";
 
+   Parking_Lot_Prefix   : constant String := "park+";
    Receptionist_String  : constant String := "Receptionist";
    Administrator_String : constant String := "Administrator";
    Service_Agent_String : constant String := "Service agent";
@@ -59,11 +61,11 @@ package Model.User is
 
    function Authenticated (Object : in Instance) return Boolean;
 
-   function Create (ID     : in Identities;
-                    Object : GNATCOLL.JSON.JSON_Value) return Instance;
+   function Create (User_ID : in Identifications;
+                    Object  : GNATCOLL.JSON.JSON_Value) return Instance;
 
-   function Create (ID     : in Identities;
-                    Object : GNATCOLL.JSON.JSON_Value) return Reference;
+   function Create (User_ID : in Identifications;
+                    Object  : GNATCOLL.JSON.JSON_Value) return Reference;
 
    function "<" (Left, Right : in Instance) return Boolean;
 
@@ -71,13 +73,15 @@ package Model.User is
 
    function "=" (Left, Right : in Identities) return Boolean;
 
-   function Identity (Object : in Instance) return Identities;
-
    function Image (Object : in Instance) return String;
 
    function Identification (Object : in Instance) return Identifications;
 
-   function Identification (Object : in Instance) return String;
+   function Parking_Lot_Identifier (Object : in Instance) return String;
+
+   function Image (Identification : Identifications) return String;
+
+   function Image (Identity : Identities) return String;
 
    type Permission is (Receptionist, Service_Agent, Administrator);
    type Permission_List is array (Permission) of Boolean;
@@ -108,12 +112,17 @@ package Model.User is
    No_User       : constant Instance;
    Null_User     : constant Reference;
    Null_Identity : constant Identities;
+   Null_Identification : constant Identifications;
 private
    package Peers renames Model.Peer;
    package Calls renames PBX.Call;
 
+   Null_Identification : constant Identifications := 0;
+   Null_User           : constant Reference       := null;
+   Null_Identity       : constant Identities      := Null_Unbounded_String;
+
    type Instance is tagged record
-      ID            : Unbounded_String           := Null_Unbounded_String;
+      ID            : Identifications            := Null_Identification;
       Current_State : States                     := Unknown;
       Current_Call  : PBX.Call.Identification    := Calls.Null_Identification;
       Peer          : Model.Peer.Identification  := Peers.Null_Identification;
@@ -127,9 +136,6 @@ private
       Peer          => <>,
       Current_Call  => <>);
 
-   Null_User     : constant Reference  := null;
-   Null_Identity : constant Identities := Null_Unbounded_String;
-
    subtype Identity_Keys is Unbounded_String;
 
    function Key_Of (Item : Identities) return Unbounded_String;
@@ -142,19 +148,19 @@ private
                   return Ada.Containers.Hash_Type;
 
    package User_Storage is new Ada.Containers.Hashed_Maps
-     (Key_Type        => Identities,
+     (Key_Type        => Identifications,
       Element_Type    => User.Instance,
-      Hash            => Ada.Strings.Unbounded.Hash_Case_Insensitive,
-      Equivalent_Keys => Ada.Strings.Unbounded.Equal_Case_Insensitive);
+      Hash            => Hash,
+      Equivalent_Keys => "=");
 
    subtype User_Maps is  User_Storage.Map;
 
    package Lookup_Storage is new Ada.Containers.Hashed_Maps
-     (Key_Type        => User.Identifications,
-      Element_Type    => Identity_Keys,
-      Hash            => User.Hash,
-      Equivalent_Keys => User."=");
+     (Key_Type        => User.Identities,
+      Element_Type    => User.Identifications,
+      Hash            => Hash,
+      Equivalent_Keys => "=");
 
-   subtype ID_Lookup_Maps is Lookup_Storage.Map;
+   subtype Identity_Maps is Lookup_Storage.Map;
 
 end Model.User;
