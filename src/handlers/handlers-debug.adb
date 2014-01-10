@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with JSON;
 
 with Common,
      HTTP_Codes,
@@ -29,7 +29,7 @@ package body Handlers.Debug is
 
    function Channel_List (Request : in AWS.Status.Data)
                           return AWS.Response.Data is
-      use GNATCOLL.JSON;
+      use JSON;
       use HTTP_Codes;
 
       Response_Object : Response.Object := Response.Factory (Request);
@@ -45,6 +45,26 @@ package body Handlers.Debug is
 
       return Response_Object.Build;
    end Channel_List;
+
+   function Dummy_Response
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data is
+      Response_Object : Response.Object := Response.Factory (Request);
+   begin
+      Response_Object.HTTP_Status_Code (HTTP.OK);
+
+      return Response_Object.Build;
+   end Dummy_Response;
+
+   function Dummy_Response_No_Content
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data is
+      Response_Object : Response.Object := Response.Factory (Request);
+   begin
+      Response_Object.HTTP_Status_Code (HTTP.No_Content);
+
+      return Response_Object.Build;
+   end Dummy_Response_No_Content;
 
    function Dummy_Tokens (Request : in AWS.Status.Data)
                        return AWS.Response.Data is

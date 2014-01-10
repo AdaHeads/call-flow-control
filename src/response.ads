@@ -20,7 +20,7 @@ with Ada.Strings.Unbounded;
 with AWS.Messages;
 with AWS.Response;
 with AWS.Status;
-with GNATCOLL.JSON;
+with JSON;
 with Common;
 with Request_Parameters;
 
@@ -44,7 +44,7 @@ package Response is
 
    procedure Content
      (Instance : in out Object;
-      Value    : in     GNATCOLL.JSON.JSON_Value);
+      Value    : in     JSON.JSON_Value);
    --  Add JSON value directly to Instance.
 
    function Factory

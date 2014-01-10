@@ -17,10 +17,11 @@
 
 with Ada.Containers.Indefinite_Ordered_Maps;
 private with Ada.Strings.Unbounded;
-with GNATCOLL.JSON;
+with JSON;
 
 with ESL.UUID;
 with Common;
+limited with Model.User;
 
 package PBX.Call is
    use Common;
@@ -70,6 +71,8 @@ package PBX.Call is
    function From_Extension (Obj : in Instance) return String;
    function B_Leg (Obj : in Instance) return Identification;
    function Arrival_Time (Obj : in Instance) return Common.Time;
+   function Assigned_To (Obj : in Instance) return Natural;
+   function Organization_ID (Obj : in Instance) return Natural;
    --  Accessor methods
 
    procedure Change_State (Obj : in Instance; New_State : in States);
@@ -81,8 +84,8 @@ package PBX.Call is
    procedure Unlink (ID : in Identification);
 
    function List_Empty return Boolean;
-   function List return GNATCOLL.JSON.JSON_Value;
-   function Queued_Calls return GNATCOLL.JSON.JSON_Value;
+   function List return JSON.JSON_Value;
+   function Queued_Calls return JSON.JSON_Value;
    procedure For_Each (Process : access procedure (Item : Instance)) is null;
    function Queue_Count return Natural;
 
@@ -112,7 +115,7 @@ package PBX.Call is
 
    --  ^Constructors
 
-   function To_JSON (Obj : in Instance) return GNATCOLL.JSON.JSON_Value;
+   function To_JSON (Obj : in Instance) return JSON.JSON_Value;
    --  TODO: Move this to the view package.
 
 private
@@ -124,23 +127,27 @@ private
 
    type Instance is tagged
       record
-         ID           : Identification;
-         State        : States;
-         Inbound      : Boolean;
-         Extension      : Unbounded_String;
-         From_Extension : Unbounded_String;
-         B_Leg        : Identification;
-         Arrived      : Time := Current_Time;
+         ID              : Identification;
+         State           : States;
+         Inbound         : Boolean;
+         Extension       : Unbounded_String;
+         Organization_ID : Natural := 0;
+         Assigned_To     : Natural := 0;
+         From_Extension  : Unbounded_String;
+         B_Leg           : Identification;
+         Arrived         : Time := Current_Time;
       end record;
 
    Null_Instance : constant Instance :=
-                     (ID           => Null_Identification,
-                      State        => States'First,
-                      Inbound      => False,
-                      Extension      => Null_Unbounded_String,
-                      From_Extension => Null_Unbounded_String,
-                      B_Leg        => Null_Identification,
-                      Arrived      => Common.Null_Time);
+                     (ID              => Null_Identification,
+                      State           => States'First,
+                      Inbound         => False,
+                      Organization_ID => <>,
+                      Assigned_To     => <>,
+                      Extension       => Null_Unbounded_String,
+                      From_Extension  => Null_Unbounded_String,
+                      B_Leg           => Null_Identification,
+                      Arrived         => Common.Null_Time);
 
    package Call_Storage is new
      Ada.Containers.Indefinite_Ordered_Maps
@@ -167,7 +174,7 @@ private
       procedure Remove (ID : in Identification);
 
       function To_JSON (Only_Queued : Boolean := False)
-                        return GNATCOLL.JSON.JSON_Value;
+                        return JSON.JSON_Value;
       procedure Update (ID : in Identification;
                         Process : not null access procedure
                           (Key     : in     Identification;

@@ -15,31 +15,31 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-private with GNATCOLL.JSON;
+private with JSON;
 with Model.Call_ID;
 
 package body JSON.Event is
-   use GNATCOLL.JSON;
+   use JSON;
    use Model.Call_ID;
 
    function Agent_State_To_JSON_Object (Agent : in Peer_Type)
-                           return GNATCOLL.JSON.JSON_Value;
+                           return JSON.JSON_Value;
 
    function Hangup_Call_To_JSON_Object (Call : in Call_Type)
-                                       return GNATCOLL.JSON.JSON_Value;
+                                       return JSON.JSON_Value;
 
    function New_Call_To_JSON_Object (Call : in Call_Type)
-                           return GNATCOLL.JSON.JSON_Value;
+                           return JSON.JSON_Value;
 
    function Pickup_Call_To_JSON_Object (Call  : in Call_Type;
                                         Agent : in Peer_Type)
-                                    return GNATCOLL.JSON.JSON_Value;
+                                    return JSON.JSON_Value;
 
    function Hold_Call_To_JSON_Object (Call : in Call_Type)
-                                     return GNATCOLL.JSON.JSON_Value;
+                                     return JSON.JSON_Value;
 
    function Transfer_Call_To_JSON_Object (Call : in Call_Type)
-                                     return GNATCOLL.JSON.JSON_Value;
+                                     return JSON.JSON_Value;
 
    function Agent_State_JSON_String (Agent : in Peer_Type)
                                     return JSON_String is
@@ -51,7 +51,7 @@ package body JSON.Event is
    end Agent_State_JSON_String;
 
    function Agent_State_To_JSON_Object (Agent : in Peer_Type)
-                           return GNATCOLL.JSON.JSON_Value is
+                           return JSON.JSON_Value is
       JSON              : constant JSON_Value := Create_Object;
       Notification_JSON : constant JSON_Value := Create_Object;
       Agent_JSON        : constant JSON_Value := Create_Object;
@@ -69,7 +69,7 @@ package body JSON.Event is
    end Agent_State_To_JSON_Object;
 
    function Hangup_Call_To_JSON_Object (Call : in Call_Type)
-                           return GNATCOLL.JSON.JSON_Value is
+                           return JSON.JSON_Value is
       JSON              : constant JSON_Value := Create_Object;
       Notification_JSON : constant JSON_Value := Create_Object;
       Call_JSON         : constant JSON_Value := Create_Object;
@@ -104,7 +104,7 @@ package body JSON.Event is
    end Hold_Call_JSON_String;
 
    function Hold_Call_To_JSON_Object (Call : in Call_Type)
-                           return GNATCOLL.JSON.JSON_Value is
+                           return JSON.JSON_Value is
       JSON              : constant JSON_Value := Create_Object;
       Notification_JSON : constant JSON_Value := Create_Object;
       Call_JSON         : constant JSON_Value := Create_Object;
@@ -130,7 +130,7 @@ package body JSON.Event is
    end New_Call_JSON_String;
 
    function New_Call_To_JSON_Object (Call : in Call_Type)
-                           return GNATCOLL.JSON.JSON_Value is
+                           return JSON.JSON_Value is
       JSON              : constant JSON_Value := Create_Object;
       Notification_JSON : constant JSON_Value := Create_Object;
       Call_JSON         : constant JSON_Value := Create_Object;
@@ -162,7 +162,7 @@ package body JSON.Event is
 
    function Pickup_Call_To_JSON_Object (Call  : in Call_Type;
                                         Agent : in Peer_Type)
-                                    return GNATCOLL.JSON.JSON_Value is
+                                    return JSON.JSON_Value is
       JSON              : constant JSON_Value := Create_Object;
       Notification_JSON : constant JSON_Value := Create_Object;
       Call_JSON         : constant JSON_Value := Create_Object;
@@ -191,7 +191,7 @@ package body JSON.Event is
    end Transfer_Call_JSON_String;
 
    function Transfer_Call_To_JSON_Object (Call : in Call_Type)
-                           return GNATCOLL.JSON.JSON_Value is
+                           return JSON.JSON_Value is
       JSON              : constant JSON_Value := Create_Object;
       Notification_JSON : constant JSON_Value := Create_Object;
       Call_JSON         : constant JSON_Value := Create_Object;

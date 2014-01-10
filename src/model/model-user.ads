@@ -22,16 +22,17 @@ with Ada.Strings.Unbounded;
 with PBX.Call;
 with Model.Peer;
 
-with GNATCOLL.JSON;
+with JSON;
 package Model.User is
    use Ada.Strings.Unbounded;
-   use GNATCOLL.JSON;
+   use JSON;
    use Model;
 
    Package_Name : constant String := "Model.User";
 
    ID_String         : constant String := "id";
    User_String       : constant String := "user";
+   Name_String       : constant String := "name";
    Peer_String       : constant String := "peer";
    Peer_ID_String    : constant String := Peer_String & "_id";
    Users_String      : constant String := User_String & "s";
@@ -62,10 +63,10 @@ package Model.User is
    function Authenticated (Object : in Instance) return Boolean;
 
    function Create (User_ID : in Identifications;
-                    Object  : GNATCOLL.JSON.JSON_Value) return Instance;
+                    Object  : JSON.JSON_Value) return Instance;
 
    function Create (User_ID : in Identifications;
-                    Object  : GNATCOLL.JSON.JSON_Value) return Reference;
+                    Object  : JSON.JSON_Value) return Reference;
 
    function "<" (Left, Right : in Instance) return Boolean;
 
@@ -126,7 +127,7 @@ private
       Current_State : States                     := Unknown;
       Current_Call  : PBX.Call.Identification    := Calls.Null_Identification;
       Peer          : Model.Peer.Identification  := Peers.Null_Identification;
-      Attributes    : GNATCOLL.JSON.JSON_Value   := Create;
+      Attributes    : JSON.JSON_Value   := Create;
    end record;
 
    No_User : constant Instance :=

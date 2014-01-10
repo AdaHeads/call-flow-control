@@ -27,6 +27,16 @@ package body PBX.Call is
       return ESL.UUID."=" (Left, Right);
    end "=";
 
+   function Assigned_To (Obj : in Instance) return Natural is
+   begin
+      return Obj.Assigned_To;
+   end Assigned_To;
+
+   function Organization_ID (Obj : in Instance) return Natural is
+   begin
+      return Obj.Organization_ID;
+   end Organization_ID;
+
    --------------------
    --  Arrival_Time  --
    --------------------
@@ -69,6 +79,8 @@ package body PBX.Call is
                (ID             => ID,
                 Inbound        => Inbound,
                 State          => State,
+                Organization_ID => 1,
+                Assigned_To     => 1,
                 Extension      => To_Unbounded_String (Extension),
                 From_Extension => To_Unbounded_String (From_Extension),
                 Arrived        => Current_Time,
@@ -141,7 +153,7 @@ package body PBX.Call is
    --  List  --
    ------------
 
-   function List return GNATCOLL.JSON.JSON_Value is
+   function List return JSON.JSON_Value is
    begin
       return Call_List.To_JSON;
    end List;
@@ -181,7 +193,7 @@ package body PBX.Call is
    --  Queued_Calls  --
    --------------------
 
-   function Queued_Calls return GNATCOLL.JSON.JSON_Value is
+   function Queued_Calls return JSON.JSON_Value is
    begin
       return Call_List.To_JSON (Only_Queued => True);
    end Queued_Calls;
@@ -218,7 +230,7 @@ package body PBX.Call is
    --  To_JSON  --
    ---------------
 
-   function To_JSON (Obj : in Instance) return GNATCOLL.JSON.JSON_Value is
+   function To_JSON (Obj : in Instance) return JSON.JSON_Value is
    begin
       return View.Call.To_JSON (Obj);
    end To_JSON;
@@ -435,8 +447,8 @@ package body PBX.Call is
       ---------------
 
       function To_JSON (Only_Queued : Boolean := False)
-                        return GNATCOLL.JSON.JSON_Value is
-         use GNATCOLL.JSON;
+                        return JSON.JSON_Value is
+         use JSON;
          Value     : JSON_Value := Create_Object;
          JSON_List : JSON_Array;
          Root      : constant JSON_Value := Create_Object;

@@ -174,7 +174,7 @@ package body Response is
 
    procedure Content
      (Instance : in out Object;
-      Value    : in     GNATCOLL.JSON.JSON_Value)
+      Value    : in     JSON.JSON_Value)
    is
    begin
       Instance.Content := Common.To_JSON_String (Value);

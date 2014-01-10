@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with JSON;
 
 with Common,
      Model.User.List,
@@ -36,15 +36,14 @@ package body Handlers.Authenticated_Dispatcher is
 
    function Not_Authorized (Request : in     AWS.Status.Data)
                             return AWS.Response.Data is
-      JSON : GNATCOLL.JSON.JSON_Value;
+      Response_JSON     : constant JSON.JSON_Value := JSON.Create_Object;
       Response_Object   : Response.Object := Response.Factory (Request);
    begin
-      JSON := GNATCOLL.JSON.Create_Object;
-      JSON.Set_Field (Field_Name => View.Status,
-                      Field      => "not authorized");
+      Response_JSON.Set_Field (Field_Name => View.Status,
+                               Field      => "not authorized");
 
       Response_Object.HTTP_Status_Code (Value => HTTP_Codes.Unauthorized);
-      Response_Object.Content (Common.To_JSON_String (JSON));
+      Response_Object.Content (Common.To_JSON_String (Response_JSON));
       return
         Response_Object.Build;
    end Not_Authorized;

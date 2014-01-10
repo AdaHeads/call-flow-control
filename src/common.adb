@@ -27,9 +27,9 @@ package body Common is
 
    function String_To_JSON_Object
      (Value : in String)
-      return GNATCOLL.JSON.JSON_Value
+      return JSON.JSON_Value
    is
-      use GNATCOLL.JSON;
+      use JSON;
    begin
       if Value = "null" or Value = "" then
          return JSON_Null;
@@ -44,7 +44,7 @@ package body Common is
 
    function String_To_JSON_Object
      (Value : in JSON_String)
-      return GNATCOLL.JSON.JSON_Value
+      return JSON.JSON_Value
    is
    begin
       return String_To_JSON_Object (To_String (Value));
@@ -53,7 +53,7 @@ package body Common is
    --  To_JSON_String
 
    function To_JSON_String
-     (Source : in GNATCOLL.JSON.JSON_Value)
+     (Source : in JSON.JSON_Value)
       return JSON_String is
    begin
       return To_Unbounded_String (Source.Write);

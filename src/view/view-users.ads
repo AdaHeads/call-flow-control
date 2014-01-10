@@ -15,11 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with JSON;
 
 with Model.User;
 
 package View.Users is
    function To_JSON (Item : in     Model.User.Instance)
-                    return GNATCOLL.JSON.JSON_Array;
+                    return JSON.JSON_Array;
 end View.Users;

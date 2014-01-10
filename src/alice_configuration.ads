@@ -37,7 +37,8 @@ package Alice_Configuration is
                  PBX_Secret,
                  PBX_Host,
                  PBX_Port,
-                 User_Map_File);
+                 User_Map_File,
+                 Client_Config_File);
 
    type Defaults_Array is array (Keys) of Unbounded_String;
 
@@ -67,7 +68,12 @@ package Alice_Configuration is
                        PBX_Port
                        => U ("8021"),
                        User_Map_File
-                       => U ("static_json/agent.list"));
+                       => U ("static_json/agent.list"),
+                       Client_Config_File
+                       => U (Yolk.Command_Line.Get
+                               (Parameter => "--client-config-file",
+                                Default   =>
+                                "configuration/bob_configuration.json")));
 
    package Config is new Yolk.Config_File_Parser
      (Key_Type            => Keys,

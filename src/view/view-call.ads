@@ -19,14 +19,14 @@ with PBX.Call;
 
 with Common;
 
-with GNATCOLL.JSON;
+with JSON;
 
 --  This package can return callqueue information and it in JSON format.
 package View.Call is
    use Common;
 
    function To_JSON (Call : in PBX.Call.Instance)
-                     return GNATCOLL.JSON.JSON_Value;
+                     return JSON.JSON_Value;
 
    --  TODO: Move this
    function Status_Message (Title   : in String;

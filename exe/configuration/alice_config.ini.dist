@@ -88,8 +88,10 @@ PBX_Host FreeSWITCH_Host
 #
 # Host where the PBX event socket is located.
 
-PBX_Port 8031
+PBX_Port 8021
 # Positive.
 # Default: 8021
 #
 # Port for the PBX event socket.
+
+Client_Config_File configuration/bob_configuration.json

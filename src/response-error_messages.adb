@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with JSON;
 
 with Common,
      HTTP_Codes,
@@ -23,7 +23,7 @@ with Common,
 
 package body Response.Error_Messages is
    procedure Bad_Parameters (HTTP_Response : in out Object) is
-      use GNATCOLL.JSON;
+      use JSON;
       JSON : JSON_Value;
    begin
       JSON := Create_Object;
@@ -37,7 +37,7 @@ package body Response.Error_Messages is
    end Bad_Parameters;
 
    procedure Not_Authorized (HTTP_Response : in out Object) is
-      use GNATCOLL.JSON;
+      use JSON;
       JSON : JSON_Value;
    begin
       JSON := Create_Object;
@@ -51,7 +51,7 @@ package body Response.Error_Messages is
    end Not_Authorized;
 
    procedure Too_Many_Parameters (HTTP_Response : in out Object) is
-      use GNATCOLL.JSON;
+      use JSON;
       JSON : JSON_Value;
    begin
       JSON := Create_Object;
