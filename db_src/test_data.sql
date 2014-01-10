@@ -201,7 +201,7 @@ VALUES (1, 'Thomas Pedersen',           1001),
        (6, 'Tux',                       1006),
        (7, 'AdaHeads Test User Three',  1007);
 
-INSERT INTO groups (gid, name)
+INSERT INTO groups (id, name)
 VALUES (1, 'Receptionist'),
        (2, 'Administrator'),
        (3, 'Service agent');
