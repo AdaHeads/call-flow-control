@@ -20,13 +20,15 @@ with Ada.Strings.Unbounded;
 with AWS.Messages;
 with AWS.Response;
 with AWS.Status;
-with JSON;
+with GNATCOLL.JSON;
 with Common;
 with Request_Parameters;
 
 package Response is
 
-   type Object is tagged limited private;
+   Package_Name : constant String := "Reponse";
+
+   type Object is tagged private;
 
    function Build
      (Instance : in Object)
@@ -37,6 +39,10 @@ package Response is
    --      ?jsoncallback=foo
    --  GET parameter is present.
 
+   function Clone
+     (Instance : in out Object) return Object;
+   --  Extracts the copy-allowed values from an instance.
+
    procedure Content
      (Instance : in out Object;
       Value    : in     Common.JSON_String);
@@ -44,7 +50,7 @@ package Response is
 
    procedure Content
      (Instance : in out Object;
-      Value    : in     JSON.JSON_Value);
+      Value    : in     GNATCOLL.JSON.JSON_Value);
    --  Add JSON value directly to Instance.
 
    function Factory
@@ -171,7 +177,7 @@ private
    package Set_List is new Doubly_Linked_Lists
      (Element_Type => Validation_Set);
 
-   type Object is tagged limited
+   type Object is tagged
       record
          Content                  : Common.JSON_String;
          HTTP_Status_Code         : AWS.Messages.Status_Code;

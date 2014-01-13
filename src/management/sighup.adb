@@ -17,9 +17,9 @@
 
 with Ada.Interrupts.Names;
 with Ada.Strings.Fixed;
+with Ada.Exceptions;
 
-with System_Message.Info;
-with System_Message.Critical;
+with System_Messages;
 
 package body SIGHUP is
 
@@ -123,13 +123,14 @@ package body SIGHUP is
 
    task body Watcher is
       use Ada.Strings.Fixed;
-      use System_Message;
+      use System_Messages;
+
+      Context : constant String := Package_Name & ".Watcher";
 
       Stop : Boolean := False;
    begin
-      Info.SIGHUP_Watcher_Start
-        (Message => Trim (Handler_Indices'Image (Index), Ada.Strings.Both));
-
+      System_Messages.Information (Message => "Attached handler.",
+                                   Context => Context);
       loop
          begin
             Queue.Wait (Index) (Stop);
@@ -137,15 +138,18 @@ package body SIGHUP is
             Call.all;
          exception
             when E : others =>
-               Critical.SIGHUP_Handler_Exception
-                 (Event   => E,
-                  Message => Trim
-                    (Handler_Indices'Image (Index), Ada.Strings.Both));
+               System_Messages.Critical
+                 (Message => Trim
+                    (Handler_Indices'Image (Index), Ada.Strings.Both) &
+                    "Unhandled exception: " &
+                    Ada.Exceptions.Exception_Information (E),
+                  Context => Context);
+
          end;
       end loop;
 
-      Info.SIGHUP_Watcher_Stop
-        (Message => Trim (Handler_Indices'Image (Index), Ada.Strings.Both));
+      System_Messages.Information (Message => "Detached handler.",
+                                   Context => Context);
    end Watcher;
 
    ----------------
@@ -156,7 +160,9 @@ package body SIGHUP is
      (Handler : in Callback)
    is
       use Ada.Strings.Fixed;
-      use System_Message;
+      use System_Messages;
+
+      Context : constant String := Package_Name & ".Watcher";
 
       Index       : Handler_Indices := 1;
       New_Watcher : Watcher_Reference;
@@ -167,8 +173,9 @@ package body SIGHUP is
                                   Call  => Handler);
    exception
       when Constraint_Error =>
-         Critical.SIGHUP_Register_Handler
-           (Message => Trim (Handler_Indices'Image (Index), Ada.Strings.Both));
+         System_Messages.Critical
+           (Message => Trim (Handler_Indices'Image (Index), Ada.Strings.Both),
+            Context => Context);
    end Register;
 
    ------------

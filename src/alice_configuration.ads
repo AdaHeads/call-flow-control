@@ -17,8 +17,8 @@
 
 with Ada.Strings.Unbounded;
 with Common;
-with Yolk.Command_Line;
-with Yolk.Config_File_Parser;
+with Util.Command_Line;
+with Util.Config_File_Parser;
 
 package Alice_Configuration is
 
@@ -37,6 +37,7 @@ package Alice_Configuration is
                  PBX_Secret,
                  PBX_Host,
                  PBX_Port,
+                 User_Backend_Type,
                  User_Map_File,
                  Client_Config_File);
 
@@ -67,23 +68,23 @@ package Alice_Configuration is
                        => U ("FreeSWITCH_Host"),
                        PBX_Port
                        => U ("8021"),
+                       User_Backend_Type
+                       => U ("file"),
                        User_Map_File
                        => U ("static_json/agent.list"),
                        Client_Config_File
-                       => U (Yolk.Command_Line.Get
+                       => U (Util.Command_Line.Get
                                (Parameter => "--client-config-file",
                                 Default   =>
                                 "configuration/bob_configuration.json")));
 
-   package Config is new Yolk.Config_File_Parser
+   package Config is new Util.Config_File_Parser
      (Key_Type            => Keys,
       Defaults_Array_Type => Defaults_Array,
       Defaults            => Default_Values,
-      Config_File         => Yolk.Command_Line.Get
+      Config_File         => Util.Command_Line.Get
                                (Parameter => "--alice-config-file",
                                 Default   =>
                                 "configuration/alice_config.ini"));
-
-   function Public_User_Identification return Boolean;
 
 end Alice_Configuration;

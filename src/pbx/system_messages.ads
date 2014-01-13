@@ -15,9 +15,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Exceptions;
+
 package System_Messages is
 
    type Message_Type is (Debug, Information, Error, Warning, Critical, Fixme);
+
+   procedure Access_Log (Message : in String);
 
    procedure Debug (Message : in String;
                     Context : in String);
@@ -28,8 +32,15 @@ package System_Messages is
    procedure Critical (Message : in String;
                        Context : in String);
 
+   procedure Critical_Exception
+     (Message : in String;
+      Event   : in Ada.Exceptions.Exception_Occurrence;
+      Context : in String);
+
    procedure Error (Message : in String;
                     Context : in String);
+
+   procedure Error_Log (Message : in String);
 
    procedure Fixme (Message : in String;
                     Context : in String);

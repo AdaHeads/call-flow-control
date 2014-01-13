@@ -15,7 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with System_Message.Critical;
+with System_Messages;
+private with Response.Templates;
 
 package body Response.Not_Cached is
 
@@ -27,7 +28,7 @@ package body Response.Not_Cached is
      (Request : in AWS.Status.Data)
          return AWS.Response.Data
    is
---      use AWS.Status;
+      Context         : constant String := Package_Name & ".Generate_Response";
 
       Response_Object : Object := Factory (Request);
    begin
@@ -38,11 +39,12 @@ package body Response.Not_Cached is
       when Event : others =>
          --  For now we assume that "other" exceptions caught here are bad
          --  enough to warrant a critical level log entry and response.
-         System_Message.Critical.Response_Exception
-           (Event           => Event,
-            Message         => Response_Object.To_Debug_String,
-            Response_Object => Response_Object);
-         return Response_Object.Build;
+         System_Messages.Critical_Exception
+           (Event   => Event,
+            Message => Response_Object.To_Debug_String,
+            Context => Context);
+         return Response.Templates.Server_Error.Build;
+
    end Generate_Response;
 
 end Response.Not_Cached;

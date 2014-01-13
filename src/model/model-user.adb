@@ -87,7 +87,7 @@ package body Model.User is
    --------------
 
    function Create (User_ID : in Identifications;
-                    Object  : JSON.JSON_Value) return Instance is
+                    Object  : GNATCOLL.JSON.JSON_Value) return Instance is
       Peer_ID : Model.Peer.Identification renames Object.Get (Peer_ID_String);
    begin
 
@@ -103,7 +103,7 @@ package body Model.User is
    --------------
 
    function Create (User_ID : in Identifications;
-                    Object  : JSON.JSON_Value) return Reference is
+                    Object  : GNATCOLL.JSON.JSON_Value) return Reference is
    begin
       return New_Object : Reference do
          New_Object     := new Instance;

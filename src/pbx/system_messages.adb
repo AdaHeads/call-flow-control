@@ -19,6 +19,15 @@ with Ada.Text_IO;
 
 package body System_Messages is
 
+   ------------------
+   --  Access_Log  --
+   ------------------
+
+   procedure Access_Log (Message : in String) is
+   begin
+      Ada.Text_IO.Put_Line ("ACCESS LOG" & Separator & Message);
+   end Access_Log;
+
    ----------------
    --  Critical  --
    ----------------
@@ -29,6 +38,23 @@ package body System_Messages is
       Ada.Text_IO.Put_Line (Message_Type'Image (Critical) & Separator &
                               Context & Separator & Message);
    end Critical;
+
+   --------------------------
+   --  Critical_Exception  --
+   --------------------------
+
+   procedure Critical_Exception
+     (Message : in String;
+      Event   : in Ada.Exceptions.Exception_Occurrence;
+      Context : in String) is
+   begin
+      Ada.Text_IO.Put_Line (Message_Type'Image (Critical) &
+                              Separator &
+                              Context   &
+                              Separator &
+                              Message   &
+                              Ada.Exceptions.Exception_Information (Event));
+   end Critical_Exception;
 
    --------------
    --  Debug   --
@@ -51,6 +77,15 @@ package body System_Messages is
       Ada.Text_IO.Put_Line (Message_Type'Image (Error) & Separator &
                               Context & Separator & Message);
    end Error;
+
+   -----------------
+   --  Error_Log  --
+   -----------------
+
+   procedure Error_Log (Message : in String) is
+   begin
+      Ada.Text_IO.Put_Line ("ERROR LOG" & Separator & Message);
+   end Error_Log;
 
    -------------
    --  Fixme  --

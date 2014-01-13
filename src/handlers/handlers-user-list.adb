@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with JSON;
+with GNATCOLL.JSON;
 
 with View,
      Common,
@@ -45,7 +45,7 @@ package body Handlers.User.List is
    procedure Generate_Document
      (Instance : in out Response.Object)
    is
-      use JSON;
+      use GNATCOLL.JSON;
       use Common;
 
       Data : constant JSON_Value := Model.User.List.Get_Singleton.To_JSON;

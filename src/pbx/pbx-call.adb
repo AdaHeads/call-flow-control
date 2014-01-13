@@ -27,16 +27,6 @@ package body PBX.Call is
       return ESL.UUID."=" (Left, Right);
    end "=";
 
-   function Assigned_To (Obj : in Instance) return Natural is
-   begin
-      return Obj.Assigned_To;
-   end Assigned_To;
-
-   function Organization_ID (Obj : in Instance) return Natural is
-   begin
-      return Obj.Organization_ID;
-   end Organization_ID;
-
    --------------------
    --  Arrival_Time  --
    --------------------
@@ -45,6 +35,15 @@ package body PBX.Call is
    begin
       return Obj.Arrived;
    end Arrival_Time;
+
+   -------------------
+   --  Assigned_To  --
+   -------------------
+
+   function Assigned_To (Obj : in Instance) return Natural is
+   begin
+      return Obj.Assigned_To;
+   end Assigned_To;
 
    -------------
    --  B_Leg  --
@@ -153,7 +152,7 @@ package body PBX.Call is
    --  List  --
    ------------
 
-   function List return JSON.JSON_Value is
+   function List return GNATCOLL.JSON.JSON_Value is
    begin
       return Call_List.To_JSON;
    end List;
@@ -166,6 +165,15 @@ package body PBX.Call is
    begin
       return Call_List.Empty;
    end List_Empty;
+
+   -----------------------
+   --  Organization_ID  --
+   -----------------------
+
+   function Organization_ID (Obj : in Instance) return Natural is
+   begin
+      return Obj.Organization_ID;
+   end Organization_ID;
 
    -------------------
    --  Queue_Count  --
@@ -193,7 +201,7 @@ package body PBX.Call is
    --  Queued_Calls  --
    --------------------
 
-   function Queued_Calls return JSON.JSON_Value is
+   function Queued_Calls return GNATCOLL.JSON.JSON_Value is
    begin
       return Call_List.To_JSON (Only_Queued => True);
    end Queued_Calls;
@@ -230,7 +238,7 @@ package body PBX.Call is
    --  To_JSON  --
    ---------------
 
-   function To_JSON (Obj : in Instance) return JSON.JSON_Value is
+   function To_JSON (Obj : in Instance) return GNATCOLL.JSON.JSON_Value is
    begin
       return View.Call.To_JSON (Obj);
    end To_JSON;
@@ -447,8 +455,8 @@ package body PBX.Call is
       ---------------
 
       function To_JSON (Only_Queued : Boolean := False)
-                        return JSON.JSON_Value is
-         use JSON;
+                        return GNATCOLL.JSON.JSON_Value is
+         use GNATCOLL.JSON;
          Value     : JSON_Value := Create_Object;
          JSON_List : JSON_Array;
          Root      : constant JSON_Value := Create_Object;

@@ -108,7 +108,7 @@ package body Model.User.List is
    begin
       Open (File => File, Mode => In_File,
             Name => Filename);
-      In_JSON := JSON.Read (Strm => Get_Line (File));
+      In_JSON := GNATCOLL.JSON.Read (Strm => Get_Line (File));
       User_Arr := In_JSON.Get (User.Users_String);
       for I in 1 .. Length (User_Arr) loop
          declare

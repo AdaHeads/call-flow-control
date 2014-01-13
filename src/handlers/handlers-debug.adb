@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with JSON;
+with GNATCOLL.JSON;
 
 with Common,
      HTTP_Codes,
@@ -29,7 +29,7 @@ package body Handlers.Debug is
 
    function Channel_List (Request : in AWS.Status.Data)
                           return AWS.Response.Data is
-      use JSON;
+      use GNATCOLL.JSON;
       use HTTP_Codes;
 
       Response_Object : Response.Object := Response.Factory (Request);

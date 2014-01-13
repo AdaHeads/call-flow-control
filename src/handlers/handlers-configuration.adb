@@ -21,7 +21,7 @@ with Ada.Direct_IO;
 with Common;
 with Alice_Configuration;
 
-with JSON;
+with GNATCOLL.JSON;
 
 package body Handlers.Configuration is
 
@@ -46,7 +46,7 @@ package body Handlers.Configuration is
       use Ada.Directories;
       use Alice_Configuration;
       use Common;
-      use JSON;
+      use GNATCOLL.JSON;
 
       File_Name : constant String  := Config.Get (Client_Config_File);
       File_Size : constant Natural := Natural (Size (File_Name));
@@ -65,7 +65,7 @@ package body Handlers.Configuration is
                             Item => JSON_S);
       JSON_String_IO.Close (File);
 
-      JSON_Object := JSON.Read (JSON_S, "bad bob_configuration JSON");
+      JSON_Object := GNATCOLL.JSON.Read (JSON_S, "bad bob_configuration JSON");
 
       Instance.Content (To_JSON_String (JSON_Object));
    end Generate_Document;

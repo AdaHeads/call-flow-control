@@ -20,6 +20,8 @@ with AWS.Status;
 
 package Response.Not_Cached is
 
+   Package_Name : constant String := "Response.Not_Cached";
+
    -------------------------
    --  Generate_Response  --
    -------------------------

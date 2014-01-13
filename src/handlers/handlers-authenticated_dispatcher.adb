@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with JSON;
+with GNATCOLL.JSON;
 
 with Common,
      Model.User.List,
@@ -23,7 +23,8 @@ with Common,
      Model.Token.List,
      HTTP_Codes,
      Response,
-     System_Message.Critical,
+     Response.Templates,
+     System_Messages,
      View;
 
 package body Handlers.Authenticated_Dispatcher is
@@ -36,7 +37,8 @@ package body Handlers.Authenticated_Dispatcher is
 
    function Not_Authorized (Request : in     AWS.Status.Data)
                             return AWS.Response.Data is
-      Response_JSON     : constant JSON.JSON_Value := JSON.Create_Object;
+      Response_JSON     : constant GNATCOLL.JSON.JSON_Value
+        := GNATCOLL.JSON.Create_Object;
       Response_Object   : Response.Object := Response.Factory (Request);
    begin
       Response_JSON.Set_Field (Field_Name => View.Status,
@@ -65,6 +67,8 @@ package body Handlers.Authenticated_Dispatcher is
       use Model;
       use Model.User;
       use Model.User.List;
+
+      Context     : constant String := Package_Name & ".Run";
 
       Request_Key : constant String := Key (Method => Method (Request),
                                             URI    => URI (Request));
@@ -109,10 +113,12 @@ package body Handlers.Authenticated_Dispatcher is
          declare
             Response_Object : Response.Object := Response.Factory (Request);
          begin
-            System_Message.Critical.Response_Exception
-              (Event           => Event,
-               Message         => Response_Object.To_Debug_String,
-               Response_Object => Response_Object);
+            System_Messages.Critical_Exception
+              (Message => Response_Object.To_Debug_String,
+               Event   => Event,
+               Context => Context);
+
+            Response_Object := Response.Templates.Server_Error;
             return Response_Object.Build;
          end;
    end Run;

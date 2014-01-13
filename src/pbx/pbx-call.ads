@@ -17,11 +17,10 @@
 
 with Ada.Containers.Indefinite_Ordered_Maps;
 private with Ada.Strings.Unbounded;
-with JSON;
+with GNATCOLL.JSON;
 
 with ESL.UUID;
 with Common;
-limited with Model.User;
 
 package PBX.Call is
    use Common;
@@ -84,8 +83,8 @@ package PBX.Call is
    procedure Unlink (ID : in Identification);
 
    function List_Empty return Boolean;
-   function List return JSON.JSON_Value;
-   function Queued_Calls return JSON.JSON_Value;
+   function List return GNATCOLL.JSON.JSON_Value;
+   function Queued_Calls return GNATCOLL.JSON.JSON_Value;
    procedure For_Each (Process : access procedure (Item : Instance)) is null;
    function Queue_Count return Natural;
 
@@ -115,7 +114,7 @@ package PBX.Call is
 
    --  ^Constructors
 
-   function To_JSON (Obj : in Instance) return JSON.JSON_Value;
+   function To_JSON (Obj : in Instance) return GNATCOLL.JSON.JSON_Value;
    --  TODO: Move this to the view package.
 
 private
@@ -174,7 +173,7 @@ private
       procedure Remove (ID : in Identification);
 
       function To_JSON (Only_Queued : Boolean := False)
-                        return JSON.JSON_Value;
+                        return GNATCOLL.JSON.JSON_Value;
       procedure Update (ID : in Identification;
                         Process : not null access procedure
                           (Key     : in     Identification;

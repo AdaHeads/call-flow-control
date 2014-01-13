@@ -26,6 +26,9 @@ with Ada.Containers.Indefinite_Hashed_Maps,
 
 private
 package Handlers.Authenticated_Dispatcher is
+
+   Package_Name : constant String := "Handlers.Authenticated_Dispatcher";
+
    function Run (Request : in     AWS.Status.Data) return AWS.Response.Data;
 
    procedure Set_Default (Method : in     AWS.Status.Request_Method;

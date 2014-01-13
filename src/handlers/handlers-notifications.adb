@@ -21,10 +21,11 @@ with Model.User,
      Model.User.List,
      Model.Token,
      Model.Token.List,
-     System_Message.Info;
+     System_Messages;
 
 package body Handlers.Notifications is
-   use Model;
+   use Model,
+       System_Messages;
 
    type Object is new AWS.Net.WebSocket.Object with null record;
 
@@ -62,7 +63,7 @@ package body Handlers.Notifications is
    -----------------
 
    procedure Broadcast
-     (Item : in JSON.JSON_Value)
+     (Item : in GNATCOLL.JSON.JSON_Value)
    is
    begin
       AWS.Net.WebSocket.Registry.Send
@@ -81,17 +82,20 @@ package body Handlers.Notifications is
    is
       use AWS.Status,
           Model.User,
-          Model.User.List,
-          System_Message;
+          Model.User.List;
+
+      Context : constant String := Package_Name  & ".Create";
 
       User_Token    : Token.Instance;
       Detected_User : User.Instance;
    begin
 
       if not Parameters (Request).Exist ("token") then
-         Info.Not_Authorized
+
+         Information
            (Message => "Attempted to create a websocket without being " &
-                       "logged in.");
+              "logged in.",
+           Context => Context);
 
          raise Not_Authenticated
            with "Attempted to create a websocket without being logged in.";
@@ -105,15 +109,16 @@ package body Handlers.Notifications is
         (Identity => Token.List.Get_Singleton.Look_Up (User_Token));
 
       if Detected_User = User.No_User or not Detected_User.Authenticated then
-         Info.Not_Authorized
+         Information
            (Message => "Attempted to create a websocket without being " &
-                       "logged in.");
+              "logged in.",
+           Context => Context);
 
          raise Not_Authenticated
            with "Attempted to create a websocket without being logged in.";
       end if;
 
-      Info.Notifications_WebSocket_Created;
+      Information (Message => "Websocket created.", Context => Context);
 
       return Object'(AWS.Net.WebSocket.Object
                      (AWS.Net.WebSocket.Create (Socket, Request))
@@ -131,9 +136,10 @@ package body Handlers.Notifications is
       pragma Unreferenced (Socket);
       pragma Unreferenced (Message);
 
-      use System_Message;
+      Context : constant String := Package_Name  & ".On_Close";
+
    begin
-      Info.Notifications_WebSocket_Closed;
+      Information (Message => "Websocket closed.", Context => Context);
    end On_Close;
 
    ---------------
@@ -147,9 +153,10 @@ package body Handlers.Notifications is
       pragma Unreferenced (Socket);
       pragma Unreferenced (Message);
 
-      use System_Message;
+      Context : constant String := Package_Name  & ".On_Open";
+
    begin
-      Info.Notifications_WebSocket_Opened;
+      Information (Message => "Websocket opened.", Context => Context);
    end On_Open;
 
 end Handlers.Notifications;

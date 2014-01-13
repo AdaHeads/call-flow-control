@@ -17,6 +17,8 @@
 
 package SIGHUP_Handler is
 
+   Package_Name : constant String := "SIGHUP_Handler";
+
    procedure Caught_Signal;
    --  Log a caught SIGHUP signal message to INFO.
 

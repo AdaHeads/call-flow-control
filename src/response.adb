@@ -22,7 +22,9 @@ with AWS.Session;
 with AWS.URL;
 with HTTP_Codes;
 with Model;
-with System_Message.Error;
+with System_Messages;
+
+private with Response.Templates;
 
 package body Response is
 
@@ -156,6 +158,19 @@ package body Response is
       return D;
    end Build;
 
+   -------------
+   --  Clone  --
+   -------------
+
+   function Clone
+     (Instance : in out Object) return Object is
+   begin
+      return Obj : Object do
+         Obj.HTTP_Status_Code := Instance.HTTP_Status_Code;
+         Obj.Content          := Instance.Content;
+      end return;
+   end Clone;
+
    ---------------
    --  Content  --
    ---------------
@@ -174,7 +189,7 @@ package body Response is
 
    procedure Content
      (Instance : in out Object;
-      Value    : in     JSON.JSON_Value)
+      Value    : in     GNATCOLL.JSON.JSON_Value)
    is
    begin
       Instance.Content := Common.To_JSON_String (Value);
@@ -443,8 +458,11 @@ package body Response is
       use AWS.Parameters;
       use AWS.Status;
       use Common;
-      use System_Message;
+      use System_Messages;
       use type Request_Parameters.Mode;
+
+      Context    : constant String :=
+        Package_Name & ".Validate_Request_Parameters";
 
       Param_List : constant List := Parameters (Instance.Status_Data);
       Set        : Validation_Set;
@@ -485,16 +503,18 @@ package body Response is
       --  there aren't any at all.
    exception
       when Constraint_Error =>
-         Error.Bad_Request_Parameter
-           (Message         => To_String (Set.Name)
-            & " must be a valid "
-            & Request_Parameters.Kind'Image (Set.Validate_As),
-            Response_Object => Instance);
+         Error (Message => To_String (Set.Name)
+                & " must be a valid "
+                & Request_Parameters.Kind'Image (Set.Validate_As),
+                Context => Context);
+
+         Instance := Response.Templates.Bad_Parameters;
       when Missing_Required_Request_Parameter =>
-         Error.Missing_Request_Parameter
-           (Message         => To_String (Set.Name)
-            & " not found ",
-            Response_Object => Instance);
+         Error (Message => To_String (Set.Name)
+                & " not found ",
+                Context => Context);
+
+         Instance := Response.Templates.Bad_Parameters;
    end Validate_Request_Parameters;
 
 end Response;

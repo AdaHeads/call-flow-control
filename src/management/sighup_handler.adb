@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with System_Message.Info;
+with System_Messages;
 
 package body SIGHUP_Handler is
 
@@ -25,9 +25,10 @@ package body SIGHUP_Handler is
 
    procedure Caught_Signal
    is
-      use System_Message;
+      Context : constant String := Package_Name & ".Caught_Signal";
    begin
-      Info.SIGHUP_Caught (Message => "No action taken");
+      System_Messages.Information (Message => "Signal ignored.",
+                                   Context => Context);
    end Caught_Signal;
 
 end SIGHUP_Handler;

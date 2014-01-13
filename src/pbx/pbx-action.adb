@@ -19,7 +19,7 @@ with Ada.Strings.Unbounded;
 
 with ESL.Reply;
 with ESL.UUID;
-with JSON;
+with GNATCOLL.JSON;
 with PBX.Trace;
 with Model.Peer.List;
 with ESL.Command.Core;
@@ -27,7 +27,7 @@ with ESL.Command.Call_Management;
 with ESL.Command.Miscellaneous;
 
 package body PBX.Action is
-   use JSON;
+   use GNATCOLL.JSON;
    use type PBX.Call.Identification;
    use type ESL.Reply.Responses;
 
@@ -193,7 +193,7 @@ package body PBX.Action is
 
       declare
          JSON_Body : constant JSON_Value :=
-           JSON.Read (Strm => Reply.Response_Body);
+           GNATCOLL.JSON.Read (Strm => Reply.Response_Body);
          Arr  : JSON_Array;
       begin
 

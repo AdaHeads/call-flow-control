@@ -18,7 +18,7 @@
 with Ada.Characters.Handling;
 
 package body View.Call is
-   use JSON;
+   use GNATCOLL.JSON;
    use PBX.Call;
 
    function Status_Message (Title   : in String;
@@ -31,7 +31,7 @@ package body View.Call is
    end Status_Message;
 
    function To_JSON (Call : in PBX.Call.Instance)
-                     return JSON.JSON_Value is
+                     return GNATCOLL.JSON.JSON_Value is
       use Ada.Characters.Handling;
 
       Value : constant JSON_Value := Create_Object;
@@ -49,7 +49,7 @@ package body View.Call is
          Value.Set_Field
            (View.Arrival_Time_S, Unix_Timestamp (Call.Arrival_Time));
       else
-         Value.Set_Field (View.ID, JSON.JSON_Null);
+         Value.Set_Field (View.ID, GNATCOLL.JSON.JSON_Null);
       end if;
       return Value;
    end To_JSON;

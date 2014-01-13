@@ -15,9 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded,
-     Ada.Exceptions;
-
+with Ada.Strings.Unbounded;
 with Common,
      HTTP_Codes,
      Model.User,
@@ -27,8 +25,8 @@ with Common,
      PBX.Call,
      Request_Utilities,
      Response,
+     Response.Templates,
      System_Messages,
-     System_Message.Critical,
      View.Call;
 
 package body Handlers.Call is
@@ -50,6 +48,8 @@ package body Handlers.Call is
    is
       use Model.User;
 
+      Context           : constant String := Package_Name & ".Hangup";
+
       Response_Object   : Response.Object := Response.Factory (Request);
       Requested_Call_ID : String renames Parameters (Request).Get ("call_id");
    begin
@@ -70,18 +70,15 @@ package body Handlers.Call is
 
    exception
       when PBX.Call.Not_Found =>
-         Response_Object.HTTP_Status_Code (HTTP.Not_Found);
-         Response_Object.Content
-           (Status_Message
-              ("status", "not found"));
-         return Response_Object.Build;
+         return Response.Templates.Not_Found.Build;
 
       when E : others =>
-         System_Message.Critical.Response_Exception
+         System_Messages.Critical_Exception
            (Event           => E,
-            Message         => "Hangup failed",
-            Response_Object => Response_Object);
-         return Response_Object.Build;
+            Message         => "Hangup request failed for call id: " &
+              Requested_Call_ID,
+            Context => Context);
+         return Response.Templates.Server_Error.Build;
    end Hangup;
 
    ------------
@@ -92,6 +89,8 @@ package body Handlers.Call is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
+      Context         : constant String := Package_Name & ".List";
+
       Response_Object : Response.Object := Response.Factory (Request);
    begin
       Response_Object.HTTP_Status_Code (HTTP.OK);
@@ -100,11 +99,11 @@ package body Handlers.Call is
       return Response_Object.Build;
    exception
       when E : others =>
-         System_Message.Critical.Response_Exception
+         System_Messages.Critical_Exception
            (Event           => E,
-            Message         => "List failed",
-            Response_Object => Response_Object);
-         return Response_Object.Build;
+            Message         => "Listing calls failed.",
+            Context => Context);
+         return Response.Templates.Server_Error.Build;
    end List;
 
    -----------------
@@ -116,6 +115,8 @@ package body Handlers.Call is
       return AWS.Response.Data is
       use PBX.Call;
       use Model.User;
+
+      Context           : constant String := Package_Name & ".Originate";
 
       Extension_String  : constant String :=
         Parameters (Request).Get ("extension");
@@ -133,17 +134,17 @@ package body Handlers.Call is
       return Response_Object.Build;
    exception
       when E : PBX.Action.Error =>
-         System_Message.Critical.Response_Exception
+         System_Messages.Critical_Exception
            (Event           => E,
-            Message         => Ada.Exceptions.Exception_Message (E),
-            Response_Object => Response_Object);
-         return Response_Object.Build;
+            Message         => "PBX failed to handle request.",
+            Context => Context);
+         return Response.Templates.Server_Error.Build;
       when E : others =>
-         System_Message.Critical.Response_Exception
+         System_Messages.Critical_Exception
            (Event           => E,
-            Message         => "Originate failed",
-            Response_Object => Response_Object);
-         return Response_Object.Build;
+            Message         => "Listing calls failed.",
+            Context => Context);
+         return Response.Templates.Server_Error.Build;
 
    end Originate;
 
@@ -154,6 +155,8 @@ package body Handlers.Call is
    function Park (Request : in AWS.Status.Data)
                   return AWS.Response.Data is
       package Call_List renames PBX.Call;
+
+      Context           : constant String := Package_Name & ".Park";
 
       Response_Object   : Response.Object := Response.Factory (Request);
       Call_ID           : Call_List.Identification renames
@@ -183,11 +186,11 @@ package body Handlers.Call is
                                   ("status", "bad parameter ""Call_ID"""));
          return Response_Object.Build;
       when E : others =>
-         System_Message.Critical.Response_Exception
+         System_Messages.Critical_Exception
            (Event           => E,
-            Message         => "Park failed",
-            Response_Object => Response_Object);
-         return Response_Object.Build;
+            Message         => "Park action failed.",
+            Context => Context);
+         return Response.Templates.Server_Error.Build;
    end Park;
 
    --------------
@@ -259,11 +262,11 @@ package body Handlers.Call is
             return Response_Object.Build;
 
       when E : others =>
-         System_Message.Critical.Response_Exception
+         System_Messages.Critical_Exception
            (Event           => E,
-            Message         => "Hangup failed",
-            Response_Object => Response_Object);
-         return Response_Object.Build;
+            Message         => "Pickup failed.",
+            Context => Context);
+         return Response.Templates.Server_Error.Build;
 
    end Pickup;
 
@@ -279,6 +282,8 @@ package body Handlers.Call is
    is
       package Call_List renames PBX.Call;
 
+      Context           : constant String := Package_Name & ".Queue";
+
       Response_Object : Response.Object := Response.Factory (Request);
    begin
       --  Only return a call list when there actual calls in it.
@@ -293,11 +298,11 @@ package body Handlers.Call is
       return Response_Object.Build;
    exception
       when E : others =>
-         System_Message.Critical.Response_Exception
+         System_Messages.Critical_Exception
            (Event           => E,
-            Message         => "call/queue failed",
-            Response_Object => Response_Object);
-         return Response_Object.Build;
+            Message         => "Listing queued calls failed.",
+            Context => Context);
+         return Response.Templates.Server_Error.Build;
 
    end Queue;
 
@@ -310,6 +315,8 @@ package body Handlers.Call is
          return AWS.Response.Data
    is
       use PBX.Call;
+
+      Context           : constant String := Package_Name & ".Transfer";
 
       Source          : PBX.Call.Identification := Null_Identification;
       Destination     : PBX.Call.Identification := Null_Identification;
@@ -356,11 +363,11 @@ package body Handlers.Call is
          return Response_Object.Build;
 
       when E : others =>
-         System_Message.Critical.Response_Exception
+         System_Messages.Critical_Exception
            (Event           => E,
-            Message         => "Transfer request failed",
-            Response_Object => Response_Object);
-         return Response_Object.Build;
+            Message         => "Transfer request failed.",
+            Context => Context);
+         return Response.Templates.Server_Error.Build;
    end Transfer;
 
 end Handlers.Call;

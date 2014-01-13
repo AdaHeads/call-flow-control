@@ -16,7 +16,9 @@
 -------------------------------------------------------------------------------
 
 with Response;
-with System_Message.Critical;
+with Response.Templates;
+
+with System_Messages;
 
 package body Unexpected_Exception is
 
@@ -43,11 +45,14 @@ package body Unexpected_Exception is
    is
       pragma Unreferenced (Log);
 
+      Context : constant String := Package_Name &
+        ".Unexpected_Exception_Handler";
+
       function Message
         return String;
       --  Build the message that is appended to the log and response object.
 
-      use System_Message;
+      use System_Messages;
 
       Response_Object : Response.Object := Response.Factory (Error.Request);
 
@@ -70,10 +75,12 @@ package body Unexpected_Exception is
          return Response_Object.To_Debug_String;
       end Message;
    begin
-      Critical.Unhandled_Exception
-           (Event           => E,
-            Message         => Message,
-            Response_Object => Response_Object);
+      System_Messages.Critical_Exception
+        (Message => Message,
+         Event   => E,
+         Context => Context);
+
+      Response_Object := Response.Templates.Server_Error;
 
       Answer := Response_Object.Build;
    end Unexpected_Exception_Handler;

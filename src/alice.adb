@@ -15,18 +15,19 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Exceptions;
+
 with AWS.Dispatchers.Callback;
 
 with Handlers.Route;
 with PBX;
 with SIGHUP;
 with SIGHUP_Handler;
-with System_Message.Critical;
-with System_Message.Info;
+with System_Messages;
 with Unexpected_Exception;
 
-with Yolk.Process_Control;
-with Yolk.Server;
+with Util.Process_Control;
+with Util.Server;
 
 --  Self-registering observers.
 with PBX.Call.Event_Handlers;
@@ -35,9 +36,12 @@ with Model.Peer.List.Observers;
 pragma Unreferenced (Model.Peer.List.Observers);
 
 procedure Alice is
-   use System_Message;
-   use Yolk.Process_Control;
-   use Yolk.Server;
+   use System_Messages;
+   use Util.Process_Control;
+   use Util.Server;
+
+   Server_Name : constant String := "call-flow-control";
+   Context     : constant String := "Alice";
 
    Alice_Version : constant String := "0.41";
 
@@ -50,7 +54,10 @@ begin
      (Dispatchers => AWS.Dispatchers.Callback.Create
                        (Handlers.Route.Callback'Access));
 
-   Info.Alice_Start (Message => "Server version " & Alice_Version);
+   System_Messages.Information (Message => Server_Name & " version " &
+                                  Alice_Version &
+                                  " started.",
+                                Context => Context);
 
    Wait;
    --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
@@ -59,10 +66,16 @@ begin
    PBX.Stop;
    SIGHUP.Stop;
 
-   Info.Alice_Stop;
+   System_Messages.Information (Message => Server_Name & " version " &
+                                  Alice_Version &
+                                  " shutdown complete.",
+                                Context => Context);
 exception
    when Event : others =>
-      Critical.Alice_Shutdown_With_Exception (Event);
+      System_Messages.Critical
+        (Message => "Shutting down Alice due to unhandled exception: " &
+           Ada.Exceptions.Exception_Information (Event),
+         Context => Context);
       Web_Server.Stop;
       PBX.Stop;
 end Alice;

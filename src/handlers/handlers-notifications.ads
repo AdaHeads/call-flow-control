@@ -18,9 +18,11 @@
 with AWS.Net.WebSocket;
 with AWS.Status;
 with Common;
-with JSON;
+with GNATCOLL.JSON;
 
 package Handlers.Notifications is
+
+   Package_Name : constant String := "Handlers.Notifications";
 
    function Create
      (Socket  : in AWS.Net.Socket_Access;
@@ -35,7 +37,7 @@ package Handlers.Notifications is
    --  WebSocket.
 
    procedure Broadcast
-     (Item : in JSON.JSON_Value);
+     (Item : in GNATCOLL.JSON.JSON_Value);
    --  Broadcasts JSON to every client connected to the /notifications
    --  WebSocket.
 

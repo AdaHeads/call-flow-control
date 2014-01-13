@@ -22,11 +22,11 @@ with AWS.Response;
 
 package Unexpected_Exception is
 
+   Package_Name : constant String := "Unexpected_Exception";
+
    function Callback
      return AWS.Exceptions.Unexpected_Exception_Handler;
    --  Return a callback for the Unexpected_Exception response.
-
-private
 
    procedure Unexpected_Exception_Handler
      (E      : Ada.Exceptions.Exception_Occurrence;

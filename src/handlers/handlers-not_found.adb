@@ -15,7 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with System_Message.Error;
+with Response.Templates;
+with System_Messages;
 
 package body Handlers.Not_Found is
 
@@ -42,10 +43,13 @@ package body Handlers.Not_Found is
    procedure Generate_Document
      (Response_Object : in out Response.Object)
    is
-      use System_Message;
+      use System_Messages;
    begin
-      Error.Not_Found (Message         => Response_Object.Request_URL,
-                       Response_Object => Response_Object);
+      System_Messages.Error
+        (Message => "Not found " & Response_Object.Request_URL,
+         Context => "");
+      Response_Object := Response.Templates.Not_Found;
+
    end Generate_Document;
 
 end Handlers.Not_Found;

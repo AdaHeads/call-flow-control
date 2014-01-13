@@ -18,7 +18,7 @@
 with Ada.Calendar;
 with Ada.Strings.Unbounded;
 
-with JSON;
+with GNATCOLL.JSON;
 
 package Common is
 
@@ -54,18 +54,18 @@ package Common is
 
    function String_To_JSON_Object
      (Value : in String)
-      return JSON.JSON_Value;
+      return GNATCOLL.JSON.JSON_Value;
    --  Turn the Value string into a JSON object. In the case of an
    --  empty string or a "null" string a JSON.JSON_Null is returned.
 
    function String_To_JSON_Object
      (Value : in JSON_String)
-      return JSON.JSON_Value;
+      return GNATCOLL.JSON.JSON_Value;
    --  Turn the Value string into a JSON object. In the case of an
    --  empty string or a "null" string a JSON.JSON_Null is returned.
 
    function To_JSON_String
-     (Source : in JSON.JSON_Value)
+     (Source : in GNATCOLL.JSON.JSON_Value)
       return JSON_String;
 
    function U

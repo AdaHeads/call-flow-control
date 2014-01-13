@@ -17,7 +17,7 @@
 
 package SIGHUP is
 
-   pragma Elaborate_Body;
+   Package_Name : constant String := "SIGHUP";
 
    type Callback is access procedure;
 
