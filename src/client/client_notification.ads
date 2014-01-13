@@ -15,10 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with JSON;
 
 package Client_Notification is
-   use GNATCOLL.JSON;
+   use JSON;
 
    type Instance (Persistent : Boolean) is abstract tagged private;
 

@@ -19,13 +19,13 @@ with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Unbounded.Hash_Case_Insensitive;
 with Ada.Strings.Unbounded.Equal_Case_Insensitive;
-with GNATCOLL.JSON;
+with JSON;
 
 with Common;
 
 package Model.Peer is
    use Ada.Strings.Unbounded;
-   use GNATCOLL.JSON;
+   use JSON;
    use Common;
    use Model;
 

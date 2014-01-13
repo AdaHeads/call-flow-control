@@ -87,7 +87,7 @@ package body Model.User is
    --------------
 
    function Create (User_ID : in Identifications;
-                    Object  : GNATCOLL.JSON.JSON_Value) return Instance is
+                    Object  : JSON.JSON_Value) return Instance is
       Peer_ID : Model.Peer.Identification renames Object.Get (Peer_ID_String);
    begin
 
@@ -103,7 +103,7 @@ package body Model.User is
    --------------
 
    function Create (User_ID : in Identifications;
-                    Object  : GNATCOLL.JSON.JSON_Value) return Reference is
+                    Object  : JSON.JSON_Value) return Reference is
    begin
       return New_Object : Reference do
          New_Object     := new Instance;
@@ -279,6 +279,8 @@ package body Model.User is
    begin
       JSON.Set_Field (ID_String, Image (Object.ID));
       JSON.Set_Field (User_String, Object.Attributes);
+      JSON.Set_Field (Name_String,
+                      String'(Object.Attributes.Get (Name_String)));
       JSON.Set_Field ("current_state", To_Lower (Object.Current_State'Img));
       JSON.Set_Field ("current_call", Object.Current_Call.Image);
       if Object.Peer /= Model.Peer.Null_Identification then

@@ -62,12 +62,12 @@ package body Handlers.Notifications is
    -----------------
 
    procedure Broadcast
-     (JSON : in GNATCOLL.JSON.JSON_Value)
+     (Item : in JSON.JSON_Value)
    is
    begin
       AWS.Net.WebSocket.Registry.Send
         (To      => Recipients,
-         Message => JSON.Write);
+         Message => Item.Write);
    end Broadcast;
 
    --------------

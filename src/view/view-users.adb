@@ -19,8 +19,8 @@
 
 package body View.Users is
    function To_JSON (Item : in     Model.User.Instance)
-                    return GNATCOLL.JSON.JSON_Array is
-      use GNATCOLL.JSON;
+                    return JSON.JSON_Array is
+      use JSON;
       Data : JSON_Array;
    begin
       raise Program_Error with "View.Users.To_JSON - Not implemented";

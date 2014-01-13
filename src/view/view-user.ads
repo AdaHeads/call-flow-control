@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with JSON;
 
 with Model.User;
 
@@ -26,10 +26,10 @@ package View.User is
 
    function To_JSON (Item  : in     Model.User.Name;
                      Label : in     User_Name_Labels)
-                    return GNATCOLL.JSON.JSON_Value;
+                    return JSON.JSON_Value;
 
    function To_JSON (Item  : in     Model.User.Instance)
-                    return GNATCOLL.JSON.JSON_Value;
+                    return JSON.JSON_Value;
 
    subtype OpenID_URL_Labels is String
      with Dynamic_Predicate => (OpenID_URL_Labels = View.OpenID or
@@ -37,9 +37,9 @@ package View.User is
 
    function To_JSON (Item  : in     Model.User.OpenID;
                      Label : in     OpenID_URL_Labels)
-                    return GNATCOLL.JSON.JSON_Value;
+                    return JSON.JSON_Value;
 
    function To_JSON (Item  : in     Model.User.OpenID_List)
-                    return GNATCOLL.JSON.JSON_Array;
+                    return JSON.JSON_Array;
 
 end View.User;

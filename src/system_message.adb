@@ -22,7 +22,7 @@ with Ada.Text_IO;
 with Common;
 with HTTP_Codes;
 
-with GNATCOLL.JSON;
+with JSON;
 
 package body System_Message is
 
@@ -73,7 +73,7 @@ package body System_Message is
       Tail            : in     String)
    is
       use Common;
-      use GNATCOLL.JSON;
+      use JSON;
 
       JSON : JSON_Value;
    begin

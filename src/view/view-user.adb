@@ -18,8 +18,8 @@
 package body View.User is
    function To_JSON (Item  : in     Model.User.Name;
                      Label : in     User_Name_Labels)
-                    return GNATCOLL.JSON.JSON_Value is
-      use GNATCOLL.JSON;
+                    return JSON.JSON_Value is
+      use JSON;
       Data : JSON_Value;
    begin
       Data := Create_Object;
@@ -33,8 +33,8 @@ package body View.User is
    end To_JSON;
 
    function To_JSON (Item  : in     Model.User.Instance)
-                     return GNATCOLL.JSON.JSON_Value is
-      use GNATCOLL.JSON;
+                     return JSON.JSON_Value is
+      use JSON;
       Data : JSON_Value;
    begin
       Data := Create_Object;
@@ -50,8 +50,8 @@ package body View.User is
 
    function To_JSON (Item  : in     Model.User.OpenID;
                      Label : in     OpenID_URL_Labels)
-                    return GNATCOLL.JSON.JSON_Value is
-      use GNATCOLL.JSON;
+                    return JSON.JSON_Value is
+      use JSON;
       Data : JSON_Value;
    begin
       Data := Create_Object;
@@ -63,8 +63,8 @@ package body View.User is
    end To_JSON;
 
    function To_JSON (Item : in     Model.User.OpenID_List)
-                    return GNATCOLL.JSON.JSON_Array is
-      use GNATCOLL.JSON;
+                    return JSON.JSON_Array is
+      use JSON;
       Data : JSON_Array;
    begin
       for OpenID of Item loop

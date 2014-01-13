@@ -23,8 +23,8 @@ package body View.Peer is
    use Ada.Characters.Handling;
 
    function To_JSON (Item : in Instance)
-                     return GNATCOLL.JSON.JSON_Value is
-      use GNATCOLL.JSON;
+                     return JSON.JSON_Value is
+      use JSON;
 
       JSON      : constant JSON_Value := Create_Object;
       Peer_JSON : constant JSON_Value := Create_Object;

@@ -15,12 +15,12 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with JSON;
 
 with Model.User;
 
 package Model.Token.List is
-   use GNATCOLL.JSON;
+   use JSON;
 
    Package_Name : constant String := "Model.Token.List";
 

@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with JSON;
 
 with ESL.Peer;
 
@@ -24,6 +24,6 @@ package View.Peer is
    use ESL.Peer;
 
    function To_JSON (Item : in Instance)
-                        return GNATCOLL.JSON.JSON_Value;
+                        return JSON.JSON_Value;
 
 end View.Peer;

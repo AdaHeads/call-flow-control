@@ -19,7 +19,7 @@ with Ada.Strings.Unbounded;
 
 with ESL.Reply;
 with ESL.UUID;
-with GNATCOLL.JSON;
+with JSON;
 with PBX.Trace;
 with Model.Peer.List;
 with ESL.Command.Core;
@@ -27,7 +27,7 @@ with ESL.Command.Call_Management;
 with ESL.Command.Miscellaneous;
 
 package body PBX.Action is
-   use GNATCOLL.JSON;
+   use JSON;
    use type PBX.Call.Identification;
    use type ESL.Reply.Responses;
 
@@ -184,7 +184,7 @@ package body PBX.Action is
       List_Channels_Action  : ESL.Command.Core.Instance :=
         ESL.Command.Core.Show (Report => "detailed_calls");
    begin
-      List_Channels_Action.Set_Format (Format => JSON);
+      List_Channels_Action.Set_Format (Format => ESL.Command.JSON);
       PBX.Client.API (List_Channels_Action, Reply);
 
       if Reply.Response = ESL.Reply.Error then
@@ -192,13 +192,13 @@ package body PBX.Action is
       end if;
 
       declare
-         JSON : constant JSON_Value :=
-           GNATCOLL.JSON.Read (Strm => Reply.Response_Body);
+         JSON_Body : constant JSON_Value :=
+           JSON.Read (Strm => Reply.Response_Body);
          Arr  : JSON_Array;
       begin
 
-         if JSON.Has_Field (Field => "rows") then
-            Arr := JSON.Get (Field => "rows");
+         if JSON_Body.Has_Field (Field => "rows") then
+            Arr := JSON_Body.Get (Field => "rows");
 
             for I in 1 .. Length (Arr) loop
                declare
