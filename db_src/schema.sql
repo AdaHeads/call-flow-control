@@ -203,7 +203,7 @@ CREATE TABLE archive_message_queue_recipients (
 CREATE TABLE message_draft (
    id     INTEGER   NOT NULL PRIMARY KEY,
    owner  INTEGER   NOT NULL REFERENCES users (id),
-   json   TEXT      NOT NULL
+   json   JSON      NOT NULL
 );
 
 
