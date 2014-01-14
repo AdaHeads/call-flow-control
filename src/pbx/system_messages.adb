@@ -16,8 +16,10 @@
 -------------------------------------------------------------------------------
 
 with Ada.Text_IO;
+with Alice_Configuration;
 
 package body System_Messages is
+   use Alice_Configuration;
 
    ------------------
    --  Access_Log  --
@@ -35,8 +37,10 @@ package body System_Messages is
    procedure Critical (Message : in String;
                        Context : in String) is
    begin
-      Ada.Text_IO.Put_Line (Message_Type'Image (Critical) & Separator &
-                              Context & Separator & Message);
+      if Loglevel <= Critical then
+         Ada.Text_IO.Put_Line (Loglevels'Image (Critical) & Separator &
+                                 Context & Separator & Message);
+      end if;
    end Critical;
 
    --------------------------
@@ -48,7 +52,7 @@ package body System_Messages is
       Event   : in Ada.Exceptions.Exception_Occurrence;
       Context : in String) is
    begin
-      Ada.Text_IO.Put_Line (Message_Type'Image (Critical) &
+      Ada.Text_IO.Put_Line (Loglevels'Image (Critical) &
                               Separator &
                               Context   &
                               Separator &
@@ -63,8 +67,10 @@ package body System_Messages is
    procedure Debug (Message : in String;
                     Context : in String) is
    begin
-      Ada.Text_IO.Put_Line (Message_Type'Image (Debug) & Separator &
-                              Context & Separator & Message);
+      if Loglevel <= Debug then
+         Ada.Text_IO.Put_Line (Loglevels'Image (Debug) & Separator &
+                                 Context & Separator & Message);
+      end if;
    end Debug;
 
    -------------
@@ -74,8 +80,10 @@ package body System_Messages is
    procedure Error (Message : in String;
                     Context : in String) is
    begin
-      Ada.Text_IO.Put_Line (Message_Type'Image (Error) & Separator &
-                              Context & Separator & Message);
+      if Loglevel <= Error then
+         Ada.Text_IO.Put_Line (Loglevels'Image (Error) & Separator &
+                                 Context & Separator & Message);
+      end if;
    end Error;
 
    -----------------
@@ -94,7 +102,7 @@ package body System_Messages is
    procedure Fixme (Message : in String;
                        Context : in String) is
    begin
-      Ada.Text_IO.Put_Line (Message_Type'Image (Fixme) & Separator &
+      Ada.Text_IO.Put_Line (Loglevels'Image (Fixme) & Separator &
                               Context & Separator & Message);
    end Fixme;
 
@@ -105,8 +113,10 @@ package body System_Messages is
    procedure Information (Message : in String;
                           Context : in String) is
    begin
-      Ada.Text_IO.Put_Line (Message_Type'Image (Information) & Separator &
-                              Context & Separator & Message);
+      if Loglevel <= Information then
+         Ada.Text_IO.Put_Line (Loglevels'Image (Information) & Separator &
+                                 Context & Separator & Message);
+      end if;
    end Information;
 
 end System_Messages;

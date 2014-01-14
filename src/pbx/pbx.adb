@@ -20,7 +20,7 @@ with Ada.Exceptions;
 with Ada.Calendar;
 
 with PBX.Action;
---  with ESL.Trace;
+with ESL.Trace;
 
 with Alice_Configuration;
 with System_Messages;
@@ -109,7 +109,28 @@ package body PBX is
    end Connect_Task;
 
    procedure Start is
+      use ESL.Trace;
+      Loglevel : constant PBX_Loglevels := PBX_Loglevel;
    begin
+      case Loglevel is
+         when Critical =>
+            ESL.Trace.Mute (Trace => Error);
+            ESL.Trace.Mute (Trace => Warning);
+            ESL.Trace.Mute (Trace => Debug);
+            ESL.Trace.Mute (Trace => Information);
+         when Error =>
+            ESL.Trace.Mute (Trace => Debug);
+            ESL.Trace.Mute (Trace => Warning);
+            ESL.Trace.Mute (Trace => Information);
+         when Warning =>
+            ESL.Trace.Mute (Trace => Debug);
+            ESL.Trace.Mute (Trace => Information);
+         when Information =>
+            ESL.Trace.Mute (Trace => Debug);
+         when Debug | Fixme =>
+            ESL.Trace.Unmute (Trace => Every);
+      end case;
+
       Connect_Task.Start;
    end Start;
 

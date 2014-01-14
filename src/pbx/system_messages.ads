@@ -19,8 +19,6 @@ with Ada.Exceptions;
 
 package System_Messages is
 
-   type Message_Type is (Debug, Information, Error, Warning, Critical, Fixme);
-
    procedure Access_Log (Message : in String);
 
    procedure Debug (Message : in String;

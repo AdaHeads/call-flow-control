@@ -25,6 +25,10 @@ package Alice_Configuration is
    use Ada.Strings.Unbounded;
    use Common;
 
+   type Loglevels is (Debug, Information, Error, Warning, Critical, Fixme);
+
+   subtype PBX_Loglevels is Loglevels;
+
    type Keys is (Cache_Max_Element_Age,
                  Host_Name,
                  Public_User_Identification,
@@ -33,8 +37,10 @@ package Alice_Configuration is
                  DB_Password,
                  DB_Port,
                  DB_User,
+                 Loglevel,
                  SQLite_Database,
                  PBX_Secret,
+                 PBX_Loglevel,
                  PBX_Host,
                  PBX_Port,
                  User_Backend_Type,
@@ -44,7 +50,9 @@ package Alice_Configuration is
    type Defaults_Array is array (Keys) of Unbounded_String;
 
    Default_Values : constant Defaults_Array :=
-                      (Cache_Max_Element_Age
+                      (Loglevel
+                       => U ("Warning"),
+                       Cache_Max_Element_Age
                        => U ("86_400"),
                        Host_Name
                        => U ("alice.adaheads.com"),
@@ -64,6 +72,8 @@ package Alice_Configuration is
                        => U ("sqlite/customers.db"),
                        PBX_Secret
                        => U ("password"),
+                       PBX_Loglevel
+                       => U ("Information"),
                        PBX_Host
                        => U ("FreeSWITCH_Host"),
                        PBX_Port
@@ -73,10 +83,7 @@ package Alice_Configuration is
                        User_Map_File
                        => U ("static_json/agent.list"),
                        Client_Config_File
-                       => U (Util.Command_Line.Get
-                               (Parameter => "--client-config-file",
-                                Default   =>
-                                "configuration/bob_configuration.json")));
+                       => U ("configuration/bob_configuration.json"));
 
    package Config is new Util.Config_File_Parser
      (Key_Type            => Keys,
@@ -86,5 +93,17 @@ package Alice_Configuration is
                                (Parameter => "--alice-config-file",
                                 Default   =>
                                 "configuration/alice_config.ini"));
+
+   function PBX_Loglevel return PBX_Loglevels;
+
+   function Loglevel return PBX_Loglevels;
+
+private
+
+   Loglevel_CL_String     : constant String := "--loglevel";
+   PBX_Loglevel_CL_String : constant String := "--pbx-loglevel";
+   PBX_Host_CL_String     : constant String := "--pbx-host";
+   PBX_Port_CL_String     : constant String := "--pbx-port";
+   PBX_Secret_CL_String   : constant String := "--pbx-secret";
 
 end Alice_Configuration;
