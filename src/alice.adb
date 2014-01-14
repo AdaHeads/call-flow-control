@@ -19,6 +19,7 @@ with Ada.Exceptions;
 
 with AWS.Dispatchers.Callback;
 
+with Build_Constants;
 with Handlers.Route;
 with PBX;
 with SIGHUP;
@@ -39,11 +40,9 @@ procedure Alice is
    use System_Messages;
    use Util.Process_Control;
    use Util.Server;
+   use Build_Constants;
 
-   Server_Name : constant String := "call-flow-control";
    Context     : constant String := "Alice";
-
-   Alice_Version : constant String := "0.41";
 
    Web_Server : HTTP := Create
      (Unexpected => Unexpected_Exception.Callback);
@@ -53,12 +52,6 @@ begin
    Web_Server.Start
      (Dispatchers => AWS.Dispatchers.Callback.Create
                        (Handlers.Route.Callback'Access));
-
-   System_Messages.Information (Message => Server_Name & " version " &
-                                  Alice_Version &
-                                  " started.",
-                                Context => Context);
-
    Wait;
    --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
 
@@ -66,9 +59,7 @@ begin
    PBX.Stop;
    SIGHUP.Stop;
 
-   System_Messages.Information (Message => Server_Name & " version " &
-                                  Alice_Version &
-                                  " shutdown complete.",
+   System_Messages.Information (Message => Server_Name & " shutdown complete.",
                                 Context => Context);
 exception
    when Event : others =>
