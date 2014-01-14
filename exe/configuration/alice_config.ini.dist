@@ -4,77 +4,25 @@
 # default value is used.
 # Default values are defined in the My_Configuration.Default_Values array.
 
-#########
-# Cache #
-#########
-
-Cache_Max_Element_Age 86_400.0
-# Duration.
-# Default: 86_400
-#
-# Cached elements that are older than Cache_Max_Element_Age seconds are
-# automatically invalidated and removed from the cache.
-
 ##########################################
 # Host name for the server running Alice #
 ##########################################
 
 Host_Name localhost
-
-############################################################
-# Make lists of users and OpenID available to all clients? #
-############################################################
-
-Public_User_Identification FALSE
-
-#######################
-# PostgreSQL Database #
-#######################
-
-DB_Host pgprimary.adaheads.com
-# String.
-# Default: pgprimary.adaheads.com
+# String
+# Default: localhost
 #
-# The database host.
+# The hostname for the server to listen on.
 
-DB_Name customers
-# String.
-# Default: customers
+Loglevel Information
+# Critical, Error, Information, Debug, Mute
+# Default: Information
 #
-# The database name.
+# Amount of information to show in log.
 
-DB_Password secret
-# String.
-# Default: secret
-#
-# The database password.
-
-DB_Port 5432
-# Positive.
-# Default: 5432
-#
-# The database port.
-
-DB_User alice
-# String.
-# Default: alice
-#
-# The database user.
-
-###################
-# SQLite Database #
-###################
-
-SQLite_Database ../db_src/test.db
-# String.
-# Default: sqlite/customers.db
-#
-# If Alice has been compiled with SQLite support, then she will use this file
-# as the database.
-
-###########################
-# PBX event socket access #
-###########################
+###################################
+# PBX event/control socket access #
+###################################
 
 PBX_Secret password
 # String.
@@ -83,7 +31,7 @@ PBX_Secret password
 # The PBX password
 
 PBX_Host FreeSWITCH_Host
-# String
+# String.
 # Default: FreeSWITCH_Host
 #
 # Host where the PBX event socket is located.
@@ -94,4 +42,14 @@ PBX_Port 8021
 #
 # Port for the PBX event socket.
 
+PBX_Loglevel Error
+# Critical, Error, Information, Debug, Mute
+# Default: Error
+#
+# Amount of information to receive from the PBX layer.
+
 Client_Config_File configuration/bob_configuration.json
+# String. - A file (json format) with a path.
+# Default: configuration/bob_configuration.json
+#
+# Path to the client configuration file to send to the clients.
