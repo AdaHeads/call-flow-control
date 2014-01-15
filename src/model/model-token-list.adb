@@ -65,15 +65,4 @@ package body Model.Token.List is
       Root.Set_Field ("tokens", JSON_List);
       return Root;
    end To_JSON;
-
-begin
-   --  Creating a dummy list.
-
-   Singleton.Tokens.Insert
-     (Key      => Token.Create ("1"),
-      New_Item => User.Value ("kim.rostgaard@gmail.com"));
-
-   Singleton.Tokens.Insert
-     (Key      => Token.Create ("2"),
-      New_Item => User.Value ("devicesnull@gmail.com"));
 end Model.Token.List;

@@ -15,10 +15,16 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Model.Token.List,
-     Model.User.List;
+with AWS.Client;
+with AWS.Response;
+with GNATCOLL.JSON;
+with Alice_Configuration;
+
+with System_Messages;
 
 package body Request_Utilities is
+   use AWS.Client;
+   use Alice_Configuration;
 
    ----------------
    --  Token_Of  --
@@ -38,10 +44,35 @@ package body Request_Utilities is
 
    function User_Of (Request : in AWS.Status.Data)
                      return Model.User.Instance is
+      use Model;
+
+      Context       : constant String := Package_Name & ".User_Of";
+
+      Request_Token : Token.Instance renames Token_Of (Request => Request);
+      In_JSON       : GNATCOLL.JSON.JSON_Value;
+
+      URL           : constant String :=
+        Config.Get (Auth_Server) & "/token/" & Request_Token.To_String;
+      Response   : AWS.Response.Data;
    begin
-      return Model.User.List.Get_Singleton.Get
-        (Identity => Model.Token.List.Get_Singleton.Look_Up
-           (User_Token => Token_Of (Request => Request)));
+
+      System_Messages.Information (Message => "Requesting " & URL,
+                                   Context => Context);
+
+      Response := AWS.Client.Get (URL => URL);
+
+      System_Messages.Information (Message => "Got " & AWS.Response.Message_Body (Response),
+                                   Context => Context);
+
+      In_JSON := GNATCOLL.JSON.Read
+        (Strm => AWS.Response.Message_Body (Response));
+
+      return Model.User.Create (In_JSON);
+   exception
+      when others =>
+         System_Messages.Information (Message => "No user found!",
+                                      Context => Context);
+         return Model.User.No_User;
    end User_Of;
 
 end Request_Utilities;

@@ -45,15 +45,16 @@ package Model.User.List is
    function To_JSON (Object : in Instance) return JSON_Value;
    --  Gives back the JSON representation of the list.
 
+   procedure Reload_Map (Object : out Instance);
+   --  Reloads the internal map of users from the configuration.
+   --  Callable by child SIGHUP handlers.
+
 private
    type Instance is tagged
       record
+         Path         : Unbounded_String := Null_Unbounded_String;
          User_Map     : User_Maps     := User.User_Storage.Empty_Map;
          Identity_Map : Identity_Maps := User.Lookup_Storage.Empty_Map;
       end record;
 
-   procedure Reload_Map (Object   :    out Instance;
-                         Filename : in     String);
-   --  Reloads the internal map of users from the configuration.
-   --  Callable by child SIGHUP handlers.
 end Model.User.List;

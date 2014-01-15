@@ -53,3 +53,9 @@ Client_Config_File configuration/bob_configuration.json
 # Default: configuration/bob_configuration.json
 #
 # Path to the client configuration file to send to the clients.
+
+Auth_Server https://somewheresecure
+# String.
+# Default: https://somewheresecure
+#
+# Path to the authentication server.

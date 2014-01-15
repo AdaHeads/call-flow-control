@@ -30,9 +30,10 @@ with Util.Process_Control;
 with Util.Server;
 with Util.Command_Line;
 
+with Model.User.List;
 --  Self-registering observers.
-with Model.Call.Event_Handlers;
-pragma Unreferenced (Model.Call.Event_Handlers);
+with Model.Call.Observers;
+pragma Unreferenced (Model.Call.Observers);
 with Model.Peer.List.Observers;
 pragma Unreferenced (Model.Peer.List.Observers);
 
@@ -46,6 +47,13 @@ procedure Alice is
    Web_Server : Server.HTTP := Server.Create
      (Unexpected => Unexpected_Exception.Callback);
 
+   procedure Initialize_Model;
+
+   procedure Initialize_Model is
+   begin
+      Model.User.List.Get_Singleton.Reload_Map;
+   end Initialize_Model;
+
 begin
    if Command_Line.Got_Argument ("--help") then
       --  TODO!
@@ -53,6 +61,8 @@ begin
       null;
       return;
    end if;
+
+   Initialize_Model;
 
    SIGHUP.Register (Handler => SIGHUP_Handler.Caught_Signal'Access);
    PBX.Start;

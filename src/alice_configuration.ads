@@ -45,54 +45,57 @@ package Alice_Configuration is
                  PBX_Port,
                  User_Backend_Type,
                  User_Map_File,
+                 Auth_Server,
                  Client_Config_File);
 
    type Defaults_Array is array (Keys) of Unbounded_String;
 
    Default_Values : constant Defaults_Array :=
-                      (Loglevel
-                       => U ("Warning"),
-                       Cache_Max_Element_Age
-                       => U ("86_400"),
-                       Host_Name
-                       => U ("alice.adaheads.com"),
-                       Public_User_Identification
-                       => U ("FALSE"),
-                       DB_Host
-                       => U ("pgprimary.adaheads.com"),
-                       DB_Name
-                       => U ("customers"),
-                       DB_Password
-                       => U ("secret"),
-                       DB_Port
-                       => U ("5432"),
-                       DB_User
-                       => U ("alice"),
-                       SQLite_Database
-                       => U ("sqlite/customers.db"),
-                       PBX_Secret
-                       => U ("password"),
-                       PBX_Loglevel
-                       => U ("Information"),
-                       PBX_Host
-                       => U ("FreeSWITCH_Host"),
-                       PBX_Port
-                       => U ("8021"),
-                       User_Backend_Type
-                       => U ("file"),
-                       User_Map_File
-                       => U ("static_json/agent.list"),
-                       Client_Config_File
-                       => U ("configuration/bob_configuration.json"));
+     (Auth_Server
+      => U ("http://auth.adaheads.com"),
+      Loglevel
+      => U ("Warning"),
+      Cache_Max_Element_Age
+      => U ("86_400"),
+      Host_Name
+      => U ("alice.adaheads.com"),
+      Public_User_Identification
+      => U ("FALSE"),
+      DB_Host
+      => U ("pgprimary.adaheads.com"),
+      DB_Name
+      => U ("customers"),
+      DB_Password
+      => U ("secret"),
+      DB_Port
+      => U ("5432"),
+      DB_User
+      => U ("alice"),
+      SQLite_Database
+      => U ("sqlite/customers.db"),
+      PBX_Secret
+      => U ("password"),
+      PBX_Loglevel
+      => U ("Information"),
+      PBX_Host
+      => U ("FreeSWITCH_Host"),
+      PBX_Port
+      => U ("8021"),
+      User_Backend_Type
+      => U ("file"),
+      User_Map_File
+      => U ("static_json/agent.list"),
+      Client_Config_File
+      => U ("configuration/bob_configuration.json"));
 
    package Config is new Util.Config_File_Parser
      (Key_Type            => Keys,
       Defaults_Array_Type => Defaults_Array,
       Defaults            => Default_Values,
       Config_File         => Util.Command_Line.Get
-                               (Parameter => "--alice-config-file",
-                                Default   =>
-                                "configuration/alice_config.ini"));
+        (Parameter => "--alice-config-file",
+         Default   =>
+         "configuration/alice_config.ini"));
 
    function PBX_Loglevel return PBX_Loglevels;
 

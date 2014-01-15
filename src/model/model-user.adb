@@ -112,6 +112,13 @@ package body Model.User is
       end return;
    end Create;
 
+   function Create (Object  : GNATCOLL.JSON.JSON_Value) return Instance is
+      ID : Model.User.Identifications renames Natural'(Object.Get (ID_String));
+   begin
+      return Create (User_ID => ID,
+                     Object  => Object);
+   end Create;
+
    --------------------
    --  Current_Call  --
    --------------------
@@ -205,6 +212,15 @@ package body Model.User is
    begin
       return Item;
    end Key_Of;
+
+   function No_User return Instance is
+   begin
+      return (ID            => <>,
+              Attributes    => <>,
+              Current_State => <>,
+              Peer          => <>,
+              Current_Call  => <>);
+   end No_User;
 
    -------------------------------
    --   Parking_Lot_Identifier  --

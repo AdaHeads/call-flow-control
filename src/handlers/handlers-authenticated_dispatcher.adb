@@ -18,6 +18,7 @@
 with GNATCOLL.JSON;
 
 with Common,
+     Request_Utilities,
      Model.User.List,
      Model.Token,
      Model.Token.List,
@@ -83,12 +84,7 @@ package body Handlers.Authenticated_Dispatcher is
          begin
 
             if Parameters (Request).Exist ("token") then
-               User_Token :=
-                 Token.Create (Value => Parameters (Request).Get ("token"));
-               Detected_User :=
-                 User.List.Get_Singleton.Get
-                 (Identity => Token.List.Get_Singleton.Look_Up
-                    (User_Token));
+               Detected_User := Request_Utilities.User_Of (Request);
             end if;
 
             if Allowed.Public then

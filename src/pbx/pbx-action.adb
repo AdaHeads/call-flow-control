@@ -206,7 +206,8 @@ package body PBX.Action is
                        (if   Call_JSON.Get ("direction") = "inbound"
                         then True
                         else False),
-                     ID              => UUID);
+                     ID              => UUID,
+                     Organization_ID => 0);
                   if Call_JSON.Get (Field => "application") = "fifo" then
                      Call.Get (Call => UUID).Change_State
                        (New_State => Call.Queued);

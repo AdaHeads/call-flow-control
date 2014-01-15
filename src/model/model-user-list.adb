@@ -26,7 +26,9 @@ package body Model.User.List is
    use Ada.Containers;
    use Alice_Configuration;
 
-   Users : aliased Instance;
+   Users : aliased Instance := (Path         => Config.Get (User_Map_File),
+                                User_Map     => <>,
+                                Identity_Map => <>);
    --  Singleton instance.
 
    -------------------
@@ -95,8 +97,7 @@ package body Model.User.List is
    --  Reload_Map  --
    ------------------
 
-   procedure Reload_Map (Object  :    out Instance;
-                         Filename : in     String) is
+   procedure Reload_Map (Object : out Instance) is
       use System_Messages;
 
       Context : constant String := Package_Name & ".Reload_Map";
@@ -105,6 +106,7 @@ package body Model.User.List is
       In_JSON      : JSON_Value;
       User_Arr     : JSON_Array;
       New_Instance : User.List.Instance;
+      Filename     : String renames To_String (Object.Path);
    begin
       Open (File => File, Mode => In_File,
             Name => Filename);
@@ -162,10 +164,4 @@ package body Model.User.List is
       Root.Set_Field (User.Users_String, JSON_List);
       return Root;
    end To_JSON;
-
-begin
-
-   Reload_Map (Users, Config.Get (User_Map_File));
-   --  Initial loading of user data to the internal singleton DB.
-
 end Model.User.List;

@@ -24,6 +24,8 @@ with Model.Token,
 
 package Request_Utilities is
 
+   Package_Name : constant String := "Request_Utilities";
+
    function Token_Of (Request : in AWS.Status.Data)
                       return Model.Token.Instance;
    --  Returns the token associated with the current request.

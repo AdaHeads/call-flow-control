@@ -54,7 +54,7 @@ package Model.User is
 
    subtype Identities is Unbounded_String;
 
-   type Identifications is new Natural;
+   subtype Identifications is Natural;
 
    type Instance is tagged private;
 
@@ -64,6 +64,8 @@ package Model.User is
 
    function Create (User_ID : in Identifications;
                     Object  : GNATCOLL.JSON.JSON_Value) return Instance;
+
+   function Create (Object  : GNATCOLL.JSON.JSON_Value) return Instance;
 
    function Create (User_ID : in Identifications;
                     Object  : GNATCOLL.JSON.JSON_Value) return Reference;
@@ -110,7 +112,9 @@ package Model.User is
 
    function Call_URI (Object : in Instance) return String;
 
-   No_User       : constant Instance;
+   function No_User return Instance;
+   pragma Inline (No_User);
+
    Null_User     : constant Reference;
    Null_Identity : constant Identities;
    Null_Identification : constant Identifications;
@@ -128,13 +132,6 @@ private
       Peer          : Model.Peer.Identification  := Peers.Null_Identification;
       Attributes    : GNATCOLL.JSON.JSON_Value   := Create;
    end record;
-
-   No_User : constant Instance :=
-     (ID            => <>,
-      Attributes    => <>,
-      Current_State => <>,
-      Peer          => <>,
-      Current_Call  => <>);
 
    subtype Identity_Keys is Unbounded_String;
 

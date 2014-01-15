@@ -55,6 +55,7 @@ project Alice is
                                               "-gnatwa",
                                               "-gnaty3abcdefhiklmnoprstux",
                                               "-Wall",
+                                              "-gnatwl",
                                               "-O2",
                                               "-gnat2012");
          when "Debug" =>
