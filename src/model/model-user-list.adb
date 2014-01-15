@@ -35,7 +35,7 @@ package body Model.User.List is
 
    procedure Assign_Call (Object  :    out Instance;
                           User_ID : in     Model.User.Identifications;
-                          Call_ID : in     PBX.Call.Identification) is
+                          Call_ID : in     Model.Call.Identification) is
 
       procedure Update (Key     : in     Model.User.Identifications;
                         Element : in out Model.User.Instance);

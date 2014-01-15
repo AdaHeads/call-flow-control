@@ -16,7 +16,7 @@
 -------------------------------------------------------------------------------
 package body Client_Notification.Call is
 
-   function Hangup (C : in PBX.Call.Instance) return Hangup_Event is
+   function Hangup (C : in Model.Call.Instance) return Hangup_Event is
    begin
       return (Instance with Persistent => False, Call => C);
    end Hangup;
@@ -71,7 +71,7 @@ package body Client_Notification.Call is
    --  Originate_Failed  --
    ------------------------
 
-   function Originate_Failed (C : in PBX.Call.Instance)
+   function Originate_Failed (C : in Model.Call.Instance)
                               return Originate_Failed_Event is
    begin
       return (Instance with Persistent => False, Call => C);
@@ -81,7 +81,7 @@ package body Client_Notification.Call is
    --  Originate_Success  --
    -------------------------
 
-   function Originate_Success (C : in PBX.Call.Instance)
+   function Originate_Success (C : in Model.Call.Instance)
                                return Originate_Success_Event is
    begin
       return (Instance with Persistent => False, Call => C);
@@ -91,7 +91,7 @@ package body Client_Notification.Call is
    --  Park  --
    ------------
 
-   function Park (C : in PBX.Call.Instance) return Park_Event is
+   function Park (C : in Model.Call.Instance) return Park_Event is
    begin
       return (Instance with Persistent => False, Call => C);
    end Park;
@@ -100,7 +100,7 @@ package body Client_Notification.Call is
    --  Pickup  --
    --------------
 
-   function Pickup (C : in PBX.Call.Instance) return Pickup_Event
+   function Pickup (C : in Model.Call.Instance) return Pickup_Event
    is
    begin
       return (Instance with Persistent => False, Call => C);
@@ -198,7 +198,7 @@ package body Client_Notification.Call is
    --  Unpark  --
    --------------
 
-   function Unpark (C : in PBX.Call.Instance) return Unpark_Event is
+   function Unpark (C : in Model.Call.Instance) return Unpark_Event is
    begin
       return (Instance with Persistent => False, Call => C);
    end Unpark;

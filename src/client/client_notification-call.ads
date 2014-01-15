@@ -15,53 +15,53 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with PBX.Call;
+with Model.Call;
 
 package Client_Notification.Call is
 
    type Pickup_Event is new Client_Notification.Instance
      (Persistent => False) with
       record
-         Call     : PBX.Call.Instance;
+         Call     : Model.Call.Instance;
       end record;
    function To_JSON (O : in Pickup_Event) return JSON_Value;
    function Header_Name (O : in Pickup_Event) return String;
-   function Pickup (C : in PBX.Call.Instance) return Pickup_Event;
+   function Pickup (C : in Model.Call.Instance) return Pickup_Event;
 
    type Hangup_Event is new Client_Notification.Instance
      (Persistent => False) with
       record
-         Call : PBX.Call.Instance;
+         Call : Model.Call.Instance;
       end record;
    function To_JSON (O : in Hangup_Event) return JSON_Value;
    function Header_Name (O : in Hangup_Event) return String;
 
-   function Hangup (C : in PBX.Call.Instance) return Hangup_Event;
+   function Hangup (C : in Model.Call.Instance) return Hangup_Event;
 
    type Park_Event is new Client_Notification.Instance
      (Persistent => False) with
       record
-         Call : PBX.Call.Instance;
+         Call : Model.Call.Instance;
       end record;
    function To_JSON (O : in Park_Event) return JSON_Value;
    function Header_Name (O : in Park_Event) return String;
 
-   function Park (C : in PBX.Call.Instance) return Park_Event;
+   function Park (C : in Model.Call.Instance) return Park_Event;
 
    type Unpark_Event is new Client_Notification.Instance
      (Persistent => False) with
       record
-         Call : PBX.Call.Instance;
+         Call : Model.Call.Instance;
       end record;
    function To_JSON (O : in Unpark_Event) return JSON_Value;
    function Header_Name (O : in Unpark_Event) return String;
 
-   function Unpark (C : in PBX.Call.Instance) return Unpark_Event;
+   function Unpark (C : in Model.Call.Instance) return Unpark_Event;
 
    type Bridge_Event is new Client_Notification.Instance
      (Persistent => False) with
       record
-         Call  : PBX.Call.Instance;
+         Call  : Model.Call.Instance;
       end record;
    function To_JSON (O : in Bridge_Event) return JSON_Value;
    function Header_Name (O : in Bridge_Event) return String;
@@ -69,23 +69,23 @@ package Client_Notification.Call is
    type Originate_Success_Event is new Client_Notification.Instance
      (Persistent => False) with
       record
-         Call  : PBX.Call.Instance;
+         Call  : Model.Call.Instance;
       end record;
    function To_JSON (O : in Originate_Success_Event) return JSON_Value;
    function Header_Name (O : in Originate_Success_Event) return String;
 
-   function Originate_Success (C : in PBX.Call.Instance)
+   function Originate_Success (C : in Model.Call.Instance)
                                return Originate_Success_Event;
 
    type Originate_Failed_Event is new Client_Notification.Instance
      (Persistent => False) with
       record
-         Call  : PBX.Call.Instance;
+         Call  : Model.Call.Instance;
       end record;
    function To_JSON (O : in Originate_Failed_Event) return JSON_Value;
    function Header_Name (O : in Originate_Failed_Event) return String;
 
-   function Originate_Failed (C : in PBX.Call.Instance)
+   function Originate_Failed (C : in Model.Call.Instance)
                                return Originate_Failed_Event;
 
 private

@@ -15,10 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with ESL.Client;
 with ESL.Packet;
 with ESL.Observer.Event_Observers;
 
-package PBX.Call.Event_Handlers is
+package Model.Call.Event_Handlers is
 
    Package_Name : constant String := "PBX.Call.Event_Handers";
 
@@ -81,4 +82,4 @@ private
                      Packet   : in     ESL.Packet.Instance;
                      Client   : in     ESL.Client.Reference);
 
-end PBX.Call.Event_Handlers;
+end Model.Call.Event_Handlers;

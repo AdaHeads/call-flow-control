@@ -15,10 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with PBX.Call;
+with Model.Call;
 
 package Client_Notification.Queue is
-   use PBX;
+   use Model;
 
    type Join_Event is new Client_Notification.Instance
      (Persistent => False) with

@@ -28,17 +28,15 @@ with ESL.Command.Miscellaneous;
 
 package body PBX.Action is
    use GNATCOLL.JSON;
-   use type PBX.Call.Identification;
+   use type Call.Identification;
    use type ESL.Reply.Responses;
 
    --------------
    --  Bridge  --
    --------------
 
-   procedure Bridge (Source      : in PBX.Call.Identification;
-                     Destination : in PBX.Call.Identification) is
-      use PBX.Call;
-
+   procedure Bridge (Source      : in Call.Identification;
+                     Destination : in Call.Identification) is
       Reply         : ESL.Reply.Instance;
       Bridge_Action : constant ESL.Command.Call_Management.Instance :=
         ESL.Command.Call_Management.UUID_Bridge
@@ -48,7 +46,7 @@ package body PBX.Action is
       PBX.Client.API (Bridge_Action, Reply);
 
       if Reply.Response /= ESL.Reply.OK then
-         raise Not_Found;
+         raise Call.Not_Found;
       end if;
    end Bridge;
 
@@ -56,8 +54,7 @@ package body PBX.Action is
    -- Hangup --
    ------------
 
-   procedure Hangup (ID : in PBX.Call.Identification) is
-      use PBX.Call;
+   procedure Hangup (ID : in Call.Identification) is
       Hangup_Action : constant ESL.Command.Call_Management.Instance :=
         ESL.Command.Call_Management.UUID_Kill (UUID => ID.Image);
       Reply : ESL.Reply.Instance;
@@ -66,7 +63,7 @@ package body PBX.Action is
       PBX.Client.API (Hangup_Action, Reply);
 
       if Reply.Response /= ESL.Reply.OK then
-         raise Not_Found;
+         raise Call.Not_Found;
       end if;
    end Hangup;
 
@@ -115,16 +112,15 @@ package body PBX.Action is
    -- Park --
    ----------
 
-   procedure Park (Call : in PBX.Call.Identification;
-                   User : in Model.User.Instance) is
-      use PBX.Call;
+   procedure Park (Target  : in Call.Identification;
+                   At_User : in User.Instance) is
       use ESL.Reply;
 
       Context     : constant String := Package_Name & ".Park";
       Park_Action : constant ESL.Command.Call_Management.Instance :=
         ESL.Command.Call_Management.UUID_Transfer
-          (UUID        => Call,
-           Destination => User.Parking_Lot_Identifier);
+          (UUID        => Target,
+           Destination => At_User.Parking_Lot_Identifier);
       Reply : ESL.Reply.Instance;
 
    begin
@@ -136,7 +132,7 @@ package body PBX.Action is
       --  TODO: Add more elaborate parsing here to determine if the call
       --  really _isn't_ found.
       if Reply.Response /= ESL.Reply.OK then
-         raise Not_Found;
+         raise Call.Not_Found;
       end if;
    end Park;
 
@@ -144,17 +140,16 @@ package body PBX.Action is
    -- Transfer --
    --------------
 
-   procedure Transfer (Call : in PBX.Call.Identification;
-                       User : in Model.User.Instance) is
-      use PBX.Call;
+   procedure Transfer (Target  : in Call.Identification;
+                       At_User : in User.Instance) is
       use ESL.Reply;
 
       Context     : constant String := Package_Name & ".Transfer";
 
       Transfer_Action : constant ESL.Command.Call_Management.Instance :=
         ESL.Command.Call_Management.UUID_Transfer
-          (UUID        => Call,
-           Destination => User.Call_URI);
+          (UUID        => Target,
+           Destination => At_User.Call_URI);
       Reply : ESL.Reply.Instance;
 
    begin
@@ -203,18 +198,18 @@ package body PBX.Action is
             for I in 1 .. Length (Arr) loop
                declare
                   Call_JSON : JSON_Value renames Get (Arr => Arr, Index => I);
-                  UUID      : constant PBX.Call.Identification :=
+                  UUID      : constant Call.Identification :=
                     ESL.UUID.Create (Call_JSON.Get (Field => "uuid"));
                begin
-                  PBX.Call.Create_And_Insert
+                  Call.Create_And_Insert
                     (Inbound         =>
                        (if   Call_JSON.Get ("direction") = "inbound"
                         then True
                         else False),
                      ID              => UUID);
                   if Call_JSON.Get (Field => "application") = "fifo" then
-                     PBX.Call.Get (Call => UUID).Change_State
-                       (New_State => PBX.Call.Queued);
+                     Call.Get (Call => UUID).Change_State
+                       (New_State => Call.Queued);
                   end if;
                end;
 

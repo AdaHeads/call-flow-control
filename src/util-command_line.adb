@@ -67,4 +67,16 @@ package body Util.Command_Line is
       end return;
    end Get;
 
+   function Got_Argument (Parameter : in String) return Boolean is
+      use Ada.Command_Line;
+   begin
+      for K in 1 .. Argument_Count loop
+         if Argument (K) = Parameter then
+            return True;
+         end if;
+      end loop;
+
+      return False;
+   end Got_Argument;
+
 end Util.Command_Line;

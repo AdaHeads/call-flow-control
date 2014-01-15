@@ -22,6 +22,8 @@ package Util.Command_Line is
    package String_Vectors is
      new Ada.Containers.Indefinite_Vectors (Positive, String);
 
+   function Got_Argument (Parameter : in String) return Boolean;
+
    function Get
      (Parameter : in String;
       Default   : in String := "")

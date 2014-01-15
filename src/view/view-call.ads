@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with PBX.Call;
+with Model.Call;
 
 with Common;
 
@@ -25,7 +25,7 @@ with GNATCOLL.JSON;
 package View.Call is
    use Common;
 
-   function To_JSON (Call : in PBX.Call.Instance)
+   function To_JSON (Call : in Model.Call.Instance)
                      return GNATCOLL.JSON.JSON_Value;
 
    --  TODO: Move this

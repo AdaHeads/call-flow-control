@@ -16,7 +16,6 @@
 -------------------------------------------------------------------------------
 
 with Ada.Exceptions;
-
 with AWS.Dispatchers.Callback;
 
 with Build_Constants;
@@ -29,30 +28,39 @@ with Unexpected_Exception;
 
 with Util.Process_Control;
 with Util.Server;
+with Util.Command_Line;
 
 --  Self-registering observers.
-with PBX.Call.Event_Handlers;
-pragma Unreferenced (PBX.Call.Event_Handlers);
+with Model.Call.Event_Handlers;
+pragma Unreferenced (Model.Call.Event_Handlers);
 with Model.Peer.List.Observers;
 pragma Unreferenced (Model.Peer.List.Observers);
 
 procedure Alice is
    use System_Messages;
-   use Util.Process_Control;
-   use Util.Server;
+   use Util;
    use Build_Constants;
 
    Context     : constant String := "Alice";
 
-   Web_Server : HTTP := Create
+   Web_Server : Server.HTTP := Server.Create
      (Unexpected => Unexpected_Exception.Callback);
+
 begin
+   if Command_Line.Got_Argument ("--help") then
+      --  TODO!
+      --  Command_Line.Show_Arguments;
+      null;
+      return;
+   end if;
+
    SIGHUP.Register (Handler => SIGHUP_Handler.Caught_Signal'Access);
    PBX.Start;
    Web_Server.Start
      (Dispatchers => AWS.Dispatchers.Callback.Create
                        (Handlers.Route.Callback'Access));
-   Wait;
+
+   Process_Control.Wait;
    --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
 
    Web_Server.Stop;

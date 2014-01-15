@@ -18,19 +18,19 @@
 --  This is our PBX-boundry layer. It levels out the differences between
 --  various PBX communication protocols.
 
-with PBX.Call;
+with Model.Call;
 with Model.User;
 
 package PBX.Action is
-   use PBX;
+   use Model;
 
    Package_Name : constant String := "PBX.Action";
 
    Timeout   : exception;
    Error     : exception;
 
-   procedure Bridge (Source      : in PBX.Call.Identification;
-                     Destination : in PBX.Call.Identification);
+   procedure Bridge (Source      : in Call.Identification;
+                     Destination : in Call.Identification);
    --  Bridges two channels. The caller must explicitly specify which legs are
    --  bridged. Raises Null_Channel if either channel is null.
 
@@ -50,10 +50,10 @@ package PBX.Action is
                         Extension : in String);
    --  Start originate. Raises Timeout or Error when either occurs.
 
-   procedure Park (Call : in PBX.Call.Identification;
-                   User :  in Model.User.Instance);
+   procedure Park (Target  : in Call.Identification;
+                   At_User : in User.Instance);
 
-   procedure Transfer (Call : in PBX.Call.Identification;
-                       User : in Model.User.Instance);
+   procedure Transfer (Target  : in Call.Identification;
+                       At_User : in User.Instance);
 
 end PBX.Action;

@@ -19,7 +19,7 @@ with Ada.Characters.Handling;
 
 package body View.Call is
    use GNATCOLL.JSON;
-   use PBX.Call;
+   use Model.Call;
 
    function Status_Message (Title   : in String;
                             Message : in String) return JSON_String is
@@ -30,7 +30,7 @@ package body View.Call is
       return To_JSON_String (JSON);
    end Status_Message;
 
-   function To_JSON (Call : in PBX.Call.Instance)
+   function To_JSON (Call : in Model.Call.Instance)
                      return GNATCOLL.JSON.JSON_Value is
       use Ada.Characters.Handling;
 

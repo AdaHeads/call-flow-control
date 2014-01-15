@@ -19,7 +19,7 @@ with Ada.Containers;
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded;
 
-with PBX.Call;
+with Model.Call;
 with Model.Peer;
 
 with GNATCOLL.JSON;
@@ -103,7 +103,7 @@ package Model.User is
    function Current_State (Object : in Instance) return States;
 
    function Current_Call (Object : in Instance)
-                          return PBX.Call.Instance;
+                          return Call.Instance;
 
    function Peer (Object : in Instance) return Model.Peer.Instance;
    --  Returns the peer currently associated with the user.
@@ -116,7 +116,6 @@ package Model.User is
    Null_Identification : constant Identifications;
 private
    package Peers renames Model.Peer;
-   package Calls renames PBX.Call;
 
    Null_Identification : constant Identifications := 0;
    Null_User           : constant Reference       := null;
@@ -125,7 +124,7 @@ private
    type Instance is tagged record
       ID            : Identifications            := Null_Identification;
       Current_State : States                     := Unknown;
-      Current_Call  : PBX.Call.Identification    := Calls.Null_Identification;
+      Current_Call  : Call.Identification        := Call.Null_Identification;
       Peer          : Model.Peer.Identification  := Peers.Null_Identification;
       Attributes    : GNATCOLL.JSON.JSON_Value   := Create;
    end record;

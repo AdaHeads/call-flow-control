@@ -16,7 +16,6 @@
 -------------------------------------------------------------------------------
 
 with PBX.Trace;
-with PBX.Call;
 with PBX.Magic_Constants;
 with ESL.Packet_Keys;
 with ESL.Client.Tasking;
@@ -24,8 +23,7 @@ with Handlers.Notifications;
 with Client_Notification.Queue;
 with Client_Notification.Call;
 
-package body PBX.Call.Event_Handlers is
-   use PBX;
+package body Model.Call.Event_Handlers is
    use ESL.Packet_Keys;
 
    use PBX.Trace;
@@ -289,7 +287,7 @@ package body PBX.Call.Event_Handlers is
       Notification.Broadcast
         (Client_Notification.Call.Hangup (Target_Call).To_JSON);
    exception
-      when PBX.Call.Not_Found =>
+      when Model.Call.Not_Found =>
          PBX.Trace.Error
            (Message => "Tried to hang up non-existing call " & Image (ID) &
             ". Call list may be inconsistent - consider reloading.",
@@ -340,4 +338,4 @@ package body PBX.Call.Event_Handlers is
                              Context => Context);
    end Notify;
 
-end PBX.Call.Event_Handlers;
+end Model.Call.Event_Handlers;

@@ -117,9 +117,9 @@ package body Model.User is
    --------------------
 
    function Current_Call (Object : in Instance)
-                          return PBX.Call.Instance is
+                          return Model.Call.Instance is
    begin
-      return PBX.Call.Get (Object.Current_Call);
+      return Model.Call.Get (Object.Current_Call);
    end Current_Call;
 
    ---------------------
