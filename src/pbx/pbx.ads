@@ -38,9 +38,7 @@ package PBX is
    --  Wraps the connection and wait mechanism and provides a neat callback
    --  for the On_Disconnect event in the ESL.Client.
 
-   Client         : ESL.Client.Tasking.Instance
-     (On_Connect_Handler    => Authenticate'Access,
-      On_Disconnect_Handler => ESL.Client.Ignore_Event);
+   Client : ESL.Client.Tasking.Reference;
 
 private
    type Reply_Ticket is tagged null record;

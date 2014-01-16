@@ -23,14 +23,18 @@ package Model.Call.Observers is
 
    Package_Name : constant String := "PBX.Call.Event_Handers";
 
-   --   procedure Register_Handlers;
-   --  Registers the appropriate event handlers.
+   procedure Register_Observers;
+   --  Registers the appropriate observers.
+
+   procedure Unregister_Observers;
+   --  Unregisters the appropriate observers.
 private
-   type Newcall_Observer is
+   type AdaHeads_Observer is
      new ESL.Observer.Event_Observers.Instance with null record;
+   --  Monitors for all events that are tagged AdaHeads::*"
 
    overriding
-   procedure Notify (Observer : access Newcall_Observer;
+   procedure Notify (Observer : access AdaHeads_Observer;
                      Packet   : in     ESL.Packet.Instance;
                      Client   : in     ESL.Client.Reference);
 

@@ -38,4 +38,8 @@ package PBX.Magic_Constants is
      Namespace & Separator & "wait-queue-enter";
    Waitqueue_Leave  : constant String :=
      Namespace & Separator & "wait-queue-leave";
+   Parkqueue_Enter  : constant String :=
+     Namespace & Separator & "park-queue-enter";
+   Parkqueue_Leave  : constant String :=
+     Namespace & Separator & "park-queue-leave";
 end PBX.Magic_Constants;

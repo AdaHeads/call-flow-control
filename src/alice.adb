@@ -31,11 +31,6 @@ with Util.Server;
 with Util.Command_Line;
 
 with Model.User.List;
---  Self-registering observers.
-with Model.Call.Observers;
-pragma Unreferenced (Model.Call.Observers);
-with Model.Peer.List.Observers;
-pragma Unreferenced (Model.Peer.List.Observers);
 
 procedure Alice is
    use System_Messages;
@@ -78,7 +73,6 @@ begin
    PBX.Stop;
    SIGHUP.Stop;
    System_Messages.Close_Log_Files;
-
 
    System_Messages.Information (Message => Server_Name & " shutdown complete.",
                                 Context => Context);

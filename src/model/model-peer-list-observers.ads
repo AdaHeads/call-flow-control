@@ -20,6 +20,13 @@ with ESL.Packet;
 with ESL.Observer.Event_Observers;
 
 package Model.Peer.List.Observers is
+      procedure Register_Observers;
+   --  Registers the appropriate observers.
+
+   procedure Unregister_Observers;
+   --  Unregisters the appropriate observers.
+
+private
    type Peer_State_Observers is
      new ESL.Observer.Event_Observers.Instance with null record;
 

@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Containers.Vectors;
+
 with PBX.Trace;
 with PBX.Magic_Constants;
 with ESL.Packet_Keys;
@@ -30,7 +32,21 @@ package body Model.Call.Observers is
    use PBX.Trace;
    --   use Model.Agent;
 
+   type Observer_Reference is access all
+     ESL.Observer.Event_Observers.Instance'Class;
+
+   package Observer_Storgage is new
+     Ada.Containers.Vectors (Index_Type => Natural,
+                             Element_Type => Observer_Reference);
+   subtype Observer_Lists is Observer_Storgage.Vector;
+
+   Observer_List : Observer_Lists;
+
    procedure Create_Call (From : in ESL.Packet.Instance);
+
+   -------------------
+   --  Create_Call  --
+   -------------------
 
    procedure Create_Call (From : in ESL.Packet.Instance) is
 
@@ -72,57 +88,34 @@ package body Model.Call.Observers is
          From_Extension  => From_Extension);
    end Create_Call;
 
-   Newcall : Newcall_Observer
-     (Observing => ESL.Client.Tasking.Event_Stream
-        (Client => PBX.Client,
-         Stream => ESL.Packet_Keys.CUSTOM));
-   pragma Unreferenced (Newcall);
-
-   Brigde : Bridge_Observer
-     (Observing => ESL.Client.Tasking.Event_Stream
-        (Client => PBX.Client,
-         Stream => ESL.Packet_Keys.CHANNEL_BRIDGE));
-   pragma Unreferenced (Brigde);
-
-   Channel_Hold : Channel_Hold_Observer
-     (Observing => ESL.Client.Tasking.Event_Stream
-        (Client => PBX.Client,
-         Stream => ESL.Packet_Keys.CHANNEL_HOLD));
-   pragma Unreferenced (Channel_Hold);
-
-   Destroy : Destroy_Observer
-     (Observing => ESL.Client.Tasking.Event_Stream
-        (Client => PBX.Client,
-         Stream => ESL.Packet_Keys.CHANNEL_DESTROY));
-   pragma Unreferenced (Destroy);
-
-   Execute : Execute_Observer
-     (Observing => ESL.Client.Tasking.Event_Stream
-        (Client => PBX.Client,
-         Stream => ESL.Packet_Keys.CHANNEL_EXECUTE));
-   pragma Unreferenced (Execute);
-
-   Park : Park_Observer
-     (Observing => ESL.Client.Tasking.Event_Stream
-        (Client => PBX.Client,
-         Stream => ESL.Packet_Keys.CHANNEL_PARK));
-   pragma Unreferenced (Park);
-
    package Notification renames Handlers.Notifications;
 
-   procedure Notify (Observer : access Newcall_Observer;
+   procedure Notify (Observer : access AdaHeads_Observer;
                      Packet   : in     ESL.Packet.Instance;
                      Client   : in     ESL.Client.Reference) is
       package Constants renames PBX.Magic_Constants;
       pragma Unreferenced (Observer, Client);
 
-      Context   : constant String      :=
-        Package_Name & ".Notify (Newcall_Observer)";
+      Context : constant String :=
+        Package_Name & ".Notify (AdaHeads Subclass Observer)";
+
+      ID  : Identification renames
+        Value (Packet.Field (Unique_ID).Value);
+
    begin
-         --  Check which application caused the event.
-         if Packet.Subevent = Constants.Prequeue_Enter then
-            Create_Call (From => Packet);
-         end if;
+      if Packet.Subevent = Constants.Prequeue_Enter then
+         Create_Call (From => Packet);
+      elsif Packet.Subevent = Constants.Prequeue_Leave then
+         Get (ID).Change_State (New_State => Transferring);
+         Get (ID).Lock;
+      elsif Packet.Subevent = Constants.Waitqueue_Enter then
+         Get (ID).Unlock;
+         Get (ID).Change_State (New_State => Queued);
+      elsif Packet.Subevent = Constants.Parkqueue_Enter then
+         Get (ID).Change_State (New_State => Parked);
+      elsif Packet.Subevent = Constants.Parkqueue_Leave then
+         Get (ID).Change_State (New_State => Transferring);
+      end if;
    end Notify;
 
    --------------
@@ -340,5 +333,67 @@ package body Model.Call.Observers is
       PBX.Trace.Information (Message => "Parked call. " & ID.Image,
                              Context => Context);
    end Notify;
+
+   --------------------------
+   --  Register_Observers  --
+   --------------------------
+
+   procedure Register_Observers is
+   begin
+      System_Messages.Information
+        (Context => Package_Name,
+         Message => "Registering observers.");
+      --  AdaHeads Observer.
+      Observer_List.Append
+        (New_Item => new AdaHeads_Observer
+           (Observing => ESL.Client.Tasking.Event_Stream
+              (Client => PBX.Client,
+               Stream => ESL.Packet_Keys.CUSTOM)));
+
+      Observer_List.Append
+        (new Bridge_Observer
+           (Observing => ESL.Client.Tasking.Event_Stream
+              (Client => PBX.Client,
+               Stream => ESL.Packet_Keys.CHANNEL_BRIDGE)));
+
+      Observer_List.Append
+        (new  Channel_Hold_Observer
+           (Observing => ESL.Client.Tasking.Event_Stream
+              (Client => PBX.Client,
+               Stream => ESL.Packet_Keys.CHANNEL_HOLD)));
+
+      Observer_List.Append
+        (new  Destroy_Observer
+           (Observing => ESL.Client.Tasking.Event_Stream
+              (Client => PBX.Client,
+               Stream => ESL.Packet_Keys.CHANNEL_DESTROY)));
+
+      Observer_List.Append
+        (new  Execute_Observer
+           (Observing => ESL.Client.Tasking.Event_Stream
+              (Client => PBX.Client,
+               Stream => ESL.Packet_Keys.CHANNEL_EXECUTE)));
+
+      Observer_List.Append
+        (new  Park_Observer
+           (Observing => ESL.Client.Tasking.Event_Stream
+              (Client => PBX.Client,
+               Stream => ESL.Packet_Keys.CHANNEL_PARK)));
+   end Register_Observers;
+
+   ----------------------------
+   --  Unregister_Observers  --
+   ----------------------------
+
+   procedure Unregister_Observers is
+   begin
+      System_Messages.Information
+        (Context => Package_Name,
+         Message => "Unregistering observers.");
+      for Item of Observer_List loop
+         Item.Finalize;
+      end loop;
+      Observer_List.Clear;
+   end Unregister_Observers;
 
 end Model.Call.Observers;

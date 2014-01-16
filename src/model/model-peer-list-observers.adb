@@ -14,29 +14,28 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
+with Ada.Containers.Vectors;
 
-with ESL.Client.Tasking;
-with ESL.Packet_Keys;
+with ESL.Client.Tasking,
+     ESL.Packet_Keys;
 
-with PBX;
-with PBX.Magic_Constants;
+with PBX,
+     PBX.Magic_Constants;
 
 with System_Messages;
 
 package body Model.Peer.List.Observers is
    use ESL.Packet_Keys;
 
-   Peer_State_Observer : Peer_State_Observers
-     (Observing => ESL.Client.Tasking.Event_Stream
-        (Client => PBX.Client,
-         Stream => ESL.Packet_Keys.CUSTOM));
-   pragma Unreferenced (Peer_State_Observer);
+   type Observer_Reference is access all
+     ESL.Observer.Event_Observers.Instance'Class;
 
-   Reload_Config_Observer : Reload_Config_Observers
-     (Observing => ESL.Client.Tasking.Event_Stream
-        (Client => PBX.Client,
-         Stream => ESL.Packet_Keys.RELOADXML));
-   pragma Unreferenced (Reload_Config_Observer);
+   package Observer_Storgage is new
+     Ada.Containers.Vectors (Index_Type => Natural,
+                             Element_Type => Observer_Reference);
+   subtype Observer_Lists is Observer_Storgage.Vector;
+
+   Observer_List : Observer_Lists;
 
    ---------------------------
    --  Peer_State Observer  --
@@ -108,8 +107,40 @@ package body Model.Peer.List.Observers is
            " is able to respond to it, in fear of deadlocking.");
    end Notify;
 
-begin
-   System_Messages.Information (Context => Package_Name,
-                                Message => "Attaching observers.");
+   --------------------------
+   --  Register_Observers  --
+   --------------------------
+
+   procedure Register_Observers is
+   begin
+      System_Messages.Information
+        (Context => Package_Name,
+         Message => "Registering observers.");
+      Observer_List.Append
+        (New_Item => new Peer_State_Observers
+           (Observing => ESL.Client.Tasking.Event_Stream
+              (Client => PBX.Client,
+               Stream => ESL.Packet_Keys.CUSTOM)));
+      Observer_List.Append
+        (New_Item => new Reload_Config_Observers
+           (Observing => ESL.Client.Tasking.Event_Stream
+              (Client => PBX.Client,
+               Stream => ESL.Packet_Keys.RELOADXML)));
+   end Register_Observers;
+
+   ----------------------------
+   --  Unregister_Observers  --
+   ----------------------------
+
+   procedure Unregister_Observers is
+   begin
+      System_Messages.Information
+        (Context => Package_Name,
+         Message => "Unregistering observers.");
+      for Item of Observer_List loop
+         Item.Finalize;
+      end loop;
+      Observer_List.Clear;
+   end Unregister_Observers;
 
 end Model.Peer.List.Observers;

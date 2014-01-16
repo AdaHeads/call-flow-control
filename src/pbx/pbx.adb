@@ -25,6 +25,9 @@ with ESL.Trace;
 with Alice_Configuration;
 with System_Messages;
 
+with Model.Call.Observers;
+with Model.Peer.List.Observers;
+
 --  TODO: Cover all branches on status.
 package body PBX is
    use Ada.Strings.Unbounded;
@@ -32,7 +35,7 @@ package body PBX is
    use System_Messages;
    use Alice_Configuration;
 
-   task Connect_Task is
+   task type Connect_Task is
       entry Start;
    end Connect_Task;
    --  The sole purpose of the connect task is to ensure that we can
@@ -83,6 +86,7 @@ package body PBX is
          System_Messages.Debug (Message => "Subscribing to all for events",
                                 Context => "PBX.Connect");
          Client.Send (Item => "event plain all");
+
       end if;
 
    end Connect;
@@ -110,7 +114,8 @@ package body PBX is
 
    procedure Start is
       use ESL.Trace;
-      Loglevel : constant PBX_Loglevels := PBX_Loglevel;
+      Loglevel        : constant PBX_Loglevels := PBX_Loglevel;
+      Initial_Connect : Connect_Task;
    begin
       case Loglevel is
          when Critical =>
@@ -131,7 +136,15 @@ package body PBX is
             ESL.Trace.Unmute (Trace => Every);
       end case;
 
-      Connect_Task.Start;
+      Client := new ESL.Client.Tasking.Instance
+        (On_Connect_Handler    => Authenticate'Access,
+         On_Disconnect_Handler => ESL.Client.Ignore_Event);
+
+      -- Register the appropriate observers.
+      Model.Call.Observers.Register_Observers;
+      Model.Peer.List.Observers.Register_Observers;
+
+      Initial_Connect.Start;
    end Start;
 
    function Status return PBX_Status_Type is
@@ -144,6 +157,8 @@ package body PBX is
 
    procedure Stop is
    begin
+      Model.Call.Observers.Register_Observers;
+      Model.Peer.List.Observers.Unregister_Observers;
       System_Messages.Information
         (Message => "PBX subsystem task shutting down.",
                                    Context => "PBX.Stop");

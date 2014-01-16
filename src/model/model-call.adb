@@ -108,6 +108,7 @@ package body Model.Call is
                 Inbound        => Inbound,
                 State          => Unknown,
                 Organization_ID => Organization_ID,
+                Locked         => <>,
                 Assigned_To     => 1,
                 Extension      => To_Unbounded_String (Extension),
                 From_Extension => To_Unbounded_String (From_Extension),
@@ -206,6 +207,12 @@ package body Model.Call is
       return Call_List.Empty;
    end List_Empty;
 
+   procedure Lock (Obj : in Instance) is
+   begin
+      Call_List.Set_Locked (ID     => Obj.ID,
+                            Locked => True);
+   end Lock;
+
    ---------------------------
    --  Null_Identification  --
    ---------------------------
@@ -224,6 +231,7 @@ package body Model.Call is
       return (ID              => Null_Identification,
               State           => States'First,
               Inbound         => False,
+              Locked          => True,
               Organization_ID => <>,
               Assigned_To     => <>,
               Extension       => Null_Unbounded_String,
@@ -331,6 +339,16 @@ package body Model.Call is
    begin
       Call_List.Unlink (ID);
    end Unlink;
+
+   --------------
+   --  Unlock  --
+   --------------
+
+   procedure Unlock (Obj : in Instance) is
+   begin
+      Call_List.Set_Locked (ID     => Obj.ID,
+                            Locked => False);
+   end Unlock;
 
    -------------
    --  Value  --
@@ -482,6 +500,10 @@ package body Model.Call is
             raise Constraint_Error with "ID" & To_String (Item.ID);
       end Insert;
 
+      ------------
+      --  Link  --
+      ------------
+
       procedure Link (ID_1, ID_2 : in Identification) is
          procedure Update (Key     : in     Identification;
                            Element : in out Instance);
@@ -521,6 +543,25 @@ package body Model.Call is
          when Constraint_Error =>
             raise Not_Found with " call " & To_String (ID);
       end Remove;
+
+      ------------------
+      --  Set_Locked  --
+      ------------------
+
+      procedure Set_Locked (ID     : in Identification;
+                            Locked : in Boolean) is
+         procedure Set_Lock (Key     : in     Identification;
+                           Element : in out Instance);
+
+         procedure Set_Lock (Key     : in     Identification;
+                             Element : in out Instance) is
+            pragma Unreferenced (Key);
+         begin
+            Element.Locked := Locked;
+         end Set_Lock;
+      begin
+         Call_List.Update (ID, Set_Lock'Access);
+      end Set_Locked;
 
       ---------------
       --  To_JSON  --

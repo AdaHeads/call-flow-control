@@ -82,6 +82,9 @@ package Model.Call is
 
    procedure Link (ID_1, ID_2 : in Identification);
 
+   procedure Lock (Obj : in Instance);
+   procedure Unlock (Obj : in Instance);
+
    procedure Unlink (ID : in Identification);
 
    function List_Empty return Boolean;
@@ -127,6 +130,7 @@ private
       record
          ID              : Identification;
          State           : States;
+         Locked          : Boolean := False;
          Inbound         : Boolean;
          Extension       : Unbounded_String;
          Organization_ID : Organization_Identifier := 0;
@@ -156,6 +160,8 @@ private
       function Get (ID : in Identification) return Instance;
       procedure Link (ID_1 : in Identification;
                       ID_2 : in Identification);
+      procedure Set_Locked (ID    : in Identification;
+                            Locked : in Boolean);
       procedure Unlink (ID : in Identification);
       function Queued return Natural;
       procedure Remove (ID : in Identification);
