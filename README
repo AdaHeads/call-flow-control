@@ -8,7 +8,7 @@ Contents of this README:
 --  Introduction  --
 --------------------
 
-Callcontrol is a middleware component that serves as a translation/synchronization layer 
+Call-flow-control is a middleware component that serves as a translation/synchronization layer 
 between FreeSWITCH and our domain-specific application for routing calls through
 a human receptionist.
 
@@ -20,25 +20,16 @@ Alice is GPLv3, see COPYING3 and COPYING.RUNTIME.
 --  Dependencies  --
 --------------------
 
-Alice depends on Yolk[1], libesl[2], AWS[3] and GNATColl[4]
-(compiled with PostgreSQL and/or SQLite support).
+Call-flow-control depends on libesl[1] and AWS[2]
 
 ------------------
 --  References  --
 ------------------
 
-[1] Yolk
-    https://github.com/ThomasLocke/yolk
-    Git: git clone git://github.com/ThomasLocke/yolk.git
-
-[2] libesl
+[1] libesl
     https://github.com/AdaHeads/libesl
     Git: git clone git://github.com/AdaHeads/libesl.git
 
-[3] Ada Web Server
+[2] Ada Web Server
     http://libre.adacore.com/libre/tools/aws/
     Git: git clone --recursive http://forge.open-do.org/anonscm/git/aws/aws.git
-
-[4] GNAT Component Collection
-    http://libre.adacore.com/libre/tools/gnat-component-collection/AA
-    SVN: svn co http://svn.eu.adacore.com/anonsvn/Dev/trunk/gps/gnatlib/
