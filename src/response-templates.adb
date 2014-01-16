@@ -26,74 +26,106 @@ package body Response.Templates is
    --  Bad_Parameters  --
    ----------------------
 
-   function Bad_Parameters return Response.Object is
-      use GNATCOLL.JSON;
-
-      Content : constant JSON_Value := Create_Object;
+   function Bad_Parameters (Request : in AWS.Status.Data;
+                            Response_Body : in JSON_Value := Create_Object)
+                            return AWS.Response.Data is
    begin
-      return Response_Object : Response.Object := Response.Factory do
-         Content.Set_Field (Field_Name => View.Status,
-                         Field      => Bad_Parameters_Reponse_Text);
-         HTTP_Status_Code (Response_Object, HTTP.Bad_Request);
-         Response.Content (Response_Object, Content);
-      end return;
+
+      Response_Body.Set_Field (Status_Text, Bad_Parameters_Reponse_Text);
+
+      return AWS.Response.Build
+        (Content_Type  => JSON_MIME_Type,
+         Message_Body  => Response_Body.Write,
+         Status_Code   => HTTP_Codes.Bad_Request,
+         Cache_Control => AWS.Messages.No_Cache,
+         Encoding      => AWS.Status.Preferred_Coding (Request));
    end Bad_Parameters;
 
    ----------------------
    --  Not_Authorized  --
    ----------------------
 
-   function Not_Authorized return Response.Object is
-      use GNATCOLL.JSON;
-
-      Content : constant JSON_Value := Create_Object;
+   function Not_Authorized (Request       : in AWS.Status.Data)
+                            return AWS.Response.Data is
+      Response_Body : JSON_Value := Create_Object;
    begin
-      return Response_Object : Response.Object := Response.Factory do
-         Content.Set_Field (Field_Name => View.Status,
-                         Field      => Not_Authorized_Reponse_Text);
-         HTTP_Status_Code (Response_Object, HTTP.Unauthorized);
-         Response.Content (Response_Object, Content);
-      end return;
+
+      Response_Body.Set_Field (Status_Text, Not_Authorized_Reponse_Text);
+
+      return AWS.Response.Build
+        (Content_Type  => JSON_MIME_Type,
+         Message_Body  => Response_Body.Write,
+         Status_Code   => HTTP_Codes.Unauthorized,
+         Cache_Control => AWS.Messages.No_Cache,
+         Encoding      => AWS.Status.Preferred_Coding (Request));
    end Not_Authorized;
 
    -----------------
    --  Not_Found  --
    -----------------
 
-   function Not_Found return Response.Object is
-      use GNATCOLL.JSON;
-
-      Content : constant JSON_Value := Create_Object;
+   function Not_Found (Request       : in AWS.Status.Data;
+                       Response_Body : in JSON_Value := Create_Object)
+                       return AWS.Response.Data is
    begin
-      return Response_Object : Response.Object := Response.Factory do
-         Content.Set_Field (Field_Name => View.Status,
-                         Field      => Not_Found_Reponse_Text);
-         HTTP_Status_Code (Response_Object, HTTP.Not_Found);
-         Response.Content (Response_Object, Content);
-      end return;
+      Response_Body.Set_Field (Status_Text, Not_Found_Reponse_Text);
+
+      return AWS.Response.Build
+        (Content_Type  => JSON_MIME_Type,
+         Message_Body  => Response_Body.Write,
+         Status_Code   => HTTP_Codes.Not_Found,
+         Cache_Control => AWS.Messages.No_Cache,
+         Encoding      => AWS.Status.Preferred_Coding (Request));
    end Not_Found;
+
+   ----------
+   --  OK  --
+   ----------
+
+   function OK (Request       : in AWS.Status.Data;
+                Response_Body : in JSON_Value := Create_Object)
+                return AWS.Response.Data is
+   begin
+
+      Response_Body.Set_Field (Status_Text, OK_Reponse_Text);
+
+      return AWS.Response.Build
+        (Content_Type  => JSON_MIME_Type,
+         Message_Body  => Response_Body.Write,
+         Status_Code   => HTTP_Codes.OK,
+         Cache_Control => AWS.Messages.No_Cache,
+         Encoding      => AWS.Status.Preferred_Coding (Request));
+   end OK;
 
    --------------------
    --  Server_Error  --
    --------------------
 
-   function Server_Error return Response.Object is
-      use GNATCOLL.JSON;
-
-      Content : constant JSON_Value := Create_Object;
+   function Server_Error (Response_Body : in JSON_Value := Create_Object)
+                          return AWS.Response.Data is
+      Content : constant JSON_Value := Response_Body;
    begin
-      return Response_Object : Response.Object := Response.Factory do
-         Content.Set_Field (Field_Name => View.Status,
-                            Field      => Not_Found_Reponse_Text);
+      Content.Set_Field (Status_Text, Server_Error_Reponse_Text);
 
-         Content.Set_Field
-           (Field_Name => View.Description,
-            Field      =>
-              "This is a disaster and should be fixed by someone soon");
+      return AWS.Response.Build
+        (Content_Type  => JSON_MIME_Type,
+         Message_Body  => Response_Body.Write,
+         Status_Code   => HTTP_Codes.Server_Error,
+         Cache_Control => AWS.Messages.No_Cache,
+         Encoding      => AWS.Messages.Identity);
+   end Server_Error;
 
-         HTTP_Status_Code (Response_Object, HTTP.Server_Error);
-         Response.Content (Response_Object, Content);
-      end return;
+   function Server_Error (Request       : in AWS.Status.Data;
+                          Response_Body : in JSON_Value := Create_Object)
+                          return AWS.Response.Data is
+   begin
+
+      return AWS.Response.Build
+        (Content_Type  => JSON_MIME_Type,
+         Message_Body  => Response_Body.Write,
+         Status_Code   => HTTP_Codes.Server_Error,
+         Cache_Control => AWS.Messages.No_Cache,
+         Encoding      => AWS.Status.Preferred_Coding (Request));
    end Server_Error;
 
 end Response.Templates;

@@ -29,14 +29,14 @@ package Handlers.Authenticated_Dispatcher is
 
    Package_Name : constant String := "Handlers.Authenticated_Dispatcher";
 
-   function Run (Request : in     AWS.Status.Data) return AWS.Response.Data;
+   function Run (Request : in AWS.Status.Data) return AWS.Response.Data;
 
-   procedure Set_Default (Method : in     AWS.Status.Request_Method;
-                          Action : in     AWS.Response.Callback);
+   procedure Set_Default (Method : in AWS.Status.Request_Method;
+                          Action : in AWS.Response.Callback);
 
-   procedure Set_Default (Action : in     AWS.Response.Callback);
+   procedure Set_Default (Action : in AWS.Response.Callback);
 
-   type Authentication (Public : Boolean) is
+   type ACL (Public : Boolean) is
       record
          case Public is
             when True  => null;
@@ -44,20 +44,20 @@ package Handlers.Authenticated_Dispatcher is
          end case;
       end record;
 
-   procedure Register (Method     : in     AWS.Status.Request_Method;
-                       URI        : in     String;
-                       Allowed    : in     Authentication;
-                       Action     : in     AWS.Response.Callback);
+   procedure Register (Method  : in AWS.Status.Request_Method;
+                       URI     : in String;
+                       Allowed : in ACL;
+                       Action  : in AWS.Response.Callback);
 private
    function Key (Method : in     AWS.Status.Request_Method;
                  URI    : in     String) return String;
 
    function Not_Authorized (Request : in     AWS.Status.Data)
-                           return AWS.Response.Data;
+                            return AWS.Response.Data;
 
    type Handler (Public : Boolean) is
       record
-         Allowed : Authentication (Public);
+         Allowed : ACL (Public);
          Action  : AWS.Response.Callback;
       end record;
 

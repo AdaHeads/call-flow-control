@@ -30,6 +30,48 @@ package body Model.Call.Observers is
    use PBX.Trace;
    --   use Model.Agent;
 
+   procedure Create_Call (From : in ESL.Packet.Instance);
+
+   procedure Create_Call (From : in ESL.Packet.Instance) is
+
+      Context   : constant String      :=
+        Package_Name & ".Create_Call";
+
+      Packet : ESL.Packet.Instance renames From;
+
+      ID  : Identification renames
+        Value (Packet.Field (Unique_ID).Value);
+
+      Direction : String renames
+        Packet.Field (Key => Call_Direction).Decoded_Value;
+
+      From_Extension : String renames
+        Packet.Field (Key => Caller_Caller_ID_Number).Decoded_Value;
+
+      --        Org_ID : Organization_Identifier renames
+      --          Packet.f
+
+      Extension : String renames
+        Packet.Field (Key => Caller_Destination_Number).Decoded_Value;
+
+      Inbound : Boolean := True;
+   begin
+      if Direction /= "inbound" then
+         System_Messages.Error
+           (Message =>
+              "Got an outbound call where an inbound call was expected!",
+            Context => Context);
+         Inbound := False;
+      end if;
+
+      Create_And_Insert
+        (Inbound         => Inbound,
+         ID              => ID,
+         Organization_ID => 1,
+         Extension       => Extension,
+         From_Extension  => From_Extension);
+   end Create_Call;
+
    Newcall : Newcall_Observer
      (Observing => ESL.Client.Tasking.Event_Stream
         (Client => PBX.Client,
@@ -77,45 +119,10 @@ package body Model.Call.Observers is
       Context   : constant String      :=
         Package_Name & ".Notify (Newcall_Observer)";
    begin
-
-      --  Check which application caused the event.
-      if Packet.Subevent = Constants.Prequeue_Hit then
-         declare
-            ID  : Identification renames
-              Value (Packet.Field (Unique_ID).Value);
-
-            Direction : String renames
-              Packet.Field (Key => Call_Direction).Decoded_Value;
-
-            From_Extension : String renames
-              Packet.Field (Key => Caller_Caller_ID_Number).Decoded_Value;
-
-            --        Org_ID : Organization_Identifier renames
-            --          Packet.f
-
-            Extension : String renames
-              Packet.Field (Key => Caller_Destination_Number).Decoded_Value;
-
-            Inbound : Boolean := True;
-         begin
-            if Direction /= "inbound" then
-               System_Messages.Error
-                 (Message =>
-                    "Got an outbound call where an inbound call was expected!",
-                  Context => Context);
-               Inbound := False;
-            end if;
-
-            Create_And_Insert
-              (Inbound         => Inbound,
-               ID              => ID,
-               Organization_ID => 1,
-               State           => Created,
-               Extension       => Extension,
-               From_Extension  => From_Extension);
-         end;
-
-      end if;
+         --  Check which application caused the event.
+         if Packet.Subevent = Constants.Prequeue_Enter then
+            Create_Call (From => Packet);
+         end if;
    end Notify;
 
    --------------
@@ -145,14 +152,6 @@ package body Model.Call.Observers is
       --  TODO
       Call.Link (ID_1 => ID_A,
                  ID_2 => ID_B);
-
-      PBX.Trace.Information
-        (Message => Client_Notification.Call.Pickup
-           (Get (ID_A)).To_JSON.Write,
-         Context => Context);
-
-      Notification.Broadcast
-        (Client_Notification.Call.Pickup (Get (ID_A)).To_JSON);
    end Notify;
 
    --------------------
@@ -171,14 +170,8 @@ package body Model.Call.Observers is
       ID  : Identification renames
         Value (Packet.Field (Unique_ID).Value);
    begin
-      PBX.Trace.Information
-        (Message => Client_Notification.Call.Park
-           (C => Get (ID)).To_JSON.Write,
-         Context => Context);
 
-      Notification.Broadcast
-        (Client_Notification.Call.Park
-           (C => Get (ID)).To_JSON);
+      Get (ID).Change_State (New_State => Parked);
 
    end Notify;
 

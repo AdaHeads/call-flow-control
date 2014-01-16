@@ -54,8 +54,6 @@ package body Unexpected_Exception is
 
       use System_Messages;
 
-      Response_Object : Response.Object := Response.Factory (Error.Request);
-
       ---------------
       --  Message  --
       ---------------
@@ -65,14 +63,13 @@ package body Unexpected_Exception is
       is
       begin
          if Error.Fatal then
-            return Response_Object.To_Debug_String
-              & " - Fatal error - "
+            return "Fatal error - "
               & "AWS slot number"
               & Positive'Image (Error.Slot)
               & " died.";
          end if;
 
-         return Response_Object.To_Debug_String;
+         return "Error occured.";
       end Message;
    begin
       System_Messages.Critical_Exception
@@ -80,9 +77,7 @@ package body Unexpected_Exception is
          Event   => E,
          Context => Context);
 
-      Response_Object := Response.Templates.Server_Error;
-
-      Answer := Response_Object.Build;
+      Answer := Response.Templates.Server_Error;
    end Unexpected_Exception_Handler;
 
 end Unexpected_Exception;

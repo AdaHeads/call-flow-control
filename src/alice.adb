@@ -59,10 +59,11 @@ begin
       --  TODO!
       --  Command_Line.Show_Arguments;
       null;
-      return;
    end if;
 
    Initialize_Model;
+   Handlers.Route.Register_Handlers;
+   System_Messages.Open_Log_Files;
 
    SIGHUP.Register (Handler => SIGHUP_Handler.Caught_Signal'Access);
    PBX.Start;
@@ -76,6 +77,8 @@ begin
    Web_Server.Stop;
    PBX.Stop;
    SIGHUP.Stop;
+   System_Messages.Close_Log_Files;
+
 
    System_Messages.Information (Message => Server_Name & " shutdown complete.",
                                 Context => Context);

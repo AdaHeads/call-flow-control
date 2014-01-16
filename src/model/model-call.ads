@@ -48,7 +48,8 @@ package Model.Call is
    --  Conversion.
 
    type States is
-     (Unknown, Pending,
+     (Unknown,
+      Just_Arrived,
       Created,
       Queued,
       IVR,
@@ -104,14 +105,13 @@ package Model.Call is
 
    function Null_Instance return Instance;
 
-   Null_Identification         : constant Identification;
+   function Null_Identification return Identification;
    --  ^Explicit null values.
 
    procedure Create_And_Insert
      (Inbound         : in Boolean;
       ID              : in Identification;
       Organization_ID : in Organization_Identifier;
-      State           : in States := Unknown;
       Extension       : in String := "";
       From_Extension  : in String := "");
 
@@ -122,10 +122,6 @@ package Model.Call is
 
 private
    use Ada.Strings.Unbounded;
-
-   Null_Identification : constant Identification
-     := ESL.UUID.Null_UUID;
-   Next_Identification : Identification := Null_Identification;
 
    type Instance is tagged
       record

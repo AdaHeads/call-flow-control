@@ -16,27 +16,21 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
-with Common,
-     HTTP_Codes,
-     Model.Call,
+with Model.Call,
      Model.User,
      Model.User.List,
      PBX,
      PBX.Action,
      Request_Utilities,
-     Response,
      Response.Templates,
      System_Messages,
      View.Call;
 
 package body Handlers.Call is
    use AWS.Status,
-       Common,
        System_Messages,
        View.Call,
        Model;
-
-   package HTTP renames HTTP_Codes;
 
    --------------
    --  Hangup  --
@@ -49,8 +43,6 @@ package body Handlers.Call is
       use Model.User;
 
       Context           : constant String := Package_Name & ".Hangup";
-
-      Response_Object   : Response.Object := Response.Factory (Request);
       Requested_Call_ID : String renames Parameters (Request).Get ("call_id");
    begin
       --  An Administrator is able to end any call.
@@ -64,15 +56,11 @@ package body Handlers.Call is
 
       end if;
 
-      Response_Object.HTTP_Status_Code (HTTP.OK);
-      Response_Object.Content (Status_Message
-                               ("Status", "Hangup sent!"));
-
-      return Response_Object.Build;
+      return Response.Templates.OK (Request);
 
    exception
       when Model.Call.Not_Found =>
-         return Response.Templates.Not_Found.Build;
+         return Response.Templates.Not_Found (Request);
 
       when E : others =>
          System_Messages.Critical_Exception
@@ -80,73 +68,60 @@ package body Handlers.Call is
             Message         => "Hangup request failed for call id: " &
               Requested_Call_ID,
             Context => Context);
-         return Response.Templates.Server_Error.Build;
+         return Response.Templates.Server_Error (Request);
    end Hangup;
 
    ------------
    --  List  --
    ------------
 
-   function List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data
-   is
-      Context         : constant String := Package_Name & ".List";
-
-      Response_Object : Response.Object := Response.Factory (Request);
+   function List (Request : in AWS.Status.Data) return AWS.Response.Data is
+      Context : constant String := Package_Name & ".List";
    begin
-      Response_Object.HTTP_Status_Code (HTTP.OK);
-      Response_Object.Content (Model.Call.List);
-
-      return Response_Object.Build;
+      return Response.Templates.OK (Request       => Request,
+                                    Response_Body => Model.Call.List);
    exception
       when E : others =>
          System_Messages.Critical_Exception
            (Event           => E,
             Message         => "Listing calls failed.",
             Context => Context);
-         return Response.Templates.Server_Error.Build;
+         return Response.Templates.Server_Error (Request);
    end List;
 
    -----------------
    --  Originate  --
    -----------------
 
-   function Originate
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data is
-      use Model.Call;
-      use Model.User;
+   function Originate (Request : in AWS.Status.Data) return AWS.Response.Data
+   is
+      use Model.Call,
+          Model.User;
 
       Context           : constant String := Package_Name & ".Originate";
 
       Extension_String  : constant String :=
         Parameters (Request).Get ("extension");
-      Response_Object   : Response.Object := Response.Factory (Request);
    begin
 
       PBX.Action.Originate
         (User        => Request_Utilities.User_Of (Request),
          Extension   => Extension_String);
 
-      Response_Object.HTTP_Status_Code (HTTP.OK);
-      Response_Object.Content (Status_Message
-                               ("status", "ok"));
-
-      return Response_Object.Build;
+      return Response.Templates.OK (Request);
    exception
       when E : PBX.Action.Error =>
          System_Messages.Critical_Exception
            (Event           => E,
             Message         => "PBX failed to handle request.",
             Context => Context);
-         return Response.Templates.Server_Error.Build;
+         return Response.Templates.Server_Error (Request);
       when E : others =>
          System_Messages.Critical_Exception
            (Event           => E,
             Message         => "Listing calls failed.",
             Context => Context);
-         return Response.Templates.Server_Error.Build;
+         return Response.Templates.Server_Error (Request);
 
    end Originate;
 
@@ -159,38 +134,30 @@ package body Handlers.Call is
 
       Context           : constant String := Package_Name & ".Park";
 
-      Response_Object   : Response.Object := Response.Factory (Request);
       Call_ID           : Model.Call.Identification renames
         Model.Call.Value (Parameters (Request).Get ("call_id"));
    begin
 
       --  Fetch the call from the call list.
       if not Model.Call.Has (ID => Call_ID) then
-         Response_Object.HTTP_Status_Code (HTTP.Not_Found);
-         Response_Object.Content (Status_Message ("status", "not found"));
+         return Response.Templates.Not_Found (Request);
       else
 
          PBX.Action.Park (Target  => Call_ID,
                           At_User => Request_Utilities.User_Of (Request));
 
          --  And let the user know that everything went according to plan.
-         Response_Object.HTTP_Status_Code (HTTP.OK);
-         Response_Object.Content (Status_Message ("status", "request sent!"));
+         return Response.Templates.OK (Request);
       end if;
-
-      return Response_Object.Build;
    exception
       when Model.Call.Invalid_ID =>
-         Response_Object.HTTP_Status_Code (HTTP.Bad_Request);
-         Response_Object.Content (Status_Message
-                                  ("status", "bad parameter ""Call_ID"""));
-         return Response_Object.Build;
+         return Response.Templates.Bad_Parameters (Request);
       when E : others =>
          System_Messages.Critical_Exception
            (Event           => E,
             Message         => "Park action failed.",
             Context => Context);
-         return Response.Templates.Server_Error.Build;
+         return Response.Templates.Server_Error (Request);
    end Park;
 
    --------------
@@ -207,27 +174,22 @@ package body Handlers.Call is
 
       Call_ID_String    : String renames
         Parameters (Request).Get (Name => "call_id");
-      Response_Object   : Response.Object   := Response.Factory (Request);
       User              : Model.User.Instance
           renames Request_Utilities.User_Of (Request);
       Assigned_Call     : Model.Call.Instance;
    begin
       if Model.Call.List_Empty then
-         Response_Object.HTTP_Status_Code (HTTP.Not_Found);
-         return Response_Object.Build;
+         return Response.Templates.Not_Found (Request);
       end if;
 
       if not User.Peer.Registered then
          System_Messages.Error
-           (Message => "User " & User.Image,
+           (Message => "User has no peer unavailable " & User.Image,
             Context => Context);
-         Response_Object.HTTP_Status_Code (HTTP.Bad_Request);
 
-         Response_Object.Content
-           (Status_Message
-              ("Bad request", "User has no peer unavailable"));
-
-         return Response_Object.Build;
+         return Response.Templates.Not_Found
+           (Request       => Request,
+            Response_Body => Description ("User has no peer unavailable"));
       else
 
          if Call_ID_String /= "" then
@@ -243,30 +205,25 @@ package body Handlers.Call is
 
          PBX.Action.Transfer (Assigned_Call.ID, User);
 
-         Response_Object.HTTP_Status_Code (HTTP.OK);
-         Response_Object.Content
-           ((To_JSON_String (Assigned_Call.To_JSON)));
-         --  end if;
-
-         return Response_Object.Build;
+         return Response.Templates.OK
+           (Request       => Request,
+            Response_Body => Assigned_Call.To_JSON);
       end if;
 
       exception
 
          when Model.Call.Already_Bridged =>
-            Response_Object.HTTP_Status_Code (HTTP.Bad_Request);
-            Response_Object.Content
-              (Status_Message
-                 ("Already assigned",
-                  "Agent tried to claim call that is already assigned"));
-            return Response_Object.Build;
+         return Response.Templates.Bad_Parameters
+           (Request       => Request,
+            Response_Body => Description
+              ("Agent tried to claim call that is already assigned"));
 
       when E : others =>
          System_Messages.Critical_Exception
            (Event           => E,
             Message         => "Pickup failed.",
             Context => Context);
-         return Response.Templates.Server_Error.Build;
+         return Response.Templates.Server_Error (Request);
 
    end Pickup;
 
@@ -282,25 +239,17 @@ package body Handlers.Call is
    is
       Context           : constant String := Package_Name & ".Queue";
 
-      Response_Object : Response.Object := Response.Factory (Request);
    begin
-      --  Only return a call list when there actual calls in it.
-      if not Model.Call.List_Empty then
-         Response_Object.HTTP_Status_Code (HTTP.OK);
-         Response_Object.Content (To_JSON_String
-                                  (Model.Call.Queued_Calls));
-      else
-         Response_Object.HTTP_Status_Code (HTTP.No_Content);
-      end if;
-
-      return Response_Object.Build;
+      return Response.Templates.OK
+        (Request       => Request,
+         Response_Body => Model.Call.Queued_Calls);
    exception
       when E : others =>
          System_Messages.Critical_Exception
            (Event           => E,
             Message         => "Listing queued calls failed.",
             Context => Context);
-         return Response.Templates.Server_Error.Build;
+         return Response.Templates.Server_Error (Request);
 
    end Queue;
 
@@ -318,8 +267,6 @@ package body Handlers.Call is
 
       Source          : Model.Call.Identification := Null_Identification;
       Destination     : Model.Call.Identification := Null_Identification;
-      Response_Object : Response.Object :=
-        Response.Factory (Request);
    begin
       --  Check valitity of the call. (Will raise exception on invalid).
       Source      := Value (Parameters (Request).Get ("source"));
@@ -337,35 +284,25 @@ package body Handlers.Call is
       PBX.Action.Bridge (Source      => Source,
                          Destination => Destination);
 
-      Response_Object.HTTP_Status_Code (HTTP.OK);
-      Response_Object.Content
-        (Status_Message
-           ("Success", "Transfer succeeded"));
-
-      return Response_Object.Build;
-
+      return Response.Templates.OK (Request);
    exception
       when Invalid_ID =>
-         Response_Object.HTTP_Status_Code (HTTP.Bad_Request);
-         Response_Object.Content
-           (Status_Message
-              ("Bad request", "Invalid or no call ID supplied"));
-         return Response_Object.Build;
+         return Response.Templates.Bad_Parameters
+           (Request       => Request,
+            Response_Body => Description ("Invalid or no call ID supplied"));
 
       when Model.Call.Not_Found =>
-         Response_Object.HTTP_Status_Code (HTTP.Not_Found);
-         Response_Object.Content
-           (Status_Message
-              ("Not found", "No call found with ID " &
-                 Parameters (Request).Get ("source")));
-         return Response_Object.Build;
+         return Response.Templates.Not_Found
+           (Request       => Request,
+            Response_Body => Description ("No call found with ID " &
+                Parameters (Request).Get ("source")));
 
       when E : others =>
          System_Messages.Critical_Exception
            (Event           => E,
             Message         => "Transfer request failed.",
             Context => Context);
-         return Response.Templates.Server_Error.Build;
+         return Response.Templates.Server_Error (Request);
    end Transfer;
 
 end Handlers.Call;

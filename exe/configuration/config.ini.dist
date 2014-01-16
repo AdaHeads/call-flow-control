@@ -4,7 +4,7 @@
 Yolk_User alice
 Session_Name Alice
 Load_MIME_Types_File True
-Log_Extended_Fields c-ip,cs-method,cs-uri,time-taken,sc-status,sc-bytes
+#Log_Extended_Fields c-ip,cs-method,cs-uri,time-taken,sc-status,sc-bytes
 Max_Connection 20
 Max_POST_Parameters 20
 Max_WebSocket_Handler 20

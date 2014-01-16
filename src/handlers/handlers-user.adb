@@ -16,7 +16,6 @@
 -------------------------------------------------------------------------------
 
 with Response,
-     System_Messages,
      Request_Utilities;
 
 package body Handlers.User is

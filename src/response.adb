@@ -30,8 +30,6 @@ package body Response is
 
    Missing_Required_Request_Parameter : exception;
 
-   JSON_MIME_Type : constant String := "application/json; charset=utf-8";
-
    procedure Add_CORS_Headers
      (Request  : in     AWS.Status.Data;
       Response : in out AWS.Response.Data);

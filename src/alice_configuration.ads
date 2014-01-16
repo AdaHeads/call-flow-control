@@ -46,7 +46,9 @@ package Alice_Configuration is
                  User_Backend_Type,
                  User_Map_File,
                  Auth_Server,
-                 Client_Config_File);
+                 Client_Config_File,
+                 Access_Log,
+                 Error_Log);
 
    type Defaults_Array is array (Keys) of Unbounded_String;
 
@@ -55,6 +57,10 @@ package Alice_Configuration is
       => U ("http://auth.adaheads.com"),
       Loglevel
       => U ("Warning"),
+      Access_Log
+      => U ("access.log"),
+      Error_Log
+      => U ("error.log"),
       Cache_Max_Element_Age
       => U ("86_400"),
       Host_Name

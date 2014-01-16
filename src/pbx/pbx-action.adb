@@ -252,6 +252,8 @@ package body PBX.Action is
             end case;
          end loop;
 
+         --  TODO run a show registrations to assert the registration state.
+
          return Item (Item'First .. Last);
       end Get_Line;
 

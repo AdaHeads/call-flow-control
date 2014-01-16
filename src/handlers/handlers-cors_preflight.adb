@@ -15,34 +15,28 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Common;
-with HTTP_Codes;
+with GNATCOLL.JSON;
+with Response.Templates;
 
 package body Handlers.CORS_Preflight is
 
-   ----------------
-   --  Callback  --
-   ----------------
+   ---------------
+   --  Callback --
+   ---------------
 
    function Callback
      return AWS.Response.Callback
    is
    begin
-      return JSON_Response'Access;
+      return Generate_Response'Access;
    end Callback;
 
-   -------------------------
-   --  Generate_Document  --
-   -------------------------
-
-   procedure Generate_Document
-     (Instance : in out Response.Object)
-   is
-      use Common;
-      use HTTP_Codes;
+   function Generate_Response (Request : AWS.Status.Data)
+                         return AWS.Response.Data is
    begin
-      Instance.HTTP_Status_Code (OK);
-      Instance.Content (Null_JSON_String);
-   end Generate_Document;
+      return Response.Templates.OK (Request       => Request,
+                                    Response_Body => GNATCOLL.JSON.Create);
+   end Generate_Response;
+   --  Return a callback for the OPTIONS CORS preflight response (200).
 
 end Handlers.CORS_Preflight;

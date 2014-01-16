@@ -18,28 +18,47 @@
 --  Ready-to-use responses with fixed content and response codes.
 
 package Response.Templates is
+   use GNATCOLL.JSON;
 
    Package_Name : constant String := "Response.Templates";
 
-   function Bad_Parameters return Response.Object;
+   function OK (Request       : in AWS.Status.Data;
+                Response_Body : in JSON_Value := Create_Object)
+                return AWS.Response.Data;
+
+   function Bad_Parameters (Request : in AWS.Status.Data;
+                            Response_Body : in JSON_Value := Create_Object)
+                            return AWS.Response.Data;
    --  Builds up a 400 Bad reponse. Used when invalid parameters or values are
    --  given along with a request.
 
-   function Not_Authorized return Response.Object;
+   function Not_Authorized (Request : in AWS.Status.Data)
+                            return AWS.Response.Data;
    --  Builds up a 401 Unauthorized response. Used when user validation fails,
    --  or they lack the proper authorization for a resource.
 
-   function Not_Found return Response.Object;
+   function Not_Found (Request       : in AWS.Status.Data;
+                       Response_Body : in JSON_Value := Create_Object)
+                       return AWS.Response.Data;
    --  Builds up a 404 Not found response. Used as the default reponse handler
    --  for every request not in the routing table.
 
-   function Server_Error return Response.Object;
+   function Server_Error (Request       : in AWS.Status.Data;
+                          Response_Body : in JSON_Value := Create_Object)
+                          return AWS.Response.Data;
+   --  Builds up a 500 Server error object.
+
+   function Server_Error (Response_Body : in JSON_Value := Create_Object)
+                          return AWS.Response.Data;
    --  Builds up a 500 Server error object.
 
 private
+
+   Status_Text                 : constant String := "status";
    Bad_Parameters_Reponse_Text : constant String := "bad parameters";
    Not_Authorized_Reponse_Text : constant String := "not authorized";
    Not_Found_Reponse_Text      : constant String := "not found";
+   OK_Reponse_Text             : constant String := "ok";
    Server_Error_Reponse_Text   : constant String := "unhandled exception";
 
 end Response.Templates;

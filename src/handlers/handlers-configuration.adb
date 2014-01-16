@@ -18,10 +18,10 @@
 with Ada.Directories;
 with Ada.Direct_IO;
 
-with Common;
-with Alice_Configuration;
-
 with GNATCOLL.JSON;
+
+with Alice_Configuration,
+     Response.Templates;
 
 package body Handlers.Configuration is
 
@@ -29,23 +29,19 @@ package body Handlers.Configuration is
    --  Callback  --
    ----------------
 
-   function Callback
-     return AWS.Response.Callback
-   is
+   function Callback return AWS.Response.Callback is
    begin
-      return JSON_Response'Access;
+      return Generate_Response'Access;
    end Callback;
 
    -------------------------
-   --  Generate_Document  --
+   --  Generate_Response  --
    -------------------------
 
-   procedure Generate_Document
-     (Instance : in out Response.Object)
-   is
+   function Generate_Response (Request : AWS.Status.Data)
+                               return AWS.Response.Data is
       use Ada.Directories;
       use Alice_Configuration;
-      use Common;
       use GNATCOLL.JSON;
 
       File_Name : constant String  := Config.Get (Client_Config_File);
@@ -67,7 +63,9 @@ package body Handlers.Configuration is
 
       JSON_Object := GNATCOLL.JSON.Read (JSON_S, "bad bob_configuration JSON");
 
-      Instance.Content (To_JSON_String (JSON_Object));
-   end Generate_Document;
+      return Response.Templates.OK (Request       => Request,
+                                    Response_Body => JSON_Object);
+
+   end Generate_Response;
 
 end Handlers.Configuration;

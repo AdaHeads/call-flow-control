@@ -15,11 +15,18 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Text_IO;
+with Ada.Text_IO,
+     Ada.Directories;
+
 with Alice_Configuration;
 
 package body System_Messages is
    use Alice_Configuration;
+
+   Access_Logfile  : Ada.Text_IO.File_Type;
+   Error_Logfile   : Ada.Text_IO.File_Type;
+   Mute_Access_Log : Boolean := False;
+   Mute_Error_Log  : Boolean := False;
 
    ------------------
    --  Access_Log  --
@@ -27,8 +34,23 @@ package body System_Messages is
 
    procedure Access_Log (Message : in String) is
    begin
-      Ada.Text_IO.Put_Line ("ACCESS LOG" & Separator & Message);
+      if not Mute_Access_Log then
+         Ada.Text_IO.Put_Line (File => Access_Logfile,
+                               Item => Message);
+         Ada.Text_IO.Flush (Access_Logfile);
+      end if;
    end Access_Log;
+
+   -----------------------
+   --  Close_Log_Files  --
+   -----------------------
+
+   procedure Close_Log_Files is
+      use Ada.Text_IO;
+   begin
+      Close (File => Access_Logfile);
+      Close (File => Error_Logfile);
+   end Close_Log_Files;
 
    ----------------
    --  Critical  --
@@ -92,7 +114,11 @@ package body System_Messages is
 
    procedure Error_Log (Message : in String) is
    begin
-      Ada.Text_IO.Put_Line ("ERROR LOG" & Separator & Message);
+      if not Mute_Error_Log then
+         Ada.Text_IO.Put_Line (File => Error_Logfile,
+                               Item => Message);
+         Ada.Text_IO.Flush (Error_Logfile);
+      end if;
    end Error_Log;
 
    -------------
@@ -100,7 +126,7 @@ package body System_Messages is
    -------------
 
    procedure Fixme (Message : in String;
-                       Context : in String) is
+                    Context : in String) is
    begin
       Ada.Text_IO.Put_Line (Loglevels'Image (Fixme) & Separator &
                               Context & Separator & Message);
@@ -118,5 +144,68 @@ package body System_Messages is
                                  Context & Separator & Message);
       end if;
    end Information;
+
+   ----------------------
+   --  Open_Log_Files  --
+   ----------------------
+
+   procedure Open_Log_Files is
+      use Ada.Text_IO;
+      use Ada.Directories;
+
+      Context : constant String := Package_Name & ".Open_Log_Files";
+
+   begin
+      declare
+      begin
+         if Exists (Config.Get (Access_Log)) then
+
+            Open (File => Access_Logfile,
+                  Mode => Append_File,
+                  Name => Config.Get (Access_Log));
+         else
+            Create (File => Access_Logfile,
+                    Mode => Out_File,
+                    Name => Config.Get (Access_Log));
+         end if;
+
+            System_Messages.Information
+              (Message => "Opened access log: " &
+                 Config.Get (Access_Log),
+               Context => Context);
+      exception
+         when others =>
+            System_Messages.Error
+              (Message => "Failed to open access log: " &
+                 Config.Get (Access_Log),
+               Context => Context);
+            Mute_Access_Log := True;
+      end;
+
+      declare
+      begin
+         if Exists (Config.Get (Error_Log)) then
+            Open (File => Error_Logfile,
+                  Mode => Append_File,
+                  Name => Config.Get (Error_Log));
+         else
+            Create (File => Error_Logfile,
+                    Mode => Out_File,
+                    Name => Config.Get (Error_Log));
+         end if;
+         System_Messages.Information
+              (Message => "Opened error log: " &
+                 Config.Get (Error_Log),
+               Context => Context);
+      exception
+         when others =>
+            System_Messages.Error
+              (Message => "Failed to open error log: " &
+                 Config.Get (Error_Log),
+               Context => Context);
+            Mute_Error_Log := True;
+      end;
+
+   end Open_Log_Files;
 
 end System_Messages;

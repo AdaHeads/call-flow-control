@@ -15,25 +15,19 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
+with AWS.Response,
+     AWS.Status;
 
-with Response.Not_Cached;
-
-private
-package Handlers.Configuration is
+private package Handlers.Configuration is
 
    function Callback
      return AWS.Response.Callback;
-   --  Return a callback for the configuration interface.
+   --  Return a handler for the configuration interface.
 
 private
 
-   procedure Generate_Document
-     (Instance : in out Response.Object);
-   --  Add a generated JSON_String to Response_Object.
-
-   function JSON_Response is new Response.Not_Cached.Generate_Response
-     (Generate_Document => Generate_Document);
+   function Generate_Response (Request : AWS.Status.Data)
+                               return AWS.Response.Data;
    --  Generate the AWS.Response.Data that ultimately is delivered to the user.
 
 end Handlers.Configuration;

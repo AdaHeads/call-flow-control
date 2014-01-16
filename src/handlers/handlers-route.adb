@@ -18,7 +18,8 @@
 with AWS.Net.WebSocket.Registry;
 
 with Handlers.Authenticated_Dispatcher,
-     Model.User;
+     Model.User,
+     System_Messages;
 
 with Handlers.Call,
      Handlers.Configuration,
@@ -29,6 +30,8 @@ with Handlers.Call,
      Handlers.User.List;
 
 package body Handlers.Route is
+
+   Handlers_Registered : Boolean := False;
 
    function Callback (Request : in AWS.Status.Data) return AWS.Response.Data is
    begin
@@ -42,26 +45,26 @@ package body Handlers.Route is
    package Permission_Operations is
       use Handlers.Authenticated_Dispatcher, Model;
 
-      Public        : constant Authentication := (Public => True);
-      Receptionist  : constant Authentication :=
+      Public        : constant ACL := (Public => True);
+      Receptionist  : constant ACL :=
         (Public => False,
          As     => (Model.User.Receptionist  => True,
                     others              => False));
-      Service_Agent : constant Authentication :=
+      Service_Agent : constant ACL :=
         (Public => False,
          As     => (Model.User.Service_Agent => True,
                     others              => False));
       pragma Unreferenced (Service_Agent);
 
-      Administrator : constant Authentication :=
+      Administrator : constant ACL :=
         (Public => False,
          As     => (Model.User.Administrator => True,
                     others             => False));
 
-      function "or" (Left, Right : in Authentication) return Authentication;
+      function "or" (Left, Right : in ACL) return ACL;
       pragma Unreferenced ("or");
       function "or" (Left  : in Boolean;
-                     Right : in Authentication) return Authentication;
+                     Right : in ACL) return ACL;
       pragma Unreferenced ("or");
    end Permission_Operations;
 
@@ -70,7 +73,7 @@ package body Handlers.Route is
    -----------------------------
 
    package body Permission_Operations is
-      function "or"  (Left, Right : in Authentication) return Authentication is
+      function "or"  (Left, Right : in ACL) return ACL is
          use Model.User;
       begin
          if Left.Public or Right.Public then
@@ -82,7 +85,7 @@ package body Handlers.Route is
       end "or";
 
       function "or" (Left  : in Boolean;
-                     Right : in Authentication) return Authentication is
+                     Right : in ACL) return ACL is
       begin
          if Left then
             return Public;
@@ -92,49 +95,58 @@ package body Handlers.Route is
       end "or";
    end Permission_Operations;
 
---     function Public_User_Identification return Boolean
---       renames Alice_Configuration.Public_User_Identification;
+   procedure Register_Handlers is
+      use AWS.Status;
+      use Handlers.Authenticated_Dispatcher;
+      use Permission_Operations;
 
-   use AWS.Status;
-   use Handlers.Authenticated_Dispatcher;
-   use Permission_Operations;
-begin
-   Set_Default (Action => Not_Found.Callback);
-   --  If no request methods has been set in the request we treat the
-   --  request as failed and return a 404 Not Found.
+      Context : constant String := Package_Name & "Register_Handlers";
+   begin
+      if Handlers_Registered then
+         return;
+      end if;
 
-   Set_Default (Method => OPTIONS,
-                Action => CORS_Preflight.Callback);
-   --  This is for CORS preflight requests.
+      Handlers_Registered := True;
+      Set_Default (Action => Not_Found.Callback);
+      --  If no request methods has been set in the request we treat the
+      --  request as failed and return a 404 Not Found.
+
+      Set_Default (Method => OPTIONS,
+                   Action => CORS_Preflight.Callback);
+      --  This is for CORS preflight requests.
 
    --  pragma Style_Checks ("M100"); --  Allow long lines in the routing table
 
-   --  Call control and information handlers.
-   Register (GET,  "/call/list",      Receptionist,  Call.List'Access);
-   Register (GET,  "/call/queue",     Receptionist,  Call.Queue'Access);
-   Register (POST, "/call/hangup",    Receptionist,  Call.Hangup'Access);
-   Register (POST, "/call/originate", Receptionist,  Call.Originate'Access);
-   Register (POST, "/call/park",      Receptionist,  Call.Park'Access);
-   Register (POST, "/call/pickup",    Receptionist,  Call.Pickup'Access);
-   Register (POST, "/call/transfer",  Receptionist,  Call.Transfer'Access);
+      --  Call control and information handlers.
+      Register (GET,  "/call/list",      Receptionist,  Call.List'Access);
+      Register (GET,  "/call/queue",     Receptionist,  Call.Queue'Access);
+      Register (POST, "/call/hangup",    Receptionist,  Call.Hangup'Access);
+      Register (POST, "/call/originate", Receptionist,  Call.Originate'Access);
+      Register (POST, "/call/park",      Receptionist,  Call.Park'Access);
+      Register (POST, "/call/pickup",    Receptionist,  Call.Pickup'Access);
+      Register (POST, "/call/transfer",  Receptionist,  Call.Transfer'Access);
 
-   --  Configuration handler. Only used for basic information
-   --  prior to logging in.
-   Register (GET,  "/configuration", Public, Configuration.Callback);
+      --  Configuration handler. Only used for basic information
+      --  prior to logging in.
+      Register (GET,  "/configuration", Public, Configuration.Callback);
 
-   --  User related handlers.
-   Register (GET,  "/user/list", Administrator, User.List.Callback);
-   Register (GET,  "/user",      Receptionist,  User.Profile'Access);
+      --  User related handlers.
+      Register (GET,  "/user/list", Administrator, User.List.Callback);
+      Register (GET,  "/user",      Receptionist,  User.Profile'Access);
 
-   --  Debug handles, disable when in production.
-   Register (GET, "/debug/channel/list", Public, Debug.Channel_List'Access);
-   Register (GET, "/debug/peer/list",    Public, Debug.Peer_List'Access);
-   Register (GET, "/debug/token/dummy_list", Public,
-             Debug.Dummy_Tokens'Access);
+      --  Debug handles, disable when in production.
+      Register (GET, "/debug/channel/list", Public, Debug.Channel_List'Access);
+      Register (GET, "/debug/peer/list",    Public, Debug.Peer_List'Access);
+      Register (GET, "/debug/token/dummy_list", Public,
+                Debug.Dummy_Tokens'Access);
 
-   --  Our notification socket for asynchonous event sent to the clients.
-   AWS.Net.WebSocket.Registry.Register
-     (URI     => "/notifications",
-      Factory => Notifications.Create'Access);
+      --  Our notification socket for asynchonous event sent to the clients.
+      AWS.Net.WebSocket.Registry.Register
+        (URI     => "/notifications",
+         Factory => Notifications.Create'Access);
+
+      System_Messages.Information (Message => "Registered request handlers.",
+                                   Context => Context);
+   end Register_Handlers;
 
 end Handlers.Route;

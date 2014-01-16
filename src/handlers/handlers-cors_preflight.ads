@@ -15,8 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with Response.Not_Cached;
+with AWS.Response,
+     AWS.Status;
 
 private
 package Handlers.CORS_Preflight is
@@ -27,15 +27,7 @@ package Handlers.CORS_Preflight is
 
 private
 
-   procedure Generate_Document
-     (Instance : in out Response.Object);
-   --  Add a generated JSON_String to Response_Object and set HTTP status code
-   --  to 200.
-
-   function JSON_Response is new Response.Not_Cached.Generate_Response
-     (Generate_Document => Generate_Document);
-   --  Generate the AWS.Response.Data that ultimately is delivered to the user.
-   --  In the case of a CORS preflight request all we return is an empty JSON
-   --  string, ie. {}.
+   function Generate_Response (Request : AWS.Status.Data)
+     return AWS.Response.Data;
 
 end Handlers.CORS_Preflight;

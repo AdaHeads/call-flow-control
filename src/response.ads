@@ -28,12 +28,14 @@ package Response is
 
    Package_Name : constant String := "Reponse";
 
+   JSON_MIME_Type : constant String := "application/json; charset=utf-8";
+
    type Object is tagged private;
 
    function Build
      (Instance : in Object)
-      return AWS.Response.Data
-   with Pre => Instance.Has_Status_Data;
+      return AWS.Response.Data;
+   --  with Pre => Instance.Has_Status_Data;
    --  Build the response and compress it if the client supports it. Also
    --  wraps JSON string in foo(JSON string) if the
    --      ?jsoncallback=foo

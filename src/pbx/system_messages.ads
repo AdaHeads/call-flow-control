@@ -19,6 +19,12 @@ with Ada.Exceptions;
 
 package System_Messages is
 
+   Package_Name : constant String := "System_Messages";
+
+   procedure Open_Log_Files;
+   procedure Close_Log_Files;
+   --  Log file handle control.
+
    procedure Access_Log (Message : in String);
 
    procedure Debug (Message : in String;

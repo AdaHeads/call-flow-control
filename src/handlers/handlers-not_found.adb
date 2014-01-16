@@ -16,7 +16,6 @@
 -------------------------------------------------------------------------------
 
 with Response.Templates;
-with System_Messages;
 
 package body Handlers.Not_Found is
 
@@ -28,28 +27,26 @@ package body Handlers.Not_Found is
      return AWS.Dispatchers.Callback.Handler
    is
    begin
-      return AWS.Dispatchers.Callback.Create (JSON_Response'Access);
+      return AWS.Dispatchers.Callback.Create (Generate_Response'Access);
    end Callback;
+
+   ----------------
+   --  Callback  --
+   ----------------
 
    function Callback return AWS.Response.Callback is
    begin
-      return JSON_Response'Access;
+      return Generate_Response'Access;
    end Callback;
 
    -------------------------
-   --  Generate_Document  --
+   --  Generate_Response  --
    -------------------------
 
-   procedure Generate_Document
-     (Response_Object : in out Response.Object)
-   is
-      use System_Messages;
+   function Generate_Response (Request : AWS.Status.Data)
+                               return AWS.Response.Data is
    begin
-      System_Messages.Error
-        (Message => "Not found " & Response_Object.Request_URL,
-         Context => "");
-      Response_Object := Response.Templates.Not_Found;
-
-   end Generate_Document;
+      return Response.Templates.Not_Found (Request);
+   end Generate_Response;
 
 end Handlers.Not_Found;

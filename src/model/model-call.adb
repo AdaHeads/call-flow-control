@@ -18,7 +18,6 @@
 with Ada.Strings;
 with Ada.Strings.Fixed;
 with View.Call;
-with PBX.Trace;
 with Handlers.Notifications;
 with Client_Notification.Call;
 
@@ -65,8 +64,31 @@ package body Model.Call is
    --------------------
 
    procedure Change_State (Obj : in Instance; New_State : in States) is
+      Context : constant String := Package_Name & ".Change_State";
    begin
       Call_List.Change_State (Obj.ID, New_State);
+
+      case New_State is
+         when Parked =>
+            System_Messages.Debug
+              (Message => "Parked call " & Get (Obj.ID).To_JSON.Write,
+               Context => Context);
+
+            Notification.Broadcast
+              (Client_Notification.Call.Park
+                 (C => Get (Obj.ID)).To_JSON);
+         when Just_Arrived =>
+            System_Messages.Debug
+              (Message =>
+               "New call arrived" & Get (Obj.ID).To_JSON.Write,
+            Context => Context);
+
+            Notification.Broadcast
+              (Client_Notification.Call.Pickup (Get (Obj.ID)).To_JSON);
+         when others =>
+            null;
+      end case;
+
    end Change_State;
 
    ------------------------
@@ -77,16 +99,14 @@ package body Model.Call is
      (Inbound         : in Boolean;
       ID              : in Identification;
       Organization_ID : in Organization_Identifier;
-      State           : in States := Unknown;
       Extension       : in String := "";
       From_Extension  : in String := "")
 
    is
-      Context : constant String := Package_Name & ".Create_And_Insert";
       Call : constant Instance :=
                (ID             => ID,
                 Inbound        => Inbound,
-                State          => State,
+                State          => Unknown,
                 Organization_ID => Organization_ID,
                 Assigned_To     => 1,
                 Extension      => To_Unbounded_String (Extension),
@@ -94,14 +114,8 @@ package body Model.Call is
                 Arrived        => Current_Time,
                 B_Leg          => Null_Identification);
    begin
-      Call_List.Insert (Item => Call);
-      System_Messages.Information
-                 (Message =>
-                    "Creating new call!",
-                  Context => Context);
-
-      Notification.Broadcast
-        (Client_Notification.Call.Pickup (Get (ID)).To_JSON);
+         Call_List.Insert (Item => Call);
+         Get (ID).Change_State (New_State => Just_Arrived);
    end Create_And_Insert;
 
    function Extension (Obj : in Instance) return String is
@@ -160,8 +174,18 @@ package body Model.Call is
 
    procedure Link (ID_1 : in Identification;
                    ID_2 : in Identification) is
+      Context : constant String := Package_Name & ".Link";
    begin
       Call_List.Link (ID_1, ID_2);
+
+      System_Messages.Debug
+        (Message => Client_Notification.Call.Pickup
+           (Get (ID_1)).To_JSON.Write,
+         Context => Context);
+
+      Notification.Broadcast
+        (Client_Notification.Call.Pickup (Get (ID_1)).To_JSON);
+
    end Link;
 
    ------------
@@ -181,6 +205,19 @@ package body Model.Call is
    begin
       return Call_List.Empty;
    end List_Empty;
+
+   ---------------------------
+   --  Null_Identification  --
+   ---------------------------
+
+   function Null_Identification return Identification is
+   begin
+      return ESL.UUID.Null_UUID;
+   end Null_Identification;
+
+   ---------------------
+   --  Null_Instance  --
+   ---------------------
 
    function Null_Instance return Instance is
    begin
@@ -244,9 +281,9 @@ package body Model.Call is
       Context : constant String := Package_Name & ".Remove";
       Removed_Call : Instance := Null_Instance;
    begin
-      PBX.Trace.Debug (Message => "Removing call with ID " & To_String (ID),
-                       Context => Context,
-                       Level   => 1);
+      System_Messages.Debug (Message => "Removing call with ID " &
+                               To_String (ID),
+                       Context => Context);
 
       --  Make a copy of the call to be able to return it.
       Removed_Call := Call_List.Get (ID);
@@ -347,6 +384,9 @@ package body Model.Call is
       ---------------
 
       procedure Dequeue (ID : in Identification) is
+
+         Context : constant String := Package_Name & ".Call_List.Dequeue";
+
          procedure Update (Key     : in     Identification;
                            Element : in out Instance);
 
@@ -359,8 +399,10 @@ package body Model.Call is
       begin
          Call_List.Update (ID, Update'Access);
          if Number_Queued = 0 then
-            PBX.Trace.Error ("Tried to decrement number of " &
-                 "Queued calls below 0");
+            System_Messages.Error
+              ("Tried to decrement number of " &
+                 "Queued calls below 0",
+              Context => Context);
          else
             Number_Queued := Number_Queued - 1;
          end if;
@@ -410,7 +452,7 @@ package body Model.Call is
       function Get (ID : in Identification) return Instance is
       begin
 
-         PBX.Trace.Debug (Message => "Looking up call " & Image (ID),
+         System_Messages.Debug (Message => "Looking up call " & Image (ID),
                           Context => "PBX.Call.Get");
          if not List.Contains (ID) then
             raise Not_Found;

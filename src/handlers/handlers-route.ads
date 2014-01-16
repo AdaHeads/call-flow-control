@@ -22,7 +22,12 @@ with AWS.Response,
 
 package Handlers.Route is
 
+   Package_Name : constant String := "Handlers.Route";
+
    function Callback (Request : in AWS.Status.Data) return AWS.Response.Data;
    --  Register content dispatchers for the server.
+
+   procedure Register_Handlers;
+   --  Performs the handler registration.
 
 end Handlers.Route;

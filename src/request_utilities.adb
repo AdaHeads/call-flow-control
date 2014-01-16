@@ -56,13 +56,11 @@ package body Request_Utilities is
       Response   : AWS.Response.Data;
    begin
 
-      System_Messages.Information (Message => "Requesting " & URL,
-                                   Context => Context);
-
       Response := AWS.Client.Get (URL => URL);
 
-      System_Messages.Information (Message => "Got " & AWS.Response.Message_Body (Response),
-                                   Context => Context);
+      System_Messages.Debug
+        (Message => URL & AWS.Response.Status_Code (Response)'Img,
+         Context => Context);
 
       In_JSON := GNATCOLL.JSON.Read
         (Strm => AWS.Response.Message_Body (Response));
@@ -70,8 +68,8 @@ package body Request_Utilities is
       return Model.User.Create (In_JSON);
    exception
       when others =>
-         System_Messages.Information (Message => "No user found!",
-                                      Context => Context);
+         System_Messages.Error (Message => "User lookup failed!",
+                                Context => Context);
          return Model.User.No_User;
    end User_Of;
 

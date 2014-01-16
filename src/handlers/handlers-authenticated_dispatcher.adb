@@ -15,20 +15,17 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
-
-with Common,
-     Request_Utilities,
-     Model.User.List,
-     Model.Token,
-     Model.Token.List,
-     HTTP_Codes,
+with Request_Utilities,
      Response,
      Response.Templates,
-     System_Messages,
-     View;
+     System_Messages;
 
 package body Handlers.Authenticated_Dispatcher is
+
+   -----------
+   --  Key  --
+   -----------
+
    function Key (Method : in     AWS.Status.Request_Method;
                  URI    : in     String) return String is
       use AWS.Status;
@@ -36,25 +33,23 @@ package body Handlers.Authenticated_Dispatcher is
       return Request_Method'Image (Method) & ":" & URI;
    end Key;
 
+   ----------------------
+   --  Not_Authorized  --
+   ----------------------
+
    function Not_Authorized (Request : in     AWS.Status.Data)
                             return AWS.Response.Data is
-      Response_JSON     : constant GNATCOLL.JSON.JSON_Value
-        := GNATCOLL.JSON.Create_Object;
-      Response_Object   : Response.Object := Response.Factory (Request);
    begin
-      Response_JSON.Set_Field (Field_Name => View.Status,
-                               Field      => "not authorized");
-
-      Response_Object.HTTP_Status_Code (Value => HTTP_Codes.Unauthorized);
-      Response_Object.Content (Common.To_JSON_String (Response_JSON));
-      return
-        Response_Object.Build;
+      return Response.Templates.Not_Authorized (Request => Request);
    end Not_Authorized;
 
-   procedure Register (Method     : in     AWS.Status.Request_Method;
-                       URI        : in     String;
-                       Allowed    : in     Authentication;
-                       Action     : in     AWS.Response.Callback) is
+   ----------------
+   --  Register  --
+   ----------------
+   procedure Register (Method  : in     AWS.Status.Request_Method;
+                       URI     : in     String;
+                       Allowed : in     ACL;
+                       Action  : in     AWS.Response.Callback) is
    begin
       Handler_List.Insert (Key      => Key (Method => Method,
                                             URI    => URI),
@@ -63,11 +58,14 @@ package body Handlers.Authenticated_Dispatcher is
                                         Action  => Action));
    end Register;
 
-   function Run (Request : in     AWS.Status.Data) return AWS.Response.Data is
+   -----------
+   --  Run  --
+   -----------
+
+   function Run (Request : in AWS.Status.Data) return AWS.Response.Data is
       use AWS.Status;
       use Model;
       use Model.User;
-      use Model.User.List;
 
       Context     : constant String := Package_Name & ".Run";
 
@@ -78,8 +76,7 @@ package body Handlers.Authenticated_Dispatcher is
       if Handler_List.Contains (Request_Key) then
          declare
             Selected : constant Handler := Handler_List.Element (Request_Key);
-            Allowed  : Authentication renames Selected.Allowed;
-            User_Token    : Token.Instance;
+            Allowed  : ACL renames Selected.Allowed;
             Detected_User : User.Instance := No_User;
          begin
 
@@ -106,26 +103,29 @@ package body Handlers.Authenticated_Dispatcher is
       when Event : others =>
          --  For now we assume that "other" exceptions caught here are bad
          --  enough to warrant a critical level log entry and response.
-         declare
-            Response_Object : Response.Object := Response.Factory (Request);
-         begin
-            System_Messages.Critical_Exception
-              (Message => Response_Object.To_Debug_String,
-               Event   => Event,
-               Context => Context);
+         System_Messages.Critical_Exception
+           (Message => "Request failed!",
+            Event   => Event,
+            Context => Context);
 
-            Response_Object := Response.Templates.Server_Error;
-            return Response_Object.Build;
-         end;
+         return Response.Templates.Server_Error;
    end Run;
 
-   procedure Set_Default (Method : in     AWS.Status.Request_Method;
-                          Action : in     AWS.Response.Callback) is
+   -------------------
+   --  Set_Default  --
+   -------------------
+
+   procedure Set_Default (Method : in AWS.Status.Request_Method;
+                          Action : in AWS.Response.Callback) is
    begin
       Default_Action (Method) := Action;
    end Set_Default;
 
-   procedure Set_Default (Action : in     AWS.Response.Callback) is
+   -------------------
+   --  Set_Default  --
+   -------------------
+
+   procedure Set_Default (Action : in AWS.Response.Callback) is
    begin
       Default_Action := (others => Action);
    end Set_Default;

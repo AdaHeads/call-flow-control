@@ -16,28 +16,22 @@
 -------------------------------------------------------------------------------
 
 with AWS.Dispatchers.Callback,
-     AWS.Response;
-
-with Response.Not_Cached;
+     AWS.Response,
+     AWS.Status;
 
 package Handlers.Not_Found is
 
    function Callback
      return AWS.Dispatchers.Callback.Handler;
-   --  Return a callback for the Not_Found (404) response.
+   --  Return a handler for the Not_Found (404) response.
 
    function Callback return AWS.Response.Callback;
    --  Return a callback for the Not_Found (404) response.
 
 private
 
-   procedure Generate_Document
-     (Response_Object : in out Response.Object);
+   function Generate_Response (Request : AWS.Status.Data)
+                               return AWS.Response.Data;
    --  Add a generated JSON_String to Response_Object and set HTTP status code
    --  to 404.
-
-   function JSON_Response is new Response.Not_Cached.Generate_Response
-     (Generate_Document => Generate_Document);
-   --  Generate the AWS.Response.Data that ultimately is delivered to the user.
-
 end Handlers.Not_Found;

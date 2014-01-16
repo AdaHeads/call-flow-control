@@ -43,7 +43,7 @@ package body Response.Not_Cached is
            (Event   => Event,
             Message => Response_Object.To_Debug_String,
             Context => Context);
-         return Response.Templates.Server_Error.Build;
+         return Response.Templates.Server_Error (Request);
 
    end Generate_Response;
 

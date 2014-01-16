@@ -30,7 +30,12 @@ package PBX.Magic_Constants is
    Sofia_Unregister : constant String := Sofia & Separator & "unregister";
    Park_Prefix      : constant String := "parking_lot";
    Namespace        : constant String := "AdaHeads";
-   Prequeue_Hit     : constant String :=
-     Namespace & Separator & "pre-queue-hit";
-
+   Prequeue_Enter   : constant String :=
+     Namespace & Separator & "pre-queue-enter";
+   Prequeue_Leave   : constant String :=
+     Namespace & Separator & "pre-queue-leave";
+   Waitqueue_Enter  : constant String :=
+     Namespace & Separator & "wait-queue-enter";
+   Waitqueue_Leave  : constant String :=
+     Namespace & Separator & "wait-queue-leave";
 end PBX.Magic_Constants;
