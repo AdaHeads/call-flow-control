@@ -21,13 +21,6 @@ package body View.Call is
    use GNATCOLL.JSON;
    use Model.Call;
 
-   function Description (Message : in String) return JSON_Value is
-      JSON : constant JSON_Value := Create_Object;
-   begin
-      JSON.Set_Field ("description", Message);
-      return JSON;
-   end Description;
-
    function Status_Message (Title   : in String;
                             Message : in String) return JSON_String is
       JSON : constant JSON_Value := Create_Object;

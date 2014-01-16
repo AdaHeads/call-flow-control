@@ -15,12 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with View;
+with AWS.Messages;
 with HTTP_Codes;
+with MIME_Types;
 
 package body Response.Templates is
-
-   package HTTP renames HTTP_Codes;
 
    ----------------------
    --  Bad_Parameters  --
@@ -34,7 +33,7 @@ package body Response.Templates is
       Response_Body.Set_Field (Status_Text, Bad_Parameters_Reponse_Text);
 
       return AWS.Response.Build
-        (Content_Type  => JSON_MIME_Type,
+        (Content_Type  => MIME_Types.JSON,
          Message_Body  => Response_Body.Write,
          Status_Code   => HTTP_Codes.Bad_Request,
          Cache_Control => AWS.Messages.No_Cache,
@@ -47,13 +46,13 @@ package body Response.Templates is
 
    function Not_Authorized (Request       : in AWS.Status.Data)
                             return AWS.Response.Data is
-      Response_Body : JSON_Value := Create_Object;
+      Response_Body : constant JSON_Value := Create_Object;
    begin
 
       Response_Body.Set_Field (Status_Text, Not_Authorized_Reponse_Text);
 
       return AWS.Response.Build
-        (Content_Type  => JSON_MIME_Type,
+        (Content_Type  => MIME_Types.JSON,
          Message_Body  => Response_Body.Write,
          Status_Code   => HTTP_Codes.Unauthorized,
          Cache_Control => AWS.Messages.No_Cache,
@@ -71,7 +70,7 @@ package body Response.Templates is
       Response_Body.Set_Field (Status_Text, Not_Found_Reponse_Text);
 
       return AWS.Response.Build
-        (Content_Type  => JSON_MIME_Type,
+        (Content_Type  => MIME_Types.JSON,
          Message_Body  => Response_Body.Write,
          Status_Code   => HTTP_Codes.Not_Found,
          Cache_Control => AWS.Messages.No_Cache,
@@ -90,7 +89,7 @@ package body Response.Templates is
       Response_Body.Set_Field (Status_Text, OK_Reponse_Text);
 
       return AWS.Response.Build
-        (Content_Type  => JSON_MIME_Type,
+        (Content_Type  => MIME_Types.JSON,
          Message_Body  => Response_Body.Write,
          Status_Code   => HTTP_Codes.OK,
          Cache_Control => AWS.Messages.No_Cache,
@@ -108,7 +107,7 @@ package body Response.Templates is
       Content.Set_Field (Status_Text, Server_Error_Reponse_Text);
 
       return AWS.Response.Build
-        (Content_Type  => JSON_MIME_Type,
+        (Content_Type  => MIME_Types.JSON,
          Message_Body  => Response_Body.Write,
          Status_Code   => HTTP_Codes.Server_Error,
          Cache_Control => AWS.Messages.No_Cache,
@@ -121,7 +120,7 @@ package body Response.Templates is
    begin
 
       return AWS.Response.Build
-        (Content_Type  => JSON_MIME_Type,
+        (Content_Type  => MIME_Types.JSON,
          Message_Body  => Response_Body.Write,
          Status_Code   => HTTP_Codes.Server_Error,
          Cache_Control => AWS.Messages.No_Cache,

@@ -24,12 +24,12 @@ with Model.Call,
      Request_Utilities,
      Response.Templates,
      System_Messages,
-     View.Call;
+     View;
 
 package body Handlers.Call is
    use AWS.Status,
        System_Messages,
-       View.Call,
+       View,
        Model;
 
    --------------

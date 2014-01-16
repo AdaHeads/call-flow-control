@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Response,
+with Response.Templates,
      Request_Utilities;
 
 package body Handlers.User is
@@ -26,17 +26,12 @@ package body Handlers.User is
    ---------------
 
    function Profile (Request : in AWS.Status.Data)
-                      return AWS.Response.Data
-   is
-      Response_Object : Response.Object
-        := Response.Factory (Request);
+                      return AWS.Response.Data is
    begin
 
-      Response_Object.Content (Request_Utilities.User_Of (Request).To_JSON);
-      Response_Object.HTTP_Status_Code (HTTP.OK);
-
-      return Response_Object.Build;
-
+      return Response.Templates.OK
+        (Request       => Request,
+         Response_Body => Request_Utilities.User_Of (Request).To_JSON);
    end Profile;
 
 end Handlers.User;

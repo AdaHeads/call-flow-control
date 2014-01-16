@@ -18,42 +18,29 @@
 with GNATCOLL.JSON;
 
 with View,
-     Common,
+     Response.Templates,
      Model.User,
-     Model.User.List,
-     Response.Not_Cached;
+     Model.User.List;
 
 package body Handlers.User.List is
 
-   ----------------------------------------------------------------------------
-
-   procedure Generate_Document (Instance : in out Response.Object);
-   --  Add a generated JSON_String to Response_Object.
-
-   function JSON_Response is
-      new Response.Not_Cached.Generate_Response
-            (Generate_Document => Generate_Document);
-   --  Generate the AWS.Response.Data that ultimately is delivered to the user.
-
-   ----------------------------------------------------------------------------
-
    function Callback return AWS.Response.Callback is
    begin
-      return JSON_Response'Access;
+      return Generate_Response'Access;
    end Callback;
 
-   procedure Generate_Document
-     (Instance : in out Response.Object)
-   is
+   function Generate_Response (Request : AWS.Status.Data)
+                               return AWS.Response.Data is
       use GNATCOLL.JSON;
-      use Common;
-
       Data : constant JSON_Value := Model.User.List.Get_Singleton.To_JSON;
    begin
 
       Data.Set_Field (Field_Name => View.Status,
                       Field      => View.OK);
-      Instance.Content (To_JSON_String (Data));
-   end Generate_Document;
+
+      return Response.Templates.OK
+        (Request       => Request,
+         Response_Body => Data);
+   end Generate_Response;
 
 end Handlers.User.List;

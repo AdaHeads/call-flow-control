@@ -28,8 +28,6 @@ package View.Call is
    function To_JSON (Call : in Model.Call.Instance)
                      return GNATCOLL.JSON.JSON_Value;
 
-   function Description (Message : in String) return GNATCOLL.JSON.JSON_Value;
-
    --  TODO: Move this
    function Status_Message (Title   : in String;
                             Message : in String) return JSON_String;

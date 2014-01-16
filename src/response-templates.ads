@@ -17,6 +17,10 @@
 
 --  Ready-to-use responses with fixed content and response codes.
 
+with AWS.Status,
+     AWS.Response;
+with GNATCOLL.JSON;
+
 package Response.Templates is
    use GNATCOLL.JSON;
 
@@ -51,14 +55,4 @@ package Response.Templates is
    function Server_Error (Response_Body : in JSON_Value := Create_Object)
                           return AWS.Response.Data;
    --  Builds up a 500 Server error object.
-
-private
-
-   Status_Text                 : constant String := "status";
-   Bad_Parameters_Reponse_Text : constant String := "bad parameters";
-   Not_Authorized_Reponse_Text : constant String := "not authorized";
-   Not_Found_Reponse_Text      : constant String := "not found";
-   OK_Reponse_Text             : constant String := "ok";
-   Server_Error_Reponse_Text   : constant String := "unhandled exception";
-
 end Response.Templates;

@@ -17,78 +17,61 @@
 
 with GNATCOLL.JSON;
 
-with Common,
-     HTTP_Codes,
-     Response,
+with Response.Templates,
      View,
      Model.Token.List,
      Model.Peer.List;
 
 package body Handlers.Debug is
-   use Common;
+   use View;
+
+   --------------------
+   --  Channel_List  --
+   --------------------
 
    function Channel_List (Request : in AWS.Status.Data)
                           return AWS.Response.Data is
       use GNATCOLL.JSON;
       use HTTP_Codes;
-
-      Response_Object : Response.Object := Response.Factory (Request);
-      Data            : JSON_Value;
    begin
-
-      Response_Object.HTTP_Status_Code (OK);
-      --  TODO:
-      Data := Create_Object;
-      Data.Set_Field (Field_Name  => View.Status,
-                      Field       => "Not implemented");
-      Response_Object.Content (To_JSON_String (Data));
-
-      return Response_Object.Build;
+      return Response.Templates.Server_Error
+        (Request       => Request,
+         Response_Body => Description ("Not implemented"));
    end Channel_List;
+
+   ----------------------
+   --  Dummy_Response  --
+   ----------------------
 
    function Dummy_Response
      (Request : in AWS.Status.Data)
       return AWS.Response.Data is
-      Response_Object : Response.Object := Response.Factory (Request);
    begin
-      Response_Object.HTTP_Status_Code (HTTP.OK);
-
-      return Response_Object.Build;
+      return Response.Templates.OK (Request);
    end Dummy_Response;
 
-   function Dummy_Response_No_Content
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data is
-      Response_Object : Response.Object := Response.Factory (Request);
-   begin
-      Response_Object.HTTP_Status_Code (HTTP.No_Content);
-
-      return Response_Object.Build;
-   end Dummy_Response_No_Content;
+   --------------------
+   --  Dummy_Tokens  --
+   --------------------
 
    function Dummy_Tokens (Request : in AWS.Status.Data)
                        return AWS.Response.Data is
-      use HTTP_Codes;
-
-      Response_Object : Response.Object := Response.Factory (Request);
    begin
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content (Model.Token.List.Get_Singleton.To_JSON);
-
-      return Response_Object.Build;
+      return Response.Templates.OK
+        (Request       => Request,
+         Response_Body => Model.Token.List.Get_Singleton.To_JSON);
    end Dummy_Tokens;
+
+   -----------------
+   --  Peer_List  --
+   -----------------
 
    function Peer_List (Request : in AWS.Status.Data)
                        return AWS.Response.Data is
-      use HTTP_Codes;
-
-      Response_Object : Response.Object := Response.Factory (Request);
    begin
-      Response_Object.HTTP_Status_Code (OK);
-      Response_Object.Content
-        (To_JSON_String (Model.Peer.List.Get_Singleton.To_JSON));
-
-      return Response_Object.Build;
+      return Response.Templates.OK
+        (Request       => Request,
+         Response_Body => Model.Peer.List.Get_Singleton.To_JSON);
    end Peer_List;
 
 end Handlers.Debug;

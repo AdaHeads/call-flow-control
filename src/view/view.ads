@@ -15,10 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package View is
-   pragma Pure;
+with GNATCOLL.JSON;
 
-   type Mode is (Basic, Full);
+package View is
 
    Arrival_Time_S    : constant String := "arrival_time";
    Assigned_To_S     : constant String := "assigned_to";
@@ -31,7 +30,7 @@ package View is
    Channel           : constant String := "channel";
    Contact_ID        : constant String := "contact_id";
    Contacts          : constant String := "contacts";
-   Description       : constant String := "description";
+   Description_S     : constant String := "description";
    Destination       : constant String := "destination";
    Extension         : constant String := "extension";
    Full_Name         : constant String := "full_name";
@@ -54,5 +53,7 @@ package View is
    URL               : constant String := "url";
    User_S            : constant String := "user";
    Users_S           : constant String := "users";
+
+   function Description (Message : in String) return GNATCOLL.JSON.JSON_Value;
 
 end View;

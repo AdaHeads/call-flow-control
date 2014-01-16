@@ -18,5 +18,11 @@
 with AWS.Response;
 
 package Handlers.User.List is
+
    function Callback return AWS.Response.Callback;
+
+private
+   function Generate_Response (Request : AWS.Status.Data)
+                               return AWS.Response.Data;
+
 end Handlers.User.List;

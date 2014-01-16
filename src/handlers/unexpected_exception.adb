@@ -15,7 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Response;
 with Response.Templates;
 
 with System_Messages;

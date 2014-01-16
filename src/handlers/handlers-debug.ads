@@ -26,11 +26,6 @@ package Handlers.Debug is
       return AWS.Response.Data;
    --  Just sends 200 OK, good for outlining.
 
-   function Dummy_Response_No_Content
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Just sends 200 OK, good for outlining.
-
    function Peer_List
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
