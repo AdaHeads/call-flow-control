@@ -20,7 +20,7 @@ with ESL.Client.Tasking;
 package PBX is
 
    type PBX_Status_Type is (Shut_Down, Shutting_Down, Running, Connecting,
-                           Failure);
+                            Failed);
 
    procedure Start;
    --  Startup the PBX subsystem

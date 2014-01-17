@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Text_IO;
+
 package body Alice_Configuration is
 
    Current_Loglevel     : Loglevels;
@@ -41,6 +43,35 @@ package body Alice_Configuration is
    --------------------
    --  PBX_Loglevel  --
    --------------------
+
+   procedure Show_Arguments is
+      use Ada.Text_IO;
+
+      function Header return String;
+
+      function Header return String is
+      begin
+         return "Usage:" &
+           Util.Command_Line.Command_Name &
+           " [--config FILE] [OPTIONS]" & ASCII.LF & ASCII.LF &
+         "Command line options available:";
+      end Header;
+
+      Indention : constant String := "   ";
+      Separator : constant String := ASCII.HT & ASCII.HT;
+   begin
+      Put_Line (Header);
+      Put_Line (Indention & Loglevel_CL_String & Separator &
+                  Loglevel_Usage_String);
+      Put_Line (Indention & PBX_Loglevel_CL_String & ASCII.HT &
+                  PBX_Loglevel_Usage_String);
+      Put_Line (Indention & PBX_Host_CL_String & Separator &
+                  PBX_Host_Usage_String);
+      Put_Line (Indention & PBX_Port_CL_String & Separator &
+                  PBX_Port_Usage_String);
+      Put_Line (Indention & PBX_Secret_CL_String & Separator &
+                  PBX_Secret_Usage_String);
+   end Show_Arguments;
 
 begin
    --  Validate config and set command line values.

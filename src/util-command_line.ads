@@ -15,9 +15,16 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Indefinite_Vectors;
+with Ada.Command_Line,
+     Ada.Containers.Indefinite_Vectors;
 
 package Util.Command_Line is
+
+   function Command_Name return String
+     renames Ada.Command_Line.Command_Name;
+
+   procedure Set_Exit_Failure;
+   --  Sets the exit code to EXIT_FAILURE.
 
    package String_Vectors is
      new Ada.Containers.Indefinite_Vectors (Positive, String);

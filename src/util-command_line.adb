@@ -15,7 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Command_Line;
 with Ada.Strings.Fixed;
 
 package body Util.Command_Line is
@@ -78,5 +77,11 @@ package body Util.Command_Line is
 
       return False;
    end Got_Argument;
+
+   procedure Set_Exit_Failure is
+   begin
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+   end Set_Exit_Failure;
+
 
 end Util.Command_Line;

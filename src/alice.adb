@@ -25,6 +25,7 @@ with SIGHUP;
 with SIGHUP_Handler;
 with System_Messages;
 with Unexpected_Exception;
+with Alice_Configuration;
 
 with Util.Process_Control;
 with Util.Server;
@@ -36,6 +37,7 @@ procedure Alice is
    use System_Messages;
    use Util;
    use Build_Constants;
+   use Command_Line;
 
    Context     : constant String := "Alice";
 
@@ -52,8 +54,9 @@ procedure Alice is
 begin
    if Command_Line.Got_Argument ("--help") then
       --  TODO!
-      --  Command_Line.Show_Arguments;
-      null;
+      Alice_Configuration.Show_Arguments;
+      Command_Line.Set_Exit_Failure;
+      return;
    end if;
 
    Initialize_Model;

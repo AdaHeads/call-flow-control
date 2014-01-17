@@ -28,6 +28,8 @@ with System_Messages;
 with Model.Call.Observers;
 with Model.Peer.List.Observers;
 
+with Util.Process_Control;
+
 --  TODO: Cover all branches on status.
 package body PBX is
    use Ada.Strings.Unbounded;
@@ -57,6 +59,9 @@ package body PBX is
          System_Messages.Error
            (Message => "Authentication failure!",
             Context => "PBX.Authenticate");
+
+         --  Ask the whole server to shutdown.
+         Util.Process_Control.Stop;
    end Authenticate;
 
    ---------------
@@ -110,6 +115,8 @@ package body PBX is
          System_Messages.Critical
            (Message => Ada.Exceptions.Exception_Information (E),
             Context => "PBX.Connect_Task");
+         --  Ask the whole server to shutdown.
+         Util.Process_Control.Stop;
    end Connect_Task;
 
    procedure Start is
@@ -140,7 +147,7 @@ package body PBX is
         (On_Connect_Handler    => Authenticate'Access,
          On_Disconnect_Handler => ESL.Client.Ignore_Event);
 
-      -- Register the appropriate observers.
+      --  Register the appropriate observers.
       Model.Call.Observers.Register_Observers;
       Model.Peer.List.Observers.Register_Observers;
 

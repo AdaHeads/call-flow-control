@@ -99,7 +99,7 @@ package Alice_Configuration is
       Defaults_Array_Type => Defaults_Array,
       Defaults            => Default_Values,
       Config_File         => Util.Command_Line.Get
-        (Parameter => "--alice-config-file",
+        (Parameter => "--config",
          Default   =>
          "configuration/alice_config.ini"));
 
@@ -107,12 +107,27 @@ package Alice_Configuration is
 
    function Loglevel return PBX_Loglevels;
 
+   procedure Show_Arguments;
+
 private
 
    Loglevel_CL_String     : constant String := "--loglevel";
+   Loglevel_Usage_String  : constant String :=
+     "Controls the verbosity of the server. Possible values: "&
+     "Debug, Information, Error, Warning, Critical.";
+
    PBX_Loglevel_CL_String : constant String := "--pbx-loglevel";
+   PBX_Loglevel_Usage_String  : constant String :=
+     "Controls the verbosity of the PBX layer. Possible values: "&
+     "Debug, Information, Error, Warning, Critical.";
    PBX_Host_CL_String     : constant String := "--pbx-host";
+   PBX_Host_Usage_String  : constant String :=
+     "Override the PBX host from config.";
    PBX_Port_CL_String     : constant String := "--pbx-port";
+   PBX_Port_Usage_String  : constant String :=
+     "Override the PBX port from config.";
    PBX_Secret_CL_String   : constant String := "--pbx-secret";
+   PBX_Secret_Usage_String  : constant String :=
+     "Override the PBX password from config.";
 
 end Alice_Configuration;
