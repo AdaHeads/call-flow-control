@@ -1,3 +1,4 @@
+
 -------------------------------------------------------------------------------
 --  System users:
 
@@ -71,6 +72,7 @@ CREATE TABLE organizations (
    full_name  TEXT    NOT NULL,
    uri        TEXT    NOT NULL UNIQUE,
    attributes JSON    NOT NULL,
+   extradata  TEXT    NOT NULL,
    enabled    BOOLEAN NOT NULL DEFAULT TRUE
 );
 
