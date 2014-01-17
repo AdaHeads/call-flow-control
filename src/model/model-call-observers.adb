@@ -17,20 +17,14 @@
 
 with Ada.Containers.Vectors;
 
-with PBX.Trace;
 with PBX.Magic_Constants;
 with ESL.Packet_Keys;
 with ESL.Client.Tasking;
 with Handlers.Notifications;
 with System_Messages;
-with Client_Notification.Queue;
-with Client_Notification.Call;
 
 package body Model.Call.Observers is
    use ESL.Packet_Keys;
-
-   use PBX.Trace;
-   --   use Model.Agent;
 
    type Observer_Reference is access all
      ESL.Observer.Event_Observers.Instance'Class;
@@ -43,6 +37,8 @@ package body Model.Call.Observers is
    Observer_List : Observer_Lists;
 
    procedure Create_Call (From : in ESL.Packet.Instance);
+
+   procedure Hangup_Call (From : in ESL.Packet.Instance);
 
    -------------------
    --  Create_Call  --
@@ -71,6 +67,11 @@ package body Model.Call.Observers is
         Packet.Field (Key => Caller_Destination_Number).Decoded_Value;
 
       Inbound : Boolean := True;
+
+      Org_ID  : constant Organization_Identifier :=
+        Organization_Identifier'Value
+          (Packet.Variables.Get (Key => "organization_id"));
+
    begin
       if Direction /= "inbound" then
          System_Messages.Error
@@ -83,10 +84,28 @@ package body Model.Call.Observers is
       Create_And_Insert
         (Inbound         => Inbound,
          ID              => ID,
-         Organization_ID => 1,
+         Organization_ID => Org_ID,
          Extension       => Extension,
          From_Extension  => From_Extension);
    end Create_Call;
+
+   -------------------
+   --  Hangup_Call  --
+   -------------------
+
+   procedure Hangup_Call (From : in ESL.Packet.Instance) is
+      Context : constant String :=
+        Package_Name & ".Hangup_Call";
+   begin
+      Call.Remove (ID => From.UUID);
+   exception
+      when Model.Call.Not_Found =>
+         System_Messages.Error
+           (Message => "Tried to hang up non-existing call " &
+              Image (From.UUID) &
+              ". Call list may be inconsistent - consider reloading.",
+            Context => Context);
+   end Hangup_Call;
 
    package Notification renames Handlers.Notifications;
 
@@ -134,12 +153,6 @@ package body Model.Call.Observers is
         Value (Packet.Field (Bridge_B_Unique_ID).Value);
    begin
 
-      PBX.Trace.Information
-        (Context => Context,
-         Message => "ID 1: " & To_String (ID_A) &
-           ": ID 2: " & To_String (ID_B));
-      --  Either side should be represented.
-      --  TODO
       Call.Link (ID_1 => ID_A,
                  ID_2 => ID_B);
    end Notify;
@@ -211,43 +224,25 @@ package body Model.Call.Observers is
             if Action = Constants.FIFO_Push then
                if not Is_Parking_Lot (FIFO_Name => Name) then
                   Call.Get (Call => ID).Change_State (New_State => Queued);
-                  Notification.Broadcast
-                    (Client_Notification.Queue.Join
-                       (Get (Call => ID)).To_JSON);
-                  PBX.Trace.Information (Client_Notification.Queue.Join
-                                         (Get (Call => ID)).To_JSON.Write);
                else
-                  Notification.Broadcast
-                    (Client_Notification.Call.Park
-                       (Call.Get (Call => ID)).To_JSON);
-
-                  PBX.Trace.Information (Message => "Parked call. " & ID.Image,
-                                         Context => Context);
+                  Call.Get (Call => ID).Change_State (New_State => Parked);
                end if;
 
             elsif
               Action = Constants.FIFO_Pop   or
               Action = Constants.FIFO_Abort
             then
-               Call.Get (Call => ID).Change_State (New_State => Speaking);
+               Call.Get (Call => ID).Change_State (New_State => Transferring);
 
                if not Is_Parking_Lot (FIFO_Name => Name) then
-                  Notification.Broadcast
-                    (Client_Notification.Queue.Leave
-                       (Get (Call => ID)).To_JSON);
+                  Call.Get (Call => ID).Change_State (New_State => Left_Queue);
                else
-                  Notification.Broadcast
-                    (Client_Notification.Call.Unpark
-                       (Call.Get (Call => ID)).To_JSON);
-
-                  PBX.Trace.Information (Message => "Unparked call. "
-                                         & ID.Image,
-                                         Context => Context);
+                  Call.Get (Call => ID).Change_State (New_State => Unparked);
                end if;
             end if;
          end;
       else
-         PBX.Trace.Information
+         System_Messages.Information
            (Message => "Unhandled subevent: " & Subevent,
             Context => Context);
       end if;
@@ -262,29 +257,8 @@ package body Model.Call.Observers is
                      Client   : in     ESL.Client.Reference) is
       pragma Unreferenced (Observer);
       pragma Unreferenced (Client);
-      Context   : constant String      :=
-        Package_Name & ".Notify (Destroy_Observer)";
-
-      ID  : Identification renames
-        Value (Packet.Field (Unique_ID).Value);
-      Target_Call : Instance;
    begin
-
-      Target_Call := Call.Remove (ID => ID);
-
-      PBX.Trace.Information
-        (Message => Client_Notification.Call.Hangup
-           (Target_Call).To_JSON.Write,
-         Context => Context);
-
-      Notification.Broadcast
-        (Client_Notification.Call.Hangup (Target_Call).To_JSON);
-   exception
-      when Model.Call.Not_Found =>
-         PBX.Trace.Error
-           (Message => "Tried to hang up non-existing call " & Image (ID) &
-              ". Call list may be inconsistent - consider reloading.",
-            Context => Context);
+      Hangup_Call (From => Packet);
    end Notify;
 
    ---------------
@@ -300,7 +274,7 @@ package body Model.Call.Observers is
         Package_Name & ".Notify (Notify_Observer)";
 
    begin
-      PBX.Trace.Information (Message => "Ignoring execution of " &
+      System_Messages.Debug (Message => "Ignoring execution of " &
                                Packet.Field (Application).Value,
                              Context => Context);
    end Notify;
@@ -314,21 +288,8 @@ package body Model.Call.Observers is
                      Client   : in     ESL.Client.Reference) is
       pragma Unreferenced (Observer);
       pragma Unreferenced (Client);
-      Context   : constant String      :=
-        Package_Name & ".Notify (Notify_Observer)";
-
-      ID  : Identification renames
-        Value (Packet.Field (Unique_ID).Value);
-
    begin
-
-      Call.Get (Call => ID).Change_State (New_State => Parked);
-
-      Notification.Broadcast
-        (Client_Notification.Call.Park (Call.Get (Call => ID)).To_JSON);
-
-      PBX.Trace.Information (Message => "Parked call. " & ID.Image,
-                             Context => Context);
+      Call.Get (Call => Packet.UUID).Change_State (New_State => Parked);
    end Notify;
 
    --------------------------

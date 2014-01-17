@@ -19,8 +19,8 @@ with Ada.Strings;
 with Ada.Strings.Fixed;
 with View.Call;
 with Handlers.Notifications;
-with Client_Notification.Call;
-
+with Client_Notification.Call,
+     Client_Notification.Queue;
 with System_Messages;
 
 package body Model.Call is
@@ -66,28 +66,61 @@ package body Model.Call is
    procedure Change_State (Obj : in Instance; New_State : in States) is
       Context : constant String := Package_Name & ".Change_State";
    begin
-      Call_List.Change_State (Obj.ID, New_State);
-
       case New_State is
          when Parked =>
+
             System_Messages.Debug
-              (Message => "Parked call " & Get (Obj.ID).To_JSON.Write,
+              (Message => "Parked call: " & Get (Obj.ID).To_JSON.Write,
                Context => Context);
 
             Notification.Broadcast
               (Client_Notification.Call.Park
                  (C => Get (Obj.ID)).To_JSON);
+
          when Just_Arrived =>
             System_Messages.Debug
               (Message =>
-               "New call arrived" & Get (Obj.ID).To_JSON.Write,
-            Context => Context);
+               "New call arrived: " & Get (Obj.ID).To_JSON.Write,
+               Context => Context);
 
             Notification.Broadcast
               (Client_Notification.Call.Pickup (Get (Obj.ID)).To_JSON);
+         when Queued =>
+            System_Messages.Debug
+              ("Call queued: " & Get (Obj.ID).To_JSON.Write,
+               Context => Context);
+
+            Notification.Broadcast
+              (Client_Notification.Queue.Join
+                 (Get (Call => Obj.ID)).To_JSON);
+
+         when Hungup =>
+            --  Assert that the call leaves a queue or a parking lot.
+            if Call_List.Get (Obj.ID).State = Queued then
+               Call_List.Get (Obj.ID).Change_State (New_State => Left_Queue);
+            elsif Call_List.Get (Obj.ID).State = Parked then
+               Call_List.Get (Obj.ID).Change_State (New_State => Unparked);
+            end if;
+
+            System_Messages.Debug
+              ("Call hung up: " & Get (Obj.ID).To_JSON.Write,
+               Context => Context);
+
+            Notification.Broadcast
+              (Client_Notification.Call.Hangup (Get (Obj.ID)).To_JSON);
+
+         when Left_Queue =>
+            System_Messages.Debug
+              ("Call left queue: " & Get (Obj.ID).To_JSON.Write,
+               Context => Context);
+
+            Notification.Broadcast
+              (Client_Notification.Queue.Leave (Get (Obj.ID)).To_JSON);
          when others =>
             null;
       end case;
+
+      Call_List.Change_State (Obj.ID, New_State);
 
    end Change_State;
 
@@ -285,19 +318,10 @@ package body Model.Call is
    --  Remove  --
    --------------
 
-   function Remove (ID : in Identification) return Instance is
+   procedure Remove (ID : in Identification) is
       Context : constant String := Package_Name & ".Remove";
-      Removed_Call : Instance := Null_Instance;
    begin
-      System_Messages.Debug (Message => "Removing call with ID " &
-                               To_String (ID),
-                       Context => Context);
-
-      --  Make a copy of the call to be able to return it.
-      Removed_Call := Call_List.Get (ID);
-
-      Call_List.Remove (ID);
-      return Removed_Call;
+      Get (ID).Change_State (New_State => Hungup);
    end Remove;
 
    -------------

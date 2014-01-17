@@ -52,10 +52,14 @@ package Model.Call is
       Just_Arrived,
       Created,
       Queued,
+      Left_Queue,
+      Hungup,
       IVR,
       Transferring,
       Speaking, Dialing, Delegated, Ended,
-      Parked, Transferred);
+      Parked,
+      Unparked,
+      Transferred);
    --  Valid states for the call.
 
    type Priority_Level is (Invalid, Low, Normal, High);
@@ -99,7 +103,7 @@ package Model.Call is
 
    function Highest_Prioirity return Instance;
 
-   function Remove (ID : in Identification) return Instance;
+   procedure Remove (ID : in Identification);
 
    function Queue_Empty return Boolean;
    --  Reveals if there are currently calls available for pickup.
