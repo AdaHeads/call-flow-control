@@ -66,6 +66,10 @@ package body Util.Command_Line is
       end return;
    end Get;
 
+   --------------------
+   --  Got_Argument  --
+   --------------------
+
    function Got_Argument (Parameter : in String) return Boolean is
       use Ada.Command_Line;
    begin
@@ -78,10 +82,13 @@ package body Util.Command_Line is
       return False;
    end Got_Argument;
 
+   ------------------------
+   --  Set_Exit_Failure  --
+   ------------------------
+
    procedure Set_Exit_Failure is
    begin
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
    end Set_Exit_Failure;
-
 
 end Util.Command_Line;

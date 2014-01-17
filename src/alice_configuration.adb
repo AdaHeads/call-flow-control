@@ -16,6 +16,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Text_IO;
+with Util.Process_Control;
 
 package body Alice_Configuration is
 
@@ -54,7 +55,7 @@ package body Alice_Configuration is
          return "Usage:" &
            Util.Command_Line.Command_Name &
            " [--config FILE] [OPTIONS]" & ASCII.LF & ASCII.LF &
-         "Command line options available:";
+           "Command line options available:";
       end Header;
 
       Indention : constant String := "   ";
@@ -103,9 +104,9 @@ begin
                        (Parameter => PBX_Secret_CL_String,
                         Default   => Config.Get (Key => PBX_Secret))));
 
-   --  exception
-   --     when Constraint_Error =>
-   --  At this point, we should perform a graceful shutdown but we need a
-   --  mechanism for shutting down the server from here.
-
+exception
+   when Constraint_Error =>
+      Util.Process_Control.Stop;
+      --  At this point, we should perform a graceful shutdown but we need a
+      --  mechanism for shutting down the server from here.
 end Alice_Configuration;

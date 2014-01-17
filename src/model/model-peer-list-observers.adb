@@ -137,9 +137,9 @@ package body Model.Peer.List.Observers is
       System_Messages.Information
         (Context => Package_Name,
          Message => "Unregistering observers.");
-      for Item of Observer_List loop
-         Item.Finalize;
-      end loop;
+--        for Item of Observer_List loop
+--           Item.Finalize;
+--        end loop;
       Observer_List.Clear;
    end Unregister_Observers;
 

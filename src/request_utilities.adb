@@ -16,6 +16,7 @@
 -------------------------------------------------------------------------------
 
 with AWS.Client;
+with AWS.Messages;
 with AWS.Response;
 with GNATCOLL.JSON;
 with Alice_Configuration;
@@ -23,7 +24,8 @@ with Alice_Configuration;
 with System_Messages;
 
 package body Request_Utilities is
-   use AWS.Client;
+   use AWS.Client,
+       AWS.Messages;
    use Alice_Configuration;
 
    ----------------
@@ -59,13 +61,19 @@ package body Request_Utilities is
       Response := AWS.Client.Get (URL => URL);
 
       System_Messages.Debug
-        (Message => URL & AWS.Response.Status_Code (Response)'Img,
+        (Message => URL & " status : HTTP " &
+           AWS.Response.Status_Code (Response)'Img,
          Context => Context);
 
-      In_JSON := GNATCOLL.JSON.Read
-        (Strm => AWS.Response.Message_Body (Response));
+      if AWS.Response.Status_Code (Response) = S200 then
+         In_JSON := GNATCOLL.JSON.Read
+           (Strm => AWS.Response.Message_Body (Response));
 
-      return Model.User.Create (In_JSON);
+         return Model.User.Create (In_JSON);
+      else
+         return Model.User.No_User;
+      end if;
+
    exception
       when others =>
          System_Messages.Error (Message => "User lookup failed!",

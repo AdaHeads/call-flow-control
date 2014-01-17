@@ -99,22 +99,19 @@ package body Model.Call.Observers is
       Context : constant String :=
         Package_Name & ".Notify (AdaHeads Subclass Observer)";
 
-      ID  : Identification renames
-        Value (Packet.Field (Unique_ID).Value);
-
    begin
       if Packet.Subevent = Constants.Prequeue_Enter then
          Create_Call (From => Packet);
       elsif Packet.Subevent = Constants.Prequeue_Leave then
-         Get (ID).Change_State (New_State => Transferring);
-         Get (ID).Lock;
+         Get (Packet.UUID).Change_State (New_State => Transferring);
+         Get (Packet.UUID).Lock;
       elsif Packet.Subevent = Constants.Waitqueue_Enter then
-         Get (ID).Unlock;
-         Get (ID).Change_State (New_State => Queued);
+         Get (Packet.UUID).Unlock;
+         Get (Packet.UUID).Change_State (New_State => Queued);
       elsif Packet.Subevent = Constants.Parkqueue_Enter then
-         Get (ID).Change_State (New_State => Parked);
+         Get (Packet.UUID).Change_State (New_State => Parked);
       elsif Packet.Subevent = Constants.Parkqueue_Leave then
-         Get (ID).Change_State (New_State => Transferring);
+         Get (Packet.UUID).Change_State (New_State => Transferring);
       end if;
    end Notify;
 
@@ -390,9 +387,9 @@ package body Model.Call.Observers is
       System_Messages.Information
         (Context => Package_Name,
          Message => "Unregistering observers.");
-      for Item of Observer_List loop
-         Item.Finalize;
-      end loop;
+--        for Item of Observer_List loop
+--           Item.Finalize;
+--        end loop;
       Observer_List.Clear;
    end Unregister_Observers;
 

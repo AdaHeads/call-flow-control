@@ -164,7 +164,7 @@ package body PBX is
 
    procedure Stop is
    begin
-      Model.Call.Observers.Register_Observers;
+      Model.Call.Observers.Unregister_Observers;
       Model.Peer.List.Observers.Unregister_Observers;
       System_Messages.Information
         (Message => "PBX subsystem task shutting down.",

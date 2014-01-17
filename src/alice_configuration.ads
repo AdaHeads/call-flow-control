@@ -17,8 +17,8 @@
 
 with Ada.Strings.Unbounded;
 with Common;
-with Util.Command_Line;
 with Util.Config_File_Parser;
+with Util.Command_Line;
 
 package Alice_Configuration is
 
@@ -94,20 +94,21 @@ package Alice_Configuration is
       Client_Config_File
       => U ("configuration/bob_configuration.json"));
 
-   package Config is new Util.Config_File_Parser
-     (Key_Type            => Keys,
-      Defaults_Array_Type => Defaults_Array,
-      Defaults            => Default_Values,
-      Config_File         => Util.Command_Line.Get
-        (Parameter => "--config",
-         Default   =>
-         "configuration/alice_config.ini"));
-
    function PBX_Loglevel return PBX_Loglevels;
 
    function Loglevel return PBX_Loglevels;
 
+   package Config is new Util.Config_File_Parser
+     (Key_Type            => Keys,
+      Defaults_Array_Type => Defaults_Array,
+      Defaults            => Default_Values,
+      Config_File         =>  Util.Command_Line.Get
+        (Parameter => "--config",
+         Default   =>
+         "configuration/alice_config.ini"));
+
    procedure Show_Arguments;
+
 
 private
 

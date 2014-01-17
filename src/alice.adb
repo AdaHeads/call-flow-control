@@ -58,12 +58,12 @@ begin
       Command_Line.Set_Exit_Failure;
       return;
    end if;
+   SIGHUP.Register (Handler => SIGHUP_Handler.Caught_Signal'Access);
 
    Initialize_Model;
    Handlers.Route.Register_Handlers;
    System_Messages.Open_Log_Files;
 
-   SIGHUP.Register (Handler => SIGHUP_Handler.Caught_Signal'Access);
    PBX.Start;
    Web_Server.Start
      (Dispatchers => AWS.Dispatchers.Callback.Create

@@ -255,7 +255,6 @@ package body Util.Config_File_Parser is
    end Update;
 
 begin
-
    Load_File (Config_File => Config_File);
 
 end Util.Config_File_Parser;
