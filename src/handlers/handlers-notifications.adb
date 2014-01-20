@@ -18,9 +18,8 @@
 with AWS.Net.WebSocket.Registry;
 
 with Model.User,
-     Model.User.List,
      Model.Token,
-     Model.Token.List,
+     Request_Utilities,
      System_Messages;
 
 package body Handlers.Notifications is
@@ -81,8 +80,7 @@ package body Handlers.Notifications is
       return AWS.Net.WebSocket.Object'Class
    is
       use AWS.Status,
-          Model.User,
-          Model.User.List;
+          Model.User;
 
       Context : constant String := Package_Name  & ".Create";
 
@@ -102,11 +100,7 @@ package body Handlers.Notifications is
       end if;
 
       --  The parameter is present, go lookup the user.
-      User_Token    :=
-        Token.Create (Value => Parameters (Request).Get ("token"));
-
-      Detected_User := User.List.Get_Singleton.Get
-        (Identity => Token.List.Get_Singleton.Look_Up (User_Token));
+      Detected_User := Request_Utilities.User_Of (Request);
 
       if Detected_User = User.No_User or not Detected_User.Authenticated then
          Information
