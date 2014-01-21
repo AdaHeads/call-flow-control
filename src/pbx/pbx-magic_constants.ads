@@ -19,6 +19,8 @@
 --  best in a future refactoring.
 
 package PBX.Magic_Constants is
+   Reception_ID     : constant String := "reception_id";
+   Organization_ID  : constant String := "organization_id";
    FIFO             : constant String := "fifo";
    Separator        : constant String := "::";
    FIFO_Info        : constant String := FIFO & Separator & "info";

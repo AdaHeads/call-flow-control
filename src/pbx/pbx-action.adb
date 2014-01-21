@@ -17,14 +17,16 @@
 
 with Ada.Strings.Unbounded;
 
-with ESL.Reply;
-with ESL.UUID;
+with ESL.Reply,
+     ESL.UUID,
+     ESL.Command.Core,
+     ESL.Command.Call_Management,
+     ESL.Command.Miscellaneous;
+
 with GNATCOLL.JSON;
 with PBX.Trace;
 with Model.Peer.List;
-with ESL.Command.Core;
-with ESL.Command.Call_Management;
-with ESL.Command.Miscellaneous;
+with System_Messages;
 
 package body PBX.Action is
    use GNATCOLL.JSON;
@@ -173,7 +175,6 @@ package body PBX.Action is
 
       Context               : constant String :=
         Package_Name & ".Update_Call_List";
-      pragma Unreferenced (Context);
 
       Reply                 : ESL.Reply.Instance;
       List_Channels_Action  : ESL.Command.Core.Instance :=
@@ -206,14 +207,17 @@ package body PBX.Action is
                        (if   Call_JSON.Get ("direction") = "inbound"
                         then True
                         else False),
-                     ID              => UUID,
-                     Organization_ID => 0);
+                     ID           => UUID,
+                     Reception_ID => Null_Reception_Identifier);
                   if Call_JSON.Get (Field => "application") = "fifo" then
                      Call.Get (Call => UUID).Change_State
                        (New_State => Call.Queued);
                   end if;
                end;
-
+               System_Messages.Error
+                 (Message => "Inserting existing call into" &
+                    "invalid reception due to missing Information!",
+                  Context => Context);
             end loop;
          end if;
       end;

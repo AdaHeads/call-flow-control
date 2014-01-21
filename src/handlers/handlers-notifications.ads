@@ -24,6 +24,8 @@ package Handlers.Notifications is
 
    Package_Name : constant String := "Handlers.Notifications";
 
+   type Object is new AWS.Net.WebSocket.Object with null record;
+
    function Create
      (Socket  : in AWS.Net.Socket_Access;
       Request : in AWS.Status.Data)
@@ -40,5 +42,16 @@ package Handlers.Notifications is
      (Item : in GNATCOLL.JSON.JSON_Value);
    --  Broadcasts JSON to every client connected to the /notifications
    --  WebSocket.
+
+private
+   overriding procedure On_Close
+     (Socket  : in out Object;
+      Message : in     String);
+   --  Is called when a websocket connection is closed.
+
+   overriding procedure On_Open
+     (Socket  : in out Object;
+      Message : in     String);
+   --  Is called when a websocket connection is opened.
 
 end Handlers.Notifications;

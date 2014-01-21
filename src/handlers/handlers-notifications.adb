@@ -18,7 +18,6 @@
 with AWS.Net.WebSocket.Registry;
 
 with Model.User,
-     Model.Token,
      Request_Utilities,
      System_Messages;
 
@@ -26,20 +25,8 @@ package body Handlers.Notifications is
    use Model,
        System_Messages;
 
-   type Object is new AWS.Net.WebSocket.Object with null record;
-
-   overriding procedure On_Close
-     (Socket  : in out Object;
-      Message : in     String);
-   --  Is called when a websocket connection is closed.
-
-   overriding procedure On_Open
-     (Socket  : in out Object;
-      Message : in     String);
-   --  Is called when a websocket connection is opened.
-
    Recipients : constant AWS.Net.WebSocket.Registry.Recipient :=
-                  AWS.Net.WebSocket.Registry.Create (URI => "/notifications");
+     AWS.Net.WebSocket.Registry.Create (URI => "/notifications");
    --  Targets all clients (any Origin) whose URI is /notifications. Basically
    --  the /notifications websocket broadcasts to every connected client.
 
@@ -84,7 +71,6 @@ package body Handlers.Notifications is
 
       Context : constant String := Package_Name  & ".Create";
 
-      User_Token    : Token.Instance;
       Detected_User : User.Instance;
    begin
 
@@ -93,7 +79,7 @@ package body Handlers.Notifications is
          Information
            (Message => "Attempted to create a websocket without being " &
               "logged in.",
-           Context => Context);
+            Context => Context);
 
          raise Not_Authenticated
            with "Attempted to create a websocket without being logged in.";
@@ -106,17 +92,19 @@ package body Handlers.Notifications is
          Information
            (Message => "Attempted to create a websocket without being " &
               "logged in.",
-           Context => Context);
+            Context => Context);
 
          raise Not_Authenticated
            with "Attempted to create a websocket without being logged in.";
       end if;
 
-      Information (Message => "Websocket created.", Context => Context);
+      Debug (Message => "Websocket created for user " &
+               Detected_User.Image & ".",
+             Context => Context);
 
-      return Object'(AWS.Net.WebSocket.Object
-                     (AWS.Net.WebSocket.Create (Socket, Request))
-                     with null record);
+      return Object '(AWS.Net.WebSocket.Object
+                      (AWS.Net.WebSocket.Create (Socket, Request))
+                      with null record);
    end Create;
 
    ----------------

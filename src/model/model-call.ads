@@ -76,8 +76,8 @@ package Model.Call is
    function B_Leg (Obj : in Instance) return Identification;
    function Arrival_Time (Obj : in Instance) return Common.Time;
    function Assigned_To (Obj : in Instance) return Natural;
-   function Organization_ID (Obj : in Instance) return
-     Organization_Identifier;
+   function Reception_ID (Obj : in Instance) return
+     Reception_Identifier;
    --  Accessor methods
 
    procedure Change_State (Obj : in Instance; New_State : in States);
@@ -118,7 +118,7 @@ package Model.Call is
    procedure Create_And_Insert
      (Inbound         : in Boolean;
       ID              : in Identification;
-      Organization_ID : in Organization_Identifier;
+      Reception_ID    : in Reception_Identifier;
       Extension       : in String := "";
       From_Extension  : in String := "");
 
@@ -137,7 +137,7 @@ private
          Locked          : Boolean := False;
          Inbound         : Boolean;
          Extension       : Unbounded_String;
-         Organization_ID : Organization_Identifier := 0;
+         Reception_ID    : Reception_Identifier := Null_Reception_Identifier;
          Assigned_To     : Natural := 0;
          From_Extension  : Unbounded_String;
          B_Leg           : Identification;

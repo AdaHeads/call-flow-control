@@ -32,6 +32,8 @@ package body Handlers.Call is
        View,
        Model;
 
+   Peer_Not_Registered : exception;
+
    --------------
    --  Hangup  --
    --------------
@@ -102,24 +104,40 @@ package body Handlers.Call is
 
       Extension_String  : constant String :=
         Parameters (Request).Get ("extension");
+
+      User              : constant Model.User.Instance :=
+        Request_Utilities.User_Of (Request);
    begin
 
+      if not User.Peer.Registered then
+         raise Peer_Not_Registered;
+      end if;
+
       PBX.Action.Originate
-        (User        => Request_Utilities.User_Of (Request),
+        (User        => User,
          Extension   => Extension_String);
 
       return Response.Templates.OK (Request);
    exception
-      when E : PBX.Action.Error =>
-         System_Messages.Critical_Exception
-           (Event           => E,
-            Message         => "PBX failed to handle request.",
+      when PBX.Action.Error =>
+         System_Messages.Critical
+           (Message         => "PBX failed to handle request.",
             Context => Context);
          return Response.Templates.Server_Error (Request);
-      when E : others =>
+
+      when Peer_Not_Registered =>
+         System_Messages.Error
+           (Message         => "User has no peer registered.",
+            Context => Context);
+         return Response.Templates.Server_Error
+           (Request       => Request,
+            Response_Body => View.Description
+              (Message => "User has no peer registered"));
+
+      when Event : others =>
          System_Messages.Critical_Exception
-           (Event           => E,
-            Message         => "Listing calls failed.",
+           (Event           => Event,
+            Message         => "Unhandled exception.",
             Context => Context);
          return Response.Templates.Server_Error (Request);
 
@@ -136,7 +154,15 @@ package body Handlers.Call is
 
       Call_ID           : Model.Call.Identification renames
         Model.Call.Value (Parameters (Request).Get ("call_id"));
+
+      User              : constant Model.User.Instance :=
+        Request_Utilities.User_Of (Request);
+
    begin
+
+      if not User.Peer.Registered then
+         raise Peer_Not_Registered;
+      end if;
 
       --  Fetch the call from the call list.
       if not Model.Call.Has (ID => Call_ID) then
@@ -178,6 +204,11 @@ package body Handlers.Call is
           renames Request_Utilities.User_Of (Request);
       Assigned_Call     : Model.Call.Instance;
    begin
+
+      if not User.Peer.Registered then
+         raise Peer_Not_Registered;
+      end if;
+
       if Model.Call.List_Empty then
          return Response.Templates.Not_Found (Request);
       end if;
@@ -211,12 +242,20 @@ package body Handlers.Call is
       end if;
 
       exception
-
          when Model.Call.Already_Bridged =>
          return Response.Templates.Bad_Parameters
            (Request       => Request,
             Response_Body => Description
               ("Agent tried to claim call that is already assigned"));
+
+      when Peer_Not_Registered =>
+         System_Messages.Error
+           (Message         => "User has no peer registered.",
+            Context => Context);
+         return Response.Templates.Server_Error
+           (Request       => Request,
+            Response_Body => View.Description
+              (Message => "User has no peer registered"));
 
       when E : others =>
          System_Messages.Critical_Exception
@@ -271,9 +310,7 @@ package body Handlers.Call is
       --  Check valitity of the call. (Will raise exception on invalid).
       Source      := Value (Parameters (Request).Get ("source"));
       Destination := Value (Parameters (Request).Get ("destination"));
-      --        Destination := Agent.Get
-      --          (PBX.Call.Get
-      --             (Source).Assigned_To).Current_Call;
+
       if
         Source      = Null_Identification or
         Destination = Null_Identification

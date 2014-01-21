@@ -53,6 +53,29 @@ package body Model.User.List is
         (Object.User_Map.Find (User_ID), Update'Access);
    end Assign_Call;
 
+   ------------------------
+   --  Assign_Websocket  --
+   ------------------------
+
+   procedure Assign_Websocket
+     (Object    :    out Instance;
+      User_ID   : in     User.Identifications;
+      WebSocket : in     Handlers.Notifications.Object) is
+
+      procedure Update (Key     : in     Model.User.Identifications;
+                        Element : in out Model.User.Instance);
+
+      procedure Update (Key     : in     Model.User.Identifications;
+                        Element : in out Model.User.Instance) is
+         pragma Unreferenced (Key);
+      begin
+         Element.WebSocket := WebSocket;
+      end Update;
+   begin
+      Object.User_Map.Update_Element
+        (Object.User_Map.Find (User_ID), Update'Access);
+   end Assign_Websocket;
+
    -----------
    --  Get  --
    -----------

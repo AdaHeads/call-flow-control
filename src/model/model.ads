@@ -19,6 +19,7 @@ package Model is
 
    type Contact_Identifier is new Natural;
    type Organization_Identifier is new Natural;
+   type Reception_Identifier is new Natural;
 
    subtype Organization_URI is String
      with Dynamic_Predicate => (Organization_URI'Length <= 256);
@@ -34,5 +35,13 @@ package Model is
    type Attribute_Identifier is new Organization_Contact_Identifier;
    --  Identifies a set of contact attributes for the Contact_ID
    --  contact in the context of the Organization_ID organization.
+
+   Null_Organization_Identifier : constant Organization_Identifier;
+   Null_Reception_Identifier    : constant Reception_Identifier;
+
+private
+
+   Null_Organization_Identifier : constant Organization_Identifier := 0;
+   Null_Reception_Identifier    : constant Reception_Identifier    := 0;
 
 end Model;

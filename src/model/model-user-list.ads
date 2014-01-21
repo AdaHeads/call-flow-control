@@ -30,6 +30,11 @@ package Model.User.List is
                           User_ID : in     User.Identifications;
                           Call_ID : in     Call.Identification);
 
+   procedure Assign_Websocket
+     (Object    :    out Instance;
+      User_ID   : in     User.Identifications;
+      WebSocket : in     Handlers.Notifications.Object);
+
    function Get_Singleton return Reference;
    --  Returns the internal singleton object for the server.
    --  An easy ad-hoc way of

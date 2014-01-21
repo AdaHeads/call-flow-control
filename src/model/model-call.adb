@@ -18,6 +18,7 @@
 with Ada.Strings;
 with Ada.Strings.Fixed;
 with View.Call;
+with Model.User.List;
 with Handlers.Notifications;
 with Client_Notification.Call,
      Client_Notification.Queue;
@@ -84,7 +85,7 @@ package body Model.Call is
                Context => Context);
 
             Notification.Broadcast
-              (Client_Notification.Call.Pickup (Get (Obj.ID)).To_JSON);
+              (Client_Notification.Call.Offer_Call (Get (Obj.ID)).To_JSON);
          when Queued =>
             System_Messages.Debug
               ("Call queued: " & Get (Obj.ID).To_JSON.Write,
@@ -131,7 +132,7 @@ package body Model.Call is
    procedure Create_And_Insert
      (Inbound         : in Boolean;
       ID              : in Identification;
-      Organization_ID : in Organization_Identifier;
+      Reception_ID    : in Reception_Identifier;
       Extension       : in String := "";
       From_Extension  : in String := "")
 
@@ -140,7 +141,7 @@ package body Model.Call is
                (ID             => ID,
                 Inbound        => Inbound,
                 State          => Unknown,
-                Organization_ID => Organization_ID,
+                Reception_ID   => Reception_ID,
                 Locked         => <>,
                 Assigned_To     => 1,
                 Extension      => To_Unbounded_String (Extension),
@@ -265,23 +266,13 @@ package body Model.Call is
               State           => States'First,
               Inbound         => False,
               Locked          => True,
-              Organization_ID => <>,
+              Reception_ID    => <>,
               Assigned_To     => <>,
               Extension       => Null_Unbounded_String,
               From_Extension  => Null_Unbounded_String,
               B_Leg           => Null_Identification,
               Arrived         => Common.Null_Time);
    end Null_Instance;
-
-   -----------------------
-   --  Organization_ID  --
-   -----------------------
-
-   function Organization_ID (Obj : in Instance) return
-     Organization_Identifier is
-   begin
-      return Obj.Organization_ID;
-   end Organization_ID;
 
    -------------------
    --  Queue_Count  --
@@ -313,6 +304,16 @@ package body Model.Call is
    begin
       return Call_List.To_JSON (Only_Queued => True);
    end Queued_Calls;
+
+   --------------------
+   --  Reception_ID  --
+   --------------------
+
+   function Reception_ID (Obj : in Instance) return
+     Reception_Identifier is
+   begin
+      return Obj.Reception_ID;
+   end Reception_ID;
 
    --------------
    --  Remove  --

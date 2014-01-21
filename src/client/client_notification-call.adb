@@ -25,6 +25,12 @@ package body Client_Notification.Call is
    --  Header_Name functions  --
    -----------------------------
 
+   function Header_Name (O : in Offer_Call_Event) return String is
+      pragma Unreferenced (O);
+   begin
+      return Call_Offer_Header;
+   end Header_Name;
+
    function Header_Name (O : in Pickup_Event) return String is
       pragma Unreferenced (O);
    begin
@@ -66,6 +72,16 @@ package body Client_Notification.Call is
    begin
       return Originate_Failed_Header;
    end Header_Name;
+
+   ------------------
+   --  Offer_Call  --
+   ------------------
+
+   function Offer_Call
+     (C : in Model.Call.Instance) return Offer_Call_Event is
+   begin
+      return (Instance with Persistent => False, Call => C);
+   end Offer_Call;
 
    ------------------------
    --  Originate_Failed  --
@@ -111,6 +127,19 @@ package body Client_Notification.Call is
    --------------------------
 
    function To_JSON (O : in Hangup_Event) return JSON_Value is
+      Notification_JSON : constant JSON_Value := O.JSON_Root;
+   begin
+      JSON_Append (Notification_JSON, "call", O.Call.To_JSON);
+
+      return Notification_JSON;
+
+   end To_JSON;
+
+   ------------------------------
+   --  To_JSON for Call_Offer  --
+   ------------------------------
+
+   function To_JSON (O : in Offer_Call_Event) return JSON_Value is
       Notification_JSON : constant JSON_Value := O.JSON_Root;
    begin
       JSON_Append (Notification_JSON, "call", O.Call.To_JSON);

@@ -41,6 +41,7 @@ package View is
    OpenID            : constant String := "openid";
    OpenIDs           : constant String := "openids";
    Organization_ID   : constant String := "organization_id";
+   Reception_ID      : constant String := "reception_id";
    Organization_List : constant String := "organization_list";
    Length            : constant String := "length";
    Name              : constant String := "name";

@@ -19,6 +19,16 @@ with Model.Call;
 
 package Client_Notification.Call is
 
+   type Offer_Call_Event is new Client_Notification.Instance
+     (Persistent => False) with
+      record
+         Call     : Model.Call.Instance;
+      end record;
+   function To_JSON (O : in Offer_Call_Event) return JSON_Value;
+   function Header_Name (O : in Offer_Call_Event) return String;
+   function Offer_Call
+     (C : in Model.Call.Instance) return Offer_Call_Event;
+
    type Pickup_Event is new Client_Notification.Instance
      (Persistent => False) with
       record
@@ -89,6 +99,7 @@ package Client_Notification.Call is
                                return Originate_Failed_Event;
 
 private
+   Call_Offer_Header        : constant String := "call_offer";
    Pickup_Header            : constant String := "call_pickup";
    Hangup_Header            : constant String := "call_hangup";
    Park_Header              : constant String := "call_park";

@@ -20,11 +20,12 @@ with Ada.Containers.Vectors;
 with PBX.Magic_Constants;
 with ESL.Packet_Keys;
 with ESL.Client.Tasking;
-with Handlers.Notifications;
 with System_Messages;
 
 package body Model.Call.Observers is
    use ESL.Packet_Keys;
+
+   package Constants renames PBX.Magic_Constants;
 
    type Observer_Reference is access all
      ESL.Observer.Event_Observers.Instance'Class;
@@ -68,10 +69,11 @@ package body Model.Call.Observers is
 
       Inbound : Boolean := True;
 
-      Org_ID  : constant Organization_Identifier :=
-        Organization_Identifier'Value
-          (Packet.Variables.Get (Key => "organization_id"));
-
+      Reception_ID : constant Reception_Identifier :=
+        Reception_Identifier'Value
+          (Packet.Variables.Get
+               (Key     => Constants.Reception_ID,
+                Default => Null_Reception_Identifier'Img));
    begin
       if Direction /= "inbound" then
          System_Messages.Error
@@ -84,7 +86,7 @@ package body Model.Call.Observers is
       Create_And_Insert
         (Inbound         => Inbound,
          ID              => ID,
-         Organization_ID => Org_ID,
+         Reception_ID    => Reception_ID,
          Extension       => Extension,
          From_Extension  => From_Extension);
    end Create_Call;
@@ -107,17 +109,13 @@ package body Model.Call.Observers is
             Context => Context);
    end Hangup_Call;
 
-   package Notification renames Handlers.Notifications;
-
    procedure Notify (Observer : access AdaHeads_Observer;
                      Packet   : in     ESL.Packet.Instance;
                      Client   : in     ESL.Client.Reference) is
-      package Constants renames PBX.Magic_Constants;
       pragma Unreferenced (Observer, Client);
 
       Context : constant String :=
         Package_Name & ".Notify (AdaHeads Subclass Observer)";
-
    begin
       if Packet.Subevent = Constants.Prequeue_Enter then
          Create_Call (From => Packet);
@@ -132,6 +130,12 @@ package body Model.Call.Observers is
       elsif Packet.Subevent = Constants.Parkqueue_Leave then
          Get (Packet.UUID).Change_State (New_State => Transferring);
       end if;
+   exception
+      when Event : others =>
+         System_Messages.Critical_Exception
+           (Message => "Unhandled exception",
+            Event   => Event,
+            Context => Context);
    end Notify;
 
    --------------
@@ -155,6 +159,14 @@ package body Model.Call.Observers is
 
       Call.Link (ID_1 => ID_A,
                  ID_2 => ID_B);
+
+   exception
+      when Event : others =>
+         System_Messages.Critical_Exception
+           (Message => "Unhandled exception",
+            Event   => Event,
+            Context => Context);
+
    end Notify;
 
    --------------------
@@ -176,6 +188,12 @@ package body Model.Call.Observers is
 
       Get (ID).Change_State (New_State => Parked);
 
+   exception
+      when Event : others =>
+         System_Messages.Critical_Exception
+           (Message => "Unhandled exception",
+            Event   => Event,
+            Context => Context);
    end Notify;
 
    --------------
@@ -214,8 +232,7 @@ package body Model.Call.Observers is
       --  Check which application caused the event.
       if Subevent = Constants.FIFO_Info then
          declare
-            ID  : Identification renames
-              Value (Packet.Field (Unique_ID).Value);
+            ID  : Identification renames Packet.UUID;
             Action    : String renames
               Packet.Field (FIFO_Action).Decoded_Value;
             Name : String renames
@@ -348,9 +365,9 @@ package body Model.Call.Observers is
       System_Messages.Information
         (Context => Package_Name,
          Message => "Unregistering observers.");
---        for Item of Observer_List loop
---           Item.Finalize;
---        end loop;
+      --        for Item of Observer_List loop
+      --           Item.Finalize;
+      --        end loop;
       Observer_List.Clear;
    end Unregister_Observers;
 
