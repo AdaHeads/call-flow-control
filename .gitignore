@@ -38,3 +38,7 @@ exe/www/*
 # Ignore acces and error logs
 exe/access.log*
 exe/error.log*
+
+# Added by KRC
+esl_dumps/
+archive/
