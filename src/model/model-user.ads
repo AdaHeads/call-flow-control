@@ -15,12 +15,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers;
-with Ada.Containers.Hashed_Maps;
-with Ada.Strings.Unbounded;
+with Ada.Containers,
+     Ada.Containers.Hashed_Maps,
+     Ada.Strings.Unbounded;
 
-with Model.Call;
-with Model.Peer;
+with Model.Call,
+     Model.Peer;
+
 with Handlers.Notifications;
 
 with GNATCOLL.JSON;
@@ -50,8 +51,8 @@ package Model.User is
 
    type States is (Unknown, Signed_Out, Idle, Paused, Away);
 
-   type Name is new String
-     with Dynamic_Predicate => (Name'Length > 0);
+   type Name is new String;
+--     with Dynamic_Predicate => (Name'Length > 0);
 
    subtype Identities is Unbounded_String;
 

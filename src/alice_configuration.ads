@@ -46,6 +46,7 @@ package Alice_Configuration is
                  User_Backend_Type,
                  User_Map_File,
                  Auth_Server,
+                 Contact_Server,
                  Client_Config_File,
                  Access_Log,
                  Error_Log);
@@ -55,6 +56,8 @@ package Alice_Configuration is
    Default_Values : constant Defaults_Array :=
      (Auth_Server
       => U ("http://auth.adaheads.com"),
+      Contact_Server
+      => U ("http://contacts.adaheads.com"),
       Loglevel
       => U ("Warning"),
       Access_Log

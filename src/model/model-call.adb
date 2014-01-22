@@ -595,16 +595,17 @@ package body Model.Call is
       function To_JSON (Only_Queued : Boolean := False)
                         return GNATCOLL.JSON.JSON_Value is
          use GNATCOLL.JSON;
+         use Call_Storage;
          Value     : JSON_Value := Create_Object;
          JSON_List : JSON_Array;
          Root      : constant JSON_Value := Create_Object;
       begin
-         for Call of List loop
+         for C in List.Iterate loop
             if not Only_Queued then
-               Value := Call.To_JSON;
+               Value := Element (C).To_JSON;
                Append (JSON_List, Value);
-            elsif Only_Queued and then Call.State = Queued then
-               Value := Call.To_JSON;
+            elsif Only_Queued and then Element (C).State = Queued then
+               Value := Element (C).To_JSON;
                Append (JSON_List, Value);
             end if;
          end loop;

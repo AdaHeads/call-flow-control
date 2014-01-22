@@ -118,7 +118,8 @@ package body Model.User is
    --------------
 
    function Create (Object  : GNATCOLL.JSON.JSON_Value) return Instance is
-      ID : Model.User.Identifications renames Natural'(Object.Get (ID_String));
+      ID : constant Model.User.Identifications :=
+        Natural'(Object.Get (ID_String));
    begin
       return Create (User_ID => ID,
                      Object  => Object);

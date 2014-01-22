@@ -20,9 +20,10 @@ package Model is
    type Contact_Identifier is new Natural;
    type Organization_Identifier is new Natural;
    type Reception_Identifier is new Natural;
+   type Phone_Identifier is new Natural;
 
-   subtype Organization_URI is String
-     with Dynamic_Predicate => (Organization_URI'Length <= 256);
+   subtype Organization_URI is String;
+--     with Dynamic_Predicate => (Organization_URI'Length <= 256);
 
    type Organization_Contact_Identifier is
       record

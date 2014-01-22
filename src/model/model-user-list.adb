@@ -178,11 +178,12 @@ package body Model.User.List is
    ---------------
 
    function To_JSON (Object : in Instance) return JSON_Value is
+      use User_Storage;
       JSON_List : JSON_Array;
       Root      : constant JSON_Value := Create_Object;
    begin
-      for User of Object.User_Map loop
-         Append (JSON_List, User.To_JSON);
+      for C in Object.User_Map.Iterate loop
+         Append (JSON_List, Element (C).To_JSON);
       end loop;
       Root.Set_Field (User.Users_String, JSON_List);
       return Root;

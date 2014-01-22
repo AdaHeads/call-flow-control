@@ -201,12 +201,16 @@ package body PBX.Action is
                   Call_JSON : JSON_Value renames Get (Arr => Arr, Index => I);
                   UUID      : constant Call.Identification :=
                     ESL.UUID.Create (Call_JSON.Get (Field => "uuid"));
+                  Inbound   : Boolean := True;
                begin
+                  if Call_JSON.Get ("direction") = "inbound" then
+                     Inbound := True;
+                  else
+                     Inbound := True;
+                  end if;
+
                   Call.Create_And_Insert
-                    (Inbound         =>
-                       (if   Call_JSON.Get ("direction") = "inbound"
-                        then True
-                        else False),
+                    (Inbound      => Inbound,
                      ID           => UUID,
                      Reception_ID => Null_Reception_Identifier);
                   if Call_JSON.Get (Field => "application") = "fifo" then

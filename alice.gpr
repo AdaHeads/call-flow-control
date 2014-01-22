@@ -67,7 +67,7 @@ project Alice is
                                               "-gnatVa",
                                               "-Wall",
                                               "-O1",
-                                              "-gnat2012",
+                                              "-gnat2005",
                                               "-g");
 
       end case;

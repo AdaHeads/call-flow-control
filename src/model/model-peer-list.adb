@@ -83,11 +83,12 @@ package body Model.Peer.List is
    end Set_Singleton;
 
    function To_JSON (Object : in Instance) return JSON_Value is
+      use Peer_Storage;
       JSON_List : JSON_Array;
       Root      : constant JSON_Value := Create_Object;
    begin
-      for Peer of Object.Peer_Map loop
-         Append (JSON_List, Peer.To_JSON);
+      for C in Object.Peer_Map.Iterate loop
+         Append (JSON_List, Element (C).To_JSON);
       end loop;
       Root.Set_Field ("peers", JSON_List);
       return Root;
