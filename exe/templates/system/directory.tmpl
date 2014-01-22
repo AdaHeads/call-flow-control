@@ -1,0 +1,169 @@
+@@-----------------------------------------------------------------------------
+@@--                                                                         --
+@@--                               Yolk                                      --
+@@--                                                                         --
+@@--                Copyright (C) 2000-2012, Thomas Løcke                    --
+@@--                                                                         --
+@@-- This is free software;  you can redistribute it and/or modify it        --
+@@-- under terms of the  GNU General Public License  as published by the     --
+@@-- Free Software  Foundation;  either version 3,  or (at your  option) any --
+@@-- later version. This library is distributed in the hope that it will be  --
+@@-- useful, but WITHOUT ANY WARRANTY;  without even the implied warranty of --
+@@-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    --
+@@-- You should have received a copy of the GNU General Public License and   --
+@@-- a copy of the GCC Runtime Library Exception along with this program;    --
+@@-- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see   --
+@@-- <http://www.gnu.org/licenses/>.                                         --
+@@--                                                                         --
+@@-----------------------------------------------------------------------------
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+	<link rel="icon" href="/images/favicon.ico" type="image/x-icon"/>
+        <title>
+            Index of @_URI_@
+        </title>
+        <style type="text/css">
+            html, body, a, img, table, tr, th, td {
+                margin: 0px;
+                padding: 0px;
+            }
+
+            body {
+                height: 100%;
+                width: 100%;
+                margin: 20px 0px;
+                font-family: "DejaVu Sans", Arial, sans-serif;
+                font-size: 14px;
+                background-color: #fffffa;
+            }
+
+            a {
+                color: #000080;
+                background-color: inherit;
+            }
+
+            a:hover {
+                color: #800000;
+                background-color: inherit;
+            }
+
+            table {
+                width: 90%;
+                margin: 0px auto;
+                border: solid 1px #ddd;
+                border-collapse: collapse;
+            }
+
+            caption {
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+
+            thead {
+                border-bottom: solid 1px #ddd;
+            }
+
+            tfoot {
+                border-top: solid 1px #ddd;
+            }
+
+            thead th,
+            tfoot td {
+                padding: 10px;
+            }
+
+            tbody tr:nth-child(even) {
+                background-color: #f4f4f4;
+            }
+
+            tbody td {
+                padding: 3px 10px;
+            }
+
+            caption {
+                font-size: 18px;
+                font-weight: bold;
+            }
+
+            .center {
+                text-align: center;
+            }
+
+            .footer {
+                color: #808080;
+            }
+
+            .right {
+                text-align: right;
+            }
+        </style>
+    </head>
+<body>
+    <table>
+        <caption>
+            Index of @_URI_@
+        </caption>
+        <thead>
+            <tr>
+                <th>
+                    <a href="@_WEB_ESCAPE:EXT_ORDR_@">Type</a>
+                </th>
+                <th>
+                    <a href="@_WEB_ESCAPE:DIR_NAME_ORDR_@">Name</a>
+                </th>
+                <th>
+                    <a href="@_WEB_ESCAPE:DIR_TIME_ORDR_@">Modification time</a>
+                </th>
+                <th>
+                    <a href="@_WEB_ESCAPE:SIZE_ORDR_@">Size</a>
+                </th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <td colspan="4" class="footer">
+                    Powered by <a href="http://12boo.net">Yolk</a>
+                    @@IF@@ @_EXIST:YOLK_VERSION_@
+                        version @_YOLK_VERSION_@
+                    @@END_IF@@
+                    - We stand on the shoulders of the mighty <a href="http://libre.adacore.com/libre/tools/aws">Ada Web Server (AWS)</a>.
+                </td>
+            </tr>
+        </tfoot>
+        <tbody>
+            @@TABLE@@
+                @@IF@@ not @_MATCH(^\./):NAME_V_@
+                    <tr>
+                        <td>
+                            @@IF@@ @_IS_DIR_V_@
+                                @@IF@@ @_MATCH(^\.\./):NAME_V_@
+                                    <a href="@_NAME_V_@">Go up</a>
+                                @@ELSE@@
+                                    <a href="@_NAME_V_@">Dir</a>
+                                @@END_IF@@
+                            @@ELSE@@
+                                <a href="@_NAME_V_@">File</a>
+                            @@END_IF@@
+                        </td>
+                        <td>
+                            @@IF@@ @_IS_DIR_V_@
+                                <a href="@_NAME_V_@">@_NAME_V_@</a>
+                            @@ELSE@@
+                                <a href="@_URI_@@_NAME_V_@">@_NAME_V_@</a>
+                            @@END_IF@@
+                        </td>
+                        <td class="center">
+                            @_TIME_V_@
+                        </td>
+                        <td class="right">
+                            @_FORMAT_NUMBER(_):SIZE_V_@
+                        </td>
+                    </tr>
+                @@END_IF@@
+            @@END_TABLE@@
+        </tbody>
+    </table>
+</body>
+</html>
