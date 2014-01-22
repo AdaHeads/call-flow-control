@@ -25,7 +25,6 @@ endif
 
 all:
 	gnatmake -j${PROCESSORS} -P alice
-	$(MAKE) -C db_src sources
 
 debug:
 	BUILDTYPE=Debug gnatmake -j${PROCESSORS} -P alice
