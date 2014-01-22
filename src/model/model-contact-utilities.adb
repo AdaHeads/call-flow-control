@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2013-, AdaHeads K/S                     --
+--                     Copyright (C) 2014-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,55 +15,35 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Client;
-with AWS.Messages;
-with AWS.Response;
-with GNATCOLL.JSON;
+with AWS.Client,
+     AWS.Messages,
+     AWS.Response;
 
 with Alice_Configuration,
-     Protocol_Definitions,
-     System_Messages;
+     System_Messages,
+     Util.Image,
+     Protocol_Definitions;
 
-package body Request_Utilities is
-   use AWS.Client,
-       AWS.Messages;
-   use Alice_Configuration;
+package body Model.Contact.Utilities is
+   use Model;
+   use AWS.Messages;
 
-   ----------------
-   --  Token_Of  --
-   ----------------
-
-   function Token_Of (Request : in AWS.Status.Data)
-                      return Model.Token.Instance is
-      use AWS.Status;
-      Token_String  : String renames Parameters (Request).Get ("token");
-   begin
-      return Model.Token.Create (Value => Token_String);
-   end Token_Of;
-
-   ---------------
-   --  User_Of  --
-   ---------------
-
-   function User_Of (Request : in AWS.Status.Data)
-                     return Model.User.Instance is
-      use Model,
+   function Retrieve (Reception : in Reception_Identifier;
+                      Contact   : in Contact_Identifier;
+                      From      : in String) return Instance is
+      use Alice_Configuration,
           Protocol_Definitions;
 
-      Context       : constant String := Package_Name & ".User_Of";
-
-      Request_Token : Token.Instance renames Token_Of (Request => Request);
-      In_JSON       : GNATCOLL.JSON.JSON_Value;
-
-      URL           : constant String :=
-        Config.Get (Auth_Server) &
-        Validate_Path &
-        Token_Parameter &
-        Request_Token.To_String;
-      Response   : AWS.Response.Data;
+      Context  : constant String := Package_Name & ".Retrieve";
+      In_JSON  : GNATCOLL.JSON.JSON_Value;
+      Response : AWS.Response.Data;
+      URL      : constant String := From &
+        Contact_Path    & Separator & Util.Image.Image (Contact) &
+        Reception_Path  & Separator & Util.Image.Image (Reception) &
+        Token_Parameter & Config.Get (Alice_Configuration.Server_Token);
    begin
 
-      Response := AWS.Client.Get (URL => URL);
+      Response := AWS.Client.Get (URL);
 
       System_Messages.Debug
         (Message => URL & " status : HTTP " &
@@ -74,16 +54,16 @@ package body Request_Utilities is
          In_JSON := GNATCOLL.JSON.Read
            (Strm => AWS.Response.Message_Body (Response));
 
-         return Model.User.Create (In_JSON);
+         return Model.Contact.Create_From_JSON (In_JSON);
       else
-         return Model.User.No_User;
+         return Model.Contact.No_Contact;
       end if;
 
    exception
       when others =>
-         System_Messages.Error (Message => "User lookup failed!",
+         System_Messages.Error (Message => "Contact lookup failed!",
                                 Context => Context);
-         return Model.User.No_User;
-   end User_Of;
+         return Model.Contact.No_Contact;
+   end Retrieve;
 
-end Request_Utilities;
+end Model.Contact.Utilities;

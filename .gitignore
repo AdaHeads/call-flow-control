@@ -8,6 +8,7 @@ src/tests/*/b~*.ad[sb]
 # Do not track the .ini and json files in exe/configuration
 exe/configuration/*.ini
 exe/configuration/*.json
+exe/configuration/*.local
 
 # Do not track pid files and the alice executable in exe/
 exe/alice
@@ -33,3 +34,7 @@ test_and_push_to_master
 # www content
 exe/www/*
 !exe/www/.gitignore
+
+# Ignore acces and error logs
+exe/access.log*
+exe/error.log*

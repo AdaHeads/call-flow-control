@@ -49,15 +49,16 @@ package Alice_Configuration is
                  Contact_Server,
                  Client_Config_File,
                  Access_Log,
-                 Error_Log);
+                 Error_Log,
+                 Server_Token);
 
    type Defaults_Array is array (Keys) of Unbounded_String;
 
    Default_Values : constant Defaults_Array :=
      (Auth_Server
-      => U ("http://auth.adaheads.com"),
+      => U ("http://localhost:8080"),
       Contact_Server
-      => U ("http://contacts.adaheads.com"),
+      => U ("http://localhost:9002"),
       Loglevel
       => U ("Warning"),
       Access_Log
@@ -95,7 +96,9 @@ package Alice_Configuration is
       User_Map_File
       => U ("static_json/agent.list"),
       Client_Config_File
-      => U ("configuration/bob_configuration.json"));
+      => U ("configuration/bob_configuration.json"),
+      Server_Token
+      => U ("b3cdbd03cc5ab5ca163b1c13392ae62546868e78ac6dbc1d55168cd1945a0864"));
 
    function PBX_Loglevel return PBX_Loglevels;
 
@@ -111,7 +114,6 @@ package Alice_Configuration is
          "configuration/alice_config.ini"));
 
    procedure Show_Arguments;
-
 
 private
 

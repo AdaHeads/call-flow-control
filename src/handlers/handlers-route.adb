@@ -136,11 +136,12 @@ package body Handlers.Route is
 
       --  Debug handles, disable when in production.
       Register (GET, "/debug/channel/list", Public, Debug.Channel_List'Access);
+      Register (GET, "/debug/contact", Public, Debug.Contact'Access);
       Register (GET, "/debug/peer/list",    Public, Debug.Peer_List'Access);
       Register (GET, "/debug/token/dummy_list", Public,
                 Debug.Dummy_Tokens'Access);
 
-      --  Our notification socket for asynchonous event sent to the clients.
+      --  Our notification socket for asynchonous events sent to the clients.
       AWS.Net.WebSocket.Registry.Register
         (URI     => "/notifications",
          Factory => Notifications.Create'Access);

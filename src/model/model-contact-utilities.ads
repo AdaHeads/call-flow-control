@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2012-, AdaHeads K/S                     --
+--                     Copyright (C) 2014-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,35 +15,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
+private package Model.Contact.Utilities is
 
-private
-package Handlers.Debug is
+   Package_Name : constant String := "Model.Contact.Utilities";
 
-   function Dummy_Response
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Just sends 200 OK, good for outlining.
+   function Retrieve (Reception : in Reception_Identifier;
+                      Contact   : in Contact_Identifier;
+                      From      : in String) return Instance;
+   --  Retrieves a contact object from a remote service.
 
-   function Peer_List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Sends the current peer list to the client
-
-   function Channel_List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Sends the current channel list to the client
-
-   function Contact
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Tests the contact retrieval.
-
-   function Dummy_Tokens
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Sends the current channel list to the client
-
-end Handlers.Debug;
+end Model.Contact.Utilities;

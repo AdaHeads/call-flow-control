@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2012-, AdaHeads K/S                     --
+--                     Copyright (C) 2014-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -16,34 +16,24 @@
 -------------------------------------------------------------------------------
 
 with AWS.Response;
-with AWS.Status;
+
+with Response.Not_Cached;
 
 private
-package Handlers.Debug is
+package Handlers.Information is
 
-   function Dummy_Response
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Just sends 200 OK, good for outlining.
+   function Callback
+     return AWS.Response.Callback;
+   --  Return a callback for the configuration interface.
 
-   function Peer_List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Sends the current peer list to the client
+private
 
-   function Channel_List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Sends the current channel list to the client
+   procedure Generate_Document
+     (Instance : in out Response.Object);
+   --  Add a generated JSON_String to Response_Object.
 
-   function Contact
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Tests the contact retrieval.
+   function JSON_Response is new Response.Not_Cached.Generate_Response
+     (Generate_Document => Generate_Document);
+   --  Generate the AWS.Response.Data that ultimately is delivered to the user.
 
-   function Dummy_Tokens
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Sends the current channel list to the client
-
-end Handlers.Debug;
+end Handlers.Information;

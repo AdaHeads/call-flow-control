@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2012-, AdaHeads K/S                     --
+--                     Copyright (C) 2014-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,35 +15,37 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
+with Ada.Containers.Hashed_Maps;
+private with Ada.Strings.Unbounded;
+
+
+package Model.Reception is
+   use Model;
+
+   type Instance is tagged private;
+
+   function Create (Value : String) return Instance;
+
+   function To_String (Object : Instance) return String;
+
+   function "=" (Left, Right : in Instance) return Boolean;
 
 private
-package Handlers.Debug is
+   use Ada.Strings.Unbounded;
 
-   function Dummy_Response
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Just sends 200 OK, good for outlining.
+   type Instance is tagged
+      record
+         ID : Reception_Identifier;
+      end record;
 
-   function Peer_List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Sends the current peer list to the client
+   function Hash (Object : in Instance) return Ada.Containers.Hash_Type;
 
-   function Channel_List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Sends the current channel list to the client
+   package Reception_Storage is new Ada.Containers.Hashed_Maps
+     (Key_Type        => Instance,
+      Element_Type    => Reception.Instance,
+      Hash            => Hash,
+      Equivalent_Keys => "=");
 
-   function Contact
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Tests the contact retrieval.
+   subtype Reception_Cache is Reception_Storage.Map;
 
-   function Dummy_Tokens
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Sends the current channel list to the client
-
-end Handlers.Debug;
+end Model.Reception;

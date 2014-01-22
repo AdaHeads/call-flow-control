@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2012-, AdaHeads K/S                     --
+--                     Copyright (C) 2014-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,35 +15,41 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
+with Ada.Strings.Fixed;
 
-private
-package Handlers.Debug is
+package body Util.Image is
+   use Ada.Strings;
+   use Ada.Strings.Fixed;
+   use Model;
 
-   function Dummy_Response
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Just sends 200 OK, good for outlining.
+   function Image (Reception_ID : Model.Reception_Identifier) return String is
+   begin
+      return Trim_Left (Reception_Identifier'Image (Reception_ID));
+   end Image;
 
-   function Peer_List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Sends the current peer list to the client
+   function Image (Contact_ID : in Model.Contact_Identifier) return String is
+   begin
+      return Trim_Left (Contact_Identifier'Image (Contact_ID));
+   end Image;
 
-   function Channel_List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Sends the current channel list to the client
+   function Image (Phone_ID : in Model.Phone_Identifier) return String is
+   begin
+      return Trim_Left (Phone_Identifier'Image (Phone_ID));
+   end Image;
 
-   function Contact
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Tests the contact retrieval.
+   function Trim_Both (Item : in String) return String is
+   begin
+      return Trim (Item, Both);
+   end Trim_Both;
 
-   function Dummy_Tokens
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Sends the current channel list to the client
+   function Trim_Left (Item : in String) return String is
+   begin
+      return Trim (Item, Left);
+   end Trim_Left;
 
-end Handlers.Debug;
+   function Trim_Right (Item : in String) return String is
+   begin
+      return Trim (Item, Right);
+   end Trim_Right;
+
+end Util.Image;

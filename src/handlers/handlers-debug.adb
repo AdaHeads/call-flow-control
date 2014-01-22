@@ -19,6 +19,7 @@ with GNATCOLL.JSON;
 
 with Response.Templates,
      View,
+     Model.Contact,
      Model.Token.List,
      Model.Peer.List;
 
@@ -38,6 +39,23 @@ package body Handlers.Debug is
         (Request       => Request,
          Response_Body => Description ("Not implemented"));
    end Channel_List;
+
+   ---------------
+   --  Contact  --
+   ---------------
+
+   function Contact
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data is
+      use GNATCOLL.JSON;
+   begin
+
+      return Response.Templates.Server_Error
+        (Request       => Request,
+         Response_Body => Description
+           (Model.Contact.Fetch (Reception => 1,
+                                 Contact   => 1).Image));
+   end Contact;
 
    ----------------------
    --  Dummy_Response  --
