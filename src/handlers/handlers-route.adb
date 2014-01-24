@@ -22,6 +22,7 @@ with Handlers.Authenticated_Dispatcher,
      System_Messages;
 
 with Handlers.Call,
+     Handlers.Call.Originate,
      Handlers.Configuration,
      Handlers.CORS_Preflight,
      Handlers.Debug,
@@ -120,8 +121,12 @@ package body Handlers.Route is
       --  Call control and information handlers.
       Register (GET,  "/call/list",      Receptionist,  Call.List'Access);
       Register (GET,  "/call/queue",     Receptionist,  Call.Queue'Access);
-      Register (POST, "/call/hangup",    Receptionist,  Call.Hangup'Access);
-      Register (POST, "/call/originate", Receptionist,  Call.Originate'Access);
+      Register (POST, "/call/hangup",    Receptionist, Call.Hangup'Access);
+
+      Register (POST, "/call/originate",
+                Receptionist,
+                Call.Originate.Callback);
+
       Register (POST, "/call/park",      Receptionist,  Call.Park'Access);
       Register (POST, "/call/pickup",    Receptionist,  Call.Pickup'Access);
       Register (POST, "/call/transfer",  Receptionist,  Call.Transfer'Access);

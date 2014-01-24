@@ -17,6 +17,7 @@
 
 with Ada.Strings.Unbounded;
 with Model.Call,
+     Model.Peer,
      Model.User,
      Model.User.List,
      PBX,
@@ -31,8 +32,6 @@ package body Handlers.Call is
        System_Messages,
        View,
        Model;
-
-   Peer_Not_Registered : exception;
 
    --------------
    --  Hangup  --
@@ -91,58 +90,6 @@ package body Handlers.Call is
          return Response.Templates.Server_Error (Request);
    end List;
 
-   -----------------
-   --  Originate  --
-   -----------------
-
-   function Originate (Request : in AWS.Status.Data) return AWS.Response.Data
-   is
-      use Model.Call,
-          Model.User;
-
-      Context           : constant String := Package_Name & ".Originate";
-
-      Extension_String  : constant String :=
-        Parameters (Request).Get ("extension");
-
-      User              : constant Model.User.Instance :=
-        Request_Utilities.User_Of (Request);
-   begin
-
-      if not User.Peer.Registered then
-         raise Peer_Not_Registered;
-      end if;
-
-      PBX.Action.Originate
-        (User        => User,
-         Extension   => Extension_String);
-
-      return Response.Templates.OK (Request);
-   exception
-      when PBX.Action.Error =>
-         System_Messages.Critical
-           (Message         => "PBX failed to handle request.",
-            Context => Context);
-         return Response.Templates.Server_Error (Request);
-
-      when Peer_Not_Registered =>
-         System_Messages.Error
-           (Message         => "User has no peer registered.",
-            Context => Context);
-         return Response.Templates.Server_Error
-           (Request       => Request,
-            Response_Body => View.Description
-              (Message => "User has no peer registered"));
-
-      when Event : others =>
-         System_Messages.Critical_Exception
-           (Event           => Event,
-            Message         => "Unhandled exception.",
-            Context => Context);
-         return Response.Templates.Server_Error (Request);
-
-   end Originate;
-
    ------------
    --  Park  --
    ------------
@@ -155,14 +102,7 @@ package body Handlers.Call is
       Call_ID           : Model.Call.Identification renames
         Model.Call.Value (Parameters (Request).Get ("call_id"));
 
-      User              : constant Model.User.Instance :=
-        Request_Utilities.User_Of (Request);
-
    begin
-
-      if not User.Peer.Registered then
-         raise Peer_Not_Registered;
-      end if;
 
       --  Fetch the call from the call list.
       if not Model.Call.Has (ID => Call_ID) then
@@ -200,14 +140,12 @@ package body Handlers.Call is
 
       Call_ID_String    : String renames
         Parameters (Request).Get (Name => "call_id");
+      Call_ID          : constant Model.Call.Identification :=
+        Model.Call.Value (Call_ID_String);
       User              : Model.User.Instance
           renames Request_Utilities.User_Of (Request);
       Assigned_Call     : Model.Call.Instance;
    begin
-
-      if not User.Peer.Registered then
-         raise Peer_Not_Registered;
-      end if;
 
       if Model.Call.List_Empty then
          return Response.Templates.Not_Found (Request);
@@ -223,9 +161,15 @@ package body Handlers.Call is
             Response_Body => Description ("User has no peer unavailable"));
       else
 
+         System_Messages.Debug
+           (Message => "Assigning call " &
+              Model.Call.Get (Call => Call_ID).To_JSON.Write &
+              " to user id" &
+              User.To_JSON.Write,
+            Context => Context);
+
          if Call_ID_String /= "" then
-            Assigned_Call := Model.Call.Get
-              (Call => Model.Call.Value (Call_ID_String));
+            Assigned_Call := Model.Call.Get (Call => Call_ID);
          else
             Assigned_Call := Model.Call.Highest_Prioirity;
          end if;
@@ -248,7 +192,7 @@ package body Handlers.Call is
             Response_Body => Description
               ("Agent tried to claim call that is already assigned"));
 
-      when Peer_Not_Registered =>
+      when Model.Peer.Peer_Not_Registered =>
          System_Messages.Error
            (Message         => "User has no peer registered.",
             Context => Context);

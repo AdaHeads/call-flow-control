@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2012-, AdaHeads K/S                     --
+--                     Copyright (C) 2014-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -16,43 +16,13 @@
 -------------------------------------------------------------------------------
 
 with AWS.Response;
-with AWS.Status;
+
+package Handlers.Call.Originate is
+
+   function Callback return AWS.Response.Callback;
 
 private
-package Handlers.Call is
+   function Generate_Response (Request : AWS.Status.Data)
+                               return AWS.Response.Data;
 
-   Package_Name : constant String := "Handlers.Call";
-
-   function Transfer
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Bridges two calls in the PBX
-
-   function Hangup
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  End a call in progress, regardless of state
-
-   function Park
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Put current call on hold. Return No Content if there is no call
-   --  to be put on hold.
-
-   function Pickup
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Pickup either the oldest call in the queue, or the call identified by
-   --  the call_id GET parameter.
-
-   function List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Returns the full call list, regardless of state.
-
-   function Queue
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Return the current list of calls queued.
-
-end Handlers.Call;
+end Handlers.Call.Originate;
