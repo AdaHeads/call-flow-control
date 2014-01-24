@@ -56,9 +56,8 @@ package body Request_Utilities is
       In_JSON       : GNATCOLL.JSON.JSON_Value;
 
       URL           : constant String :=
-        Config.Get (Auth_Server) &
-        Validate_Path &
-        Token_Parameter &
+        Config.Get (Auth_Server) & Separator &
+        Token_Path & Separator &
         Request_Token.To_String;
       Response   : AWS.Response.Data;
    begin
@@ -81,7 +80,8 @@ package body Request_Utilities is
 
    exception
       when others =>
-         System_Messages.Error (Message => "User lookup failed!",
+         System_Messages.Error (Message => "User lookup failed! on URL " &
+                                  URL,
                                 Context => Context);
          return Model.User.No_User;
    end User_Of;
