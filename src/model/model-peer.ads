@@ -31,6 +31,8 @@ package Model.Peer is
 
    Package_Name : constant String := "Model.Peer";
 
+   Peer_Not_Registered : exception;
+
    Contact_String    : constant String := "contact";
    Expires_String    : constant String := "expires";
    Extension_String  : constant String := "extension";

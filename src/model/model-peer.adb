@@ -50,6 +50,10 @@ package body Model.Peer is
 
    function Get_Identification (Object : in Instance) return String is
    begin
+      if not Object.Registered then
+         raise Peer_Not_Registered;
+      end if;
+
       return Object.Values.Get (Field => Extension_String);
    end Get_Identification;
 

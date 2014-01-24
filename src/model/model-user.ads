@@ -36,6 +36,7 @@ package Model.User is
    User_String       : constant String := "user";
    Name_String       : constant String := "name";
    Peer_String       : constant String := "peer";
+   Extension_String  : constant String := "extension";
    Peer_ID_String    : constant String := Peer_String & "_id";
    Users_String      : constant String := User_String & "s";
    Groups_String     : constant String := "groups";
