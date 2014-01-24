@@ -33,6 +33,10 @@ clean: cleanup_messy_temp_files
 	gnatclean -P alice
 	BUILDTYPE=Debug gnatclean -P alice
 
+git-head: all
+	cp exe/alice exe/alice-${RELEASE}-${GIT_REV}
+	echo alice-${RELEASE}-${GIT_REV} > release.latest
+
 tests: all
 	@make -C db_src
 	@./src/tests/build
