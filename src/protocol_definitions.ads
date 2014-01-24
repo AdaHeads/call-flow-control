@@ -19,6 +19,7 @@ package Protocol_Definitions is
 
    Separator       : constant String := "/";
    Token_Parameter : constant String := "?token=";
+   Token_Path      : constant String := "token";
    Validate_Path   : constant String := Separator & "validate";
    Contact_Path    : constant String := Separator & "contact";
    Reception_Path  : constant String := Separator & "reception";
