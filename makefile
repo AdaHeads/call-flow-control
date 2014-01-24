@@ -19,6 +19,9 @@
 #                                                                             #
 ###############################################################################
 
+RELEASE=`git tag | tail -n1`
+GIT_REV=`git rev-parse --short HEAD`
+
 ifeq ($(PROCESSORS),)
 PROCESSORS=`(test -f /proc/cpuinfo && grep -c ^processor /proc/cpuinfo) || echo 1`
 endif
