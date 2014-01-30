@@ -78,10 +78,10 @@ package Model.Call is
    function Assigned_To (Obj : in Instance) return Natural;
    function Reception_ID (Obj : in Instance) return
      Reception_Identifier;
+   function Greeting_Played (Obj : in Instance) return Boolean;
    --  Accessor methods
 
    procedure Change_State (Obj : in Instance; New_State : in States);
-
    --  Mutator methods.
 
    procedure Link (ID_1, ID_2 : in Identification);
@@ -134,6 +134,7 @@ private
       record
          ID              : Identification;
          State           : States;
+         Greeting_Played : Boolean := False;
          Locked          : Boolean := False;
          Inbound         : Boolean;
          Extension       : Unbounded_String;

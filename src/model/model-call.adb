@@ -18,7 +18,6 @@
 with Ada.Strings;
 with Ada.Strings.Fixed;
 with View.Call;
-with Model.User.List;
 with Handlers.Notifications;
 with Client_Notification.Call,
      Client_Notification.Queue;
@@ -67,6 +66,9 @@ package body Model.Call is
    procedure Change_State (Obj : in Instance; New_State : in States) is
       Context : constant String := Package_Name & ".Change_State";
    begin
+
+      Call_List.Change_State (Obj.ID, New_State);
+
       case New_State is
          when Parked =>
 
@@ -121,8 +123,6 @@ package body Model.Call is
             null;
       end case;
 
-      Call_List.Change_State (Obj.ID, New_State);
-
    end Change_State;
 
    ------------------------
@@ -138,16 +138,17 @@ package body Model.Call is
 
    is
       Call : constant Instance :=
-               (ID             => ID,
-                Inbound        => Inbound,
-                State          => Unknown,
-                Reception_ID   => Reception_ID,
-                Locked         => <>,
+               (ID              => ID,
+                Inbound         => Inbound,
+                State           => Unknown,
+                Reception_ID    => Reception_ID,
+                Greeting_Played => <>,
+                Locked          => <>,
                 Assigned_To     => 1,
-                Extension      => To_Unbounded_String (Extension),
-                From_Extension => To_Unbounded_String (From_Extension),
-                Arrived        => Current_Time,
-                B_Leg          => Null_Identification);
+                Extension       => To_Unbounded_String (Extension),
+                From_Extension  => To_Unbounded_String (From_Extension),
+                Arrived         => Current_Time,
+                B_Leg           => Null_Identification);
    begin
          Call_List.Insert (Item => Call);
          Get (ID).Change_State (New_State => Just_Arrived);
@@ -175,6 +176,11 @@ package body Model.Call is
 
       return Call_List.Get (Call);
    end Get;
+
+   function Greeting_Played (Obj : in Instance) return Boolean is
+   begin
+      return Obj.Greeting_Played;
+   end Greeting_Played;
 
    function Has (ID : Identification) return Boolean is
    begin
@@ -266,6 +272,7 @@ package body Model.Call is
               State           => States'First,
               Inbound         => False,
               Locked          => True,
+              Greeting_Played => <>,
               Reception_ID    => <>,
               Assigned_To     => <>,
               Extension       => Null_Unbounded_String,
@@ -321,6 +328,7 @@ package body Model.Call is
 
    procedure Remove (ID : in Identification) is
       Context : constant String := Package_Name & ".Remove";
+      pragma Unreferenced (Context);
    begin
       Get (ID).Change_State (New_State => Hungup);
    end Remove;
@@ -407,6 +415,11 @@ package body Model.Call is
             pragma Unreferenced (Key);
          begin
             Element.State := New_State;
+
+            if New_State = Queued then
+               Element.Greeting_Played := True;
+            end if;
+
          end Update;
       begin
          Call_List.Update (ID, Update'Access);

@@ -341,7 +341,7 @@ package body PBX.Action is
                                         Field      => Items (I));
                      end loop;
 
-                     Peer := Model.Peer.Create (User_ID => Items (Items'First),
+                     Peer := Model.Peer.Create (Peer_ID => Items (Items'First),
                                                 Values  => Node);
 
                      Peers.Put (New_Peer => Peer);

@@ -69,9 +69,11 @@ package body PBX is
    ---------------
 
    procedure Connect is
+      use ESL.Client;
+
       Next_Reconnect : Ada.Calendar.Time := Clock;
    begin
-      while not Client.Connected loop
+      while Client.State /= Connected loop
          exit when Shutdown;
          delay until Next_Reconnect;
 
@@ -87,7 +89,7 @@ package body PBX is
          end if;
       end loop;
 
-      if Client.Connected then
+      if Client.State = Connected then
          System_Messages.Debug (Message => "Subscribing to all for events",
                                 Context => "PBX.Connect");
          Client.Send (Item => "event plain all");

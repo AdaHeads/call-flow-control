@@ -43,6 +43,7 @@ package body View.Call is
          Value.Set_Field (View.Inbound, Call.Inbound);
          Value.Set_Field (View.Destination, Call.Extension);
          Value.Set_Field (View.Caller_ID, Call.From_Extension);
+         Value.Set_Field (View.Greeting_Played, Call.Greeting_Played);
          Value.Set_Field (View.Reception_ID,
                           Natural (Call.Reception_ID));
          Value.Set_Field (View.Assigned_To_S, Call.Assigned_To);
