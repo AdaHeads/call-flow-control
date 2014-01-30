@@ -21,7 +21,7 @@ with ESL.Observer.Event_Observers;
 
 package Model.Call.Observers is
 
-   Package_Name : constant String := "PBX.Call.Event_Handers";
+   Package_Name : constant String := "Model.Call.Observers";
 
    procedure Register_Observers;
    --  Registers the appropriate observers.
