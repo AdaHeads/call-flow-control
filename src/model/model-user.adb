@@ -68,8 +68,7 @@ package body Model.User is
 
    function Call_URI (Object : in Instance) return String is
    begin
-      return Call_URI_Prefix & Model.Peer.List.Get_Singleton.Get
-        (Identity => Object.Peer).Get_Identification;
+      return Call_URI_Prefix & Image (Object.Peer);
    end Call_URI;
 
    --------------------
