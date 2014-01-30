@@ -41,7 +41,6 @@ git-head: all
 	echo alice-${RELEASE}-${GIT_REV} > release.latest
 
 tests: all
-	@make -C db_src
 	@./src/tests/build
 	@./src/tests/run
 
