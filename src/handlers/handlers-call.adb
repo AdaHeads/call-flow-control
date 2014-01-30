@@ -164,7 +164,7 @@ package body Handlers.Call is
          System_Messages.Debug
            (Message => "Assigning call " &
               Model.Call.Get (Call => Call_ID).To_JSON.Write &
-              " to user id" &
+              " to user " &
               User.To_JSON.Write,
             Context => Context);
 
@@ -175,7 +175,7 @@ package body Handlers.Call is
          end if;
 
          Model.User.List.Get_Singleton.Assign_Call
-           (User_ID => Request_Utilities.User_Of (Request).Identification,
+           (User_ID => User.Identification,
             Call_ID => Assigned_Call.ID);
 
          PBX.Action.Transfer (Assigned_Call.ID, User);

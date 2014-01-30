@@ -151,7 +151,7 @@ package body PBX.Action is
       Transfer_Action : constant ESL.Command.Call_Management.Instance :=
         ESL.Command.Call_Management.UUID_Transfer
           (UUID        => Target,
-           Destination => At_User.Call_URI);
+           Destination => At_User.Peer.Get_Identification);
       Reply : ESL.Reply.Instance;
 
    begin

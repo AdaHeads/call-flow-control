@@ -68,7 +68,6 @@ package body Model.Call is
    begin
 
       Call_List.Change_State (Obj.ID, New_State);
-
       case New_State is
          when Parked =>
 
