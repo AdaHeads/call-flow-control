@@ -20,6 +20,7 @@ with ESL.Client.Tasking,
      ESL.Packet_Keys;
 
 with PBX,
+     PBX.Action,
      PBX.Magic_Constants;
 
 with System_Messages;
@@ -96,15 +97,16 @@ package body Model.Peer.List.Observers is
                      Client   : in     ESL.Client.Reference) is
       use ESL;
 
-      pragma Unreferenced (Observer, Packet, Client);
+      pragma Unreferenced (Observer, Client);
 
       Context   : constant String      :=
         Package_Name & ".Notify (Config reload observer)";
    begin
-      System_Messages.Error
+      System_Messages.Information
         (Context => Context,
-         Message => "Reloading peer state, but no observer " &
-           " is able to respond to it, in fear of deadlocking.");
+         Message => "Reloading peer list in reponse to " &
+           Packet.Event'Img & " event.");
+      PBX.Action.Update_SIP_Peer_List;
    end Notify;
 
    --------------------------

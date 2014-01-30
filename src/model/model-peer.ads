@@ -44,11 +44,13 @@ package Model.Peer is
    --  FreeSWITCH (for instance 1000). This is typically, but not required
    --  to be, an integer.
 
+   function Image (Item : in Identification) return String;
+
    type Instance is tagged private;
 
    function Get_Identification (Object : in Instance) return String;
 
-   function Create (User_ID : Identification;
+   function Create (Peer_ID : Identification;
                     Values  : JSON_Value) return Instance;
    --  Constructor which tries to detect the online status of the peer upon
    --  creation. Could potentially raise a constraint error.
@@ -74,7 +76,7 @@ private
 
    type Instance is tagged
       record
-         User_ID     : Identification := Null_Identification;
+         Peer_ID     : Identification := Null_Identification;
          Values      : JSON_Value     := Create;
          Registered  : Boolean        := False;
          Expiry_Time : Common.Time    := Common.Null_Time;

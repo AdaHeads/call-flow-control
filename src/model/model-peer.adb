@@ -30,7 +30,7 @@ package body Model.Peer is
    --  Create  --
    --------------
 
-   function Create (User_ID : Identification;
+   function Create (Peer_ID : Identification;
                     Values  : JSON_Value) return Instance is
       Is_Registered : Boolean := False;
    begin
@@ -38,7 +38,7 @@ package body Model.Peer is
          Is_Registered := True;
       end if;
 
-      return (User_ID     => User_ID,
+      return (Peer_ID     => Peer_ID,
               Values      => Values,
               Registered  => Is_Registered,
               Expiry_Time => <>);
@@ -54,8 +54,13 @@ package body Model.Peer is
          raise Peer_Not_Registered;
       end if;
 
-      return Object.Values.Get (Field => Extension_String);
+      return Image (Object.Peer_ID);
    end Get_Identification;
+
+   function Image (Item : in Identification) return String is
+   begin
+      return To_String (Item);
+   end Image;
 
    ----------------
    --  Register  --
@@ -94,7 +99,7 @@ package body Model.Peer is
 
       Root.Set_Field (Field_Name => Registered_String,
                       Field      => Object.Registered);
-      Root.Set_Field (Field_Name => To_String (Object.User_ID),
+      Root.Set_Field (Field_Name => Image (Object.Peer_ID),
                       Field      => Object.Values);
       return Root;
    end To_JSON;

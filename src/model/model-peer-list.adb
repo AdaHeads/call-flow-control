@@ -43,7 +43,7 @@ package body Model.Peer.List is
       Context : constant String := Package_Name & ".Put";
 
    begin
-      Object.Peer_Map.Insert (Key      => New_Peer.User_ID,
+      Object.Peer_Map.Insert (Key      => New_Peer.Peer_ID,
                               New_Item => New_Peer);
    exception
       when E : others =>
