@@ -118,7 +118,7 @@ package body Model.Call.Observers is
         Package_Name & ".Notify (AdaHeads Subclass Observer)";
    begin
       if Packet.Subevent = Constants.Prequeue_Enter then
-         Create_Call (From => Packet);
+         Get (Packet.UUID).Change_State (New_State => Dialing);
       elsif Packet.Subevent = Constants.Prequeue_Leave then
          Get (Packet.UUID).Change_State (New_State => Transferring);
          Get (Packet.UUID).Lock;
@@ -194,6 +194,23 @@ package body Model.Call.Observers is
            (Message => "Unhandled exception",
             Event   => Event,
             Context => Context);
+   end Notify;
+
+   --------------
+   --  Create  --
+   --------------
+
+   overriding
+   procedure Notify (Observer : access Create_Observer;
+                     Packet   : in     ESL.Packet.Instance;
+                     Client   : in     ESL.Client.Reference) is
+      pragma Unreferenced (Observer);
+      pragma Unreferenced (Client);
+      Context   : constant String      :=
+        Package_Name & ".Notify (Create_Observer)";
+      pragma Unreferenced (Context);
+   begin
+      Create_Call (From => Packet);
    end Notify;
 
    --------------
@@ -344,16 +361,16 @@ package body Model.Call.Observers is
                Stream => ESL.Packet_Keys.CHANNEL_DESTROY)));
 
       Observer_List.Append
-        (new  Execute_Observer
-           (Observing => ESL.Client.Tasking.Event_Stream
-              (Client => PBX.Client,
-               Stream => ESL.Packet_Keys.CHANNEL_EXECUTE)));
-
-      Observer_List.Append
         (new  Park_Observer
            (Observing => ESL.Client.Tasking.Event_Stream
               (Client => PBX.Client,
                Stream => ESL.Packet_Keys.CHANNEL_PARK)));
+
+      Observer_List.Append
+        (New_Item => new Create_Observer
+           (Observing => ESL.Client.Tasking.Event_Stream
+              (Client => PBX.Client,
+               Stream => ESL.Packet_Keys.CHANNEL_CREATE)));
    end Register_Observers;
 
    ----------------------------

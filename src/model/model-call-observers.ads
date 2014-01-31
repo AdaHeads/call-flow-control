@@ -54,6 +54,13 @@ private
                      Packet   : in     ESL.Packet.Instance;
                      Client   : in     ESL.Client.Reference);
 
+   type Create_Observer is
+     new ESL.Observer.Event_Observers.Instance with null record;
+
+   overriding
+   procedure Notify (Observer : access Create_Observer;
+                     Packet   : in     ESL.Packet.Instance;
+                     Client   : in     ESL.Client.Reference);
    type Custom_Observer is
      new ESL.Observer.Event_Observers.Instance with null record;
 
