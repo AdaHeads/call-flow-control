@@ -26,11 +26,19 @@ package body Model.Contact is
    use Model;
    use Protocol_Definitions;
 
+   -----------
+   --  "="  --
+   -----------
+
    function "=" (Left, Right : in Instance) return Boolean is
    begin
       return Left.Reception_ID = Right.Reception_ID
         and  Left.Contact_ID   = Right.Contact_ID;
    end "=";
+
+   ------------------------
+   --  Create_From_JSON  --
+   ------------------------
 
    function Create_From_JSON (JSON : in JSON_Array) return Phone_List is
    begin
@@ -46,6 +54,10 @@ package body Model.Contact is
       end return;
    end Create_From_JSON;
 
+   ------------------------
+   --  Create_From_JSON  --
+   ------------------------
+
    function Create_From_JSON (JSON : in JSON_Value) return Instance is
    begin
       return (Contact_ID => Contact_Identifier
@@ -56,6 +68,10 @@ package body Model.Contact is
                 (Field => Telephone_Numbers_Key)));
    end Create_From_JSON;
 
+   --------------------
+   --  Extension_Of  --
+   --------------------
+
    function Extension_Of (Object : Instance;
                           Phone  : Phone_Identifier) return String is
    begin
@@ -65,6 +81,10 @@ package body Model.Contact is
          return Null_Extension;
    end Extension_Of;
 
+   -------------
+   --  Fetch  --
+   -------------
+
    function Fetch (Reception : in Reception_Identifier;
                    Contact   : in Contact_Identifier) return Instance is
    begin
@@ -73,6 +93,10 @@ package body Model.Contact is
             Contact   => Contact,
             From      => Config.Get (Key => Contact_Server));
    end Fetch;
+
+   -------------
+   --  Image  --
+   -------------
 
    function Image (Phones : Phone_List) return String is
       use Phones_Storage;
@@ -87,6 +111,10 @@ package body Model.Contact is
 
       return To_String (Buffer);
    end Image;
+
+   -------------
+   --  Image  --
+   -------------
 
    function Image (Object : Instance) return String is
       use Ada.Strings.Fixed;
