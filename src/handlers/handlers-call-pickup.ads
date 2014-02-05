@@ -15,21 +15,24 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  Originates a new outbound call. This resource takes parameters
+--  Reponse handler for transferring a current call (channel) to another
+--  extension. This is, in our case, used to redirect active inbound calls
+--  to local peers (users) - or more correctly, picking them up.
 --
+--  Pickup either the oldest call in the queue, or the call identified by
+--  the call_id GET parameter.
 --
---  Parameters: Context and either phone_id or arbitrary extension.
+--  Parameters: call_id
 --  Returns: HTTP 404 Not found and a JSON body if the call is not present.
 --           HTTP 200 OK and a JSON body otherwise.
---
---  Where context Context refers to contact_id@reception_id
+
 
 with AWS.Response,
      AWS.Status;
 
-package Handlers.Call.Originate is
+package Handlers.Call.Pickup is
 
-   Package_Name : constant String := "Handlers.Call.Originate";
+   Package_Name : constant String := "Handlers.Call.Pickup";
 
    function Callback return AWS.Response.Callback;
 
@@ -37,6 +40,4 @@ private
    function Generate_Response (Request : AWS.Status.Data)
                                return AWS.Response.Data;
 
-   Extension_String : constant String := "extension";
-   Context_String   : constant String := "context";
-end Handlers.Call.Originate;
+end Handlers.Call.Pickup;

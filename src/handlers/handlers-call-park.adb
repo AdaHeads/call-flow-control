@@ -15,19 +15,16 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Model.User,
-     Model.Peer,
+with Model.Call,
      PBX,
      PBX.Action,
      Request_Utilities,
      Response.Templates,
-     System_Messages,
-     View;
+     System_Messages;
 
-package body Handlers.Call.Originate is
+package body Handlers.Call.Park is
    use AWS.Status,
        System_Messages,
-       View,
        Model;
 
    ----------------
@@ -43,50 +40,35 @@ package body Handlers.Call.Originate is
    --  Generate_Response  --
    -------------------------
 
-   function Generate_Response
-     (Request : in AWS.Status.Data) return AWS.Response.Data is
-      use Model.User;
-
+   function Generate_Response (Request : in AWS.Status.Data)
+                               return AWS.Response.Data is
       Context : constant String := Package_Name & ".Generate_Response";
 
-      Extension_Param : constant String :=
-        Parameters (Request).Get (Extension_String);
+      Call_ID           : Model.Call.Identification renames
+        Model.Call.Value (Parameters (Request).Get (Call_ID_String));
 
-      User              : constant Model.User.Instance :=
-        Request_Utilities.User_Of (Request);
    begin
 
-      if not User.Peer.Registered then
-         raise Model.Peer.Peer_Not_Registered;
+      --  Fetch the call from the call list.
+      if not Model.Call.Has (ID => Call_ID) then
+         return Response.Templates.Not_Found (Request);
+      else
+
+         PBX.Action.Park (Target  => Call_ID,
+                          At_User => Request_Utilities.User_Of (Request));
+
+         --  And let the user know that everything went according to plan.
+         return Response.Templates.OK (Request);
       end if;
-
-      PBX.Action.Originate
-        (User        => User,
-         Extension   => Extension_Param);
-
-      return Response.Templates.OK (Request);
    exception
-      when PBX.Action.Error =>
-         System_Messages.Critical
-           (Message         => "PBX failed to handle request.",
-            Context => Context);
-         return Response.Templates.Server_Error (Request);
-
-      when Model.Peer.Peer_Not_Registered =>
-         System_Messages.Error
-           (Message         => "User has no peer registered.",
-            Context => Context);
-         return Response.Templates.Server_Error
-           (Request       => Request,
-            Response_Body => View.Description
-              (Message => "User has no peer registered"));
-
-      when Event : others =>
+      when Model.Call.Invalid_ID =>
+         return Response.Templates.Bad_Parameters (Request);
+      when E : others =>
          System_Messages.Critical_Exception
-           (Event           => Event,
-            Message         => "Unhandled exception.",
+           (Event           => E,
+            Message         => "Park action failed.",
             Context => Context);
          return Response.Templates.Server_Error (Request);
-
    end Generate_Response;
-end Handlers.Call.Originate;
+
+end Handlers.Call.Park;

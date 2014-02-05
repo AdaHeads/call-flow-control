@@ -15,44 +15,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
-
-private
-package Handlers.Call is
+private package Handlers.Call is
 
    Package_Name : constant String := "Handlers.Call";
 
-   function Transfer
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Bridges two calls in the PBX
+private
 
-   function Hangup
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  End a call in progress, regardless of state
-
-   function Park
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Put current call on hold. Return No Content if there is no call
-   --  to be put on hold.
-
-   function Pickup
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Pickup either the oldest call in the queue, or the call identified by
-   --  the call_id GET parameter.
-
-   function List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Returns the full call list, regardless of state.
-
-   function Queue
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  Return the current list of calls queued.
+   --  Handler-global string constants.
+   Call_ID_String : constant String := "call_id";
 
 end Handlers.Call;

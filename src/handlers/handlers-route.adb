@@ -21,8 +21,13 @@ with Handlers.Authenticated_Dispatcher,
      Model.User,
      System_Messages;
 
-with Handlers.Call,
+with Handlers.Call.Hangup,
+     Handlers.Call.List,
      Handlers.Call.Originate,
+     Handlers.Call.Park,
+     Handlers.Call.Pickup,
+     Handlers.Call.Queue,
+     Handlers.Call.Transfer,
      Handlers.Configuration,
      Handlers.CORS_Preflight,
      Handlers.Debug,
@@ -119,17 +124,17 @@ package body Handlers.Route is
    --  pragma Style_Checks ("M100"); --  Allow long lines in the routing table
 
       --  Call control and information handlers.
-      Register (GET,  "/call/list",      Receptionist,  Call.List'Access);
-      Register (GET,  "/call/queue",     Receptionist,  Call.Queue'Access);
-      Register (POST, "/call/hangup",    Receptionist, Call.Hangup'Access);
+      Register (GET,  "/call/list",      Receptionist, Call.List.Callback);
+      Register (GET,  "/call/queue",     Receptionist, Call.Queue.Callback);
+      Register (POST, "/call/hangup",    Receptionist, Call.Hangup.Callback);
 
       Register (POST, "/call/originate",
                 Receptionist,
                 Call.Originate.Callback);
 
-      Register (POST, "/call/park",      Receptionist,  Call.Park'Access);
-      Register (POST, "/call/pickup",    Receptionist,  Call.Pickup'Access);
-      Register (POST, "/call/transfer",  Receptionist,  Call.Transfer'Access);
+      Register (POST, "/call/park",     Receptionist, Call.Park.Callback);
+      Register (POST, "/call/pickup",   Receptionist, Call.Pickup.Callback);
+      Register (POST, "/call/transfer", Receptionist, Call.Transfer.Callback);
 
       --  Configuration handler. Only used for basic information
       --  prior to logging in.

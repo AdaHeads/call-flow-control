@@ -15,20 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Model.User,
-     Model.Peer,
-     PBX,
-     PBX.Action,
-     Request_Utilities,
+with Model.Call,
      Response.Templates,
-     System_Messages,
-     View;
+     System_Messages;
 
-package body Handlers.Call.Originate is
-   use AWS.Status,
-       System_Messages,
-       View,
-       Model;
+package body Handlers.Call.Queue is
 
    ----------------
    --  Callback  --
@@ -43,50 +34,21 @@ package body Handlers.Call.Originate is
    --  Generate_Response  --
    -------------------------
 
-   function Generate_Response
-     (Request : in AWS.Status.Data) return AWS.Response.Data is
-      use Model.User;
-
+   function Generate_Response (Request : AWS.Status.Data)
+                               return AWS.Response.Data is
       Context : constant String := Package_Name & ".Generate_Response";
-
-      Extension_Param : constant String :=
-        Parameters (Request).Get (Extension_String);
-
-      User              : constant Model.User.Instance :=
-        Request_Utilities.User_Of (Request);
    begin
-
-      if not User.Peer.Registered then
-         raise Model.Peer.Peer_Not_Registered;
-      end if;
-
-      PBX.Action.Originate
-        (User        => User,
-         Extension   => Extension_Param);
-
-      return Response.Templates.OK (Request);
+      return Response.Templates.OK
+        (Request       => Request,
+         Response_Body => Model.Call.Queued_Calls);
    exception
-      when PBX.Action.Error =>
-         System_Messages.Critical
-           (Message         => "PBX failed to handle request.",
-            Context => Context);
-         return Response.Templates.Server_Error (Request);
-
-      when Model.Peer.Peer_Not_Registered =>
-         System_Messages.Error
-           (Message         => "User has no peer registered.",
-            Context => Context);
-         return Response.Templates.Server_Error
-           (Request       => Request,
-            Response_Body => View.Description
-              (Message => "User has no peer registered"));
-
-      when Event : others =>
+      when E : others =>
          System_Messages.Critical_Exception
-           (Event           => Event,
-            Message         => "Unhandled exception.",
+           (Event           => E,
+            Message         => "Listing queued calls failed.",
             Context => Context);
          return Response.Templates.Server_Error (Request);
 
    end Generate_Response;
-end Handlers.Call.Originate;
+
+end Handlers.Call.Queue;

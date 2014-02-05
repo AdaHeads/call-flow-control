@@ -15,24 +15,18 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Model.User,
-     Model.Peer,
+with Model.Call,
      PBX,
      PBX.Action,
-     Request_Utilities,
      Response.Templates,
      System_Messages,
      View;
 
-package body Handlers.Call.Originate is
+package body Handlers.Call.Transfer is
    use AWS.Status,
        System_Messages,
        View,
        Model;
-
-   ----------------
-   --  Callback  --
-   ----------------
 
    function Callback return AWS.Response.Callback is
    begin
@@ -43,50 +37,59 @@ package body Handlers.Call.Originate is
    --  Generate_Response  --
    -------------------------
 
-   function Generate_Response
-     (Request : in AWS.Status.Data) return AWS.Response.Data is
-      use Model.User;
+   function Generate_Response (Request : in AWS.Status.Data)
+                               return AWS.Response.Data
+   is
+      use Model.Call;
 
       Context : constant String := Package_Name & ".Generate_Response";
 
-      Extension_Param : constant String :=
-        Parameters (Request).Get (Extension_String);
-
-      User              : constant Model.User.Instance :=
-        Request_Utilities.User_Of (Request);
+      Source          : Model.Call.Identification := Null_Identification;
+      Destination     : Model.Call.Identification := Null_Identification;
    begin
+      --  Check valitity of the call. (Will raise exception on invalid).
+      Source      := Value (Parameters (Request).Get (Source_String));
+      Destination := Value (Parameters (Request).Get (Destination_String));
 
-      if not User.Peer.Registered then
-         raise Model.Peer.Peer_Not_Registered;
+      --  Sanity checks.
+      if
+        Source      = Null_Identification or
+        Destination = Null_Identification
+      then
+         raise Model.Call.Invalid_ID;
+      elsif
+        Get (Source).State      = Parked or
+        Get (Destination).State = Parked
+      then
+         System_Messages.Error
+           (Message =>
+              "Potential invalid state detected; trying to bridge a " &
+              "non-parked call in an attended transfer. uuids: (" &
+              Source.Image & ", " & Destination.Image & ")",
+            Context => Context);
       end if;
 
-      PBX.Action.Originate
-        (User        => User,
-         Extension   => Extension_Param);
+      PBX.Action.Bridge (Source      => Source,
+                         Destination => Destination);
 
       return Response.Templates.OK (Request);
    exception
-      when PBX.Action.Error =>
-         System_Messages.Critical
-           (Message         => "PBX failed to handle request.",
-            Context => Context);
-         return Response.Templates.Server_Error (Request);
-
-      when Model.Peer.Peer_Not_Registered =>
-         System_Messages.Error
-           (Message         => "User has no peer registered.",
-            Context => Context);
-         return Response.Templates.Server_Error
+      when Invalid_ID =>
+         return Response.Templates.Bad_Parameters
            (Request       => Request,
-            Response_Body => View.Description
-              (Message => "User has no peer registered"));
+            Response_Body => Description ("Invalid or no call ID supplied"));
 
-      when Event : others =>
+      when Model.Call.Not_Found =>
+         return Response.Templates.Not_Found
+           (Request       => Request,
+            Response_Body => Description ("No call found with ID " &
+                Parameters (Request).Get ("source")));
+
+      when E : others =>
          System_Messages.Critical_Exception
-           (Event           => Event,
-            Message         => "Unhandled exception.",
+           (Event           => E,
+            Message         => "Transfer request failed.",
             Context => Context);
          return Response.Templates.Server_Error (Request);
-
    end Generate_Response;
-end Handlers.Call.Originate;
+end Handlers.Call.Transfer;

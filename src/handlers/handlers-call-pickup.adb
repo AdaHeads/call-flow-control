@@ -15,8 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Model.User,
-     Model.Peer,
+with Ada.Strings.Unbounded,
+     Model.Call,
+     Model.User,
+     Model.User.List,
+     Model.Peer.List,
      PBX,
      PBX.Action,
      Request_Utilities,
@@ -24,15 +27,11 @@ with Model.User,
      System_Messages,
      View;
 
-package body Handlers.Call.Originate is
+package body Handlers.Call.Pickup is
    use AWS.Status,
        System_Messages,
        View,
        Model;
-
-   ----------------
-   --  Callback  --
-   ----------------
 
    function Callback return AWS.Response.Callback is
    begin
@@ -43,34 +42,66 @@ package body Handlers.Call.Originate is
    --  Generate_Response  --
    -------------------------
 
-   function Generate_Response
-     (Request : in AWS.Status.Data) return AWS.Response.Data is
-      use Model.User;
+   function Generate_Response (Request : in AWS.Status.Data)
+                               return AWS.Response.Data
+   is
+      use Ada.Strings.Unbounded;
 
       Context : constant String := Package_Name & ".Generate_Response";
 
-      Extension_Param : constant String :=
-        Parameters (Request).Get (Extension_String);
-
-      User              : constant Model.User.Instance :=
-        Request_Utilities.User_Of (Request);
+      Call_ID_Param    : String renames
+        Parameters (Request).Get (Name => Call_ID_String);
+      Call_ID          : constant Model.Call.Identification :=
+        Model.Call.Value (Call_ID_String);
+      User              : Model.User.Instance
+          renames Request_Utilities.User_Of (Request);
+      Assigned_Call     : Model.Call.Instance;
    begin
 
-      if not User.Peer.Registered then
-         raise Model.Peer.Peer_Not_Registered;
+      if Model.Call.List_Empty then
+         return Response.Templates.Not_Found (Request);
       end if;
 
-      PBX.Action.Originate
-        (User        => User,
-         Extension   => Extension_Param);
-
-      return Response.Templates.OK (Request);
-   exception
-      when PBX.Action.Error =>
-         System_Messages.Critical
-           (Message         => "PBX failed to handle request.",
+      if not User.Peer.Registered then
+         System_Messages.Error
+           (Message => "User has no peer unavailable " & User.Image,
             Context => Context);
-         return Response.Templates.Server_Error (Request);
+
+         return Response.Templates.Not_Found
+           (Request       => Request,
+            Response_Body => Description ("User has no peer unavailable"));
+      else
+
+         System_Messages.Debug
+           (Message => "Assigning call " &
+              Model.Call.Get (Call => Call_ID).To_JSON.Write &
+              " to user " &
+              User.To_JSON.Write,
+            Context => Context);
+
+         if Call_ID_Param /= "" then
+            Assigned_Call := Model.Call.Get (Call => Call_ID);
+         else
+            Assigned_Call := Model.Call.Highest_Prioirity;
+         end if;
+
+         Model.User.List.Get_Singleton.Assign_Call
+           (User_ID => User.Identification,
+            Call_ID => Assigned_Call.ID);
+
+         PBX.Action.Transfer (Assigned_Call.ID, User);
+
+         return Response.Templates.OK
+           (Request       => Request,
+            Response_Body => Assigned_Call.To_JSON);
+      end if;
+
+      exception
+         when Model.Call.Already_Bridged =>
+         return Response.Templates.Bad_Parameters
+           (Request       => Request,
+            Response_Body => Description
+              ("Agent tried to claim call that is already assigned"));
 
       when Model.Peer.Peer_Not_Registered =>
          System_Messages.Error
@@ -81,12 +112,12 @@ package body Handlers.Call.Originate is
             Response_Body => View.Description
               (Message => "User has no peer registered"));
 
-      when Event : others =>
+      when E : others =>
          System_Messages.Critical_Exception
-           (Event           => Event,
-            Message         => "Unhandled exception.",
+           (Event           => E,
+            Message         => "Pickup failed.",
             Context => Context);
          return Response.Templates.Server_Error (Request);
 
    end Generate_Response;
-end Handlers.Call.Originate;
+end Handlers.Call.Pickup;

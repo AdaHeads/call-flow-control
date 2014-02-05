@@ -15,20 +15,15 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Model.User,
-     Model.Peer,
+with Model.Call,
+     Model.User,
      PBX,
      PBX.Action,
      Request_Utilities,
      Response.Templates,
-     System_Messages,
-     View;
+     System_Messages;
 
-package body Handlers.Call.Originate is
-   use AWS.Status,
-       System_Messages,
-       View,
-       Model;
+package body Handlers.Call.Hangup is
 
    ----------------
    --  Callback  --
@@ -43,50 +38,40 @@ package body Handlers.Call.Originate is
    --  Generate_Response  --
    -------------------------
 
-   function Generate_Response
-     (Request : in AWS.Status.Data) return AWS.Response.Data is
+   function Generate_Response (Request : AWS.Status.Data)
+                               return AWS.Response.Data is
       use Model.User;
+      use AWS.Status;
 
       Context : constant String := Package_Name & ".Generate_Response";
 
-      Extension_Param : constant String :=
-        Parameters (Request).Get (Extension_String);
-
-      User              : constant Model.User.Instance :=
-        Request_Utilities.User_Of (Request);
+      Requested_Call_ID : String renames
+        Parameters (Request).Get (Call_ID_String);
    begin
+      --  An Administrator is able to end any call.
+      if Request_Utilities.User_Of (Request).Permissions (Administrator) then
+         PBX.Action.Hangup (ID => Model.Call.Value
+                            (Item => Requested_Call_ID));
+      else
+         --  TODO: Add a way of verifying that the calling user owns the call.
+         PBX.Action.Hangup (ID => Model.Call.Value
+                            (Item => Requested_Call_ID));
 
-      if not User.Peer.Registered then
-         raise Model.Peer.Peer_Not_Registered;
       end if;
 
-      PBX.Action.Originate
-        (User        => User,
-         Extension   => Extension_Param);
-
       return Response.Templates.OK (Request);
+
    exception
-      when PBX.Action.Error =>
-         System_Messages.Critical
-           (Message         => "PBX failed to handle request.",
-            Context => Context);
-         return Response.Templates.Server_Error (Request);
+      when Model.Call.Not_Found =>
+         return Response.Templates.Not_Found (Request);
 
-      when Model.Peer.Peer_Not_Registered =>
-         System_Messages.Error
-           (Message         => "User has no peer registered.",
-            Context => Context);
-         return Response.Templates.Server_Error
-           (Request       => Request,
-            Response_Body => View.Description
-              (Message => "User has no peer registered"));
-
-      when Event : others =>
+      when E : others =>
          System_Messages.Critical_Exception
-           (Event           => Event,
-            Message         => "Unhandled exception.",
+           (Event           => E,
+            Message         => "Hangup request failed for call id: " &
+              Requested_Call_ID,
             Context => Context);
          return Response.Templates.Server_Error (Request);
-
    end Generate_Response;
-end Handlers.Call.Originate;
+
+end Handlers.Call.Hangup;

@@ -15,28 +15,23 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  Originates a new outbound call. This resource takes parameters
+--  Reponse handler for hanging up a call.
+--  This effectively kills the channel, regardless of state.
 --
---
---  Parameters: Context and either phone_id or arbitrary extension.
+--  Parameters: None
 --  Returns: HTTP 404 Not found and a JSON body if the call is not present.
 --           HTTP 200 OK and a JSON body otherwise.
---
---  Where context Context refers to contact_id@reception_id
 
 with AWS.Response,
      AWS.Status;
 
-package Handlers.Call.Originate is
+package Handlers.Call.Hangup is
 
-   Package_Name : constant String := "Handlers.Call.Originate";
+   Package_Name : constant String := "Handlers.Call.Hangup";
 
    function Callback return AWS.Response.Callback;
 
 private
    function Generate_Response (Request : AWS.Status.Data)
                                return AWS.Response.Data;
-
-   Extension_String : constant String := "extension";
-   Context_String   : constant String := "context";
-end Handlers.Call.Originate;
+end Handlers.Call.Hangup;

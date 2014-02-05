@@ -15,21 +15,21 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  Originates a new outbound call. This resource takes parameters
+--  Reponse handler for bridging a current call (active channel) to another
+--  active call. This is used for performing attended transfers.
 --
+--  Typically this handler will bridge an active (as in speaking with a human)
+--  call with a parked call.
 --
---  Parameters: Context and either phone_id or arbitrary extension.
---  Returns: HTTP 404 Not found and a JSON body if the call is not present.
+--  Returns: HTTP 404 Not found and a JSON body any of the calls are not found.
 --           HTTP 200 OK and a JSON body otherwise.
---
---  Where context Context refers to contact_id@reception_id
 
 with AWS.Response,
      AWS.Status;
 
-package Handlers.Call.Originate is
+package Handlers.Call.Transfer is
 
-   Package_Name : constant String := "Handlers.Call.Originate";
+   Package_Name : constant String := "Handlers.Call.Transfer";
 
    function Callback return AWS.Response.Callback;
 
@@ -37,6 +37,7 @@ private
    function Generate_Response (Request : AWS.Status.Data)
                                return AWS.Response.Data;
 
-   Extension_String : constant String := "extension";
-   Context_String   : constant String := "context";
-end Handlers.Call.Originate;
+   Source_String      : constant String := "source";
+   Destination_String : constant String := "destination";
+   --  These are the required parameters.
+end Handlers.Call.Transfer;
