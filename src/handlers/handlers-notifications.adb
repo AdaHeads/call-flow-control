@@ -94,6 +94,8 @@ package body Handlers.Notifications is
               "logged in.",
             Context => Context);
 
+         --  TODO: Shutdown socket.
+
          raise Not_Authenticated
            with "Attempted to create a websocket without being logged in.";
       end if;
