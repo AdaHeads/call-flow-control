@@ -26,7 +26,6 @@
 --  Returns: HTTP 404 Not found and a JSON body if the call is not present.
 --           HTTP 200 OK and a JSON body otherwise.
 
-
 with AWS.Response,
      AWS.Status;
 

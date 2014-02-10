@@ -52,7 +52,7 @@ package body Handlers.Call.Pickup is
       Call_ID_Param    : String renames
         Parameters (Request).Get (Name => Call_ID_String);
       Call_ID          : constant Model.Call.Identification :=
-        Model.Call.Value (Call_ID_String);
+        Model.Call.Value (Call_ID_Param);
       User              : Model.User.Instance
           renames Request_Utilities.User_Of (Request);
       Assigned_Call     : Model.Call.Instance;
@@ -72,18 +72,18 @@ package body Handlers.Call.Pickup is
             Response_Body => Description ("User has no peer unavailable"));
       else
 
-         System_Messages.Debug
-           (Message => "Assigning call " &
-              Model.Call.Get (Call => Call_ID).To_JSON.Write &
-              " to user " &
-              User.To_JSON.Write,
-            Context => Context);
-
          if Call_ID_Param /= "" then
             Assigned_Call := Model.Call.Get (Call => Call_ID);
          else
             Assigned_Call := Model.Call.Highest_Prioirity;
          end if;
+
+         System_Messages.Debug
+           (Message => "Assigning call " &
+              Assigned_Call.To_JSON.Write &
+              " to user " &
+              User.To_JSON.Write,
+            Context => Context);
 
          Model.User.List.Get_Singleton.Assign_Call
            (User_ID => User.Identification,
