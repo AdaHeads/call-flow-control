@@ -55,4 +55,6 @@ package Response.Templates is
    function Server_Error (Response_Body : in JSON_Value := Create_Object)
                           return AWS.Response.Data;
    --  Builds up a 500 Server error object.
+
+private
 end Response.Templates;
