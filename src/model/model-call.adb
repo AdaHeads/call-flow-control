@@ -108,9 +108,7 @@ package body Model.Call is
               ("Call hung up: " & Get (Obj.ID).To_JSON.Write,
                Context => Context);
 
-            Notification.Broadcast
-              (Client_Notification.Call.Hangup (Get (Obj.ID)).To_JSON);
-
+            Call_List.Remove (ID => Obj.ID);
          when Left_Queue =>
             System_Messages.Debug
               ("Call left queue: " & Get (Obj.ID).To_JSON.Write,
@@ -529,7 +527,9 @@ package body Model.Call is
 --              raise Constraint_Error with
 --                "Both agent ID and channel cannot be null";
 --           end if;
-
+         System_Messages.Debug
+           (Message => "Inserted call" & Item.To_JSON.Write,
+            Context => Package_Name & "Call_List.Insert");
          List.Insert (Key      => Item.ID,
                       New_Item => Item);
       exception
