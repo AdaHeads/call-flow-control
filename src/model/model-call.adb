@@ -64,7 +64,8 @@ package body Model.Call is
    --------------------
 
    procedure Change_State (Obj : in Instance; New_State : in States) is
-      Context : constant String := Package_Name & ".Change_State";
+      Context    : constant String := Package_Name & ".Change_State";
+      Last_State : constant States := Get (Obj.ID).State;
    begin
 
       Call_List.Change_State (Obj.ID, New_State);
@@ -98,9 +99,9 @@ package body Model.Call is
 
          when Hungup =>
             --  Assert that the call leaves a queue or a parking lot.
-            if Call_List.Get (Obj.ID).State = Queued then
+            if Last_State = Queued then
                Call_List.Get (Obj.ID).Change_State (New_State => Left_Queue);
-            elsif Call_List.Get (Obj.ID).State = Parked then
+            elsif Last_State = Parked then
                Call_List.Get (Obj.ID).Change_State (New_State => Unparked);
             end if;
 
