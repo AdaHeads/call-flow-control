@@ -196,7 +196,9 @@ package body Response.Templates is
    function Server_Error (Request       : in AWS.Status.Data;
                           Response_Body : in JSON_Value := Create_Object)
                           return AWS.Response.Data is
+      Content : constant JSON_Value := Response_Body;
    begin
+      Content.Set_Field (Status_Text, Server_Error_Reponse_Text);
 
       return Response : AWS.Response.Data do
          Response := AWS.Response.Build
