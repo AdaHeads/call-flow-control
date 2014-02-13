@@ -49,12 +49,8 @@ package body Handlers.Call.Pickup is
 
       Context : constant String := Package_Name & ".Generate_Response";
 
-      Call_ID_Param    : String renames
-        Parameters (Request).Get (Name => Call_ID_String);
-      Call_ID          : constant Model.Call.Identification :=
-        Model.Call.Value (Call_ID_Param);
       User              : Model.User.Instance
-          renames Request_Utilities.User_Of (Request);
+      renames Request_Utilities.User_Of (Request);
       Assigned_Call     : Model.Call.Instance;
    begin
 
@@ -72,8 +68,22 @@ package body Handlers.Call.Pickup is
             Response_Body => Description ("User has no peer unavailable"));
       else
 
-         if Call_ID_Param /= "" then
-            Assigned_Call := Model.Call.Get (Call => Call_ID);
+         if Parameters (Request).Exist (Call_ID_String) then
+            declare
+               Call_ID_Param    : String renames
+                 Parameters (Request).Get (Name => Call_ID_String);
+               Call_ID          : constant Model.Call.Identification :=
+                 Model.Call.Value (Call_ID_Param);
+            begin
+               Assigned_Call := Model.Call.Get (Call => Call_ID);
+            exception
+               when Model.Call.Not_Found =>
+                  return Response.Templates.Not_Found
+                    (Request       => Request,
+                     Response_Body => Description
+                       ("call_id " & Call_ID_Param & " not found."));
+
+            end;
          else
             Assigned_Call := Model.Call.Highest_Prioirity;
          end if;
@@ -96,8 +106,9 @@ package body Handlers.Call.Pickup is
             Response_Body => Assigned_Call.To_JSON);
       end if;
 
-      exception
-         when Model.Call.Already_Bridged =>
+   exception
+
+      when Model.Call.Already_Bridged =>
          return Response.Templates.Bad_Parameters
            (Request       => Request,
             Response_Body => Description
@@ -106,6 +117,15 @@ package body Handlers.Call.Pickup is
       when Model.Peer.Peer_Not_Registered =>
          System_Messages.Error
            (Message         => "User has no peer registered.",
+            Context => Context);
+         return Response.Templates.Server_Error
+           (Request       => Request,
+            Response_Body => View.Description
+              (Message => "User has no peer registered"));
+
+      when Model.Peer.List.Not_Found =>
+         System_Messages.Error
+           (Message         => "No peer to user found in peer cache!",
             Context => Context);
          return Response.Templates.Server_Error
            (Request       => Request,
