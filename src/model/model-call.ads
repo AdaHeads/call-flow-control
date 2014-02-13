@@ -49,7 +49,7 @@ package Model.Call is
 
    type States is
      (Unknown,
-      Just_Arrived,
+      Ringing,
       Created,
       Queued,
       Left_Queue,
@@ -85,11 +85,10 @@ package Model.Call is
    --  Mutator methods.
 
    procedure Link (ID_1, ID_2 : in Identification);
+   procedure Unlink (ID : in Identification);
 
    procedure Lock (Obj : in Instance);
    procedure Unlock (Obj : in Instance);
-
-   procedure Unlink (ID : in Identification);
 
    function List_Empty return Boolean;
    function List return GNATCOLL.JSON.JSON_Value;
@@ -102,8 +101,6 @@ package Model.Call is
    function Has (ID : Identification) return Boolean;
 
    function Highest_Prioirity return Instance;
-
-   procedure Remove (ID : in Identification);
 
    function Queue_Empty return Boolean;
    --  Reveals if there are currently calls available for pickup.

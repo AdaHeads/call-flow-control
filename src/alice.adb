@@ -53,7 +53,6 @@ procedure Alice is
 
 begin
    if Command_Line.Got_Argument ("--help") then
-      --  TODO!
       Alice_Configuration.Show_Arguments;
       Command_Line.Set_Exit_Failure;
       return;

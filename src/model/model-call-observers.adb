@@ -39,8 +39,6 @@ package body Model.Call.Observers is
 
    procedure Create_Call (From : in ESL.Packet.Instance);
 
-   procedure Hangup_Call (From : in ESL.Packet.Instance);
-
    -------------------
    --  Create_Call  --
    -------------------
@@ -76,10 +74,6 @@ package body Model.Call.Observers is
                 Default => Null_Reception_Identifier'Img));
    begin
       if Direction /= "inbound" then
-         System_Messages.Error
-           (Message =>
-              "Got an outbound call where an inbound call was expected!",
-            Context => Context);
          Inbound := False;
       end if;
 
@@ -90,24 +84,6 @@ package body Model.Call.Observers is
          Extension       => Extension,
          From_Extension  => From_Extension);
    end Create_Call;
-
-   -------------------
-   --  Hangup_Call  --
-   -------------------
-
-   procedure Hangup_Call (From : in ESL.Packet.Instance) is
-      Context : constant String :=
-        Package_Name & ".Hangup_Call";
-   begin
-      Call.Remove (ID => From.UUID);
-   exception
-      when Model.Call.Not_Found =>
-         System_Messages.Error
-           (Message => "Tried to hang up non-existing call " &
-              Image (From.UUID) &
-              ". Call list may be inconsistent - consider reloading.",
-            Context => Context);
-   end Hangup_Call;
 
    procedure Notify (Observer : access AdaHeads_Observer;
                      Packet   : in     ESL.Packet.Instance;
@@ -291,8 +267,20 @@ package body Model.Call.Observers is
                      Client   : in     ESL.Client.Reference) is
       pragma Unreferenced (Observer);
       pragma Unreferenced (Client);
+      Context : constant String := Package_Name & ".Notify (Destroy_Observer)";
    begin
-      Hangup_Call (From => Packet);
+      System_Messages.Debug
+        (Message => "Hanging up " & Image (Packet.UUID),
+         Context => Context);
+
+      Get (Call => Packet.UUID).Change_State (New_State => Hungup);
+   exception
+      when Model.Call.Not_Found =>
+         System_Messages.Error
+           (Message => "Tried to hang up non-existing call " &
+              Image (Packet.UUID) &
+              ". Call list may be inconsistent - consider reloading.",
+            Context => Context);
    end Notify;
 
    ---------------
@@ -355,6 +343,12 @@ package body Model.Call.Observers is
                Stream => ESL.Packet_Keys.CHANNEL_HOLD)));
 
       Observer_List.Append
+        (New_Item => new Create_Observer
+           (Observing => ESL.Client.Tasking.Event_Stream
+              (Client => PBX.Client,
+               Stream => ESL.Packet_Keys.CHANNEL_CREATE)));
+
+      Observer_List.Append
         (new  Destroy_Observer
            (Observing => ESL.Client.Tasking.Event_Stream
               (Client => PBX.Client,
@@ -366,11 +360,6 @@ package body Model.Call.Observers is
               (Client => PBX.Client,
                Stream => ESL.Packet_Keys.CHANNEL_PARK)));
 
-      Observer_List.Append
-        (New_Item => new Create_Observer
-           (Observing => ESL.Client.Tasking.Event_Stream
-              (Client => PBX.Client,
-               Stream => ESL.Packet_Keys.CHANNEL_CREATE)));
    end Register_Observers;
 
    ----------------------------

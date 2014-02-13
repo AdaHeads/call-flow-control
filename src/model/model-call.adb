@@ -80,7 +80,7 @@ package body Model.Call is
               (Client_Notification.Call.Park
                  (C => Get (Obj.ID)).To_JSON);
 
-         when Just_Arrived =>
+         when Ringing =>
             System_Messages.Debug
               (Message =>
                "New call arrived: " & Get (Obj.ID).To_JSON.Write,
@@ -110,6 +110,7 @@ package body Model.Call is
                Context => Context);
 
             Call_List.Remove (ID => Obj.ID);
+
          when Left_Queue =>
             System_Messages.Debug
               ("Call left queue: " & Get (Obj.ID).To_JSON.Write,
@@ -148,8 +149,7 @@ package body Model.Call is
                 Arrived         => Current_Time,
                 B_Leg           => Null_Identification);
    begin
-         Call_List.Insert (Item => Call);
-         Get (ID).Change_State (New_State => Just_Arrived);
+      Call_List.Insert (Item => Call);
    end Create_And_Insert;
 
    function Extension (Obj : in Instance) return String is
@@ -319,17 +319,6 @@ package body Model.Call is
    begin
       return Obj.Reception_ID;
    end Reception_ID;
-
-   --------------
-   --  Remove  --
-   --------------
-
-   procedure Remove (ID : in Identification) is
-      Context : constant String := Package_Name & ".Remove";
-      pragma Unreferenced (Context);
-   begin
-      Get (ID).Change_State (New_State => Hungup);
-   end Remove;
 
    -------------
    --  State  --
@@ -505,9 +494,6 @@ package body Model.Call is
 
       function Get (ID : in Identification) return Instance is
       begin
-
-         System_Messages.Debug (Message => "Looking up call " & Image (ID),
-                          Context => "PBX.Call.Get");
          if not List.Contains (ID) then
             raise Not_Found;
          else
@@ -528,11 +514,12 @@ package body Model.Call is
 --              raise Constraint_Error with
 --                "Both agent ID and channel cannot be null";
 --           end if;
-         System_Messages.Debug
-           (Message => "Inserted call" & Item.To_JSON.Write,
-            Context => Package_Name & "Call_List.Insert");
          List.Insert (Key      => Item.ID,
                       New_Item => Item);
+         System_Messages.Debug
+           (Message => "Inserted call" & Item.ID.Image,
+            Context => Package_Name & "Call_List.Insert");
+         pragma Assert (List.Contains (Key => Item.ID));
       exception
          when Constraint_Error =>
             raise Constraint_Error with "ID" & To_String (Item.ID);
@@ -575,10 +562,9 @@ package body Model.Call is
 
       procedure Remove (ID : in Identification) is
       begin
-
-         List.Delete (ID);
+         List.Delete (Key => ID);
       exception
-         when Constraint_Error =>
+         when E : Constraint_Error =>
             raise Not_Found with " call " & To_String (ID);
       end Remove;
 
