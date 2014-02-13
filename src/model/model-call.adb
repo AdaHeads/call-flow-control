@@ -168,8 +168,8 @@ package body Model.Call is
 
    function Get (Call : Identification) return Instance is
    begin
-      if Call = Null_Identification then
-         return Null_Instance;
+      if not Call_List.Contains (Call) then
+         raise Not_Found;
       end if;
 
       return Call_List.Get (Call);
