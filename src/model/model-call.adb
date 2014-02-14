@@ -67,59 +67,68 @@ package body Model.Call is
       Context    : constant String := Package_Name & ".Change_State";
       Last_State : constant States := Get (Obj.ID).State;
    begin
+      System_Messages.Debug
+        (Message => "UUID:" & Obj.ID.Image & "=>" &
+           Last_State'Img & " -> " & New_State'Img,
+         Context => Context);
 
+      --  Update the state to make the call state reflect the actual state.
       Call_List.Change_State (Obj.ID, New_State);
+
+      --  Assert that the call leaves a queue or a parking lot.
+      if Last_State = Queued then
+         Notification.Broadcast
+           (Client_Notification.Queue.Leave (Get (Obj.ID)).To_JSON);
+      elsif Last_State = Parked then
+         Notification.Broadcast
+           (Client_Notification.Call.Unpark (Get (Obj.ID)).To_JSON);
+      end if;
+
       case New_State is
          when Parked =>
-
-            System_Messages.Debug
-              (Message => "Parked call: " & Get (Obj.ID).To_JSON.Write,
-               Context => Context);
-
             Notification.Broadcast
               (Client_Notification.Call.Park
                  (C => Get (Obj.ID)).To_JSON);
 
          when Ringing =>
-            System_Messages.Debug
-              (Message =>
-               "New call arrived: " & Get (Obj.ID).To_JSON.Write,
-               Context => Context);
-
             Notification.Broadcast
               (Client_Notification.Call.Offer_Call (Get (Obj.ID)).To_JSON);
-         when Queued =>
-            System_Messages.Debug
-              ("Call queued: " & Get (Obj.ID).To_JSON.Write,
-               Context => Context);
 
+         when Unparked =>
+            Notification.Broadcast
+              (Client_Notification.Call.Unpark (Get (Obj.ID)).To_JSON);
+
+         when Queued =>
             Notification.Broadcast
               (Client_Notification.Queue.Join
                  (Get (Call => Obj.ID)).To_JSON);
 
          when Hungup =>
-            --  Assert that the call leaves a queue or a parking lot.
-            if Last_State = Queued then
-               Call_List.Get (Obj.ID).Change_State (New_State => Left_Queue);
-            elsif Last_State = Parked then
-               Call_List.Get (Obj.ID).Change_State (New_State => Unparked);
-            end if;
-
-            System_Messages.Debug
-              ("Call hung up: " & Get (Obj.ID).To_JSON.Write,
-               Context => Context);
+            Notification.Broadcast
+              (Client_Notification.Call.Hangup (Get (Obj.ID)).To_JSON);
 
             Call_List.Remove (ID => Obj.ID);
 
-         when Left_Queue =>
-            System_Messages.Debug
-              ("Call left queue: " & Get (Obj.ID).To_JSON.Write,
-               Context => Context);
+         when Speaking =>
+            Notification.Broadcast
+              (Client_Notification.Call.Pickup (Get (Obj.ID)).To_JSON);
 
+         when Left_Queue =>
             Notification.Broadcast
               (Client_Notification.Queue.Leave (Get (Obj.ID)).To_JSON);
-         when others =>
+
+         when Unknown =>
+            System_Messages.Error
+              (Message => "Changing call " &
+                 Obj.ID.Image & " to Unkown state!",
+               Context => Context);
+
+         when Created =>
             null;
+
+         when Transferring =>
+            null;
+
       end case;
 
    end Change_State;
@@ -437,7 +446,7 @@ package body Model.Call is
                            Element : in out Instance) is
             pragma Unreferenced (Key);
          begin
-            Element.State := Transferring;
+            Element.State  := Transferring;
          end Update;
       begin
          Call_List.Update (ID, Update'Access);

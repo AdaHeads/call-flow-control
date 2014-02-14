@@ -94,7 +94,7 @@ package body Model.Call.Observers is
         Package_Name & ".Notify (AdaHeads Subclass Observer)";
    begin
       if Packet.Subevent = Constants.Prequeue_Enter then
-         Get (Packet.UUID).Change_State (New_State => Dialing);
+         Get (Packet.UUID).Change_State (New_State => Ringing);
       elsif Packet.Subevent = Constants.Prequeue_Leave then
          Get (Packet.UUID).Change_State (New_State => Transferring);
          Get (Packet.UUID).Lock;
@@ -135,6 +135,7 @@ package body Model.Call.Observers is
 
       Call.Link (ID_1 => ID_A,
                  ID_2 => ID_B);
+      Get (Packet.UUID).Change_State (New_State => Speaking);
 
    exception
       when Event : others =>

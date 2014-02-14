@@ -54,12 +54,10 @@ package Model.Call is
       Queued,
       Left_Queue,
       Hungup,
-      IVR,
       Transferring,
-      Speaking, Dialing, Delegated, Ended,
+      Speaking,
       Parked,
-      Unparked,
-      Transferred);
+      Unparked);
    --  Valid states for the call.
 
    type Priority_Level is (Invalid, Low, Normal, High);
