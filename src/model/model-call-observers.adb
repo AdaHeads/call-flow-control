@@ -66,12 +66,6 @@ package body Model.Call.Observers is
         Packet.Field (Key => Caller_Destination_Number).Decoded_Value;
 
       Inbound : Boolean := True;
-
-      Reception_ID : constant Reception_Identifier :=
-        Reception_Identifier'Value
-          (Packet.Variables.Get
-               (Key     => Constants.Reception_ID,
-                Default => Null_Reception_Identifier'Img));
    begin
       if Direction /= "inbound" then
          Inbound := False;
@@ -80,7 +74,7 @@ package body Model.Call.Observers is
       Create_And_Insert
         (Inbound         => Inbound,
          ID              => ID,
-         Reception_ID    => Reception_ID,
+         Reception_ID    => Null_Reception_Identifier,
          Extension       => Extension,
          From_Extension  => From_Extension);
    end Create_Call;
@@ -95,6 +89,12 @@ package body Model.Call.Observers is
    begin
       if Packet.Subevent = Constants.Prequeue_Enter then
          Get (Packet.UUID).Change_State (New_State => Ringing);
+--           Get (Packet.UUID).Set_Reception
+--             (Reception_Identifier'Value
+--                (Packet.Variables.Get
+--                 (Key     => Constants.Reception_ID,
+--                  Default => Null_Reception_Identifier'Img)));
+
       elsif Packet.Subevent = Constants.Prequeue_Leave then
          Get (Packet.UUID).Change_State (New_State => Transferring);
          Get (Packet.UUID).Lock;

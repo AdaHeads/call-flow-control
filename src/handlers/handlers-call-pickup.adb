@@ -95,9 +95,9 @@ package body Handlers.Call.Pickup is
               User.To_JSON.Write,
             Context => Context);
 
-         Model.User.List.Get_Singleton.Assign_Call
-           (User_ID => User.Identification,
-            Call_ID => Assigned_Call.ID);
+--           Model.User.List.Get_Singleton.Assign_Call
+--             (User_ID => User.Identification,
+--              Call_ID => Assigned_Call.ID);
 
          PBX.Action.Transfer (Assigned_Call.ID, User);
 

@@ -74,12 +74,14 @@ package Model.Call is
    function B_Leg (Obj : in Instance) return Identification;
    function Arrival_Time (Obj : in Instance) return Common.Time;
    function Assigned_To (Obj : in Instance) return Natural;
-   function Reception_ID (Obj : in Instance) return
-     Reception_Identifier;
+   function Reception_ID (Obj : in Instance) return Reception_Identifier;
    function Greeting_Played (Obj : in Instance) return Boolean;
    --  Accessor methods
 
+   procedure Reception_ID (R_ID : in Reception_Identifier;
+                           Obj  : in Instance);
    procedure Change_State (Obj : in Instance; New_State : in States);
+   procedure Mark_As_Call (Obj : in Instance);
    --  Mutator methods.
 
    procedure Link (ID_1, ID_2 : in Identification);
@@ -129,6 +131,7 @@ private
       record
          ID              : Identification;
          State           : States;
+         Is_Call         : Boolean := False;
          Greeting_Played : Boolean := False;
          Locked          : Boolean := False;
          Inbound         : Boolean;
@@ -153,14 +156,15 @@ private
       function Contains (ID : in Identification) return Boolean;
       procedure Enqueue (ID : in Identification);
       pragma Obsolescent (Enqueue);
-      procedure Dequeue (ID : in Identification);
-      pragma Obsolescent (Dequeue);
+
       function First return Instance;
 
       function Get (ID : in Identification) return Instance;
       procedure Link (ID_1 : in Identification;
                       ID_2 : in Identification);
-      procedure Set_Locked (ID    : in Identification;
+      procedure Set_Call (ID      : in Identification;
+                          Is_Call : in Boolean);
+      procedure Set_Locked (ID     : in Identification;
                             Locked : in Boolean);
       procedure Unlink (ID : in Identification);
       function Queued return Natural;

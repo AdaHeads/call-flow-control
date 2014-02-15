@@ -93,6 +93,7 @@ package body Model.Call is
          when Ringing =>
             Notification.Broadcast
               (Client_Notification.Call.Offer_Call (Get (Obj.ID)).To_JSON);
+            Get (Obj.ID).Mark_As_Call;
 
          when Unparked =>
             Notification.Broadcast
@@ -104,8 +105,10 @@ package body Model.Call is
                  (Get (Call => Obj.ID)).To_JSON);
 
          when Hungup =>
-            Notification.Broadcast
-              (Client_Notification.Call.Hangup (Get (Obj.ID)).To_JSON);
+            if Get (Obj.ID).Is_Call then
+               Notification.Broadcast
+                 (Client_Notification.Call.Hangup (Get (Obj.ID)).To_JSON);
+            end if;
 
             Call_List.Remove (ID => Obj.ID);
 
@@ -130,7 +133,6 @@ package body Model.Call is
             null;
 
       end case;
-
    end Change_State;
 
    ------------------------
@@ -149,6 +151,7 @@ package body Model.Call is
                (ID              => ID,
                 Inbound         => Inbound,
                 State           => Unknown,
+                Is_Call         => False,
                 Reception_ID    => Reception_ID,
                 Greeting_Played => <>,
                 Locked          => <>,
@@ -225,15 +228,6 @@ package body Model.Call is
       Context : constant String := Package_Name & ".Link";
    begin
       Call_List.Link (ID_1, ID_2);
-
-      System_Messages.Debug
-        (Message => Client_Notification.Call.Pickup
-           (Get (ID_1)).To_JSON.Write,
-         Context => Context);
-
-      Notification.Broadcast
-        (Client_Notification.Call.Pickup (Get (ID_1)).To_JSON);
-
    end Link;
 
    ------------
@@ -260,6 +254,16 @@ package body Model.Call is
                             Locked => True);
    end Lock;
 
+   --------------------
+   --  Mark_As_Call  --
+   --------------------
+
+   procedure Mark_As_Call (Obj : in Instance) is
+   begin
+      Call_List.Set_Call (ID     => Obj.ID,
+                          Is_Call => True);
+   end Mark_As_Call;
+
    ---------------------------
    --  Null_Identification  --
    ---------------------------
@@ -278,6 +282,7 @@ package body Model.Call is
       return (ID              => Null_Identification,
               State           => States'First,
               Inbound         => False,
+              Is_Call         => False,
               Locked          => True,
               Greeting_Played => <>,
               Reception_ID    => <>,
@@ -327,6 +332,13 @@ package body Model.Call is
      Reception_Identifier is
    begin
       return Obj.Reception_ID;
+   end Reception_ID;
+
+   procedure Reception_ID (R_ID : in Reception_Identifier;
+                           Obj  : in Instance) is
+   begin
+      null;
+      --Call_List.Set_Reception (Obj.ID, R_ID);
    end Reception_ID;
 
    -------------
@@ -576,6 +588,25 @@ package body Model.Call is
          when E : Constraint_Error =>
             raise Not_Found with " call " & To_String (ID);
       end Remove;
+
+      ----------------
+      --  Set_Call  --
+      ----------------
+
+      procedure Set_Call (ID      : in Identification;
+                          Is_Call : in Boolean) is
+         procedure Set_Is_Call (Key     : in     Identification;
+                           Element : in out Instance);
+
+         procedure Set_Is_Call (Key     : in     Identification;
+                                Element : in out Instance) is
+            pragma Unreferenced (Key);
+         begin
+            Element.Is_Call := Is_Call;
+         end Set_Is_Call;
+      begin
+         Call_List.Update (ID, Set_Is_Call'Access);
+      end Set_Call;
 
       ------------------
       --  Set_Locked  --
