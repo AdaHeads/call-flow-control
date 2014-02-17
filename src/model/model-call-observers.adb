@@ -87,13 +87,14 @@ package body Model.Call.Observers is
       Context : constant String :=
         Package_Name & ".Notify (AdaHeads Subclass Observer)";
    begin
+      System_Messages.Information (Packet.Subevent ,Context);
       if Packet.Subevent = Constants.Prequeue_Enter then
          Get (Packet.UUID).Change_State (New_State => Ringing);
---           Get (Packet.UUID).Set_Reception
---             (Reception_Identifier'Value
---                (Packet.Variables.Get
---                 (Key     => Constants.Reception_ID,
---                  Default => Null_Reception_Identifier'Img)));
+         Get (Packet.UUID).Set_Reception_ID
+           (Reception_Identifier'Value
+              (Packet.Variables.Get
+                 (Key     => Constants.Reception_ID,
+                  Default => Null_Reception_Identifier'Img)));
 
       elsif Packet.Subevent = Constants.Prequeue_Leave then
          Get (Packet.UUID).Change_State (New_State => Transferring);
@@ -101,9 +102,9 @@ package body Model.Call.Observers is
       elsif Packet.Subevent = Constants.Waitqueue_Enter then
          Get (Packet.UUID).Unlock;
          Get (Packet.UUID).Change_State (New_State => Queued);
-      elsif Packet.Subevent = Constants.Parkqueue_Enter then
+      elsif Packet.Subevent = Constants.Parking_Lot_Enter then
          Get (Packet.UUID).Change_State (New_State => Parked);
-      elsif Packet.Subevent = Constants.Parkqueue_Leave then
+      elsif Packet.Subevent = Constants.Parking_Lot_Leave then
          Get (Packet.UUID).Change_State (New_State => Transferring);
       end if;
    exception

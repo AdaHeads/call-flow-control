@@ -51,6 +51,10 @@ package body Handlers.Call.Park is
 
       --  Fetch the call from the call list.
       if not Model.Call.Has (ID => Call_ID) then
+         System_Messages.Debug
+           (Message => "Could not find call " & Call_ID.Image,
+            Context => Context);
+
          return Response.Templates.Not_Found (Request);
       else
 

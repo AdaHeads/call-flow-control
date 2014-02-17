@@ -23,6 +23,8 @@
 
 package Util.Process_Control is
 
+   Package_Name : constant String := "Util.Process_Control";
+
    pragma Unreserve_All_Interrupts;
    --  Make sure that GNAT does not handle SIGINT interrupts automatically.
    --  Check your compiler for reserved signals.

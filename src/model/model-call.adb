@@ -334,12 +334,11 @@ package body Model.Call is
       return Obj.Reception_ID;
    end Reception_ID;
 
-   procedure Reception_ID (R_ID : in Reception_Identifier;
-                           Obj  : in Instance) is
+   procedure Set_Reception_ID (Obj  : in Instance;
+                           R_ID : in Reception_Identifier) is
    begin
-      null;
-      --Call_List.Set_Reception (Obj.ID, R_ID);
-   end Reception_ID;
+      Call_List.Set_Reception (Obj.ID, R_ID);
+   end Set_Reception_ID;
 
    -------------
    --  State  --
@@ -626,6 +625,21 @@ package body Model.Call is
       begin
          Call_List.Update (ID, Set_Lock'Access);
       end Set_Locked;
+
+      procedure Set_Reception (ID   : in Identification;
+                               R_ID : in Reception_Identifier) is
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance);
+
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance) is
+            pragma Unreferenced (Key);
+         begin
+            Element.Reception_ID := R_ID;
+         end Update;
+      begin
+         Call_List.Update (ID, Update'Access);
+      end Set_Reception;
 
       ---------------
       --  To_JSON  --

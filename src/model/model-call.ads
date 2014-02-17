@@ -78,9 +78,12 @@ package Model.Call is
    function Greeting_Played (Obj : in Instance) return Boolean;
    --  Accessor methods
 
-   procedure Reception_ID (R_ID : in Reception_Identifier;
-                           Obj  : in Instance);
-   procedure Change_State (Obj : in Instance; New_State : in States);
+   procedure Set_Reception_ID (Obj  : in Instance;
+                               R_ID : in Reception_Identifier);
+
+   procedure Change_State (Obj  : in Instance;
+                           New_State : in States);
+
    procedure Mark_As_Call (Obj : in Instance);
    --  Mutator methods.
 
@@ -166,6 +169,8 @@ private
                           Is_Call : in Boolean);
       procedure Set_Locked (ID     : in Identification;
                             Locked : in Boolean);
+      procedure Set_Reception (ID   : in Identification;
+                               R_ID : in Reception_Identifier);
       procedure Unlink (ID : in Identification);
       function Queued return Natural;
       procedure Remove (ID : in Identification);
