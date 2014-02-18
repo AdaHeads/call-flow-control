@@ -59,9 +59,6 @@ package body Model.Call.Observers is
       From_Extension : String renames
         Packet.Field (Key => Caller_Caller_ID_Number).Decoded_Value;
 
-      --        Org_ID : Organization_Identifier renames
-      --          Packet.f
-
       Extension : String renames
         Packet.Field (Key => Caller_Destination_Number).Decoded_Value;
 
@@ -79,6 +76,10 @@ package body Model.Call.Observers is
          From_Extension  => From_Extension);
    end Create_Call;
 
+   -------------------------
+   --  AdaHeads observer  --
+   -------------------------
+
    procedure Notify (Observer : access AdaHeads_Observer;
                      Packet   : in     ESL.Packet.Instance;
                      Client   : in     ESL.Client.Reference) is
@@ -89,12 +90,12 @@ package body Model.Call.Observers is
    begin
       System_Messages.Information (Packet.Subevent ,Context);
       if Packet.Subevent = Constants.Prequeue_Enter then
-         Get (Packet.UUID).Change_State (New_State => Ringing);
          Get (Packet.UUID).Set_Reception_ID
            (Reception_Identifier'Value
               (Packet.Variables.Get
                  (Key     => Constants.Reception_ID,
                   Default => Null_Reception_Identifier'Img)));
+         Get (Packet.UUID).Change_State (New_State => Ringing);
 
       elsif Packet.Subevent = Constants.Prequeue_Leave then
          Get (Packet.UUID).Change_State (New_State => Transferring);
