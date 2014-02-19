@@ -88,7 +88,6 @@ package body Model.Call.Observers is
       Context : constant String :=
         Package_Name & ".Notify (AdaHeads Subclass Observer)";
    begin
-      System_Messages.Information (Packet.Subevent ,Context);
       if Packet.Subevent = Constants.Prequeue_Enter then
          Get (Packet.UUID).Set_Reception_ID
            (Reception_Identifier'Value
