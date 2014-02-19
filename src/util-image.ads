@@ -19,9 +19,7 @@ with Model;
 
 package Util.Image is
 
-   function Image (Reception_ID : in Model.Reception_Identifier) return String;
-   function Image (Contact_ID : in Model.Contact_Identifier) return String;
-   function Image (Phone_ID : in Model.Phone_Identifier) return String;
+   function Image (ID : in Model.Identifications) return String;
    --  Image utility shortcuts.
 
    function Trim_Left (Item : in String) return String;

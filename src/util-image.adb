@@ -22,19 +22,9 @@ package body Util.Image is
    use Ada.Strings.Fixed;
    use Model;
 
-   function Image (Reception_ID : Model.Reception_Identifier) return String is
+   function Image (ID : Model.Identifications) return String is
    begin
-      return Trim_Left (Reception_Identifier'Image (Reception_ID));
-   end Image;
-
-   function Image (Contact_ID : in Model.Contact_Identifier) return String is
-   begin
-      return Trim_Left (Contact_Identifier'Image (Contact_ID));
-   end Image;
-
-   function Image (Phone_ID : in Model.Phone_Identifier) return String is
-   begin
-      return Trim_Left (Phone_Identifier'Image (Phone_ID));
+      return Trim_Left (Identifications'Image (ID));
    end Image;
 
    function Trim_Both (Item : in String) return String is

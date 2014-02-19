@@ -17,10 +17,11 @@
 
 package Model is
 
-   type Contact_Identifier is new Natural;
-   type Organization_Identifier is new Natural;
-   type Reception_Identifier is new Natural;
-   type Phone_Identifier is new Natural;
+   subtype Identifications is Natural;
+   subtype Contact_Identifier is Identifications;
+   subtype Organization_Identifier is Identifications;
+   subtype Reception_Identifier is Identifications;
+   subtype Phone_Identifier is Identifications;
 
    subtype Organization_URI is String;
 --     with Dynamic_Predicate => (Organization_URI'Length <= 256);
