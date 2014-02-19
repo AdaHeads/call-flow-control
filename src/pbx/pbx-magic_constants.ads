@@ -44,6 +44,8 @@ package PBX.Magic_Constants is
      Namespace & Separator & "parking-lot-enter";
    Parking_Lot_Leave  : constant String :=
      Namespace & Separator & "parking-lot-leave";
-   Greeting_Played  : constant String :=
+   Outbound_Call      : constant String :=
+     Namespace & Separator & "outbound-call";
+   Greeting_Played    : constant String :=
      Namespace & Separator & "Greeting-Played";
 end PBX.Magic_Constants;

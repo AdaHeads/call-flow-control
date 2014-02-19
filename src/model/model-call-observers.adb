@@ -96,7 +96,11 @@ package body Model.Call.Observers is
                   Default => Null_Reception_Identifier'Img)));
          Get (Packet.UUID).Change_State (New_State => Ringing);
 
-      elsif Packet.Subevent = Constants.Prequeue_Leave then
+      elsif Packet.Subevent = Constants.Outbound_Call then
+         --  TODO: Tag the call with the reception.
+         Get (Packet.UUID).Change_State (New_State => Ringing);
+
+         elsif Packet.Subevent = Constants.Prequeue_Leave then
          Get (Packet.UUID).Change_State (New_State => Transferring);
          Get (Packet.UUID).Lock;
       elsif Packet.Subevent = Constants.Waitqueue_Enter then
