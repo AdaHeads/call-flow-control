@@ -16,6 +16,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Containers.Vectors;
+with Model.Phone;
 with GNATCOLL.JSON;
 private
 with Ada.Strings.Unbounded,
@@ -29,7 +30,7 @@ package Model.Contact is
 
    Contact_ID_Key        : constant String := "contact_id";
    Reception_ID_Key      : constant String := "reception_id";
-   Telephone_Numbers_Key : constant String := "telephonenumbers";
+   Phones_Key            : constant String := "phones";
 
    type Instance is tagged private;
 
@@ -40,8 +41,8 @@ package Model.Contact is
                    Contact   : in Contact_Identifier) return Instance;
    --  Fetches a given contact@reception from a contact service.
 
-   function Extension_Of (Object : Instance;
-                          Phone  : Phone_Identifier) return String;
+   function Extension_Of (Object   : Instance;
+                          Phone_ID : Phone_Identifier) return String;
    --  Returns the specific extension assciated with the Phone_Identifer.
 
    function Image (Object : Instance) return String;
@@ -54,12 +55,8 @@ package Model.Contact is
    No_Contact : constant Instance;
    --  No-object reference.
 
-   Null_Extension : constant String;
-
 private
    use Ada.Strings.Unbounded;
-
-   Null_Extension : constant String := "";
 
    package Phones_Storage is new Ada.Containers.Vectors
      (Index_Type   => Phone_Identifier,
@@ -68,20 +65,16 @@ private
 
    subtype Phone_List is Phones_Storage.Vector;
 
-   function Create_From_JSON (JSON : in JSON_Array) return Phone_List;
-
    type Instance is tagged
       record
          Contact_ID   : Contact_Identifier;
          Reception_ID : Reception_Identifier;
-         Phones       : Phone_List;
+         Phones       : Model.Phone.List;
       end record;
 
    No_Contact : constant Instance :=
      (Contact_ID   => 0,
       Reception_ID => Model.Null_Reception_Identifier,
-      Phones       => Phones_Storage.Empty_Vector);
-
-   function Image (Phones : Phone_List) return String;
+      Phones       => Model.Phone.Phone_Storage.Empty_Vector);
 
 end Model.Contact;

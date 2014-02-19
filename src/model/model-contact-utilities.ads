@@ -21,6 +21,7 @@ private package Model.Contact.Utilities is
 
    function Retrieve (Reception : in Reception_Identifier;
                       Contact   : in Contact_Identifier;
+                      Token     : in String;
                       From      : in String) return Instance;
    --  Retrieves a contact object from a remote service.
 

@@ -15,7 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Model.User,
+with Model.Contact,
+     Model.User,
+     Model.Phone,
      Model.Peer,
      PBX,
      PBX.Action,
@@ -49,23 +51,84 @@ package body Handlers.Call.Originate is
 
       Context : constant String := Package_Name & ".Generate_Response";
 
-      Extension_Param : constant String :=
-        Parameters (Request).Get (Extension_String);
+      Context_Param : constant String :=
+        Parameters (Request).Get (Context_String);
 
       User              : constant Model.User.Instance :=
         Request_Utilities.User_Of (Request);
+
+      Not_Found : exception;
    begin
 
       if not User.Peer.Registered then
          raise Model.Peer.Peer_Not_Registered;
       end if;
 
-      PBX.Action.Originate
-        (User        => User,
-         Extension   => Extension_Param);
+      if Context_Param = "" then
+         return Response.Templates.Bad_Parameters
+              (Request       => Request,
+               Response_Body => Description
+                 ("Invalid context paramteter: " & Context_Param));
+      end if;
+
+      if Parameters (Request).Exist (Extension_String) then
+         declare
+            Extension_Param : constant String :=
+              Parameters (Request).Get (Extension_String);
+         begin
+            System_Messages.Debug
+              (Message => "Originating to arbitrary extension: "
+               & Extension_Param & " in Context " & Context_Param & ".",
+               Context => Context);
+
+            PBX.Action.Originate
+              (User        => User,
+               Extension   => Extension_Param);
+         end;
+      elsif Parameters (Request).Exist (Phone_ID_String) then
+         declare
+            R_ID : Reception_Identifier;
+            C_ID : Contact_Identifier;
+            P_ID_Param : constant String :=
+              Parameters (Request).Get (Phone_ID_String);
+            P_ID : Phone_Identifier;
+         begin
+            R_ID :=  Reception_Identifier'Value ("" & Context_Param (3));
+            C_ID := Contact_Identifier'Value ("" & Context_Param (1));
+            P_ID := Phone_Identifier'Value (P_ID_Param);
+
+            declare
+               Extension : constant String := Model.Contact.Fetch
+                 (Reception => R_ID,
+                  Contact   => C_ID).Extension_Of (Phone_ID => P_ID);
+            begin
+               if Extension = Model.Phone.Null_Extension then
+                  raise Not_Found with "No such extension";
+               end if;
+               PBX.Action.Originate
+                 (User        => User,
+                  Extension   => Extension);
+            end;
+         exception
+            when Not_Found =>
+               return Response.Templates.Not_Found
+                 (Request       => Request,
+                  Response_Body => Description
+                    ("Phone_ID " & P_ID_Param  &
+                       " Not associated with:" & Context_Param));
+
+            when Constraint_Error =>
+               return Response.Templates.Bad_Parameters
+                 (Request       => Request,
+               Response_Body => Description
+                    ("Malformed context: " & Context_Param));
+         end;
+      else
+         raise Constraint_Error with "Bad parameters";
+      end if;
 
       return Response.Templates.OK (Request);
-   exception
+exception
       when PBX.Action.Error =>
          System_Messages.Critical
            (Message         => "PBX failed to handle request.",

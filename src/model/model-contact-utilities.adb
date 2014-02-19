@@ -28,8 +28,13 @@ package body Model.Contact.Utilities is
    use Model;
    use AWS.Messages;
 
+   ----------------
+   --  Retrieve  --
+   ----------------
+
    function Retrieve (Reception : in Reception_Identifier;
                       Contact   : in Contact_Identifier;
+                      Token     : in String;
                       From      : in String) return Instance is
       use Alice_Configuration,
           Protocol_Definitions;
@@ -40,7 +45,7 @@ package body Model.Contact.Utilities is
       URL      : constant String := From &
         Contact_Path    & Separator & Util.Image.Image (Contact) &
         Reception_Path  & Separator & Util.Image.Image (Reception) &
-        Token_Parameter & Config.Get (Alice_Configuration.Server_Token);
+        Token_Parameter & Token;
    begin
 
       Response := AWS.Client.Get (URL);
