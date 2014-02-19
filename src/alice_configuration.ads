@@ -58,7 +58,7 @@ package Alice_Configuration is
      (Auth_Server
       => U ("http://localhost:8080"),
       Contact_Server
-      => U ("http://localhost:9002"),
+      => U ("http://localhost:4010"),
       Loglevel
       => U ("Warning"),
       Access_Log
@@ -98,7 +98,7 @@ package Alice_Configuration is
       Client_Config_File
       => U ("configuration/bob_configuration.json"),
       Server_Token
-      => U ("b3cdbd03cc5ab5ca163b1c13392ae62546868e78ac6dbc1d55168cd1945a0864"));
+      => Ada.Strings.Unbounded.Null_Unbounded_String);
 
    function PBX_Loglevel return PBX_Loglevels;
 
