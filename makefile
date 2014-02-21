@@ -1,6 +1,6 @@
 ###############################################################################
 #                                                                             #
-#                                  Alice                                      #
+#                            Call-Flow-Control                                #
 #                                                                             #
 #                                Make File                                    #
 #                                                                             #
@@ -21,24 +21,25 @@
 
 RELEASE=`git tag | tail -n1`
 GIT_REV=`git rev-parse --short HEAD`
+BINARY=call_flow_control
 
 ifeq ($(PROCESSORS),)
 PROCESSORS=`(test -f /proc/cpuinfo && grep -c ^processor /proc/cpuinfo) || echo 1`
 endif
 
 all:
-	gnatmake -j${PROCESSORS} -P alice
+	gnatmake -j${PROCESSORS} -P ${BINARY}
 
 debug:
-	BUILDTYPE=Debug gnatmake -j${PROCESSORS} -P alice
+	BUILDTYPE=Debug gnatmake -j${PROCESSORS} -P ${BINARY}
 
 clean: cleanup_messy_temp_files
 	gnatclean -P alice
-	BUILDTYPE=Debug gnatclean -P alice
+	BUILDTYPE=Debug gnatclean -P ${BINARY}
 
 git-head: all
-	cp exe/alice exe/alice-${RELEASE}-${GIT_REV}
-	echo alice-${RELEASE}-${GIT_REV} > release.latest
+	cp exe/${BINARY} exe/${BINARY}-${RELEASE}-${GIT_REV}
+	echo ${BINARY}-${RELEASE}-${GIT_REV} > release.latest
 
 tests: all
 	@./src/tests/build

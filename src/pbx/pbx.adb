@@ -22,7 +22,7 @@ with Ada.Calendar;
 with PBX.Action;
 with ESL.Trace;
 
-with Alice_Configuration;
+with Configuration;
 with System_Messages;
 
 with Model.Call.Observers;
@@ -35,7 +35,7 @@ package body PBX is
    use Ada.Strings.Unbounded;
    use Ada.Calendar;
    use System_Messages;
-   use Alice_Configuration;
+   use Configuration;
 
    task type Connect_Task is
       entry Start;

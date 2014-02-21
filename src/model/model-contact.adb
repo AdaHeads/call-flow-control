@@ -16,14 +16,14 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Fixed;
-with Alice_Configuration;
+with Configuration;
 with Protocol_Definitions;
 with System_Messages;
 
 private with Model.Contact.Utilities;
 
 package body Model.Contact is
-   use Alice_Configuration;
+   use Configuration;
    use Model;
    use Protocol_Definitions;
 

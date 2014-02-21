@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                                 Alice                                     --
+--                           Call-Flow-Control                               --
 --                                                                           --
---                           Alice Project File                              --
+--                              Project File                                 --
 --                                                                           --
 --                      Copyright (C) 2012-, AdaHeads K/S                    --
 --                                                                           --
@@ -22,7 +22,7 @@
 with "aws";
 with "esl";
 
-project Alice is
+project Call_Flow_Control is
    type Build_Type is ("Debug", "Production");
    Build : Build_Type := External ("BUILDTYPE", "Production");
 
@@ -30,7 +30,7 @@ project Alice is
    Source_Options := ("src/**");
    for Source_Dirs use Source_Options;
 
-   for Main use ("alice.adb");
+   for Main use ("call_flow_control.adb");
 
    for Exec_Dir use "exe";
 
@@ -72,4 +72,4 @@ project Alice is
 
       end case;
    end Compiler;
-end Alice;
+end Call_Flow_Control;

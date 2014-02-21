@@ -157,8 +157,6 @@ private
       procedure Change_State (ID        : in Identification;
                               New_State : in States);
       function Contains (ID : in Identification) return Boolean;
-      procedure Enqueue (ID : in Identification);
-      pragma Obsolescent (Enqueue);
 
       function First return Instance;
 

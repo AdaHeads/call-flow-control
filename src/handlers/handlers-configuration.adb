@@ -20,7 +20,7 @@ with Ada.Direct_IO;
 
 with GNATCOLL.JSON;
 
-with Alice_Configuration,
+with Configuration,
      Response.Templates;
 
 package body Handlers.Configuration is
@@ -41,10 +41,10 @@ package body Handlers.Configuration is
    function Generate_Response (Request : AWS.Status.Data)
                                return AWS.Response.Data is
       use Ada.Directories;
-      use Alice_Configuration;
+      package CFS renames Configuration;
       use GNATCOLL.JSON;
 
-      File_Name : constant String  := Config.Get (Client_Config_File);
+      File_Name : constant String  := CFS.Config.Get (Client_Config_File);
       File_Size : constant Natural := Natural (Size (File_Name));
 
       subtype JSON_String    is String (1 .. File_Size);

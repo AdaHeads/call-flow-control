@@ -20,7 +20,7 @@ with Common;
 with Util.Config_File_Parser;
 with Util.Command_Line;
 
-package Alice_Configuration is
+package Configuration is
 
    use Ada.Strings.Unbounded;
    use Common;
@@ -136,4 +136,4 @@ private
    PBX_Secret_Usage_String  : constant String :=
      "Override the PBX password from config.";
 
-end Alice_Configuration;
+end Configuration;

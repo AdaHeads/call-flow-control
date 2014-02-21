@@ -18,13 +18,13 @@
 with Ada.Text_IO;
 with Ada.Exceptions;
 
-with Alice_Configuration;
+with Configuration;
 with System_Messages;
 
 package body Model.User.List is
    use Ada.Text_IO;
    use Ada.Containers;
-   use Alice_Configuration;
+   use Configuration;
 
    Users : aliased Instance := (Path         => Config.Get (User_Map_File),
                                 User_Map     => <>,

@@ -28,7 +28,6 @@ with Handlers.Call.Hangup,
      Handlers.Call.Pickup,
      Handlers.Call.Queue,
      Handlers.Call.Transfer,
-     Handlers.Configuration,
      Handlers.CORS_Preflight,
      Handlers.Debug,
      Handlers.Not_Found,
@@ -135,10 +134,6 @@ package body Handlers.Route is
       Register (POST, "/call/park",     Receptionist, Call.Park.Callback);
       Register (POST, "/call/pickup",   Receptionist, Call.Pickup.Callback);
       Register (POST, "/call/transfer", Receptionist, Call.Transfer.Callback);
-
-      --  Configuration handler. Only used for basic information
-      --  prior to logging in.
-      Register (GET,  "/configuration", Public, Configuration.Callback);
 
       --  User related handlers.
       Register (GET,  "/user/list", Administrator, User.List.Callback);

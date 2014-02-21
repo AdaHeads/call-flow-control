@@ -19,8 +19,7 @@ with AWS.Client,
      AWS.Messages,
      AWS.Response;
 
-with Alice_Configuration,
-     System_Messages,
+with System_Messages,
      Util.Image,
      Protocol_Definitions;
 
@@ -36,8 +35,7 @@ package body Model.Contact.Utilities is
                       Contact   : in Contact_Identifier;
                       Token     : in String;
                       From      : in String) return Instance is
-      use Alice_Configuration,
-          Protocol_Definitions;
+      use Protocol_Definitions;
 
       Context  : constant String := Package_Name & ".Retrieve";
       In_JSON  : GNATCOLL.JSON.JSON_Value;

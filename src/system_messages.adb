@@ -18,10 +18,10 @@
 with Ada.Text_IO,
      Ada.Directories;
 
-with Alice_Configuration;
+with Configuration;
 
 package body System_Messages is
-   use Alice_Configuration;
+   use Configuration;
 
    Access_Logfile  : Ada.Text_IO.File_Type;
    Error_Logfile   : Ada.Text_IO.File_Type;

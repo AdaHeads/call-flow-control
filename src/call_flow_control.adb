@@ -25,7 +25,7 @@ with SIGHUP;
 with SIGHUP_Handler;
 with System_Messages;
 with Unexpected_Exception;
-with Alice_Configuration;
+with Configuration;
 
 with Util.Process_Control;
 with Util.Server;
@@ -33,7 +33,7 @@ with Util.Command_Line;
 
 with Model.User.List;
 
-procedure Alice is
+procedure Call_FLow_Control is
    use System_Messages;
    use Util;
    use Build_Constants;
@@ -53,7 +53,7 @@ procedure Alice is
 
 begin
    if Command_Line.Got_Argument ("--help") then
-      Alice_Configuration.Show_Arguments;
+      Configuration.Show_Arguments;
       Command_Line.Set_Exit_Failure;
       return;
    end if;
@@ -86,4 +86,4 @@ exception
          Context => Context);
       Web_Server.Stop;
       PBX.Stop;
-end Alice;
+end Call_FLow_Control;

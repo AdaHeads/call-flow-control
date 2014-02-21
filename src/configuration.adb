@@ -18,7 +18,7 @@
 with Ada.Text_IO;
 with Util.Process_Control;
 
-package body Alice_Configuration is
+package body Configuration is
 
    Current_Loglevel     : Loglevels;
    Current_PBX_Loglevel : PBX_Loglevels;
@@ -109,4 +109,4 @@ exception
       Util.Process_Control.Stop;
       --  At this point, we should perform a graceful shutdown but we need a
       --  mechanism for shutting down the server from here.
-end Alice_Configuration;
+end Configuration;

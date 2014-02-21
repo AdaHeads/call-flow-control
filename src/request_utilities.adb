@@ -20,14 +20,14 @@ with AWS.Messages;
 with AWS.Response;
 with GNATCOLL.JSON;
 
-with Alice_Configuration,
+with Configuration,
      Protocol_Definitions,
      System_Messages;
 
 package body Request_Utilities is
    use AWS.Client,
        AWS.Messages;
-   use Alice_Configuration;
+   use Configuration;
 
    ----------------
    --  Token_Of  --

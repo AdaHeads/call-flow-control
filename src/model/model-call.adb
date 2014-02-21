@@ -480,25 +480,6 @@ package body Model.Call is
          return List.Is_Empty;
       end Empty;
 
-      ---------------
-      --  Enqueue  --
-      ---------------
-
-      procedure Enqueue (ID : in Identification) is
-         procedure Update (Key     : in     Identification;
-                           Element : in out Instance);
-
-         procedure Update (Key     : in     Identification;
-                           Element : in out Instance) is
-            pragma Unreferenced (Key);
-         begin
-            Element.State := Queued;
-         end Update;
-      begin
-         Call_List.Update (ID, Update'Access);
-         Number_Queued := Number_Queued + 1;
-      end Enqueue;
-
       -------------
       --  First  --
       -------------
@@ -526,20 +507,16 @@ package body Model.Call is
       --------------
 
       procedure Insert (Item : Instance) is
-         --  Agent : Model.Agent.Agent_Type := Model.Agent.Null_Agent;
       begin
---           if
---             Item.Assigned_To = Null_Agent_ID and
---           then
---              raise Constraint_Error with
---                "Both agent ID and channel cannot be null";
---           end if;
+         if Item.ID = Null_Identification then
+            raise Constraint_Error;
+         end if;
+
          List.Insert (Key      => Item.ID,
                       New_Item => Item);
          System_Messages.Debug
            (Message => "Inserted call" & Item.ID.Image,
             Context => Package_Name & "Call_List.Insert");
-         pragma Assert (List.Contains (Key => Item.ID));
       exception
          when Constraint_Error =>
             raise Constraint_Error with "ID" & To_String (Item.ID);
