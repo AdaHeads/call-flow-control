@@ -18,7 +18,6 @@
 with Ada.Strings.Unbounded,
      Model.Call,
      Model.User,
-     Model.User.List,
      Model.Peer.List,
      PBX,
      PBX.Action,

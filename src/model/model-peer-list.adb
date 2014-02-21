@@ -73,6 +73,10 @@ package body Model.Peer.List is
       end Update;
 
    begin
+      if not Object.Peer_Map.Contains (Key => Identity) then
+         raise Not_Found with To_String (Identity);
+      end if;
+
       Object.Peer_Map.Update_Element
         (Object.Peer_Map.Find (Identity), Update'Access);
    end Register;

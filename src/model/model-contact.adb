@@ -18,7 +18,7 @@
 with Ada.Strings.Fixed;
 with Configuration;
 with Protocol_Definitions;
-with System_Messages;
+--  with System_Messages;
 
 private with Model.Contact.Utilities;
 

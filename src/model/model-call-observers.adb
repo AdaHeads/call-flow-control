@@ -45,8 +45,8 @@ package body Model.Call.Observers is
 
    procedure Create_Call (From : in ESL.Packet.Instance) is
 
-      Context   : constant String      :=
-        Package_Name & ".Create_Call";
+      --  Context   : constant String      :=
+      --   Package_Name & ".Create_Call";
 
       Packet : ESL.Packet.Instance renames From;
 
@@ -100,7 +100,7 @@ package body Model.Call.Observers is
          --  TODO: Tag the call with the reception.
          Get (Packet.UUID).Change_State (New_State => Ringing);
 
-         elsif Packet.Subevent = Constants.Prequeue_Leave then
+      elsif Packet.Subevent = Constants.Prequeue_Leave then
          Get (Packet.UUID).Change_State (New_State => Transferring);
          Get (Packet.UUID).Lock;
       elsif Packet.Subevent = Constants.Waitqueue_Enter then
