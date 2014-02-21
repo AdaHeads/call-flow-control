@@ -34,7 +34,7 @@ debug:
 	BUILDTYPE=Debug gnatmake -j${PROCESSORS} -P ${BINARY}
 
 clean: cleanup_messy_temp_files
-	gnatclean -P alice
+	gnatclean -P ${BINARY}
 	BUILDTYPE=Debug gnatclean -P ${BINARY}
 
 git-head: all

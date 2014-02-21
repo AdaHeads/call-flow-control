@@ -19,8 +19,7 @@ with Ada.Characters.Handling;
 with Ada.Strings;
 with Ada.Strings.Fixed;
 with Handlers.Notifications;
-with Client_Notification.Call,
-     Client_Notification.Queue;
+with Client_Notification;
 with View,
      System_Messages;
 
@@ -79,47 +78,47 @@ package body Model.Call is
       --  Assert that the call leaves a queue or a parking lot.
       if Last_State = Queued then
          Notification.Broadcast
-           (Client_Notification.Queue.Leave (Get (Obj.ID)).To_JSON);
+           (Client_Notification.Leave (Get (Obj.ID)).To_JSON);
       elsif Last_State = Parked then
          Notification.Broadcast
-           (Client_Notification.Call.Unpark (Get (Obj.ID)).To_JSON);
+           (Client_Notification.Unpark (Get (Obj.ID)).To_JSON);
       end if;
 
       case New_State is
          when Parked =>
             Notification.Broadcast
-              (Client_Notification.Call.Park
+              (Client_Notification.Park
                  (C => Get (Obj.ID)).To_JSON);
 
          when Ringing =>
             Notification.Broadcast
-              (Client_Notification.Call.Offer_Call (Get (Obj.ID)).To_JSON);
+              (Client_Notification.Call_Offer (Get (Obj.ID)).To_JSON);
             Get (Obj.ID).Mark_As_Call;
 
          when Unparked =>
             Notification.Broadcast
-              (Client_Notification.Call.Unpark (Get (Obj.ID)).To_JSON);
+              (Client_Notification.Unpark (Get (Obj.ID)).To_JSON);
 
          when Queued =>
             Notification.Broadcast
-              (Client_Notification.Queue.Join
+              (Client_Notification.Join
                  (Get (Call => Obj.ID)).To_JSON);
 
          when Hungup =>
             if Get (Obj.ID).Is_Call then
                Notification.Broadcast
-                 (Client_Notification.Call.Hangup (Get (Obj.ID)).To_JSON);
+                 (Client_Notification.Hangup (Get (Obj.ID)).To_JSON);
             end if;
 
             Call_List.Remove (ID => Obj.ID);
 
          when Speaking =>
             Notification.Broadcast
-              (Client_Notification.Call.Pickup (Get (Obj.ID)).To_JSON);
+              (Client_Notification.Pickup (Get (Obj.ID)).To_JSON);
 
          when Left_Queue =>
             Notification.Broadcast
-              (Client_Notification.Queue.Leave (Get (Obj.ID)).To_JSON);
+              (Client_Notification.Leave (Get (Obj.ID)).To_JSON);
 
          when Unknown =>
             System_Messages.Error
@@ -255,6 +254,9 @@ package body Model.Call is
 
    procedure Lock (Obj : in Instance) is
    begin
+      Notification.Broadcast
+        (Client_Notification.Call_Lock
+           (Get (Call => Obj.ID)).To_JSON);
       Call_List.Set_Locked (ID     => Obj.ID,
                             Locked => True);
    end Lock;
@@ -418,6 +420,9 @@ package body Model.Call is
 
    procedure Unlock (Obj : in Instance) is
    begin
+      Notification.Broadcast
+        (Client_Notification.Call_Unlock
+           (Get (Call => Obj.ID)).To_JSON);
       Call_List.Set_Locked (ID     => Obj.ID,
                             Locked => False);
    end Unlock;

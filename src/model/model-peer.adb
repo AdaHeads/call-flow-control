@@ -16,9 +16,13 @@
 -------------------------------------------------------------------------------
 
 with Ada.Calendar;
+with Client_Notification;
+with Handlers.Notifications;
 
 package body Model.Peer is
    use Ada.Calendar;
+
+   package Notification renames Handlers.Notifications;
 
    procedure Bump_Expiry (Object     :    out Instance;
                           Time_Delta : in     Natural) is
@@ -68,7 +72,12 @@ package body Model.Peer is
 
    procedure Register (Object : out Instance) is
    begin
-      Object.Registered := True;
+      if not Object.Registered then
+         Object.Registered := True;
+         Notification.Broadcast
+           (Client_Notification.Peer_State (P => Object).To_JSON);
+      end if;
+
    end Register;
 
    ------------------
@@ -109,7 +118,11 @@ package body Model.Peer is
    ------------------
    procedure Unregister (Object : out Instance) is
    begin
-      Object.Registered := False;
+      if Object.Registered then
+         Object.Registered := False;
+         Notification.Broadcast
+           (Client_Notification.Peer_State (P => Object).To_JSON);
+      end if;
    end Unregister;
 
 end Model.Peer;
