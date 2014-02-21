@@ -33,7 +33,7 @@ package Unexpected_Exception is
       Log    : in out AWS.Log.Object;
       Error  : AWS.Exceptions.Data;
       Answer : in out AWS.Response.Data);
-   --  Take care of unhandled exceptions, which in the context of Alice means
+   --  Take care of unhandled exceptions, which in this context means
    --  log the disaster and send a 500 response object to the client.
 
 end Unexpected_Exception;

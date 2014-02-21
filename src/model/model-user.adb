@@ -95,7 +95,6 @@ package body Model.User is
               WebSocket     => <>,
               Attributes    => Object,
               Current_State => <>,
-              Current_Call  => <>,
               Peer          => Peer_ID);
    end Create;
 
@@ -124,16 +123,6 @@ package body Model.User is
       return Create (User_ID => ID,
                      Object  => Object);
    end Create;
-
-   --------------------
-   --  Current_Call  --
-   --------------------
-
-   function Current_Call (Object : in Instance)
-                          return Model.Call.Instance is
-   begin
-      return Model.Call.Get (Object.Current_Call);
-   end Current_Call;
 
    ---------------------
    --  Current_State  --
@@ -225,8 +214,7 @@ package body Model.User is
               WebSocket     => <>,
               Attributes    => <>,
               Current_State => <>,
-              Peer          => <>,
-              Current_Call  => <>);
+              Peer          => <>);
    end No_User;
 
    -------------------------------
@@ -305,7 +293,6 @@ package body Model.User is
       JSON.Set_Field (Name_String,
                       String'(Object.Attributes.Get (Name_String)));
       JSON.Set_Field ("current_state", To_Lower (Object.Current_State'Img));
-      JSON.Set_Field ("current_call", Object.Current_Call.Image);
       if Object.Peer /= Model.Peer.Null_Identification then
          JSON.Set_Field
            (Peer_String,

@@ -31,28 +31,6 @@ package body Model.User.List is
                                 Identity_Map => <>);
    --  Singleton instance.
 
-   -------------------
-   --  Assign_Call  --
-   -------------------
-
-   procedure Assign_Call (Object  :    out Instance;
-                          User_ID : in     Model.User.Identifications;
-                          Call_ID : in     Model.Call.Identification) is
-
-      procedure Update (Key     : in     Model.User.Identifications;
-                        Element : in out Model.User.Instance);
-
-      procedure Update (Key     : in     Model.User.Identifications;
-                        Element : in out Model.User.Instance) is
-         pragma Unreferenced (Key);
-      begin
-         Element.Current_Call := Call_ID;
-      end Update;
-   begin
-      Object.User_Map.Update_Element
-        (Object.User_Map.Find (User_ID), Update'Access);
-   end Assign_Call;
-
    ------------------------
    --  Assign_Websocket  --
    ------------------------

@@ -19,8 +19,7 @@ with Ada.Containers,
      Ada.Containers.Hashed_Maps,
      Ada.Strings.Unbounded;
 
-with Model.Call,
-     Model.Peer;
+with Model.Peer;
 
 with Handlers.Notifications;
 
@@ -110,9 +109,6 @@ package Model.User is
 
    function Current_State (Object : in Instance) return States;
 
-   function Current_Call (Object : in Instance)
-                          return Call.Instance;
-
    function Peer (Object : in Instance) return Model.Peer.Instance;
    --  Returns the peer currently associated with the user.
 
@@ -135,7 +131,6 @@ private
       ID            : Identifications            := Null_Identification;
       WebSocket     : Handlers.Notifications.Object;
       Current_State : States                     := Unknown;
-      Current_Call  : Call.Identification        := Call.Null_Identification;
       Peer          : Model.Peer.Identification  := Peers.Null_Identification;
       Attributes    : GNATCOLL.JSON.JSON_Value   := Create;
    end record;

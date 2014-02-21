@@ -44,6 +44,7 @@ package View is
    Reception_ID      : constant String := "reception_id";
    Greeting_Played   : constant String := "greeting_played";
    Organization_List : constant String := "organization_list";
+   Is_Call           : constant String := "is_call";
    Length            : constant String := "length";
    Name              : constant String := "name";
    Queue             : constant String := "queue";

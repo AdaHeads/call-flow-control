@@ -15,13 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Characters.Handling;
 with Ada.Strings;
 with Ada.Strings.Fixed;
-with View.Call;
 with Handlers.Notifications;
 with Client_Notification.Call,
      Client_Notification.Queue;
-with System_Messages;
+with View,
+     System_Messages;
 
 package body Model.Call is
 
@@ -155,7 +156,7 @@ package body Model.Call is
                 Reception_ID    => Reception_ID,
                 Greeting_Played => <>,
                 Locked          => <>,
-                Assigned_To     => 1,
+                Assigned_To     => Model.User.Null_Identification,
                 Extension       => To_Unbounded_String (Extension),
                 From_Extension  => To_Unbounded_String (From_Extension),
                 Arrived         => Current_Time,
@@ -200,9 +201,13 @@ package body Model.Call is
    -------------------------
    --  Highest_Prioirity  --
    -------------------------
-   function Highest_Prioirity return Instance is
+
+   procedure Highest_Prioirity
+     (To   : in     Model.User.Identifications;
+      Call :    out Model.Call.Instance) is
    begin
-      return Call_List.First;
+      Call_List.Assign_Call (To   => To,
+                             Call => Call);
    end Highest_Prioirity;
 
    ----------
@@ -225,7 +230,7 @@ package body Model.Call is
 
    procedure Link (ID_1 : in Identification;
                    ID_2 : in Identification) is
-      Context : constant String := Package_Name & ".Link";
+      --  Context : constant String := Package_Name & ".Link";
    begin
       Call_List.Link (ID_1, ID_2);
    end Link;
@@ -335,8 +340,13 @@ package body Model.Call is
    end Reception_ID;
 
    procedure Set_Reception_ID (Obj  : in Instance;
-                           R_ID : in Reception_Identifier) is
+                               R_ID : in Reception_Identifier) is
+      Context : constant String := Package_Name & ".Set_Reception_ID";
    begin
+      System_Messages.Debug
+        ("Setting Reception ID of call " & Obj.ID.Image & " to" & R_ID'Img,
+         Context => Context);
+
       Call_List.Set_Reception (Obj.ID, R_ID);
    end Set_Reception_ID;
 
@@ -354,8 +364,30 @@ package body Model.Call is
    ---------------
 
    function To_JSON (Obj : in Instance) return GNATCOLL.JSON.JSON_Value is
+      use Ada.Characters.Handling;
+      use GNATCOLL.JSON;
+
+      Value : constant JSON_Value := Create_Object;
+      Call  : Instance renames Obj;
    begin
-      return View.Call.To_JSON (Obj);
+      if Call.ID /= Null_Identification then
+         Value.Set_Field (View.ID, To_String (Obj.ID));
+         Value.Set_Field (View.State_S, To_Lower (Call.State'Img));
+         Value.Set_Field (View.B_Leg, To_String (Call.B_Leg));
+         Value.Set_Field (View.Inbound, Call.Inbound);
+         Value.Set_Field (View.Is_Call, Call.Is_Call);
+         Value.Set_Field (View.Destination, Call.Extension);
+         Value.Set_Field (View.Caller_ID, Call.From_Extension);
+         Value.Set_Field (View.Greeting_Played, Call.Greeting_Played);
+         Value.Set_Field (View.Reception_ID, Call.Reception_ID);
+         Value.Set_Field (View.Assigned_To_S, Call.Assigned_To);
+         Value.Set_Field (View.Channel, To_String (Call.ID));
+         Value.Set_Field
+           (View.Arrival_Time_S, Unix_Timestamp (Call.Arrival_Time));
+      else
+         Value.Set_Field (View.ID, GNATCOLL.JSON.JSON_Null);
+      end if;
+      return Value;
    end To_JSON;
 
    -----------------
@@ -408,6 +440,55 @@ package body Model.Call is
 
    protected body Call_List is
 
+      -------------------
+      --  Assign_Call  --
+      -------------------
+
+      procedure Assign_Call
+        (To   : in     Model.User.Identifications;
+         Call :    out Model.Call.Instance) is
+         use Call_Storage;
+
+         procedure Assign (Key  : in     Identification;
+                           Call : in out Instance);
+
+         function Unassigned (Item : in Model.Call.Instance) return Boolean;
+
+         procedure Assign (Key  : in     Identification;
+                           Call : in out Instance) is
+            pragma Unreferenced (Key);
+         begin
+            Call.Assigned_To := To;
+         end Assign;
+
+         function Unassigned (Item : in Model.Call.Instance) return Boolean is
+         begin
+            return Item.Assigned_To = Model.User.Null_Identification;
+         end Unassigned;
+
+      begin
+
+         for C in List.Iterate loop
+            declare
+               Prospected_Call : Model.Call.Instance renames Element (C);
+            begin
+               if
+                     Prospected_Call.Is_Call      and
+                     Prospected_Call.Inbound      and
+                     Unassigned (Prospected_Call) and
+                 not Prospected_Call.Locked
+               then
+                  Call_List.Update (Prospected_Call.ID, Assign'Access);
+                  Call := Prospected_Call;
+                  return;
+               end if;
+            end;
+         end loop;
+
+         raise Not_Found;
+
+      end Assign_Call;
+
       --------------------
       --  Change_State  --
       --------------------
@@ -442,35 +523,6 @@ package body Model.Call is
          return List.Contains (ID);
       end Contains;
 
-      ---------------
-      --  Dequeue  --
-      ---------------
-
-      procedure Dequeue (ID : in Identification) is
-
-         Context : constant String := Package_Name & ".Call_List.Dequeue";
-
-         procedure Update (Key     : in     Identification;
-                           Element : in out Instance);
-
-         procedure Update (Key     : in     Identification;
-                           Element : in out Instance) is
-            pragma Unreferenced (Key);
-         begin
-            Element.State  := Transferring;
-         end Update;
-      begin
-         Call_List.Update (ID, Update'Access);
-         if Number_Queued = 0 then
-            System_Messages.Error
-              ("Tried to decrement number of " &
-                 "Queued calls below 0",
-              Context => Context);
-         else
-            Number_Queued := Number_Queued - 1;
-         end if;
-      end Dequeue;
-
       -------------
       --  Empty  --
       -------------
@@ -479,15 +531,6 @@ package body Model.Call is
       begin
          return List.Is_Empty;
       end Empty;
-
-      -------------
-      --  First  --
-      -------------
-
-      function First return Instance is
-      begin
-         return List.First_Element;
-      end First;
 
       -----------
       --  Get  --
@@ -561,7 +604,7 @@ package body Model.Call is
       begin
          List.Delete (Key => ID);
       exception
-         when E : Constraint_Error =>
+         when Constraint_Error =>
             raise Not_Found with " call " & To_String (ID);
       end Remove;
 

@@ -20,6 +20,7 @@ private with Ada.Strings.Unbounded;
 with GNATCOLL.JSON;
 
 with ESL.UUID;
+with Model.User;
 with Common;
 
 package Model.Call is
@@ -103,7 +104,9 @@ package Model.Call is
 
    function Has (ID : Identification) return Boolean;
 
-   function Highest_Prioirity return Instance;
+   procedure Highest_Prioirity
+     (To   : in     Model.User.Identifications;
+      Call :    out Model.Call.Instance);
 
    function Queue_Empty return Boolean;
    --  Reveals if there are currently calls available for pickup.
@@ -140,7 +143,7 @@ private
          Inbound         : Boolean;
          Extension       : Unbounded_String;
          Reception_ID    : Reception_Identifier := Null_Reception_Identifier;
-         Assigned_To     : Natural := 0;
+         Assigned_To     : Model.User.Identifications;
          From_Extension  : Unbounded_String;
          B_Leg           : Identification;
          Arrived         : Time := Current_Time;
@@ -152,13 +155,15 @@ private
         Element_Type => Instance);
 
    protected Call_List is
+      procedure Assign_Call
+        (To   : in     Model.User.Identifications;
+         Call :    out Model.Call.Instance);
+
       procedure Insert (Item : in Instance);
       function Empty return Boolean;
       procedure Change_State (ID        : in Identification;
                               New_State : in States);
       function Contains (ID : in Identification) return Boolean;
-
-      function First return Instance;
 
       function Get (ID : in Identification) return Instance;
       procedure Link (ID_1 : in Identification;

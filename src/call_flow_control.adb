@@ -39,7 +39,7 @@ procedure Call_FLow_Control is
    use Build_Constants;
    use Command_Line;
 
-   Context     : constant String := "Alice";
+   Context     : constant String := "Call-Flow_Control";
 
    Web_Server : Server.HTTP := Server.Create
      (Unexpected => Unexpected_Exception.Callback);
@@ -81,7 +81,7 @@ begin
 exception
    when Event : others =>
       System_Messages.Critical
-        (Message => "Shutting down Alice due to unhandled exception: " &
+        (Message => "Shutting down due to unhandled exception: " &
            Ada.Exceptions.Exception_Information (Event),
          Context => Context);
       Web_Server.Stop;

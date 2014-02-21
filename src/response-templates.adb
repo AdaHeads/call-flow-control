@@ -30,7 +30,7 @@ package body Response.Templates is
    --    Access-Control-Allow-Credentials
    --  where the first one should contain the value of the given
    --  Origin : header and the second a Boolean True. This should be enough
-   --  to enable very simple CORS support in Alice.
+   --  to enable very simple CORS support.
 
    procedure Add_CORS_Headers
      (Request  : in     AWS.Status.Data;

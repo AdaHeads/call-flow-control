@@ -26,10 +26,6 @@ package Model.User.List is
 
    Not_Found : exception;
 
-   procedure Assign_Call (Object  :    out Instance;
-                          User_ID : in     User.Identifications;
-                          Call_ID : in     Call.Identification);
-
    procedure Assign_Websocket
      (Object    :    out Instance;
       User_ID   : in     User.Identifications;

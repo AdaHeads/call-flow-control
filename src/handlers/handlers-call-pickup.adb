@@ -46,6 +46,7 @@ package body Handlers.Call.Pickup is
                                return AWS.Response.Data
    is
       use Ada.Strings.Unbounded;
+      use type Model.Call.Instance;
 
       Context : constant String := Package_Name & ".Generate_Response";
 
@@ -53,11 +54,6 @@ package body Handlers.Call.Pickup is
       renames Request_Utilities.User_Of (Request);
       Assigned_Call     : Model.Call.Instance;
    begin
-
-      if Model.Call.List_Empty then
-         return Response.Templates.Not_Found (Request);
-      end if;
-
       if not User.Peer.Registered then
          System_Messages.Error
            (Message => "User has no peer unavailable " & User.Image,
@@ -85,7 +81,12 @@ package body Handlers.Call.Pickup is
 
             end;
          else
-            Assigned_Call := Model.Call.Highest_Prioirity;
+            Model.Call.Highest_Prioirity (To   => User.Identification,
+                                          Call => Assigned_Call);
+         end if;
+
+         if Assigned_Call = Model.Call.Null_Instance then
+            return Response.Templates.Not_Found (Request);
          end if;
 
          System_Messages.Debug
@@ -95,10 +96,6 @@ package body Handlers.Call.Pickup is
               User.To_JSON.Write,
             Context => Context);
 
---           Model.User.List.Get_Singleton.Assign_Call
---             (User_ID => User.Identification,
---              Call_ID => Assigned_Call.ID);
-
          PBX.Action.Transfer (Assigned_Call.ID, User);
 
          return Response.Templates.OK
@@ -107,6 +104,9 @@ package body Handlers.Call.Pickup is
       end if;
 
    exception
+
+      when Model.Call.Not_Found =>
+         return Response.Templates.Not_Found (Request);
 
       when Model.Call.Already_Bridged =>
          return Response.Templates.Bad_Parameters
