@@ -68,22 +68,21 @@ package body Handlers.Call.Pickup is
       else
 
          if Parameters (Request).Exist (Call_ID_String) then
-            declare
-            begin
-               Assigned_Call := Model.Call.Get (Call => Call_ID);
-            exception
-               when Model.Call.Not_Found =>
-                  return Response.Templates.Not_Found
-                    (Request       => Request,
-                     Response_Body => Description
-                       ("call_id " & Call_ID_Param & " not found."));
+            System_Messages.Debug
+              (Message => "Picking call " & Call_ID.Image,
+               Context => Context);
 
-            end;
+
+            Model.Call.Assign_Call (To   => User.Identification,
+                                    ID   => Call_ID,
+                                    Call => Assigned_Call);
+         else
+            System_Messages.Debug
+              (Message => "No call_id.",
+               Context => Context);
+            Model.Call.Assign_Call (To   => User.Identification,
+                                    Call => Assigned_Call);
          end if;
-
-         Model.Call.Assign_Call (To   => User.Identification,
-                                 ID   => Call_ID,
-                                 Call => Assigned_Call);
 
          if Assigned_Call = Model.Call.Null_Instance then
             return Response.Templates.Not_Found (Request);
@@ -110,7 +109,7 @@ package body Handlers.Call.Pickup is
            (Request       => Request,
             Response_Body => Description
               ("Call not found " &
-                 Parameters (Request).Get (Name => Call_ID_String)));
+                 Parameters (Request).Get (Name => Call_ID.Image)));
 
       when Model.Call.Not_Available =>
          return Response.Templates.Bad_Parameters

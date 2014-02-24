@@ -104,11 +104,6 @@ package Model.Call is
 
    function Has (ID : Identification) return Boolean;
 
-   procedure Assign_Call
-     (To   : in     Model.User.Identifications;
-      Call :    out Model.Call.Instance;
-      ID   : in     Model.Call.Identification);
-
    function Queue_Empty return Boolean;
    --  Reveals if there are currently calls available for pickup.
 
@@ -118,6 +113,12 @@ package Model.Call is
 
    function Null_Identification return Identification;
    --  ^Explicit null values.
+
+   procedure Assign_Call
+     (To   : in     Model.User.Identifications;
+      Call :    out Model.Call.Instance;
+      ID   : in     Model.Call.Identification :=
+        Model.Call.Null_Identification);
 
    procedure Create_And_Insert
      (Inbound         : in Boolean;

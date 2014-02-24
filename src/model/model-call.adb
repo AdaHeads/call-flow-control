@@ -201,14 +201,15 @@ package body Model.Call is
    --  Assign_Call  --
    -------------------
 
-   procedure Assign_Call
+   procedure    Assign_Call
      (To   : in     Model.User.Identifications;
       Call :    out Model.Call.Instance;
-      ID   : in     Model.Call.Identification) is
+      ID   : in     Model.Call.Identification :=
+        Model.Call.Null_Identification) is
    begin
-   Call_List.Assign_Call (To   => To,
-                          ID   => ID,
-                          Call => Call);
+      Call_List.Assign_Call (To   => To,
+                             ID   => ID,
+                             Call => Call);
    end Assign_Call;
 
    ----------
@@ -458,6 +459,8 @@ package body Model.Call is
            Model.Call.Null_Identification) is
          use Call_Storage;
 
+         Context : constant String := Package_Name & ".Call_List.Assign_Call";
+
          procedure Assign (Key  : in     Identification;
                            Call : in out Instance);
 
@@ -480,7 +483,7 @@ package body Model.Call is
 
       begin
 
-         if ID = Model.Call.Null_Identification then
+         if ID /= Model.Call.Null_Identification then
             declare
                Prospected_Call : Model.Call.Instance renames List.Element (ID);
             begin
@@ -491,12 +494,17 @@ package body Model.Call is
                      Prospected_Call.Inbound      and
                  not Prospected_Call.Locked
                then
+                  System_Messages.Debug (Message => "Found " & Prospected_Call.ID.Image,
+                                         Context => Context);
                   Call_List.Update (Prospected_Call.ID, Assign'Access);
+                  Call := List.Element (Prospected_Call.ID);
                   return;
                end if;
             end;
          end if;
 
+         System_Messages.Debug (Message => "Finding unspecified call.",
+                                Context => Context);
          for C in List.Iterate loop
             declare
                Prospected_Call : Model.Call.Instance renames Element (C);
@@ -508,6 +516,8 @@ package body Model.Call is
                      Prospected_Call.Inbound      and
                  not Prospected_Call.Locked
                then
+                  System_Messages.Debug (Message => "Found " & Prospected_Call.ID.Image,
+                                         Context => Context);
                   Call_List.Update (Prospected_Call.ID, Assign'Access);
                   Call := Prospected_Call;
                   return;
@@ -515,7 +525,9 @@ package body Model.Call is
             end;
          end loop;
 
-         raise Not_Found with ID.Image;
+         System_Messages.Debug (Message => "No call found.",
+                                Context => Context);
+         raise Not_Found;
       exception
          when Constraint_Error =>
             raise Not_Found with ID.Image;
