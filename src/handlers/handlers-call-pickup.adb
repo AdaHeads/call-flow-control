@@ -52,6 +52,10 @@ package body Handlers.Call.Pickup is
       User              : Model.User.Instance
       renames Request_Utilities.User_Of (Request);
       Assigned_Call     : Model.Call.Instance;
+      Call_ID_Param    : String renames
+        Parameters (Request).Get (Name => Call_ID_String);
+      Call_ID          : constant Model.Call.Identification :=
+        Model.Call.Value (Call_ID_Param);
    begin
       if not User.Peer.Registered then
          System_Messages.Error
@@ -65,10 +69,6 @@ package body Handlers.Call.Pickup is
 
          if Parameters (Request).Exist (Call_ID_String) then
             declare
-               Call_ID_Param    : String renames
-                 Parameters (Request).Get (Name => Call_ID_String);
-               Call_ID          : constant Model.Call.Identification :=
-                 Model.Call.Value (Call_ID_Param);
             begin
                Assigned_Call := Model.Call.Get (Call => Call_ID);
             exception
@@ -79,10 +79,11 @@ package body Handlers.Call.Pickup is
                        ("call_id " & Call_ID_Param & " not found."));
 
             end;
-         else
-            Model.Call.Highest_Prioirity (To   => User.Identification,
-                                          Call => Assigned_Call);
          end if;
+
+         Model.Call.Assign_Call (To   => User.Identification,
+                                 ID   => Call_ID,
+                                 Call => Assigned_Call);
 
          if Assigned_Call = Model.Call.Null_Instance then
             return Response.Templates.Not_Found (Request);
@@ -90,9 +91,9 @@ package body Handlers.Call.Pickup is
 
          System_Messages.Debug
            (Message => "Assigning call " &
-              Assigned_Call.To_JSON.Write &
-              " to user " &
-              User.To_JSON.Write,
+              Assigned_Call.ID.Image &
+              " to user" &
+              User.Identification'Img,
             Context => Context);
 
          PBX.Action.Transfer (Assigned_Call.ID, User);
@@ -105,13 +106,17 @@ package body Handlers.Call.Pickup is
    exception
 
       when Model.Call.Not_Found =>
-         return Response.Templates.Not_Found (Request);
+         return Response.Templates.Not_Found
+           (Request       => Request,
+            Response_Body => Description
+              ("Call not found " &
+                 Parameters (Request).Get (Name => Call_ID_String)));
 
-      when Model.Call.Already_Bridged =>
+      when Model.Call.Not_Available =>
          return Response.Templates.Bad_Parameters
            (Request       => Request,
             Response_Body => Description
-              ("Agent tried to claim call that is already assigned"));
+              ("Call is not available to user."));
 
       when Model.Peer.Peer_Not_Registered =>
          System_Messages.Error

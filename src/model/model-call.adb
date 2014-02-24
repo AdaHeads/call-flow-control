@@ -197,17 +197,19 @@ package body Model.Call is
       return Call_List.Contains (ID);
    end Has;
 
-   -------------------------
-   --  Highest_Prioirity  --
-   -------------------------
+   -------------------
+   --  Assign_Call  --
+   -------------------
 
-   procedure Highest_Prioirity
+   procedure Assign_Call
      (To   : in     Model.User.Identifications;
-      Call :    out Model.Call.Instance) is
+      Call :    out Model.Call.Instance;
+      ID   : in     Model.Call.Identification) is
    begin
-      Call_List.Assign_Call (To   => To,
-                             Call => Call);
-   end Highest_Prioirity;
+   Call_List.Assign_Call (To   => To,
+                          ID   => ID,
+                          Call => Call);
+   end Assign_Call;
 
    ----------
    --  ID  --
@@ -451,13 +453,16 @@ package body Model.Call is
 
       procedure Assign_Call
         (To   : in     Model.User.Identifications;
-         Call :    out Model.Call.Instance) is
+         Call :    out Model.Call.Instance;
+         ID   : in     Model.Call.Identification :=
+           Model.Call.Null_Identification) is
          use Call_Storage;
 
          procedure Assign (Key  : in     Identification;
                            Call : in out Instance);
 
-         function Unassigned (Item : in Model.Call.Instance) return Boolean;
+         function Available_For_User
+           (Item : in Model.Call.Instance) return Boolean;
 
          procedure Assign (Key  : in     Identification;
                            Call : in out Instance) is
@@ -466,21 +471,41 @@ package body Model.Call is
             Call.Assigned_To := To;
          end Assign;
 
-         function Unassigned (Item : in Model.Call.Instance) return Boolean is
+         function Available_For_User
+           (Item : in Model.Call.Instance) return Boolean is
          begin
-            return Item.Assigned_To = Model.User.Null_Identification;
-         end Unassigned;
+            return Item.Assigned_To = Model.User.Null_Identification or
+                   Item.Assigned_To = To;
+         end Available_For_User;
 
       begin
+
+         if ID = Model.Call.Null_Identification then
+            declare
+               Prospected_Call : Model.Call.Instance renames List.Element (ID);
+            begin
+               if not Available_For_User (Prospected_Call) then
+                  raise Not_Available with "Call is not available for to user";
+               elsif
+                     Prospected_Call.Is_Call      and
+                     Prospected_Call.Inbound      and
+                 not Prospected_Call.Locked
+               then
+                  Call_List.Update (Prospected_Call.ID, Assign'Access);
+                  return;
+               end if;
+            end;
+         end if;
 
          for C in List.Iterate loop
             declare
                Prospected_Call : Model.Call.Instance renames Element (C);
             begin
-               if
+               if not Available_For_User (Prospected_Call) then
+                  raise Not_Available with "Call is not available for to user";
+               elsif
                      Prospected_Call.Is_Call      and
                      Prospected_Call.Inbound      and
-                     Unassigned (Prospected_Call) and
                  not Prospected_Call.Locked
                then
                   Call_List.Update (Prospected_Call.ID, Assign'Access);
@@ -490,7 +515,10 @@ package body Model.Call is
             end;
          end loop;
 
-         raise Not_Found;
+         raise Not_Found with ID.Image;
+      exception
+         when Constraint_Error =>
+            raise Not_Found with ID.Image;
 
       end Assign_Call;
 

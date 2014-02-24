@@ -32,7 +32,7 @@ package Model.Call is
    Not_Found       : exception;
    Null_Channel    : exception;
    Null_ID         : exception;
-   Already_Bridged : exception;
+   Not_Available   : exception;
    Invalid_ID      : exception;
    --  Appropriately named exceptions.
 
@@ -104,9 +104,10 @@ package Model.Call is
 
    function Has (ID : Identification) return Boolean;
 
-   procedure Highest_Prioirity
+   procedure Assign_Call
      (To   : in     Model.User.Identifications;
-      Call :    out Model.Call.Instance);
+      Call :    out Model.Call.Instance;
+      ID   : in     Model.Call.Identification);
 
    function Queue_Empty return Boolean;
    --  Reveals if there are currently calls available for pickup.
@@ -157,7 +158,9 @@ private
    protected Call_List is
       procedure Assign_Call
         (To   : in     Model.User.Identifications;
-         Call :    out Model.Call.Instance);
+         Call :    out Model.Call.Instance;
+         ID   : in     Model.Call.Identification
+                          := Model.Call.Null_Identification);
 
       procedure Insert (Item : in Instance);
       function Empty return Boolean;
