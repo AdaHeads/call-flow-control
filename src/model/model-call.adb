@@ -90,7 +90,7 @@ package body Model.Call is
               (Client_Notification.Park
                  (C => Get (Obj.ID)).To_JSON);
 
-         when Ringing =>
+         when Created =>
             Notification.Broadcast
               (Client_Notification.Call_Offer (Get (Obj.ID)).To_JSON);
             Get (Obj.ID).Mark_As_Call;
@@ -126,7 +126,7 @@ package body Model.Call is
                  Obj.ID.Image & " to Unkown state!",
                Context => Context);
 
-         when Created =>
+         when Ringing =>
             null;
 
          when Transferring =>

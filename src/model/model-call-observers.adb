@@ -94,7 +94,7 @@ package body Model.Call.Observers is
               (Packet.Variables.Get
                  (Key     => Constants.Reception_ID,
                   Default => Null_Reception_Identifier'Img)));
-         Get (Packet.UUID).Change_State (New_State => Ringing);
+         Get (Packet.UUID).Change_State (New_State => Created);
 
       elsif Packet.Subevent = Constants.Outbound_Call then
          --  TODO: Tag the call with the reception.

@@ -50,8 +50,8 @@ package Model.Call is
 
    type States is
      (Unknown,
-      Ringing,
       Created,
+      Ringing,
       Queued,
       Left_Queue,
       Hungup,
