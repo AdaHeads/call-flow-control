@@ -31,8 +31,6 @@ with Util.Process_Control;
 with Util.Server;
 with Util.Command_Line;
 
-with Model.User.List;
-
 procedure Call_FLow_Control is
    use System_Messages;
    use Util;
@@ -44,13 +42,6 @@ procedure Call_FLow_Control is
    Web_Server : Server.HTTP := Server.Create
      (Unexpected => Unexpected_Exception.Callback);
 
-   procedure Initialize_Model;
-
-   procedure Initialize_Model is
-   begin
-      Model.User.List.Get_Singleton.Reload_Map;
-   end Initialize_Model;
-
 begin
    if Command_Line.Got_Argument ("--help") then
       Configuration.Show_Arguments;
@@ -59,7 +50,6 @@ begin
    end if;
    SIGHUP.Register (Handler => SIGHUP_Handler.Caught_Signal'Access);
 
-   Initialize_Model;
    Handlers.Route.Register_Handlers;
    System_Messages.Open_Log_Files;
 
