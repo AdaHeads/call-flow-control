@@ -494,7 +494,8 @@ package body Model.Call is
                      Prospected_Call.Inbound      and
                  not Prospected_Call.Locked
                then
-                  System_Messages.Debug (Message => "Found " & Prospected_Call.ID.Image,
+                  System_Messages.Debug (Message => "Found " &
+                                           Prospected_Call.ID.Image,
                                          Context => Context);
                   Call_List.Update (Prospected_Call.ID, Assign'Access);
                   Call := List.Element (Prospected_Call.ID);
@@ -509,14 +510,13 @@ package body Model.Call is
             declare
                Prospected_Call : Model.Call.Instance renames Element (C);
             begin
-               if not Available_For_User (Prospected_Call) then
-                  raise Not_Available with "Call is not available for to user";
-               elsif
-                     Prospected_Call.Is_Call      and
-                     Prospected_Call.Inbound      and
+               if    Available_For_User (Prospected_Call) and
+                     Prospected_Call.Is_Call              and
+                     Prospected_Call.Inbound              and
                  not Prospected_Call.Locked
                then
-                  System_Messages.Debug (Message => "Found " & Prospected_Call.ID.Image,
+                  System_Messages.Debug (Message => "Found " &
+                                           Prospected_Call.ID.Image,
                                          Context => Context);
                   Call_List.Update (Prospected_Call.ID, Assign'Access);
                   Call := Prospected_Call;

@@ -54,8 +54,8 @@ package body Handlers.Call.Pickup is
       Assigned_Call     : Model.Call.Instance;
       Call_ID_Param    : String renames
         Parameters (Request).Get (Name => Call_ID_String);
-      Call_ID          : constant Model.Call.Identification :=
-        Model.Call.Value (Call_ID_Param);
+      Call_ID          : Model.Call.Identification :=
+        Model.Call.Null_Identification;
    begin
       if not User.Peer.Registered then
          System_Messages.Error
@@ -65,42 +65,35 @@ package body Handlers.Call.Pickup is
          return Response.Templates.Not_Found
            (Request       => Request,
             Response_Body => Description ("User has no peer unavailable"));
-      else
-
-         if Parameters (Request).Exist (Call_ID_String) then
-            System_Messages.Debug
-              (Message => "Picking call " & Call_ID.Image,
-               Context => Context);
-
-
-            Model.Call.Assign_Call (To   => User.Identification,
-                                    ID   => Call_ID,
-                                    Call => Assigned_Call);
-         else
-            System_Messages.Debug
-              (Message => "No call_id.",
-               Context => Context);
-            Model.Call.Assign_Call (To   => User.Identification,
-                                    Call => Assigned_Call);
-         end if;
-
-         if Assigned_Call = Model.Call.Null_Instance then
-            return Response.Templates.Not_Found (Request);
-         end if;
-
-         System_Messages.Debug
-           (Message => "Assigning call " &
-              Assigned_Call.ID.Image &
-              " to user" &
-              User.Identification'Img,
-            Context => Context);
-
-         PBX.Action.Transfer (Assigned_Call.ID, User);
-
-         return Response.Templates.OK
-           (Request       => Request,
-            Response_Body => Assigned_Call.To_JSON);
       end if;
+
+      if Parameters (Request).Exist (Call_ID_String) then
+         Call_ID := Model.Call.Value (Call_ID_Param);
+         System_Messages.Debug
+           (Message => "Picking call " & Call_ID.Image,
+            Context => Context);
+      end if;
+
+      Model.Call.Assign_Call (To   => User.Identification,
+                              ID   => Call_ID,
+                              Call => Assigned_Call);
+
+      if Assigned_Call = Model.Call.Null_Instance then
+         return Response.Templates.Not_Found (Request);
+      end if;
+
+      System_Messages.Debug
+        (Message => "Assigning call " &
+           Assigned_Call.ID.Image &
+           " to user" &
+           User.Identification'Img,
+         Context => Context);
+
+      PBX.Action.Transfer (Assigned_Call.ID, User);
+
+      return Response.Templates.OK
+        (Request       => Request,
+         Response_Body => Assigned_Call.To_JSON);
 
    exception
 
