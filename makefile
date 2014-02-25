@@ -19,6 +19,8 @@
 #                                                                             #
 ###############################################################################
 
+PREFIX?=/usr/local/call-flow
+
 RELEASE=`git tag | tail -n1`
 GIT_REV=`git rev-parse --short HEAD`
 BINARY=call_flow_control
@@ -36,6 +38,17 @@ debug:
 clean: cleanup_messy_temp_files
 	gnatclean -P ${BINARY}
 	BUILDTYPE=Debug gnatclean -P ${BINARY}
+
+install: all
+	install --directory        ${PREFIX}/bin
+	install --target-directory=${PREFIX}/bin exe/${BINARY}
+
+install-default-config:
+	@install --directory ${PREFIX}/conf
+	@install             exe/configuration/main.conf.dist  ${PREFIX}/conf/main.conf
+	@install             exe/configuration/config.ini.dist ${PREFIX}/conf/config.ini
+	@install             exe/configuration/mime.types      ${PREFIX}/conf/mime.types
+	@echo Default config deployed at ${PREFIX}/conf - go there and finish the config.
 
 git-head: all
 	cp exe/${BINARY} exe/${BINARY}-${RELEASE}-${GIT_REV}
