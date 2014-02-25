@@ -32,13 +32,7 @@ package Configuration is
    type Keys is (Cache_Max_Element_Age,
                  Host_Name,
                  Public_User_Identification,
-                 DB_Host,
-                 DB_Name,
-                 DB_Password,
-                 DB_Port,
-                 DB_User,
                  Loglevel,
-                 SQLite_Database,
                  PBX_Secret,
                  PBX_Loglevel,
                  PBX_Host,
@@ -47,7 +41,6 @@ package Configuration is
                  User_Map_File,
                  Auth_Server,
                  Contact_Server,
-                 Client_Config_File,
                  Access_Log,
                  Error_Log,
                  Server_Token);
@@ -68,21 +61,9 @@ package Configuration is
       Cache_Max_Element_Age
       => U ("86_400"),
       Host_Name
-      => U ("alice.adaheads.com"),
+      => U ("please_update_main_conf"),
       Public_User_Identification
       => U ("FALSE"),
-      DB_Host
-      => U ("pgprimary.adaheads.com"),
-      DB_Name
-      => U ("customers"),
-      DB_Password
-      => U ("secret"),
-      DB_Port
-      => U ("5432"),
-      DB_User
-      => U ("alice"),
-      SQLite_Database
-      => U ("sqlite/customers.db"),
       PBX_Secret
       => U ("password"),
       PBX_Loglevel
@@ -95,8 +76,6 @@ package Configuration is
       => U ("file"),
       User_Map_File
       => U ("static_json/agent.list"),
-      Client_Config_File
-      => U ("configuration/bob_configuration.json"),
       Server_Token
       => Ada.Strings.Unbounded.Null_Unbounded_String);
 
@@ -110,8 +89,7 @@ package Configuration is
       Defaults            => Default_Values,
       Config_File         =>  Util.Command_Line.Get
         (Parameter => "--config",
-         Default   =>
-         "configuration/alice_config.ini"));
+         Default   => "conf/main.conf"));
 
    procedure Show_Arguments;
 

@@ -48,12 +48,6 @@ PBX_Loglevel Error
 #
 # Amount of information to receive from the PBX layer.
 
-Client_Config_File configuration/bob_configuration.json
-# String. - A file (json format) with a path.
-# Default: configuration/bob_configuration.json
-#
-# Path to the client configuration file to send to the clients.
-
 Auth_Server https://somewheresecure
 # String.
 # Default: https://somewheresecure

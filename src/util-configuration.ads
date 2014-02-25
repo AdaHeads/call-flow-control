@@ -392,7 +392,7 @@ package Util.Configuration is
      (Key_Type            => Keys,
       Defaults_Array_Type => Defaults_Array,
       Defaults            => Default_Values,
-      Config_File         => "configuration/config.ini");
+      Config_File         => "conf/config.ini");
 
    function Get_AWS_Configuration return AWS.Config.Object;
    --  Load the AWS relevant configuration settings from the config.ini file.
