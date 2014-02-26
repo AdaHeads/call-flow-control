@@ -32,6 +32,14 @@ package body Handlers.Call.Originate is
        View,
        Model;
 
+   type Origination_Contexts is
+      record
+         Contact_ID   : Model.Contact_Identifier;
+         Reception_ID : Model.Reception_Identifier;
+      end record;
+
+   function Create (Item : in String) return Origination_Contexts;
+
    ----------------
    --  Callback  --
    ----------------
@@ -40,6 +48,37 @@ package body Handlers.Call.Originate is
    begin
       return Generate_Response'Access;
    end Callback;
+
+   --------------
+   --  Create  --
+   --------------
+
+   function Create (Item : in String) return Origination_Contexts is
+      Sep_Pos : Natural := Item'First;
+   begin
+      return Value : Origination_Contexts do
+         for Index in Item'Range loop
+            case Item (Index) is
+               when '@' =>
+                  if Index /= Item'First then
+                     Value.Contact_ID :=
+                       Model.Contact_Identifier'Value
+                         (Item (Item'First .. Index - 1));
+                  end if;
+                  Sep_Pos   :=  Index;
+               when '0' .. '9' =>
+                  null;
+               when others =>
+                  raise Constraint_Error with "Invalid character " &
+                    Item (Index);
+            end case;
+         end loop;
+
+         Value.Reception_ID :=
+           Model.Reception_Identifier'Value
+             (Item (Sep_Pos + 1 .. Item'Last));
+      end return;
+   end Create;
 
    -------------------------
    --  Generate_Response  --
@@ -58,6 +97,7 @@ package body Handlers.Call.Originate is
         Request_Utilities.User_Of (Request);
 
       Not_Found : exception;
+      Origination_Context : Origination_Contexts;
    begin
 
       if not User.Peer.Registered then
@@ -71,6 +111,8 @@ package body Handlers.Call.Originate is
                  ("Invalid context paramteter: " & Context_Param));
       end if;
 
+      Origination_Context := Create (Item => Context_Param);
+
       if Parameters (Request).Exist (Extension_String) then
          declare
             Extension_Param : constant String :=
@@ -82,8 +124,10 @@ package body Handlers.Call.Originate is
                Context => Context);
 
             PBX.Action.Originate
-              (User        => User,
-               Extension   => Extension_Param);
+              (Reception_ID => Origination_Context.Reception_ID,
+               Contact_ID   => Origination_Context.Contact_ID,
+               User         => User,
+               Extension    => Extension_Param);
          end;
       elsif Parameters (Request).Exist (Phone_ID_String) then
          declare
@@ -106,7 +150,9 @@ package body Handlers.Call.Originate is
                   raise Not_Found with "No such extension";
                end if;
                PBX.Action.Originate
-                 (User        => User,
+                 (Reception_ID => Origination_Context.Reception_ID,
+                  Contact_ID   => Origination_Context.Contact_ID,
+                  User         => User,
                   Extension   => Extension);
             end;
          exception
@@ -128,7 +174,7 @@ package body Handlers.Call.Originate is
       end if;
 
       return Response.Templates.OK (Request);
-exception
+   exception
       when PBX.Action.Error =>
          System_Messages.Critical
            (Message         => "PBX failed to handle request.",

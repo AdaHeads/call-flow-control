@@ -16,7 +16,7 @@
 -------------------------------------------------------------------------------
 
 --  This is our PBX-boundry layer. It levels out the differences between
---  various PBX communication protocols.
+--  the PBX communication, and our domain.
 
 with Model.Call;
 with Model.User;
@@ -46,8 +46,10 @@ package PBX.Action is
 
    procedure Update_SIP_Peer_List;
 
-   procedure Originate (User      :  in Model.User.Instance;
-                        Extension : in String);
+   procedure Originate (Contact_ID   : in Model.Contact_Identifier;
+                        Reception_ID : in Model.Reception_Identifier;
+                        User         : in Model.User.Instance;
+                        Extension    : in String);
    --  Start originate. Raises Timeout or Error when either occurs.
 
    procedure Park (Target  : in Call.Identification;

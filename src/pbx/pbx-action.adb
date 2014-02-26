@@ -21,12 +21,14 @@ with ESL.Reply,
      ESL.UUID,
      ESL.Command.Core,
      ESL.Command.Call_Management,
+     ESL.Command.Option,
      ESL.Command.Miscellaneous;
 
 with GNATCOLL.JSON;
 with PBX.Trace;
 with Model.Peer.List;
 with System_Messages;
+with Util.Image;
 
 package body PBX.Action is
    use GNATCOLL.JSON;
@@ -82,16 +84,33 @@ package body PBX.Action is
    --  Originate  --
    -----------------
 
-   procedure Originate (User      : in Model.User.Instance;
-                        Extension : in String) is
+   procedure Originate (Contact_ID   : in Model.Contact_Identifier;
+                        Reception_ID : in Model.Reception_Identifier;
+                        User         : in Model.User.Instance;
+                        Extension    : in String) is
       Context          : constant String := Package_Name & ".Originate";
-      Originate_Action : constant ESL.Command.Call_Management.Instance :=
+      Originate_Action : ESL.Command.Call_Management.Instance :=
         ESL.Command.Call_Management.Originate
           (Call_URL  => User.Call_URI,
            Extension => Extension);
       Reply : ESL.Reply.Instance;
 
    begin
+      Originate_Action.Add_Option
+        (Option => ESL.Command.Option.Create
+           (Key   => "reception_id",
+            Value => Util.Image.Image (Reception_ID)));
+
+      Originate_Action.Add_Option
+        (Option => ESL.Command.Option.Create
+           (Key   => "assigned_to",
+            Value => Util.Image.Image (User.Identification)));
+
+      Originate_Action.Add_Option
+           (Option => ESL.Command.Option.Create
+              (Key   => "contact_id",
+               Value => Util.Image.Image (Contact_ID)));
+
       PBX.Trace.Information (Message => "Sending:" &
                                String (Originate_Action.Serialize),
                              Context => Context);
@@ -148,6 +167,9 @@ package body PBX.Action is
 
       Context     : constant String := Package_Name & ".Transfer";
 
+      Break_Action : constant ESL.Command.Call_Management.Instance :=
+        ESL.Command.Call_Management.UUID_Break (UUID => Target);
+
       Transfer_Action : constant ESL.Command.Call_Management.Instance :=
         ESL.Command.Call_Management.UUID_Transfer
           (UUID        => Target,
@@ -155,15 +177,29 @@ package body PBX.Action is
       Reply : ESL.Reply.Instance;
 
    begin
+      PBX.Client.API (Transfer_Action, Reply);
+
       PBX.Trace.Information (Message => "Sending:" &
                                String (Transfer_Action.Serialize),
                              Context => Context);
-      PBX.Client.API (Transfer_Action, Reply);
-
       if Reply.Response /= ESL.Reply.OK then
          raise PBX.Action.Error with "Transfer command failed: " &
            Reply.Response_Body;
       end if;
+
+      PBX.Trace.Information (Message => "Sending:" &
+                               String (Break_Action.Serialize),
+                             Context => Context);
+      PBX.Client.API (Break_Action, Reply);
+
+      --  uuid_break seems to give back a no reply error, so this one
+      --  can safely be ignored. For the sake of tracing potential problems,
+      --  we log the error.
+      if Reply.Response /= ESL.Reply.OK then
+         PBX.Trace.Error (Message => "Error:" & Reply.Image,
+                          Context => Context);
+      end if;
+
    end Transfer;
 
    -----------------------
