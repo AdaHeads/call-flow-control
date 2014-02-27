@@ -40,10 +40,12 @@ package Model is
 
    Null_Organization_Identifier : constant Organization_Identifier;
    Null_Reception_Identifier    : constant Reception_Identifier;
+   Null_Contact_Identifier      : constant Contact_Identifier;
 
 private
 
    Null_Organization_Identifier : constant Organization_Identifier := 0;
    Null_Reception_Identifier    : constant Reception_Identifier    := 0;
+   Null_Contact_Identifier      : constant Contact_Identifier      := 0;
 
 end Model;

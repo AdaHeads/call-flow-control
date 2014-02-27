@@ -82,6 +82,12 @@ package Model.Call is
    procedure Set_Reception_ID (Obj  : in Instance;
                                R_ID : in Reception_Identifier);
 
+   procedure Set_Outbound_Parameters
+        (Item : in Instance;
+         R_ID : in Reception_Identifier;
+         C_ID : in Contact_Identifier;
+         U_ID : in Model.User.Identifications);
+
    procedure Change_State (Obj  : in Instance;
                            New_State : in States);
 
@@ -164,6 +170,13 @@ private
                           := Model.Call.Null_Identification);
 
       procedure Insert (Item : in Instance);
+
+      procedure Set_Outbound_Parameters
+        (Item : in Instance;
+         R_ID : in Reception_Identifier;
+         C_ID : in Contact_Identifier;
+         U_ID : in Model.User.Identifications);
+
       function Empty return Boolean;
       procedure Change_State (ID        : in Identification;
                               New_State : in States);

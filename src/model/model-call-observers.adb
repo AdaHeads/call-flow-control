@@ -89,6 +89,8 @@ package body Model.Call.Observers is
         Package_Name & ".Notify (AdaHeads Subclass Observer)";
    begin
       if Packet.Subevent = Constants.Prequeue_Enter then
+         Get (Packet.UUID).Mark_As_Call;
+
          Get (Packet.UUID).Set_Reception_ID
            (Reception_Identifier'Value
               (Packet.Variables.Get
@@ -97,17 +99,38 @@ package body Model.Call.Observers is
          Get (Packet.UUID).Change_State (New_State => Created);
 
       elsif Packet.Subevent = Constants.Outbound_Call then
-         --  TODO: Tag the call with the reception.
+         Get (Packet.UUID).Mark_As_Call;
+
+         declare
+            R_ID : Reception_Identifier renames
+              Reception_Identifier'Value
+                (Packet.Variables.Get
+                     (Key     => Constants.Reception_ID));
+            U_ID : Model.User.Identifications renames
+              Model.User.Identifications'Value
+                (Packet.Variables.Get
+                     (Key     => Constants.Contact_ID,
+                      Default => Null_Contact_Identifier'Img));
+         begin
+            Get (Packet.UUID).Set_Outbound_Parameters
+              (R_ID => R_ID,
+               C_ID => Model.Null_Contact_Identifier,
+               U_ID => U_ID);
+         end;
+
          Get (Packet.UUID).Change_State (New_State => Ringing);
 
       elsif Packet.Subevent = Constants.Prequeue_Leave then
          Get (Packet.UUID).Change_State (New_State => Transferring);
          Get (Packet.UUID).Lock;
+
       elsif Packet.Subevent = Constants.Waitqueue_Enter then
          Get (Packet.UUID).Unlock;
          Get (Packet.UUID).Change_State (New_State => Queued);
+
       elsif Packet.Subevent = Constants.Parking_Lot_Enter then
          Get (Packet.UUID).Change_State (New_State => Parked);
+
       elsif Packet.Subevent = Constants.Parking_Lot_Leave then
          Get (Packet.UUID).Change_State (New_State => Transferring);
       end if;
@@ -124,7 +147,7 @@ package body Model.Call.Observers is
    --------------
 
    overriding
-   procedure Notify (Observer : access Bridge_Observer;
+      procedure Notify (Observer : access Bridge_Observer;
                      Packet   : in     ESL.Packet.Instance;
                      Client   : in     ESL.Client.Reference) is
       pragma Unreferenced (Observer);

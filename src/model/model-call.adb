@@ -42,6 +42,21 @@ package body Model.Call is
    end Arrival_Time;
 
    -------------------
+   --  Assign_Call  --
+   -------------------
+
+   procedure    Assign_Call
+     (To   : in     Model.User.Identifications;
+      Call :    out Model.Call.Instance;
+      ID   : in     Model.Call.Identification :=
+        Model.Call.Null_Identification) is
+   begin
+      Call_List.Assign_Call (To   => To,
+                             ID   => ID,
+                             Call => Call);
+   end Assign_Call;
+
+   -------------------
    --  Assigned_To  --
    -------------------
 
@@ -93,7 +108,6 @@ package body Model.Call is
          when Created =>
             Notification.Broadcast
               (Client_Notification.Call_Offer (Get (Obj.ID)).To_JSON);
-            Get (Obj.ID).Mark_As_Call;
 
          when Unparked =>
             Notification.Broadcast
@@ -196,21 +210,6 @@ package body Model.Call is
    begin
       return Call_List.Contains (ID);
    end Has;
-
-   -------------------
-   --  Assign_Call  --
-   -------------------
-
-   procedure    Assign_Call
-     (To   : in     Model.User.Identifications;
-      Call :    out Model.Call.Instance;
-      ID   : in     Model.Call.Identification :=
-        Model.Call.Null_Identification) is
-   begin
-      Call_List.Assign_Call (To   => To,
-                             ID   => ID,
-                             Call => Call);
-   end Assign_Call;
 
    ----------
    --  ID  --
@@ -343,6 +342,26 @@ package body Model.Call is
    begin
       return Obj.Reception_ID;
    end Reception_ID;
+
+   -------------------------------
+   --  Set_Outbound_Parameters  --
+   -------------------------------
+
+   procedure Set_Outbound_Parameters
+        (Item : in Instance;
+         R_ID : in Reception_Identifier;
+         C_ID : in Contact_Identifier;
+         U_ID : in Model.User.Identifications) is
+   begin
+      Call_List.Set_Outbound_Parameters (Item => Item,
+                                         R_ID => R_ID,
+                                         C_ID => C_ID,
+                                         U_ID => U_ID);
+   end Set_Outbound_Parameters;
+
+   ------------------------
+   --  Set_Reception_ID  --
+   ------------------------
 
    procedure Set_Reception_ID (Obj  : in Instance;
                                R_ID : in Reception_Identifier) is
@@ -690,6 +709,29 @@ package body Model.Call is
       begin
          Call_List.Update (ID, Set_Lock'Access);
       end Set_Locked;
+
+      procedure Set_Outbound_Parameters
+        (Item : in Instance;
+         R_ID : in Reception_Identifier;
+         C_ID : in Contact_Identifier;
+         U_ID : in Model.User.Identifications) is
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance);
+
+         procedure Update (Key     : in     Identification;
+                           Element : in out Instance) is
+            pragma Unreferenced (Key);
+         begin
+            Element.Assigned_To  := U_ID;
+            Element.Reception_ID := R_ID;
+         end Update;
+      begin
+         Call_List.Update (Item.ID, Update'Access);
+      end Set_Outbound_Parameters;
+
+      ---------------------
+      --  Set_Reception  --
+      ---------------------
 
       procedure Set_Reception (ID   : in Identification;
                                R_ID : in Reception_Identifier) is

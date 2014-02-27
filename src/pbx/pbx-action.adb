@@ -25,7 +25,9 @@ with ESL.Reply,
      ESL.Command.Miscellaneous;
 
 with GNATCOLL.JSON;
-with PBX.Trace;
+with PBX.Trace,
+     PBX.Magic_Constants;
+
 with Model.Peer.List;
 with System_Messages;
 with Util.Image;
@@ -34,6 +36,8 @@ package body PBX.Action is
    use GNATCOLL.JSON;
    use type Call.Identification;
    use type ESL.Reply.Responses;
+
+   package Constants renames PBX.Magic_Constants;
 
    --------------
    --  Bridge  --
@@ -98,17 +102,17 @@ package body PBX.Action is
    begin
       Originate_Action.Add_Option
         (Option => ESL.Command.Option.Create
-           (Key   => "reception_id",
+           (Key   => Constants.Reception_ID,
             Value => Util.Image.Image (Reception_ID)));
 
       Originate_Action.Add_Option
         (Option => ESL.Command.Option.Create
-           (Key   => "assigned_to",
+           (Key   => Constants.Owner,
             Value => Util.Image.Image (User.Identification)));
 
       Originate_Action.Add_Option
            (Option => ESL.Command.Option.Create
-              (Key   => "contact_id",
+              (Key   => Constants.Contact_ID,
                Value => Util.Image.Image (Contact_ID)));
 
       PBX.Trace.Information (Message => "Sending:" &
