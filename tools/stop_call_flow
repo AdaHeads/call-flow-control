@@ -1,0 +1,11 @@
+#!/bin/sh
+kill `pidof call_flow_control` || (echo "not running"; exit 1)
+for i in seq 0 5; do
+   sleep 1
+   echo -n .
+   pidof call_flow_control > /dev/null || exit 0
+done;
+
+echo .. killing call-flow hard
+(kill -9 `pidof call_flow_control 2> /dev/null` && exit 1) || exit 0
+

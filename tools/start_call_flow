@@ -1,0 +1,4 @@
+#!/bin/sh
+CALL_FLOW_HOME=/usr/local/call-flow
+(cd $CALL_FLOW_HOME && exec bin/call_flow_control > ${CALL_FLOW_HOME}/call_flow.log &) && echo call-flow started.
+
