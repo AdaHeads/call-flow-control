@@ -73,13 +73,14 @@ package body Model.Contact is
    --  Fetch  --
    -------------
 
-   function Fetch (Reception : in Reception_Identifier;
-                   Contact   : in Contact_Identifier) return Instance is
+   function Fetch (Reception  : in Reception_Identifier;
+                   Contact    : in Contact_Identifier;
+                   Auth_Token : in Token.Instance) return Instance is
    begin
          return Model.Contact.Utilities.Retrieve
            (Reception => Reception,
             Contact   => Contact,
-            Token     => Config.Get (Key => Server_Token),
+            Token     => Auth_Token.To_String,
             From      => Config.Get (Key => Contact_Server));
    end Fetch;
 

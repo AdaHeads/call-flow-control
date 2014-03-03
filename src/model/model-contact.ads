@@ -17,6 +17,7 @@
 
 with Ada.Containers.Vectors;
 with Model.Phone;
+with Model.Token;
 with GNATCOLL.JSON;
 private
 with Ada.Strings.Unbounded,
@@ -37,8 +38,9 @@ package Model.Contact is
    function Create_From_JSON (JSON : in JSON_Value) return Instance;
    --  Constructs a new instance, based on a JSON map.
 
-   function Fetch (Reception : in Reception_Identifier;
-                   Contact   : in Contact_Identifier) return Instance;
+   function Fetch (Reception  : in Reception_Identifier;
+                   Contact    : in Contact_Identifier;
+                   Auth_Token : in Token.Instance) return Instance;
    --  Fetches a given contact@reception from a contact service.
 
    function Extension_Of (Object   : Instance;

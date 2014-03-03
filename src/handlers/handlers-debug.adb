@@ -19,7 +19,6 @@ with GNATCOLL.JSON;
 
 with Response.Templates,
      View,
-     Model.Contact,
      Model.Token.List,
      Model.Peer.List;
 
@@ -49,12 +48,11 @@ package body Handlers.Debug is
       return AWS.Response.Data is
       use GNATCOLL.JSON;
    begin
-
       return Response.Templates.Server_Error
         (Request       => Request,
-         Response_Body => Description
-           (Model.Contact.Fetch (Reception => 1,
-                                 Contact   => 1).Image));
+         Response_Body => Description ("Not implemented"));
+--             (Model.Contact.Fetch (Reception => 1,
+--                                   Contact   => 1).Image));
    end Contact;
 
    ----------------------

@@ -19,6 +19,7 @@ with Model.Contact,
      Model.User,
      Model.Phone,
      Model.Peer,
+     Model.Token,
      PBX,
      PBX.Action,
      Request_Utilities,
@@ -95,6 +96,8 @@ package body Handlers.Call.Originate is
 
       User              : constant Model.User.Instance :=
         Request_Utilities.User_Of (Request);
+      Token             : constant Model.Token.Instance :=
+        Request_Utilities.Token_Of (Request);
 
       Not_Found : exception;
       Origination_Context : Origination_Contexts;
@@ -143,8 +146,9 @@ package body Handlers.Call.Originate is
 
             declare
                Extension : constant String := Model.Contact.Fetch
-                 (Reception => R_ID,
-                  Contact   => C_ID).Extension_Of (Phone_ID => P_ID);
+                 (Reception  => R_ID,
+                  Contact    => C_ID,
+                  Auth_Token => Token).Extension_Of (Phone_ID => P_ID);
             begin
                if Extension = Model.Phone.Null_Extension then
                   raise Not_Found with "No such extension";
