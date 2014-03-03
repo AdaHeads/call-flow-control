@@ -18,7 +18,7 @@
 with Ada.Strings.Fixed;
 with Configuration;
 with Protocol_Definitions;
---  with System_Messages;
+with System_Messages;
 
 private with Model.Contact.Utilities;
 
@@ -76,12 +76,16 @@ package body Model.Contact is
    function Fetch (Reception  : in Reception_Identifier;
                    Contact    : in Contact_Identifier;
                    Auth_Token : in Token.Instance) return Instance is
+      Context : constant String := Package_Name & ".Fetch";
    begin
-         return Model.Contact.Utilities.Retrieve
-           (Reception => Reception,
-            Contact   => Contact,
-            Token     => Auth_Token.To_String,
-            From      => Config.Get (Key => Contact_Server));
+      System_Messages.Debug (Message => "Forwarding token: " &
+                               Auth_Token.To_String,
+                             Context => Context);
+      return Model.Contact.Utilities.Retrieve
+        (Reception => Reception,
+         Contact   => Contact,
+         Token     => Auth_Token.To_String,
+         From      => Config.Get (Key => Contact_Server));
    end Fetch;
 
    -------------
