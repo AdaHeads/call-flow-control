@@ -78,6 +78,11 @@ package body Handlers.Call.Pickup is
                               ID   => Call_ID,
                               Call => Assigned_Call);
 
+      System_Messages.Debug
+        (Message => "Assign_Call returns call " &
+           Assigned_Call.To_JSON.Write,
+         Context => Context);
+
       if Assigned_Call = Model.Call.Null_Instance then
          return Response.Templates.Not_Found (Request);
       end if;
@@ -90,6 +95,9 @@ package body Handlers.Call.Pickup is
          Context => Context);
 
       PBX.Action.Transfer (Assigned_Call.ID, User);
+
+--        pragma Assert (Assigned_Call.Assigned_To /=
+--                         Model.User.Null_Identification);
 
       return Response.Templates.OK
         (Request       => Request,

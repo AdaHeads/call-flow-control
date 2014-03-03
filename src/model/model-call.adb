@@ -404,7 +404,7 @@ package body Model.Call is
          Value.Set_Field (View.Caller_ID, Call.From_Extension);
          Value.Set_Field (View.Greeting_Played, Call.Greeting_Played);
          Value.Set_Field (View.Reception_ID, Call.Reception_ID);
-         Value.Set_Field (View.Assigned_To_S, Call.Assigned_To);
+         Value.Set_Field (View.Assigned_To_S, Obj.Assigned_To);
          Value.Set_Field (View.Channel, To_String (Call.ID));
          Value.Set_Field
            (View.Arrival_Time_S, Unix_Timestamp (Call.Arrival_Time));
@@ -490,7 +490,15 @@ package body Model.Call is
                            Call : in out Instance) is
             pragma Unreferenced (Key);
          begin
+            System_Messages.Debug (Message => "Assigning call "&
+                                     " to user." &
+                                     To'Img,
+                                   Context => Context);
             Call.Assigned_To := To;
+            System_Messages.Debug (Message => "Assigned call "&
+                                     " to user." &
+                                     Call.Assigned_To'Img,
+                                   Context => Context);
          end Assign;
 
          function Available_For_User
@@ -501,7 +509,6 @@ package body Model.Call is
          end Available_For_User;
 
       begin
-
          if ID /= Model.Call.Null_Identification then
             declare
                Prospected_Call : Model.Call.Instance renames List.Element (ID);
@@ -513,10 +520,8 @@ package body Model.Call is
                      Prospected_Call.Inbound      and
                  not Prospected_Call.Locked
                then
-                  System_Messages.Debug (Message => "Found " &
-                                           Prospected_Call.ID.Image,
-                                         Context => Context);
                   Call_List.Update (Prospected_Call.ID, Assign'Access);
+                  --  Return the updated element.
                   Call := List.Element (Prospected_Call.ID);
                   return;
                end if;
@@ -534,11 +539,9 @@ package body Model.Call is
                      Prospected_Call.Inbound              and
                  not Prospected_Call.Locked
                then
-                  System_Messages.Debug (Message => "Found " &
-                                           Prospected_Call.ID.Image,
-                                         Context => Context);
                   Call_List.Update (Prospected_Call.ID, Assign'Access);
-                  Call := Prospected_Call;
+                  --  Return the updated element.
+                  Call := List.Element (Prospected_Call.ID);
                   return;
                end if;
             end;
@@ -722,7 +725,10 @@ package body Model.Call is
                            Element : in out Instance) is
             pragma Unreferenced (Key);
          begin
-            Element.Assigned_To  := U_ID;
+            if Element.Assigned_To = Model.User.Null_Identification then
+               Element.Assigned_To  := U_ID;
+            end if;
+
             Element.Reception_ID := R_ID;
          end Update;
       begin
