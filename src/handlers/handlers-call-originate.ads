@@ -29,6 +29,8 @@ with AWS.Response,
 
 package Handlers.Call.Originate is
 
+   Invalid_Extension : exception;
+
    Package_Name : constant String := "Handlers.Call.Originate";
 
    function Callback return AWS.Response.Callback;

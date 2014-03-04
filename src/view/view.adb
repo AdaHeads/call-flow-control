@@ -22,6 +22,16 @@ package body View is
       JSON : constant JSON_Value := Create_Object;
    begin
       JSON.Set_Field ("description", Message);
+
+      return JSON;
+   end Description;
+
+   function Description (Event : in Ada.Exceptions.Exception_Occurrence)
+                         return GNATCOLL.JSON.JSON_Value is
+      JSON : constant JSON_Value := Create_Object;
+   begin
+      JSON.Set_Field ("description", Ada.Exceptions.Exception_Message (Event));
+
       return JSON;
    end Description;
 

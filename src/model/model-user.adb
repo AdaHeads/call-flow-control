@@ -132,6 +132,9 @@ package body Model.User is
                           return Model.Call.Identification is
    begin
       return Call_Allocation.Element (Object.ID);
+   exception
+      when Constraint_Error =>
+         return Model.Call.Null_Identification;
    end Current_Call;
 
    -------------------

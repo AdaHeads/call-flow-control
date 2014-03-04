@@ -15,6 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Exceptions;
 with GNATCOLL.JSON;
 
 package View is
@@ -59,4 +60,6 @@ package View is
 
    function Description (Message : in String) return GNATCOLL.JSON.JSON_Value;
 
+   function Description (Event : in Ada.Exceptions.Exception_Occurrence)
+                         return GNATCOLL.JSON.JSON_Value;
 end View;

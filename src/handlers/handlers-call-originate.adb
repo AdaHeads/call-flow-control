@@ -42,6 +42,8 @@ package body Handlers.Call.Originate is
 
    function Create (Item : in String) return Origination_Contexts;
 
+   procedure Check_Extension (Item : in String);
+
    ----------------
    --  Callback  --
    ----------------
@@ -50,6 +52,18 @@ package body Handlers.Call.Originate is
    begin
       return Generate_Response'Access;
    end Callback;
+
+   -----------------------
+   --  Check_Extension  --
+   -----------------------
+
+   procedure Check_Extension (Item : in String) is
+   begin
+      if Item'Length < 2 then
+         raise Invalid_Extension with
+           "Extension should be longer than 2 characters";
+      end if;
+   end Check_Extension;
 
    --------------
    --  Create  --
@@ -123,19 +137,15 @@ package body Handlers.Call.Originate is
             Extension_Param : constant String :=
               Parameters (Request).Get (Extension_String);
          begin
-            System_Messages.Debug
-              (Message => "Originating to arbitrary extension: "
-               & Extension_Param & " in Context " & Context_Param & ".",
-               Context => Context);
 
-               System_Messages.Debug (Message => "Got active call:" &
-                                        Model.Call.Get (User.Current_Call).To_JSON.Write,
-                                      Context => Context);
+            Check_Extension (Extension_Param);
 
-               --  If there is an active call, park it.
-               if Model.Call.Get (User.Current_Call).State = Speaking then
-                  PBX.Action.Park (Target  => User.Current_Call,
-                                   At_User => User);
+            --  If there is an active call, park it.
+               if User.Current_Call /= Model.Call.Null_Identification then
+                  if Model.Call.Get (User.Current_Call).State = Speaking then
+                     PBX.Action.Park (Target  => User.Current_Call,
+                                      At_User => User);
+                  end if;
                end if;
 
             PBX.Action.Originate
@@ -166,16 +176,13 @@ package body Handlers.Call.Originate is
                   raise Not_Found with "No such extension";
                end if;
 
-               System_Messages.Debug (Message => "Got active call:" &
-                                        Model.Call.Get (User.Current_Call).To_JSON.Write,
-                                      Context => Context);
-
                --  If there is an active call, park it.
-               if Model.Call.Get (User.Current_Call).State = Speaking then
-                  PBX.Action.Park (Target  => User.Current_Call,
-                                   At_User => User);
+               if User.Current_Call /= Model.Call.Null_Identification then
+                  if Model.Call.Get (User.Current_Call).State = Speaking then
+                     PBX.Action.Park (Target  => User.Current_Call,
+                                      At_User => User);
+                  end if;
                end if;
-
 
                PBX.Action.Originate
                  (Reception_ID => Origination_Context.Reception_ID,
@@ -203,6 +210,14 @@ package body Handlers.Call.Originate is
 
       return Response.Templates.OK (Request);
    exception
+      when Event : Invalid_Extension =>
+         System_Messages.Information
+           (Message         => "Tried to dial invalid extension: """ &
+              Extension_String & "",
+            Context => Context);
+         return Response.Templates.Bad_Parameters
+           (Request, Description (Event => Event));
+
       when PBX.Action.Error =>
          System_Messages.Critical
            (Message         => "PBX failed to handle request.",
