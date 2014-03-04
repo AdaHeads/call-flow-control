@@ -28,7 +28,7 @@ package Model.User.List is
 
    procedure Assign_Websocket
      (Object    :    out Instance;
-      User_ID   : in     User.Identifications;
+      User_ID   : in     Model.User_Identifier;
       WebSocket : in     Handlers.Notifications.Object);
 
    function Get_Singleton return Reference;
@@ -40,7 +40,7 @@ package Model.User.List is
    --  Retrieves a user object based on the identity.
 
    function Get (Object   : in Instance;
-                 User_ID : in User.Identifications) return User.Instance;
+                 User_ID : in Model.User_Identifier) return User.Instance;
    --  Retrieves a user object based on the user ID.
 
    function To_JSON (Object : in Instance) return JSON_Value;

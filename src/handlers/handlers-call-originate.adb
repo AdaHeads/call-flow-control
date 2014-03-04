@@ -15,7 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Model.Contact,
+with Model.Call,
+     Model.Contact,
      Model.User,
      Model.Phone,
      Model.Peer,
@@ -88,6 +89,7 @@ package body Handlers.Call.Originate is
    function Generate_Response
      (Request : in AWS.Status.Data) return AWS.Response.Data is
       use Model.User;
+      use Model.Call;
 
       Context : constant String := Package_Name & ".Generate_Response";
 
@@ -126,6 +128,16 @@ package body Handlers.Call.Originate is
                & Extension_Param & " in Context " & Context_Param & ".",
                Context => Context);
 
+               System_Messages.Debug (Message => "Got active call:" &
+                                        Model.Call.Get (User.Current_Call).To_JSON.Write,
+                                      Context => Context);
+
+               --  If there is an active call, park it.
+               if Model.Call.Get (User.Current_Call).State = Speaking then
+                  PBX.Action.Park (Target  => User.Current_Call,
+                                   At_User => User);
+               end if;
+
             PBX.Action.Originate
               (Reception_ID => Origination_Context.Reception_ID,
                Contact_ID   => Origination_Context.Contact_ID,
@@ -153,6 +165,18 @@ package body Handlers.Call.Originate is
                if Extension = Model.Phone.Null_Extension then
                   raise Not_Found with "No such extension";
                end if;
+
+               System_Messages.Debug (Message => "Got active call:" &
+                                        Model.Call.Get (User.Current_Call).To_JSON.Write,
+                                      Context => Context);
+
+               --  If there is an active call, park it.
+               if Model.Call.Get (User.Current_Call).State = Speaking then
+                  PBX.Action.Park (Target  => User.Current_Call,
+                                   At_User => User);
+               end if;
+
+
                PBX.Action.Originate
                  (Reception_ID => Origination_Context.Reception_ID,
                   Contact_ID   => Origination_Context.Contact_ID,

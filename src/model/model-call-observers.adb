@@ -106,8 +106,8 @@ package body Model.Call.Observers is
               Reception_Identifier'Value
                 (Packet.Variables.Get
                      (Key     => Constants.Reception_ID));
-            U_ID : Model.User.Identifications renames
-              Model.User.Identifications'Value
+            U_ID : Model.User_Identifier renames
+              Model.User_Identifier'Value
                 (Packet.Variables.Get
                      (Key     => Constants.Contact_ID,
                       Default => Null_Contact_Identifier'Img));

@@ -17,6 +17,7 @@
 
 with Ada.Characters.Handling;
 with Ada.Strings;
+with Model.User;
 with Ada.Strings.Fixed;
 with Handlers.Notifications;
 with Client_Notification;
@@ -46,7 +47,7 @@ package body Model.Call is
    -------------------
 
    procedure    Assign_Call
-     (To   : in     Model.User.Identifications;
+     (To   : in     Model.User_Identifier;
       Call :    out Model.Call.Instance;
       ID   : in     Model.Call.Identification :=
         Model.Call.Null_Identification) is
@@ -54,6 +55,8 @@ package body Model.Call is
       Call_List.Assign_Call (To   => To,
                              ID   => ID,
                              Call => Call);
+      Model.User.Assign_Call (User_ID => To,
+                              Call_ID => Call.ID);
    end Assign_Call;
 
    -------------------
@@ -169,7 +172,7 @@ package body Model.Call is
                 Reception_ID    => Reception_ID,
                 Greeting_Played => <>,
                 Locked          => <>,
-                Assigned_To     => Model.User.Null_Identification,
+                Assigned_To     => Model.Null_User_Identifier,
                 Extension       => To_Unbounded_String (Extension),
                 From_Extension  => To_Unbounded_String (From_Extension),
                 Arrived         => Current_Time,
@@ -351,7 +354,7 @@ package body Model.Call is
         (Item : in Instance;
          R_ID : in Reception_Identifier;
          C_ID : in Contact_Identifier;
-         U_ID : in Model.User.Identifications) is
+         U_ID : in Model.User_Identifier) is
    begin
       Call_List.Set_Outbound_Parameters (Item => Item,
                                          R_ID => R_ID,
@@ -472,7 +475,7 @@ package body Model.Call is
       -------------------
 
       procedure Assign_Call
-        (To   : in     Model.User.Identifications;
+        (To   : in     Model.User_Identifier;
          Call :    out Model.Call.Instance;
          ID   : in     Model.Call.Identification :=
            Model.Call.Null_Identification) is
@@ -504,7 +507,7 @@ package body Model.Call is
          function Available_For_User
            (Item : in Model.Call.Instance) return Boolean is
          begin
-            return Item.Assigned_To = Model.User.Null_Identification or
+            return Item.Assigned_To = Model.Null_User_Identifier or
                    Item.Assigned_To = To;
          end Available_For_User;
 
@@ -717,7 +720,7 @@ package body Model.Call is
         (Item : in Instance;
          R_ID : in Reception_Identifier;
          C_ID : in Contact_Identifier;
-         U_ID : in Model.User.Identifications) is
+         U_ID : in Model.User_Identifier) is
          procedure Update (Key     : in     Identification;
                            Element : in out Instance);
 
@@ -725,7 +728,7 @@ package body Model.Call is
                            Element : in out Instance) is
             pragma Unreferenced (Key);
          begin
-            if Element.Assigned_To = Model.User.Null_Identification then
+            if Element.Assigned_To = Model.Null_User_Identifier then
                Element.Assigned_To  := U_ID;
             end if;
 

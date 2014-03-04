@@ -117,12 +117,38 @@ package body Model.User is
    --------------
 
    function Create (Object  : GNATCOLL.JSON.JSON_Value) return Instance is
-      ID : constant Model.User.Identifications :=
+      ID : constant Model.User_Identifier :=
         Natural'(Object.Get (ID_String));
    begin
       return Create (User_ID => ID,
                      Object  => Object);
    end Create;
+
+   --------------------
+   --  Current_Call  --
+   --------------------
+
+   function Current_Call (Object : in Instance)
+                          return Model.Call.Identification is
+   begin
+      return Call_Allocation.Element (Object.ID);
+   end Current_Call;
+
+   -------------------
+   --  Assign_Call  --
+   -------------------
+
+   procedure Assign_Call (User_ID : in User_Identifier;
+                          Call_ID : in Model.Call.Identification) is
+   begin
+      if Call_Allocation.Contains (User_ID) then
+         Call_Allocation.Replace (Key      => User_ID,
+                                  New_Item => Call_ID);
+      else
+         Call_Allocation.Insert (Key      => User_ID,
+                                 New_Item => Call_ID);
+      end if;
+   end Assign_Call;
 
    ---------------------
    --  Current_State  --

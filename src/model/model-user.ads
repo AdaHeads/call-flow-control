@@ -19,7 +19,8 @@ with Ada.Containers,
      Ada.Containers.Hashed_Maps,
      Ada.Strings.Unbounded;
 
-with Model.Peer;
+with Model.Call,
+     Model.Peer;
 
 with Handlers.Notifications;
 
@@ -56,8 +57,6 @@ package Model.User is
 
    subtype Identities is Unbounded_String;
 
-   subtype Identifications is Natural;
-
    type Instance is tagged private;
 
    type Reference is access all Instance;
@@ -83,6 +82,12 @@ package Model.User is
    function Identification (Object : in Instance) return Identifications;
 
    function Parking_Lot_Identifier (Object : in Instance) return String;
+
+   function Current_Call (Object : in Instance)
+                          return Model.Call.Identification;
+
+   procedure Assign_Call (User_ID : in Model.User_Identifier;
+                          Call_ID : in Model.Call.Identification);
 
    function Image (Identification : Identifications) return String;
 
@@ -121,6 +126,8 @@ package Model.User is
    Null_Identity : constant Identities;
    Null_Identification : constant Identifications;
 private
+   use Model;
+   use Model.Call;
    package Peers renames Model.Peer;
 
    Null_Identification : constant Identifications := 0;
@@ -146,6 +153,12 @@ private
    function Hash (Identification : Identifications)
                   return Ada.Containers.Hash_Type;
 
+   package Call_Allocation_Storage is new Ada.Containers.Hashed_Maps
+     (Key_Type        => Identifications,
+      Element_Type    => Model.Call.Identification,
+      Hash            => Hash,
+      Equivalent_Keys => "=");
+
    package User_Storage is new Ada.Containers.Hashed_Maps
      (Key_Type        => Identifications,
       Element_Type    => User.Instance,
@@ -156,10 +169,13 @@ private
 
    package Lookup_Storage is new Ada.Containers.Hashed_Maps
      (Key_Type        => User.Identities,
-      Element_Type    => User.Identifications,
+      Element_Type    => Model.User_Identifier,
       Hash            => Hash,
       Equivalent_Keys => "=");
 
    subtype Identity_Maps is Lookup_Storage.Map;
+
+   Call_Allocation : Call_Allocation_Storage.Map :=
+     Call_Allocation_Storage.Empty_Map;
 
 end Model.User;

@@ -20,7 +20,6 @@ private with Ada.Strings.Unbounded;
 with GNATCOLL.JSON;
 
 with ESL.UUID;
-with Model.User;
 with Common;
 
 package Model.Call is
@@ -86,7 +85,7 @@ package Model.Call is
         (Item : in Instance;
          R_ID : in Reception_Identifier;
          C_ID : in Contact_Identifier;
-         U_ID : in Model.User.Identifications);
+         U_ID : in Model.User_Identifier);
 
    procedure Change_State (Obj  : in Instance;
                            New_State : in States);
@@ -121,7 +120,7 @@ package Model.Call is
    --  ^Explicit null values.
 
    procedure Assign_Call
-     (To   : in     Model.User.Identifications;
+     (To   : in     Model.User_Identifier;
       Call :    out Model.Call.Instance;
       ID   : in     Model.Call.Identification :=
         Model.Call.Null_Identification);
@@ -151,7 +150,7 @@ private
          Inbound         : Boolean;
          Extension       : Unbounded_String;
          Reception_ID    : Reception_Identifier := Null_Reception_Identifier;
-         Assigned_To     : Model.User.Identifications;
+         Assigned_To     : Model.User_Identifier;
          From_Extension  : Unbounded_String;
          B_Leg           : Identification;
          Arrived         : Time := Current_Time;
@@ -164,7 +163,7 @@ private
 
    protected Call_List is
       procedure Assign_Call
-        (To   : in     Model.User.Identifications;
+        (To   : in     Model.User_Identifier;
          Call :    out Model.Call.Instance;
          ID   : in     Model.Call.Identification
                           := Model.Call.Null_Identification);
@@ -175,7 +174,7 @@ private
         (Item : in Instance;
          R_ID : in Reception_Identifier;
          C_ID : in Contact_Identifier;
-         U_ID : in Model.User.Identifications);
+         U_ID : in Model.User_Identifier);
 
       function Empty return Boolean;
       procedure Change_State (ID        : in Identification;

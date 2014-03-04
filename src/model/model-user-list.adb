@@ -37,13 +37,13 @@ package body Model.User.List is
 
    procedure Assign_Websocket
      (Object    :    out Instance;
-      User_ID   : in     User.Identifications;
+      User_ID   : in     User_Identifier;
       WebSocket : in     Handlers.Notifications.Object) is
 
-      procedure Update (Key     : in     Model.User.Identifications;
+      procedure Update (Key     : in     Model.User_Identifier;
                         Element : in out Model.User.Instance);
 
-      procedure Update (Key     : in     Model.User.Identifications;
+      procedure Update (Key     : in     Model.User_Identifier;
                         Element : in out Model.User.Instance) is
          pragma Unreferenced (Key);
       begin
@@ -77,7 +77,7 @@ package body Model.User.List is
    -----------
 
    function Get (Object  : in Instance;
-                 User_ID : in User.Identifications) return User.Instance is
+                 User_ID : in User_Identifier) return User.Instance is
    begin
       return Object.User_Map.Element (User_ID);
    exception
@@ -119,8 +119,8 @@ package body Model.User.List is
             Identity_List : JSON_Array renames
               Node.Get (User.Identities_String);
             ID_String     : String renames Node.Get (User.ID_String);
-            ID            : User.Identifications renames
-              User.Identifications'Value (ID_String);
+            ID            : User_Identifier renames
+              User_Identifier'Value (ID_String);
          begin
             New_Instance.User_Map.Insert
               (Key      => ID,

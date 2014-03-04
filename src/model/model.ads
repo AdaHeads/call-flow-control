@@ -18,6 +18,7 @@
 package Model is
 
    subtype Identifications is Natural;
+   subtype User_Identifier is Natural;
    subtype Contact_Identifier is Identifications;
    subtype Organization_Identifier is Identifications;
    subtype Reception_Identifier is Identifications;
@@ -38,12 +39,14 @@ package Model is
    --  Identifies a set of contact attributes for the Contact_ID
    --  contact in the context of the Organization_ID organization.
 
+   Null_User_Identifier         : constant User_Identifier;
    Null_Organization_Identifier : constant Organization_Identifier;
    Null_Reception_Identifier    : constant Reception_Identifier;
    Null_Contact_Identifier      : constant Contact_Identifier;
 
 private
 
+   Null_User_Identifier         : constant User_Identifier         := 0;
    Null_Organization_Identifier : constant Organization_Identifier := 0;
    Null_Reception_Identifier    : constant Reception_Identifier    := 0;
    Null_Contact_Identifier      : constant Contact_Identifier      := 0;
