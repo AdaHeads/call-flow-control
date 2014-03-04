@@ -141,12 +141,16 @@ package body Handlers.Call.Originate is
             Check_Extension (Extension_Param);
 
             --  If there is an active call, park it.
-               if User.Current_Call /= Model.Call.Null_Identification then
-                  if Model.Call.Get (User.Current_Call).State = Speaking then
-                     PBX.Action.Park (Target  => User.Current_Call,
-                                      At_User => User);
-                  end if;
+            declare
+            begin
+               if Model.Call.Get (User.Current_Call).State = Speaking then
+                  PBX.Action.Park (Target  => User.Current_Call,
+                                   At_User => User);
                end if;
+            exception
+               when Model.Call.Not_Found =>
+                  null; --  Handling potential race condition.
+            end;
 
             PBX.Action.Originate
               (Reception_ID => Origination_Context.Reception_ID,
@@ -177,12 +181,16 @@ package body Handlers.Call.Originate is
                end if;
 
                --  If there is an active call, park it.
-               if User.Current_Call /= Model.Call.Null_Identification then
+               declare
+               begin
                   if Model.Call.Get (User.Current_Call).State = Speaking then
                      PBX.Action.Park (Target  => User.Current_Call,
                                       At_User => User);
                   end if;
-               end if;
+               exception
+                  when Model.Call.Not_Found =>
+                     null; --  Handling potential race condition.
+               end;
 
                PBX.Action.Originate
                  (Reception_ID => Origination_Context.Reception_ID,
