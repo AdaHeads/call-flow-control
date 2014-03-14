@@ -16,12 +16,79 @@
 -------------------------------------------------------------------------------
 
 with Ada.Text_IO;
-with Util.Process_Control;
+with Configuration.Default;
+with Util.Config_File_Parser;
+with Util.Command_Line;
 
 package body Configuration is
+   use Configuration.Default;
 
    Current_Loglevel     : Loglevels;
    Current_PBX_Loglevel : PBX_Loglevels;
+
+   package Config is new Util.Config_File_Parser
+     (Key_Type            => Configuration.Default.Keys,
+      Defaults_Array_Type => Configuration.Default.Defaults_Array,
+      Defaults            => Configuration.Default.Default_Values,
+      Config_File         => Default_Config_File);
+
+   function Access_Log return String is
+   begin
+      return Config.Get (Key => Access_Log);
+   end Access_Log;
+
+   function Auth_Server return String is
+   begin
+      return Config.Get (Key => Auth_Server);
+   end Auth_Server;
+
+   function Contact_Server return String is
+   begin
+      return Config.Get (Key => Contact_Server);
+   end Contact_Server;
+
+   function Error_Log return String is
+   begin
+      return Config.Get (Key => Error_Log);
+   end Error_Log;
+
+   procedure Load_Config is
+   begin
+      Config.Load_File
+        (Config_File => Util.Command_Line.Get
+           (Parameter => "--config",
+            Default   => Default_Config_File));
+
+      --  Validate config and set command line values.
+      Current_Loglevel     := Loglevels'Value
+        (Util.Command_Line.Get
+           (Parameter => Loglevel_CL_String,
+            Default   => Config.Get (Key => Loglevel)));
+
+      Current_PBX_Loglevel := PBX_Loglevels'Value
+        (Util.Command_Line.Get
+           (Parameter => PBX_Loglevel_CL_String,
+            Default   => Config.Get (Key => PBX_Loglevel)));
+
+      Config.Update (Key       => PBX_Host,
+                     New_Value =>
+                       (Util.Command_Line.Get
+                          (Parameter => PBX_Host_CL_String,
+                           Default   => Config.Get (Key => PBX_Host))));
+
+      Config.Update (Key       => PBX_Port,
+                     New_Value =>
+                       (Util.Command_Line.Get
+                          (Parameter => PBX_Port_CL_String,
+                           Default   => Config.Get (Key => PBX_Port))));
+
+      Config.Update (Key       => PBX_Secret,
+                     New_Value =>
+                       (Util.Command_Line.Get
+                          (Parameter => PBX_Secret_CL_String,
+                           Default   => Config.Get (Key => PBX_Secret))));
+
+   end Load_Config;
 
    ----------------
    --  Loglevel  --
@@ -31,6 +98,15 @@ package body Configuration is
    begin
       return Current_Loglevel;
    end Loglevel;
+
+   ----------------
+   --  PBX_Host  --
+   ----------------
+
+   function PBX_Host return String is
+   begin
+      return Config.Get (Key => PBX_Host);
+   end PBX_Host;
 
    --------------------
    --  PBX_Loglevel  --
@@ -42,8 +118,26 @@ package body Configuration is
    end PBX_Loglevel;
 
    --------------------
-   --  PBX_Loglevel  --
+   --  PBX_Password  --
    --------------------
+
+   function PBX_Password return String is
+   begin
+      return Config.Get (Key => PBX_Secret);
+   end PBX_Password;
+
+   ----------------
+   --  PBX_Port  --
+   ----------------
+
+   function PBX_Port return Natural is
+   begin
+      return Config.Get (Key => PBX_Port);
+   end PBX_Port;
+
+   ----------------------
+   --  Show_Arguments  --
+   ----------------------
 
    procedure Show_Arguments is
       use Ada.Text_IO;
@@ -74,39 +168,4 @@ package body Configuration is
                   PBX_Secret_Usage_String);
    end Show_Arguments;
 
-begin
-   --  Validate config and set command line values.
-   Current_Loglevel     := Loglevels'Value
-     (Util.Command_Line.Get
-        (Parameter => Loglevel_CL_String,
-         Default   => Config.Get (Key => Loglevel)));
-
-   Current_PBX_Loglevel := PBX_Loglevels'Value
-     (Util.Command_Line.Get
-        (Parameter => PBX_Loglevel_CL_String,
-         Default   => Config.Get (Key => PBX_Loglevel)));
-
-   Config.Update (Key       => PBX_Host,
-                  New_Value =>
-                    (Util.Command_Line.Get
-                       (Parameter => PBX_Host_CL_String,
-                        Default   => Config.Get (Key => PBX_Host))));
-
-   Config.Update (Key       => PBX_Port,
-                  New_Value =>
-                    (Util.Command_Line.Get
-                       (Parameter => PBX_Port_CL_String,
-                        Default   => Config.Get (Key => PBX_Port))));
-
-   Config.Update (Key       => PBX_Secret,
-                  New_Value =>
-                    (Util.Command_Line.Get
-                       (Parameter => PBX_Secret_CL_String,
-                        Default   => Config.Get (Key => PBX_Secret))));
-
-exception
-   when Constraint_Error =>
-      Util.Process_Control.Stop;
-      --  At this point, we should perform a graceful shutdown but we need a
-      --  mechanism for shutting down the server from here.
 end Configuration;

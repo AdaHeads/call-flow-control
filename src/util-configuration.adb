@@ -245,4 +245,7 @@ package body Util.Configuration is
       return Object;
    end Get_AWS_Configuration;
 
+begin
+   Config.Load_File;
+
 end Util.Configuration;

@@ -125,10 +125,12 @@ package body Util.Config_File_Parser is
    -----------------
 
    procedure Load_File
-     (Config_File : in String)
+     (Config_File : in String := Util.Config_File_Parser.Config_File)
    is
       use Ada.Strings;
       use Ada.Text_IO;
+
+      Context : constant String := Package_Name & ".Load_File";
 
       File : File_Type;
 
@@ -217,6 +219,9 @@ package body Util.Config_File_Parser is
          return True;
       end Is_Not_Empty_Or_Comment;
    begin
+
+      Ada.Text_IO.Put_Line (Context  & ": Loading config values from " & Config_File);
+
       Open (File => File,
             Mode => In_File,
             Name => Config_File);
@@ -253,8 +258,4 @@ package body Util.Config_File_Parser is
    begin
       Values (Key) := To_Unbounded_String (New_Value);
    end Update;
-
-begin
-   Load_File (Config_File => Config_File);
-
 end Util.Config_File_Parser;
