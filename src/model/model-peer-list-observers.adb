@@ -14,13 +14,12 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with Ada.Containers.Vectors;
 
-with ESL.Client.Tasking,
-     ESL.Packet_Keys;
+with ESL.Packet_Keys;
 
 with PBX,
      PBX.Action,
+     PBX.Event_Stream,
      PBX.Magic_Constants;
 
 with System_Messages;
@@ -28,28 +27,31 @@ with System_Messages;
 package body Model.Peer.List.Observers is
    use ESL.Packet_Keys;
 
-   type Observer_Reference is access all
-     ESL.Observer.Event_Observers.Instance'Class;
+   function "=" (Left, Right : in Peer_State_Observers) return Boolean is
+   begin
+      return
+        Left.ID              = Right.ID and
+        Left.Observing_Event = Right.Observing_Event;
+   end "=";
 
-   package Observer_Storgage is new
-     Ada.Containers.Vectors (Index_Type => Natural,
-                             Element_Type => Observer_Reference);
-   subtype Observer_Lists is Observer_Storgage.Vector;
-
-   Observer_List : Observer_Lists;
+   function "=" (Left, Right : in Reload_Config_Observers) return Boolean is
+   begin
+      return
+        Left.ID              = Right.ID and
+        Left.Observing_Event = Right.Observing_Event;
+   end "=";
 
    ---------------------------
    --  Peer_State Observer  --
    ---------------------------
 
    overriding
-   procedure Notify (Observer : access Peer_State_Observers;
-                     Packet   : in     ESL.Packet.Instance;
-                     Client   : in     ESL.Client.Reference) is
+   procedure Notify (Observer : in Peer_State_Observers;
+                     Packet   : in ESL.Packet.Instance) is
       use ESL;
 
       pragma Unreferenced (Observer);
-      pragma Unreferenced (Client);
+
       package Constants renames PBX.Magic_Constants;
 
       Context   : constant String      :=
@@ -92,12 +94,11 @@ package body Model.Peer.List.Observers is
    ------------------------------
 
    overriding
-   procedure Notify (Observer : access Reload_Config_Observers;
-                     Packet   : in     ESL.Packet.Instance;
-                     Client   : in     ESL.Client.Reference) is
+   procedure Notify (Observer : in Reload_Config_Observers;
+                     Packet   : in ESL.Packet.Instance) is
       use ESL;
 
-      pragma Unreferenced (Observer, Client);
+      pragma Unreferenced (Observer);
 
       Context   : constant String      :=
         Package_Name & ".Notify (Config reload observer)";
@@ -118,16 +119,27 @@ package body Model.Peer.List.Observers is
       System_Messages.Information
         (Context => Package_Name,
          Message => "Registering observers.");
-      Observer_List.Append
-        (New_Item => new Peer_State_Observers
-           (Observing => ESL.Client.Tasking.Event_Stream
-              (Client => PBX.Client,
-               Stream => ESL.Packet_Keys.CUSTOM)));
-      Observer_List.Append
-        (New_Item => new Reload_Config_Observers
-           (Observing => ESL.Client.Tasking.Event_Stream
-              (Client => PBX.Client,
-               Stream => ESL.Packet_Keys.RELOADXML)));
+
+      PBX.Event_Stream.Observer_Map.Register_Observer
+        (Observer => Peer_State_Observers'
+           (Observing_Event => ESL.Packet_Keys.CUSTOM,
+            ID              => <>));
+
+      PBX.Event_Stream.Observer_Map.Register_Observer
+        (Observer => Reload_Config_Observers'
+           (Observing_Event => ESL.Packet_Keys.RELOADXML,
+            ID              => <>));
+
+      --        Observer_List.Append
+--          (New_Item => new Peer_State_Observers
+--             (Observing => ESL.Client.Tasking.Event_Stream
+--                (Client => PBX.Client,
+--                 Stream => ESL.Packet_Keys.CUSTOM)));
+--        Observer_List.Append
+--          (New_Item => new Reload_Config_Observers
+--             (Observing => ESL.Client.Tasking.Event_Stream
+--                (Client => PBX.Client,
+--                 Stream => ESL.Packet_Keys.RELOADXML)));
    end Register_Observers;
 
    ----------------------------
@@ -142,7 +154,7 @@ package body Model.Peer.List.Observers is
 --        for Item of Observer_List loop
 --           Item.Finalize;
 --        end loop;
-      Observer_List.Clear;
+--      Observer_List.Clear;
    end Unregister_Observers;
 
 end Model.Peer.List.Observers;

@@ -26,11 +26,6 @@ package body Model.User.List is
    use Ada.Containers;
    use Configuration;
 
-   Users : aliased Instance := (Path         => Config.Get (User_Map_File),
-                                User_Map     => <>,
-                                Identity_Map => <>);
-   --  Singleton instance.
-
    ------------------------
    --  Assign_Websocket  --
    ------------------------
@@ -84,15 +79,6 @@ package body Model.User.List is
       when Constraint_Error =>
          return No_User;
    end Get;
-
-   ---------------------
-   --  Get_Singleton  --
-   ---------------------
-
-   function Get_Singleton return Reference is
-   begin
-      return Users'Access;
-   end Get_Singleton;
 
    ------------------
    --  Reload_Map  --

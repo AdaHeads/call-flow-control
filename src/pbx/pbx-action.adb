@@ -115,9 +115,9 @@ package body PBX.Action is
               (Key   => Constants.Contact_ID,
                Value => Util.Image.Image (Contact_ID)));
 
-      PBX.Trace.Information (Message => "Sending:" &
-                               String (Originate_Action.Serialize),
-                             Context => Context);
+      PBX.Trace.Debug (Message => "Sending:" &
+                         String (Originate_Action.Serialize),
+                       Context => Context);
       PBX.Client.API (Originate_Action, Reply);
 
       --  TODO: Add more elaborate parsing here to determine if the call
@@ -149,9 +149,9 @@ package body PBX.Action is
       Reply : ESL.Reply.Instance;
 
    begin
-      PBX.Trace.Information (Message => "Sending:" &
-                               String (Park_Action.Serialize),
-                             Context => Context);
+      PBX.Trace.Debug (Message => "Sending:" &
+                         String (Park_Action.Serialize),
+                       Context => Context);
       PBX.Client.API (Park_Action, Reply);
 
       --  TODO: Add more elaborate parsing here to determine if the call
@@ -183,15 +183,17 @@ package body PBX.Action is
    begin
       PBX.Client.API (Transfer_Action, Reply);
 
-      PBX.Trace.Information (Message => "Sending:" &
-                               String (Transfer_Action.Serialize),
-                             Context => Context);
+      PBX.Trace.Debug (Message => "Sending:" &
+                         String (Transfer_Action.Serialize),
+                       Context => Context);
       if Reply.Response /= ESL.Reply.OK then
-         raise PBX.Action.Error with "Transfer command failed: " &
-           Reply.Response_Body;
+         PBX.Trace.Fixme (Message => "Got unanticipated error:" &
+                            Reply.Image,
+                          Context => Context);
+         raise Model.Call.Not_Found;
       end if;
 
-      PBX.Trace.Information (Message => "Sending:" &
+      PBX.Trace.Debug (Message => "Sending:" &
                                String (Break_Action.Serialize),
                              Context => Context);
       PBX.Client.API (Break_Action, Reply);
@@ -200,7 +202,8 @@ package body PBX.Action is
       --  can safely be ignored. For the sake of tracing potential problems,
       --  we log the error.
       if Reply.Response /= ESL.Reply.OK then
-         PBX.Trace.Error (Message => "Error:" & Reply.Image,
+         PBX.Trace.Fixme (Message => "Got anticipated error:" &
+                            Reply.Response_Body,
                           Context => Context);
       end if;
 
@@ -397,6 +400,10 @@ package body PBX.Action is
             Position := Position + 2;
          end loop;
       end;
+
+      PBX.Trace.Information (Message => "Updated peer list:");
+
    end Update_SIP_Peer_List;
+
 
 end PBX.Action;

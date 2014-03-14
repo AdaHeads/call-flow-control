@@ -23,7 +23,7 @@ with System_Messages;
 private with Model.Contact.Utilities;
 
 package body Model.Contact is
-   use Configuration;
+   package Config renames Configuration;
    use Model;
    use Protocol_Definitions;
 
@@ -85,7 +85,7 @@ package body Model.Contact is
         (Reception => Reception,
          Contact   => Contact,
          Token     => Auth_Token.To_String,
-         From      => Config.Get (Key => Contact_Server));
+         From      => Config.Contact_Server);
    end Fetch;
 
    -------------

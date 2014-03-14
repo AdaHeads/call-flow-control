@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with ESL.Client.Tasking;
+with ESL.Basic_Client;
 
 package PBX is
 
@@ -31,14 +31,13 @@ package PBX is
    function Status return PBX_Status_Type;
    --  Retrieve the current status of the
 
-   --  TODO: The following should be private:
-   procedure Authenticate;
-
    procedure Connect;
    --  Wraps the connection and wait mechanism and provides a neat callback
    --  for the On_Disconnect event in the ESL.Client.
 
-   Client : ESL.Client.Tasking.Reference;
+   Client : ESL.Basic_Client.Instance
+     (On_Connect_Handler    => ESL.Basic_Client.Ignore_Event,
+      On_Disconnect_Handler => ESL.Basic_Client.Ignore_Event);
 
 private
    type Reply_Ticket is tagged null record;
@@ -46,5 +45,9 @@ private
 
    Connection_Delay        : Duration     := 1.0;
    Shutdown                : Boolean      := False;
+
+   Event_Client : ESL.Basic_Client.Instance
+     (On_Connect_Handler    => ESL.Basic_Client.Ignore_Event,
+      On_Disconnect_Handler => ESL.Basic_Client.Ignore_Event);
 
 end PBX;

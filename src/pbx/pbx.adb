@@ -20,7 +20,11 @@ with Ada.Exceptions;
 with Ada.Calendar;
 
 with PBX.Action;
-with ESL.Trace;
+with PBX.Event_Stream;
+with ESL.Trace,
+     ESL.Packet_Content_Type,
+     ESL.Packet,
+     ESL.Packet.Buffer;
 
 with Configuration;
 with System_Messages;
@@ -29,13 +33,87 @@ with Model.Call.Observers;
 with Model.Peer.List.Observers;
 
 with Util.Process_Control;
+with ESL.Parsing_Utilities;
 
 --  TODO: Cover all branches on status.
 package body PBX is
    use Ada.Strings.Unbounded;
    use Ada.Calendar;
    use System_Messages;
-   use Configuration;
+   package Config renames Configuration;
+
+   task type Dispatcher_Tasks
+     (Buffer : access ESL.Packet.Buffer.Synchronized_Buffer) is
+      entry Start;
+   end Dispatcher_Tasks;
+
+   task type Reader_Tasks
+     (Buffer : access ESL.Packet.Buffer.Synchronized_Buffer) is
+      entry Start;
+   end Reader_Tasks;
+
+   procedure Handle_Authentication
+     (Client   : in out ESL.Basic_Client.Instance;
+      Password : in String);
+
+      Packet_Buffer : aliased ESL.Packet.Buffer.Synchronized_Buffer;
+
+      Dispatcher_Task : Dispatcher_Tasks (Packet_Buffer'Access);
+      Reader_Task     : Reader_Tasks     (Packet_Buffer'Access);
+
+   task body Dispatcher_Tasks is
+      Packet : ESL.Packet.Instance;
+   begin
+      select
+         accept Start;
+      or
+         terminate;
+      end select;
+
+      loop
+         exit when Shutdown;
+         select
+            Buffer.Pop (Packet);
+         or
+            delay 0.1;
+         end select;
+         if Packet.Is_Event then
+            PBX.Event_Stream.Observer_Map.Notify_Observers (Packet => Packet);
+            Packet := ESL.Packet.Empty_Packet;
+         elsif Packet.Is_Response then
+            null; --  Ignore reponses.
+         end if;
+      end loop;
+
+   end Dispatcher_Tasks;
+
+   task body Reader_Tasks is
+      Packet : ESL.Packet.Instance;
+   begin
+      System_Messages.Information (Message => "Waiting to start",
+                                   Context => "Reader_Task");
+
+      select
+         accept Start;
+      or
+         terminate;
+      end select;
+
+      System_Messages.Information (Message => "STARTING",
+                                   Context => "Reader_Task");
+      loop
+         exit when Shutdown;
+         Packet := ESL.Parsing_Utilities.Read_Packet (Event_Client.Stream);
+
+         if Packet.Is_Event then
+            Buffer.Push (Packet);
+
+         elsif Packet.Is_Response then
+            null; --  Ignore reponses.
+         end if;
+      end loop;
+
+   end Reader_Tasks;
 
    task type Connect_Task is
       entry Start;
@@ -44,35 +122,50 @@ package body PBX is
    --  return to the main context, and don't get caught in an
    --  infinite reconnect loop.
 
-   procedure Authenticate is
-   begin
-      Client.Authenticate (Password => Config.Get (PBX_Secret));
-
-      System_Messages.Information
-        (Message => "Authentication success.",
-         Context => "PBX.Authenticate");
-      PBX.Action.Update_Call_List;
-      PBX.Action.Update_SIP_Peer_List;
-
-   exception
-      when ESL.Client.Tasking.Authentication_Failure =>
-         System_Messages.Error
-           (Message => "Authentication failure!",
-            Context => "PBX.Authenticate");
-
-         --  Ask the whole server to shutdown.
-         Util.Process_Control.Stop;
-   end Authenticate;
-
    ---------------
    --  Connect  --
    ---------------
 
    procedure Connect is
-      use ESL.Client;
+      use ESL.Basic_Client;
 
       Next_Reconnect : Ada.Calendar.Time := Clock;
+
    begin
+      while Event_Client.State /= Connected loop
+         exit when Shutdown;
+         delay until Next_Reconnect;
+
+         Next_Reconnect := Clock + 2.0;
+
+         if not Shutdown then
+            System_Messages.Information
+              (Message => "Connecting event client to " &
+                 Config.PBX_Host & ":" &
+                 Config.PBX_Port'Img,
+               Context => "PBX.Connect");
+            Event_Client.Connect (Hostname => Config.PBX_Host,
+                            Port     => Config.PBX_Port);
+         end if;
+      end loop;
+
+      if Event_Client.State = Connected then
+         Handle_Authentication (Client   => Event_Client,
+                                Password => Config.PBX_Password);
+
+         System_Messages.Debug (Message => "Subscribing to all for events",
+                                Context => "PBX.Connect");
+
+         Event_Client.Unmute_Event (Format => Plain,
+                                    Event => "all");
+
+         Dispatcher_Task.Start;
+         Reader_Task.Start;
+         Next_Reconnect := Clock; --  Reset the clock to enable the other
+                                  --  clients to be able to try to connect
+                                  --  immidiately.
+      end if;
+
       while Client.State /= Connected loop
          exit when Shutdown;
          delay until Next_Reconnect;
@@ -81,19 +174,20 @@ package body PBX is
 
          if not Shutdown then
             System_Messages.Information
-              (Message => "Connecting to " & Config.Get (PBX_Host) & ":" &
-                 Config.Get (PBX_Port),
+              (Message => "Connecting to " & Config.PBX_Host & ":" &
+                 Config.PBX_Port'Img,
                Context => "PBX.Connect");
-            Client.Connect (Hostname => Config.Get (PBX_Host),
-                            Port     => Config.Get (PBX_Port));
+            Client.Connect (Hostname => Config.PBX_Host,
+                            Port     => Config.PBX_Port);
          end if;
       end loop;
 
       if Client.State = Connected then
          System_Messages.Debug (Message => "Subscribing to all for events",
                                 Context => "PBX.Connect");
-         Client.Send (Item => "event plain all");
 
+         Handle_Authentication (Client   => Client,
+                                Password => Config.PBX_Password);
       end if;
 
    end Connect;
@@ -105,10 +199,13 @@ package body PBX is
    task body Connect_Task is
    begin
       accept Start;
-      --  ESL.Trace.Mute (ESL.Trace.Every);
+
       Connect; --  Initial connect.
       System_Messages.Information (Message => "PBX subsystem task started",
                                    Context => "PBX.Start");
+      PBX.Action.Update_Call_List;
+      PBX.Action.Update_SIP_Peer_List;
+
    exception
       when E : others =>
          System_Messages.Critical
@@ -121,39 +218,67 @@ package body PBX is
          Util.Process_Control.Stop;
    end Connect_Task;
 
+   procedure Handle_Authentication
+     (Client   : in out ESL.Basic_Client.Instance;
+      Password : in String)
+   is
+      use ESL.Packet_Content_Type;
+
+      Current_Packet : ESL.Packet.Instance := ESL.Packet.Empty_Packet;
+
+   begin
+      --  Skip until the auth request.
+      while Current_Packet.Content_Type /= Auth_Request loop
+         Current_Packet := ESL.Parsing_Utilities.Read_Packet (Client.Stream);
+      end loop;
+
+      Client.Authenticate (Password => Password);
+
+      System_Messages.Information
+        (Message => "Authentication success.",
+         Context => "PBX.Authenticate");
+
+   exception
+      when ESL.Basic_Client.Authentication_Failure =>
+         System_Messages.Error
+           (Message => "Authentication failure!",
+            Context => "PBX.Authenticate");
+
+         --  Ask the whole server to shutdown.
+   end Handle_Authentication;
+
    procedure Start is
-      use ESL.Trace;
-      Loglevel        : constant PBX_Loglevels := PBX_Loglevel;
+      use Config;
       Initial_Connect : Connect_Task;
    begin
-      case Loglevel is
+      case Config.PBX_Loglevel is
          when Critical =>
-            ESL.Trace.Mute (Trace => Error);
-            ESL.Trace.Mute (Trace => Warning);
-            ESL.Trace.Mute (Trace => Debug);
-            ESL.Trace.Mute (Trace => Information);
+            ESL.Trace.Mute (Trace => ESL.Trace.Error);
+            ESL.Trace.Mute (Trace => ESL.Trace.Warning);
+            ESL.Trace.Mute (Trace => ESL.Trace.Debug);
+            ESL.Trace.Mute (Trace => ESL.Trace.Information);
          when Error =>
-            ESL.Trace.Mute (Trace => Debug);
-            ESL.Trace.Mute (Trace => Warning);
-            ESL.Trace.Mute (Trace => Information);
+            ESL.Trace.Mute (Trace => ESL.Trace.Debug);
+            ESL.Trace.Mute (Trace => ESL.Trace.Warning);
+            ESL.Trace.Mute (Trace => ESL.Trace.Information);
          when Warning =>
-            ESL.Trace.Mute (Trace => Debug);
-            ESL.Trace.Mute (Trace => Information);
+            ESL.Trace.Mute (Trace => ESL.Trace.Debug);
+            ESL.Trace.Mute (Trace => ESL.Trace.Information);
          when Information =>
-            ESL.Trace.Mute (Trace => Debug);
+            ESL.Trace.Mute (Trace => ESL.Trace.Debug);
          when Debug | Fixme =>
-            ESL.Trace.Unmute (Trace => Every);
+            ESL.Trace.Unmute (Trace => ESL.Trace.Every);
       end case;
 
-      Client := new ESL.Client.Tasking.Instance
-        (On_Connect_Handler    => Authenticate'Access,
-         On_Disconnect_Handler => ESL.Client.Ignore_Event);
+      System_Messages.Information (Message => "Registering observers.",
+                                   Context => "PBX.Start");
 
       --  Register the appropriate observers.
       Model.Call.Observers.Register_Observers;
       Model.Peer.List.Observers.Register_Observers;
 
       Initial_Connect.Start;
+
    end Start;
 
    function Status return PBX_Status_Type is
@@ -174,7 +299,8 @@ package body PBX is
 
       Shutdown := True;
 
-      Client.Shutdown;
+      Client.Disconnect;
+      Event_Client.Disconnect;
       System_Messages.Information
         (Message => "PBX subsystem task shutdown complete.",
          Context => "PBX.Stop");

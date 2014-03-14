@@ -53,6 +53,22 @@ package body Model.User is
          Right => Right);
    end "=";
 
+   -------------------
+   --  Assign_Call  --
+   -------------------
+
+   procedure Assign_Call (User_ID : in User_Identifier;
+                          Call_ID : in Model.Call.Identification) is
+   begin
+      if Call_Allocation.Contains (User_ID) then
+         Call_Allocation.Replace (Key      => User_ID,
+                                  New_Item => Call_ID);
+      else
+         Call_Allocation.Insert (Key      => User_ID,
+                                 New_Item => Call_ID);
+      end if;
+   end Assign_Call;
+
    ---------------------
    --  Authenticated  --
    ---------------------
@@ -136,22 +152,6 @@ package body Model.User is
       when Constraint_Error =>
          return Model.Call.Null_Identification;
    end Current_Call;
-
-   -------------------
-   --  Assign_Call  --
-   -------------------
-
-   procedure Assign_Call (User_ID : in User_Identifier;
-                          Call_ID : in Model.Call.Identification) is
-   begin
-      if Call_Allocation.Contains (User_ID) then
-         Call_Allocation.Replace (Key      => User_ID,
-                                  New_Item => Call_ID);
-      else
-         Call_Allocation.Insert (Key      => User_ID,
-                                 New_Item => Call_ID);
-      end if;
-   end Assign_Call;
 
    ---------------------
    --  Current_State  --

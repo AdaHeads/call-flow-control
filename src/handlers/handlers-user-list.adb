@@ -15,12 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
-
 with View,
-     Response.Templates,
-     Model.User,
-     Model.User.List;
+     Response.Templates;
 
 package body Handlers.User.List is
 
@@ -31,16 +27,11 @@ package body Handlers.User.List is
 
    function Generate_Response (Request : AWS.Status.Data)
                                return AWS.Response.Data is
-      use GNATCOLL.JSON;
-      Data : constant JSON_Value := Model.User.List.Get_Singleton.To_JSON;
    begin
 
-      Data.Set_Field (Field_Name => View.Status,
-                      Field      => View.OK);
-
-      return Response.Templates.OK
+      return Response.Templates.Bad_Parameters
         (Request       => Request,
-         Response_Body => Data);
+         Response_Body => View.Description (Message => "Not implemented"));
    end Generate_Response;
 
 end Handlers.User.List;

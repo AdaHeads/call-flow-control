@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2013-, AdaHeads K/S                     --
+--                     Copyright (C) 2014-, AdaHeads K/S                     --
+--                     Author: Kim Rostgaard Christensen                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,39 +16,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with ESL.Packet;
-with PBX.Observers;
+--  Singleton package.
 
-package Model.Peer.List.Observers is
-      procedure Register_Observers;
-   --  Registers the appropriate observers.
+with PBX.Event_Observer_Map;
 
-   procedure Unregister_Observers;
-   --  Unregisters the appropriate observers.
+package PBX.Event_Stream is
 
-private
-   type Peer_State_Observers is
-     new PBX.Observers.Instance with
-      record
-         ID : Natural := 112001;
-      end record;
-
-   overriding
-   procedure Notify (Observer : in Peer_State_Observers;
-                     Packet   : in ESL.Packet.Instance);
-
-   function "=" (Left, Right : in Peer_State_Observers) return Boolean;
-
-   type Reload_Config_Observers is
-     new PBX.Observers.Instance with
-      record
-         ID : Natural := 112002;
-      end record;
-
-   overriding
-   procedure Notify (Observer : in Reload_Config_Observers;
-                     Packet   : in ESL.Packet.Instance);
-
-   function "=" (Left, Right : in Reload_Config_Observers) return Boolean;
-
-end Model.Peer.List.Observers;
+   Observer_Map : PBX.Event_Observer_Map.Instance;
+end PBX.Event_Stream;

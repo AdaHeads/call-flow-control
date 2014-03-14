@@ -21,7 +21,8 @@ with Ada.Text_IO,
 with Configuration;
 
 package body System_Messages is
-   use Configuration;
+   package Config renames Configuration;
+   use Config;
 
    Access_Logfile  : Ada.Text_IO.File_Type;
    Error_Logfile   : Ada.Text_IO.File_Type;
@@ -158,50 +159,46 @@ package body System_Messages is
    begin
       declare
       begin
-         if Exists (Config.Get (Access_Log)) then
+         if Exists (Config.Access_Log) then
 
             Open (File => Access_Logfile,
                   Mode => Append_File,
-                  Name => Config.Get (Access_Log));
+                  Name => Config.Access_Log);
          else
             Create (File => Access_Logfile,
                     Mode => Out_File,
-                    Name => Config.Get (Access_Log));
+                    Name => Config.Access_Log);
          end if;
 
             System_Messages.Information
-              (Message => "Opened access log: " &
-                 Config.Get (Access_Log),
+              (Message => "Opened access log: " & Config.Access_Log,
                Context => Context);
       exception
          when others =>
             System_Messages.Error
-              (Message => "Failed to open access log: " &
-                 Config.Get (Access_Log),
+              (Message => "Failed to open access log: " & Config.Access_Log,
                Context => Context);
             Mute_Access_Log := True;
       end;
 
       declare
       begin
-         if Exists (Config.Get (Error_Log)) then
+         if Exists (Config.Error_Log) then
             Open (File => Error_Logfile,
                   Mode => Append_File,
-                  Name => Config.Get (Error_Log));
+                  Name => Config.Error_Log);
          else
             Create (File => Error_Logfile,
                     Mode => Out_File,
-                    Name => Config.Get (Error_Log));
+                    Name => Config.Error_Log);
          end if;
          System_Messages.Information
-              (Message => "Opened error log: " &
-                 Config.Get (Error_Log),
+              (Message => "Opened error log: " & Config.Error_Log,
                Context => Context);
       exception
          when others =>
             System_Messages.Error
-              (Message => "Failed to open error log: " &
-                 Config.Get (Error_Log),
+              (Message => "Failed to open error log: " & Config.Error_Log,
                Context => Context);
             Mute_Error_Log := True;
       end;

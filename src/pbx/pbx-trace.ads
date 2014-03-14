@@ -25,7 +25,7 @@ package PBX.Trace is
 
    All_Debug_Information : constant Debug_Threshold_Levels;
 
-   type Kind is (Debug, Information, Error, Warning, Critical, Every);
+   type Kind is (Debug, Information, Error, Warning, Critical, Fixme, Every);
 
    procedure Mute (Trace : in Kind);
 
@@ -37,6 +37,9 @@ package PBX.Trace is
                       Debug_Threshold_Levels'Last);
 
    procedure Error (Message : in String;
+                    Context : in String := "");
+
+   procedure Fixme (Message : in String;
                     Context : in String := "");
 
    procedure Information (Message : in String;
