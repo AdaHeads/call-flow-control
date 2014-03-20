@@ -26,7 +26,8 @@ with Model.Call,
      Request_Utilities,
      Response.Templates,
      System_Messages,
-     View;
+     View,
+     View.Call;
 
 package body Handlers.Call.Originate is
    use AWS.Status,
@@ -117,6 +118,8 @@ package body Handlers.Call.Originate is
 
       Not_Found : exception;
       Origination_Context : Origination_Contexts;
+
+      New_Call_ID : Model.Call.Identification;
    begin
 
       if not User.Peer.Registered then
@@ -127,7 +130,7 @@ package body Handlers.Call.Originate is
          return Response.Templates.Bad_Parameters
               (Request       => Request,
                Response_Body => Description
-                 ("Invalid context paramteter: " & Context_Param));
+                 ("Missing required context paramteter."));
       end if;
 
       Origination_Context := Create (Item => Context_Param);
@@ -141,18 +144,9 @@ package body Handlers.Call.Originate is
             Check_Extension (Extension_Param);
 
             --  If there is an active call, park it.
-            declare
-            begin
-               if Model.Call.Get (User.Current_Call).State = Speaking then
-                  PBX.Action.Park (Target  => User.Current_Call,
-                                   At_User => User);
-               end if;
-            exception
-               when Model.Call.Not_Found =>
-                  null; --  Handling potential race condition.
-            end;
+            User.Park_Current_Call;
 
-            PBX.Action.Originate
+            New_Call_ID := PBX.Action.Originate
               (Reception_ID => Origination_Context.Reception_ID,
                Contact_ID   => Origination_Context.Contact_ID,
                User         => User,
@@ -181,18 +175,9 @@ package body Handlers.Call.Originate is
                end if;
 
                --  If there is an active call, park it.
-               declare
-               begin
-                  if Model.Call.Get (User.Current_Call).State = Speaking then
-                     PBX.Action.Park (Target  => User.Current_Call,
-                                      At_User => User);
-                  end if;
-               exception
-                  when Model.Call.Not_Found =>
-                     null; --  Handling potential race condition.
-               end;
+               User.Park_Current_Call;
 
-               PBX.Action.Originate
+               New_Call_ID := PBX.Action.Originate
                  (Reception_ID => Origination_Context.Reception_ID,
                   Contact_ID   => Origination_Context.Contact_ID,
                   User         => User,
@@ -216,7 +201,9 @@ package body Handlers.Call.Originate is
          raise Constraint_Error with "Bad parameters";
       end if;
 
-      return Response.Templates.OK (Request);
+      return Response.Templates.OK
+        (Request       => Request,
+         Response_Body => View.Call.Call_Stub (Call_ID => New_Call_ID));
    exception
       when Event : Invalid_Extension =>
          System_Messages.Information
