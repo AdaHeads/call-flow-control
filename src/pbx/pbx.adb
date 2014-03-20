@@ -58,10 +58,13 @@ package body PBX is
 
       Packet_Buffer : aliased ESL.Packet.Buffer.Synchronized_Buffer;
 
-      Dispatcher_Task : Dispatcher_Tasks (Packet_Buffer'Access);
-      Reader_Task     : Reader_Tasks     (Packet_Buffer'Access);
+      Dispatcher_Task : access Dispatcher_Tasks;
+      Reader_Task     : access Reader_Tasks;
 
    task body Dispatcher_Tasks is
+
+      Context : constant String := Package_Name & ".Dispatcher_Tasks";
+
       Packet : ESL.Packet.Instance;
    begin
       select
@@ -69,6 +72,9 @@ package body PBX is
       or
          terminate;
       end select;
+
+      System_Messages.Information (Message => "Starting.",
+                                   Context => Context);
 
       loop
          exit when Shutdown;
@@ -77,6 +83,7 @@ package body PBX is
          or
             delay 0.1;
          end select;
+
          if Packet.Is_Event then
             PBX.Event_Stream.Observer_Map.Notify_Observers (Packet => Packet);
             Packet := ESL.Packet.Empty_Packet;
@@ -85,22 +92,24 @@ package body PBX is
          end if;
       end loop;
 
+      System_Messages.Information (Message => "Shutting down",
+                                   Context => Context);
    end Dispatcher_Tasks;
 
    task body Reader_Tasks is
+
+      Context : constant String := Package_Name & ".Reader_Tasks";
+
       Packet : ESL.Packet.Instance;
    begin
-      System_Messages.Information (Message => "Waiting to start",
-                                   Context => "Reader_Task");
-
       select
          accept Start;
       or
          terminate;
       end select;
 
-      System_Messages.Information (Message => "STARTING",
-                                   Context => "Reader_Task");
+      System_Messages.Information (Message => "Starting.",
+                                   Context => Context);
       loop
          exit when Shutdown;
          Packet := ESL.Parsing_Utilities.Read_Packet (Event_Client.Stream);
@@ -113,6 +122,13 @@ package body PBX is
          end if;
       end loop;
 
+      System_Messages.Information (Message => "Shutting down",
+                                   Context => Context);
+   exception
+      when Event : others =>
+         System_Messages.Critical_Exception (Message => "",
+                                             Event   => Event,
+                                             Context => Context);
    end Reader_Tasks;
 
    task type Connect_Task is
@@ -121,6 +137,8 @@ package body PBX is
    --  The sole purpose of the connect task is to ensure that we can
    --  return to the main context, and don't get caught in an
    --  infinite reconnect loop.
+
+   Initial_Connect : access Connect_Task;
 
    ---------------
    --  Connect  --
@@ -159,28 +177,34 @@ package body PBX is
          Event_Client.Unmute_Event (Format => Plain,
                                     Event => "all");
 
+         Dispatcher_Task := new Dispatcher_Tasks (Packet_Buffer'Access);
          Dispatcher_Task.Start;
+
+         Reader_Task     := new Reader_Tasks (Packet_Buffer'Access);
          Reader_Task.Start;
+
          Next_Reconnect := Clock; --  Reset the clock to enable the other
                                   --  clients to be able to try to connect
                                   --  immidiately.
       end if;
 
-      while Client.State /= Connected loop
-         exit when Shutdown;
-         delay until Next_Reconnect;
+      if not Shutdown then
+         while Client.State /= Connected loop
+            exit when Shutdown;
+            delay until Next_Reconnect;
 
-         Next_Reconnect := Clock + 2.0;
+            Next_Reconnect := Clock + 2.0;
 
-         if not Shutdown then
-            System_Messages.Information
-              (Message => "Connecting to " & Config.PBX_Host & ":" &
-                 Config.PBX_Port'Img,
-               Context => "PBX.Connect");
-            Client.Connect (Hostname => Config.PBX_Host,
-                            Port     => Config.PBX_Port);
-         end if;
-      end loop;
+            if not Shutdown then
+               System_Messages.Information
+                 (Message => "Connecting to " & Config.PBX_Host & ":" &
+                    Config.PBX_Port'Img,
+                  Context => "PBX.Connect");
+               Client.Connect (Hostname => Config.PBX_Host,
+                               Port     => Config.PBX_Port);
+            end if;
+         end loop;
+      end if;
 
       if Client.State = Connected then
          System_Messages.Debug (Message => "Subscribing to all for events",
@@ -249,7 +273,6 @@ package body PBX is
 
    procedure Start is
       use Config;
-      Initial_Connect : Connect_Task;
    begin
       case Config.PBX_Loglevel is
          when Critical =>
@@ -277,6 +300,7 @@ package body PBX is
       Model.Call.Observers.Register_Observers;
       Model.Peer.List.Observers.Register_Observers;
 
+      Initial_Connect := new Connect_Task;
       Initial_Connect.Start;
 
    end Start;
@@ -295,7 +319,7 @@ package body PBX is
       Model.Peer.List.Observers.Unregister_Observers;
       System_Messages.Information
         (Message => "PBX subsystem task shutting down.",
-                                   Context => "PBX.Stop");
+         Context => "PBX.Stop");
 
       Shutdown := True;
 
