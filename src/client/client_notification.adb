@@ -48,6 +48,26 @@ package body Client_Notification is
                                Call => C);
    end Call_Offer;
 
+   ------------------
+   --  Call_State  --
+   ------------------
+
+   function Call_State (C : in Model.Call.Instance) return Instance is
+   begin
+      return Create_With_Call (Name => Call_State,
+                               Call => C);
+   end Call_State;
+
+   ---------------------
+   --  Call_Transfer  --
+   ---------------------
+
+   function Call_Transfer (C : in Model.Call.Instance) return Instance is
+   begin
+      return Create_With_Call (Name => Call_Transfer,
+                               Call => C);
+   end Call_Transfer;
+
    -------------------
    --  Call_Unlock  --
    -------------------
@@ -81,6 +101,15 @@ package body Client_Notification is
       return Create_With_Call (Name => Call_Hangup,
                                Call => C);
    end Hangup;
+
+   -------------
+   --  Image  --
+   -------------
+
+   function Image (Event : in Instance'Class) return String is
+   begin
+      return Image (Event.Name);
+   end Image;
 
    -------------
    --  Image  --

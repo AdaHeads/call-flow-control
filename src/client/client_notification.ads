@@ -15,6 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+--  This package contains a basic set of "template" functions for creating
+--  client events - ready to be sent.
+
 with GNATCOLL.JSON;
 with Model.Call,
      Model.Peer;
@@ -26,9 +29,11 @@ package Client_Notification is
                         Call_Lock,
                         Call_Unlock,
                         Call_Pickup,
+                        Call_State,
                         Call_Hangup,
                         Call_Park,
                         Call_Unpark,
+                        Call_Transfer,
                         Call_Bridge,
                         Queue_Join,
                         Queue_Leave,
@@ -46,6 +51,8 @@ package Client_Notification is
 
    function To_JSON (Event : in Instance'Class) return JSON_Value;
 
+   function Image (Event : in Instance'Class) return String;
+
    procedure JSON_Append (Node  : in JSON_Value;
                           Key   : in String;
                           Value : in JSON_Value);
@@ -53,7 +60,9 @@ package Client_Notification is
 
    function Peer_State (P : in Model.Peer.Instance) return Instance;
    function Call_Offer (C : in Model.Call.Instance) return Instance;
+   function Call_Transfer (C : in Model.Call.Instance) return Instance;
    function Call_Lock (C : in Model.Call.Instance) return Instance;
+   function Call_State (C : in Model.Call.Instance) return Instance;
    function Call_Unlock (C : in Model.Call.Instance) return Instance;
    function Pickup (C : in Model.Call.Instance) return Instance;
    function Hangup (C : in Model.Call.Instance) return Instance;
