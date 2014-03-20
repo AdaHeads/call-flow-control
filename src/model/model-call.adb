@@ -103,14 +103,18 @@ package body Model.Call is
       end if;
 
       case New_State is
+         --  Upon creation, a
+         when Created =>
+            Notification.Broadcast
+              (Client_Notification.Call_Offer (Get (Obj.ID)).To_JSON);
+
+         --  Parking will merely cause a notification to be sent out.
+         --  The event should, however, only  be sent to the client currently
+         --  assigned to the call.
          when Parked =>
             Notification.Broadcast
               (Client_Notification.Park
                  (C => Get (Obj.ID)).To_JSON);
-
-         when Created =>
-            Notification.Broadcast
-              (Client_Notification.Call_Offer (Get (Obj.ID)).To_JSON);
 
          when Unparked =>
             Notification.Broadcast
@@ -133,6 +137,10 @@ package body Model.Call is
             Notification.Broadcast
               (Client_Notification.Pickup (Get (Obj.ID)).To_JSON);
 
+         when Transferred =>
+            Notification.Broadcast
+              (Client_Notification.Call_Transfer (Get (Obj.ID)).To_JSON);
+
          when Left_Queue =>
             Notification.Broadcast
               (Client_Notification.Leave (Get (Obj.ID)).To_JSON);
@@ -144,8 +152,10 @@ package body Model.Call is
                Context => Context);
 
          when Ringing =>
-            null;
-
+            if Last_State /= Ringing then
+               Notification.Broadcast
+                 (Client_Notification.Call_State (Get (Obj.ID)).To_JSON);
+            end if;
          when Transferring =>
             null;
 

@@ -109,4 +109,17 @@ private
    overriding
    function "=" (Left, Right : in Park_Observer) return Boolean;
 
+   type Channel_State_Observer is
+     new PBX.Observers.Instance with
+      record
+         ID : Natural := 111006;
+      end record;
+
+   overriding
+   procedure Notify (Observer : in Channel_State_Observer;
+                     Packet   : in ESL.Packet.Instance);
+
+   overriding
+   function "=" (Left, Right : in Channel_State_Observer) return Boolean;
+
 end Model.Call.Observers;

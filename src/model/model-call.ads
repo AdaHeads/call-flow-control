@@ -55,6 +55,7 @@ package Model.Call is
       Left_Queue,
       Hungup,
       Transferring,
+      Transferred,
       Speaking,
       Parked,
       Unparked);

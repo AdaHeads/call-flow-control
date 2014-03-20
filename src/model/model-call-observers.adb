@@ -65,6 +65,13 @@ package body Model.Call.Observers is
         Left.Observing_Event = Right.Observing_Event;
    end "=";
 
+   function "=" (Left, Right : in Channel_State_Observer) return Boolean is
+   begin
+      return
+        Left.ID              = Right.ID and
+        Left.Observing_Event = Right.Observing_Event;
+   end "=";
+
    package Constants renames PBX.Magic_Constants;
 
    procedure Create_Call (From : in ESL.Packet.Instance);
@@ -294,6 +301,24 @@ package body Model.Call.Observers is
       Call.Get (Call => Packet.UUID).Change_State (New_State => Parked);
    end Notify;
 
+   ---------------------
+   --  Channel_State  --
+   ---------------------
+
+   procedure Notify (Observer : in Channel_State_Observer;
+                     Packet   : in ESL.Packet.Instance) is
+      pragma Unreferenced (Observer);
+
+      Context : constant String := Package_Name &
+        ".Notify (Channel_State_Observer)";
+   begin
+
+      if Packet.Field (Channel_Call_State).Decoded_Value = "RINGING" then
+         Call.Get (Call => Packet.UUID).Change_State (New_State => Ringing);
+      end if;
+
+   end Notify;
+
    --------------------------
    --  Register_Observers  --
    --------------------------
@@ -333,6 +358,11 @@ package body Model.Call.Observers is
       PBX.Event_Stream.Observer_Map.Register_Observer
         (Observer => Park_Observer'
            (Observing_Event => ESL.Packet_Keys.CHANNEL_PARK,
+            ID              => <>));
+
+      PBX.Event_Stream.Observer_Map.Register_Observer
+        (Observer => Channel_State_Observer'
+           (Observing_Event => ESL.Packet_Keys.CHANNEL_STATE,
             ID              => <>));
    end Register_Observers;
 
