@@ -61,6 +61,23 @@ package body Model.Peer is
       return Image (Object.Peer_ID);
    end Get_Identification;
 
+   -------------
+   --  Image  --
+   -------------
+
+   function Image (Object : in Instance) return String is
+   begin
+      return Image (Object.Peer_ID) & " " &
+      (if Object.Registered then
+       "(registered)"
+       else
+       "(not registered)");
+   end Image;
+
+   -------------
+   --  Image  --
+   -------------
+
    function Image (Item : in Identification) return String is
    begin
       return To_String (Item);
