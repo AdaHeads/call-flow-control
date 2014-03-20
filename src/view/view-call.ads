@@ -25,6 +25,9 @@ with GNATCOLL.JSON;
 package View.Call is
    use Common;
 
+   function Call_Stub (Call_ID : in Model.Call.Identification)
+                       return GNATCOLL.JSON.JSON_Value;
+
    function To_JSON (Call : in Model.Call.Instance)
                      return GNATCOLL.JSON.JSON_Value;
 
