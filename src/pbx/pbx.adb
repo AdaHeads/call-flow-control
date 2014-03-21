@@ -42,6 +42,13 @@ package body PBX is
    use System_Messages;
    package Config renames Configuration;
 
+   task type Connect_Task is
+      entry Start;
+   end Connect_Task;
+   --  The sole purpose of the connect task is to ensure that we can
+   --  return to the main context, and don't get caught in an
+   --  infinite reconnect loop.
+
    task type Dispatcher_Tasks
      (Buffer : access ESL.Packet.Buffer.Synchronized_Buffer) is
       entry Start;
@@ -56,10 +63,11 @@ package body PBX is
      (Client   : in out ESL.Basic_Client.Instance;
       Password : in String);
 
-      Packet_Buffer : aliased ESL.Packet.Buffer.Synchronized_Buffer;
+   Packet_Buffer : aliased ESL.Packet.Buffer.Synchronized_Buffer;
 
-      Dispatcher_Task : access Dispatcher_Tasks;
-      Reader_Task     : access Reader_Tasks;
+   Connection_Maintainer : access Connect_Task;
+   Dispatcher_Task       : access Dispatcher_Tasks;
+   Reader_Task           : access Reader_Tasks;
 
    task body Dispatcher_Tasks is
 
@@ -97,6 +105,7 @@ package body PBX is
    end Dispatcher_Tasks;
 
    task body Reader_Tasks is
+      use ESL.Parsing_Utilities;
 
       Context : constant String := Package_Name & ".Reader_Tasks";
 
@@ -125,20 +134,19 @@ package body PBX is
       System_Messages.Information (Message => "Shutting down",
                                    Context => Context);
    exception
-      when Event : others =>
+      when Event : Disconnected =>
          System_Messages.Critical_Exception (Message => "",
                                              Event   => Event,
                                              Context => Context);
+         if not PBX.Shutdown then
+            Event_Client.Signal_Disconnect;
+            Client.Signal_Disconnect;
+            Connection_Maintainer := new Connect_Task;
+            Connection_Maintainer.Start;
+
+         end if;
+
    end Reader_Tasks;
-
-   task type Connect_Task is
-      entry Start;
-   end Connect_Task;
-   --  The sole purpose of the connect task is to ensure that we can
-   --  return to the main context, and don't get caught in an
-   --  infinite reconnect loop.
-
-   Initial_Connect : access Connect_Task;
 
    ---------------
    --  Connect  --
@@ -150,6 +158,10 @@ package body PBX is
       Next_Reconnect : Ada.Calendar.Time := Clock;
 
    begin
+      System_Messages.Information
+              (Message => "Event client state " &Event_Client.State'Img,
+               Context => "PBX.Connect");
+
       while Event_Client.State /= Connected loop
          exit when Shutdown;
          delay until Next_Reconnect;
@@ -176,9 +188,6 @@ package body PBX is
 
          Event_Client.Unmute_Event (Format => Plain,
                                     Event => "all");
-
-         Dispatcher_Task := new Dispatcher_Tasks (Packet_Buffer'Access);
-         Dispatcher_Task.Start;
 
          Reader_Task     := new Reader_Tasks (Packet_Buffer'Access);
          Reader_Task.Start;
@@ -267,6 +276,12 @@ package body PBX is
          System_Messages.Error
            (Message => "Authentication failure!",
             Context => "PBX.Authenticate");
+      when ESL.Parsing_Utilities.Disconnected =>
+         if Shutdown then
+            null;
+         else
+            raise;
+         end if;
 
          --  Ask the whole server to shutdown.
    end Handle_Authentication;
@@ -300,8 +315,11 @@ package body PBX is
       Model.Call.Observers.Register_Observers;
       Model.Peer.List.Observers.Register_Observers;
 
-      Initial_Connect := new Connect_Task;
-      Initial_Connect.Start;
+      Connection_Maintainer := new Connect_Task;
+      Connection_Maintainer.Start;
+
+      Dispatcher_Task := new Dispatcher_Tasks (Packet_Buffer'Access);
+      Dispatcher_Task.Start;
 
    end Start;
 
@@ -315,13 +333,14 @@ package body PBX is
 
    procedure Stop is
    begin
+      Shutdown := True;
+
       Model.Call.Observers.Unregister_Observers;
       Model.Peer.List.Observers.Unregister_Observers;
       System_Messages.Information
         (Message => "PBX subsystem task shutting down.",
          Context => "PBX.Stop");
 
-      Shutdown := True;
 
       Client.Disconnect;
       Event_Client.Disconnect;

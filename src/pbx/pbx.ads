@@ -19,6 +19,8 @@ with ESL.Basic_Client;
 
 package PBX is
 
+   Package_Name : constant String := "PBX";
+
    type PBX_Status_Type is (Shut_Down, Shutting_Down, Running, Connecting,
                             Failed);
 
