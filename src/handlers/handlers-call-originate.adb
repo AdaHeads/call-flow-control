@@ -206,9 +206,10 @@ package body Handlers.Call.Originate is
          Response_Body => View.Call.Call_Stub (Call_ID => New_Call_ID));
    exception
       when Event : Invalid_Extension =>
+         --  TODO: Log extension.
          System_Messages.Information
-           (Message         => "Tried to dial invalid extension: """ &
-              Extension_String & "",
+           (Message         => User.Image &
+              " tried to dial invalid extension.",
             Context => Context);
          return Response.Templates.Bad_Parameters
            (Request, Description (Event => Event));
