@@ -123,7 +123,7 @@ package body Handlers.Notifications is
       Context : constant String := Package_Name  & ".On_Close";
 
    begin
-      Information (Message => "Websocket closed.", Context => Context);
+      Debug (Message => "Websocket closed.", Context => Context);
    end On_Close;
 
    ---------------
@@ -140,7 +140,7 @@ package body Handlers.Notifications is
       Context : constant String := Package_Name  & ".On_Open";
 
    begin
-      Information (Message => "Websocket opened.", Context => Context);
+      Debug (Message => "Websocket opened.", Context => Context);
    end On_Open;
 
 end Handlers.Notifications;
