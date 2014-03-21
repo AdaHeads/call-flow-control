@@ -231,9 +231,10 @@ package body PBX.Action is
       --  can safely be ignored. For the sake of tracing potential problems,
       --  we log the error.
       if Reply.Response /= ESL.Reply.OK then
-         PBX.Trace.Fixme (Message => "Got anticipated error:" &
-                            Reply.Response_Body,
-                          Context => Context);
+         PBX.Trace.Fixme
+           (Message => "Got anticipated error on Break_Action.",
+            --  Reply.Response_Body,
+              Context => Context);
       end if;
 
    end Transfer;
