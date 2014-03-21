@@ -273,6 +273,8 @@ package body Model.Call.Observers is
         (Message => "Hanging up " & Image (Packet.UUID),
          Context => Context);
 
+      Get (Call => Packet.UUID).Release;  --  Remove the call assignment from
+                                          --  user->call and call->user.
       Get (Call => Packet.UUID).Change_State (New_State => Hungup);
    exception
       when Model.Call.Not_Found =>

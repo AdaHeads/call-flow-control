@@ -356,6 +356,18 @@ package body Model.Call is
       return Obj.Reception_ID;
    end Reception_ID;
 
+   ---------------
+   --  Release  --
+   ---------------
+
+   procedure Release (Call : in Model.Call.Instance) is
+   begin
+      --  Check if the call is assigned.
+      if Call.Assigned_To /= Model.User.Null_Identification then
+         Call_List.Release (Call);
+      end if;
+   end Release;
+
    -------------------------------
    --  Set_Outbound_Parameters  --
    -------------------------------
@@ -675,6 +687,27 @@ package body Model.Call is
       begin
          return Number_Queued;
       end Queued;
+
+      ---------------
+      --  Release  --
+      ---------------
+
+      procedure Release (Call : in Model.Call.Instance) is
+
+         procedure Do_Release (Key  : in     Identification;
+                               Call : in out Model.Call.Instance);
+
+         procedure Do_Release (Key  : in     Identification;
+                               Call : in out Model.Call.Instance) is
+            pragma Unreferenced (Key);
+         begin
+            Call.Assigned_To := Model.User.Null_Identification;
+         end Do_Release;
+      begin
+         Model.User.Assign_Call (User_ID => Call.Assigned_To,
+                                 Call_ID => Model.Call.Null_Identification);
+         Call_List.Update (Call.ID, Do_Release'Access);
+      end Release;
 
       --------------
       --  Remove  --
