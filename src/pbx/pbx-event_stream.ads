@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2012-, AdaHeads K/S                     --
+--                     Copyright (C) 2014-, AdaHeads K/S                     --
+--                     Author: Kim Rostgaard Christensen                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,25 +16,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Model.Call;
+--  Singleton package.
 
-with Common;
+with PBX.Event_Observer_Map;
 
-with GNATCOLL.JSON;
+package PBX.Event_Stream is
 
---  This package can return callqueue information and it in JSON format.
-package View.Call is
-   use Common;
-
-   function Call_Stub (Call_ID : in Model.Call.Identification)
-                       return GNATCOLL.JSON.JSON_Value;
-
-   function To_JSON (Call : in Model.Call.Instance)
-                     return GNATCOLL.JSON.JSON_Value;
-
-   --  TODO: Move this
-   function Status_Message (Title   : in String;
-                            Message : in String) return JSON_String;
-private
-   --  takes a call and converts it to a JSON object.
-end View.Call;
+   Observer_Map : PBX.Event_Observer_Map.Instance;
+end PBX.Event_Stream;

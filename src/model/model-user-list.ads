@@ -31,10 +31,6 @@ package Model.User.List is
       User_ID   : in     Model.User_Identifier;
       WebSocket : in     Handlers.Notifications.Object);
 
-   function Get_Singleton return Reference;
-   --  Returns the internal singleton object for the server.
-   --  An easy ad-hoc way of
-
    function Get (Object   : in Instance;
                  Identity : in User.Identities) return User.Instance;
    --  Retrieves a user object based on the identity.

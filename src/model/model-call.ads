@@ -55,6 +55,7 @@ package Model.Call is
       Left_Queue,
       Hungup,
       Transferring,
+      Transferred,
       Speaking,
       Parked,
       Unparked);
@@ -125,6 +126,8 @@ package Model.Call is
       ID   : in     Model.Call.Identification :=
         Model.Call.Null_Identification);
 
+   procedure Release (Call : in Model.Call.Instance);
+
    procedure Create_And_Insert
      (Inbound         : in Boolean;
       ID              : in Identification;
@@ -184,6 +187,8 @@ private
       function Get (ID : in Identification) return Instance;
       procedure Link (ID_1 : in Identification;
                       ID_2 : in Identification);
+      procedure Release (Call : in Model.Call.Instance);
+
       procedure Set_Call (ID      : in Identification;
                           Is_Call : in Boolean);
       procedure Set_Locked (ID     : in Identification;

@@ -46,10 +46,11 @@ package PBX.Action is
 
    procedure Update_SIP_Peer_List;
 
-   procedure Originate (Contact_ID   : in Model.Contact_Identifier;
-                        Reception_ID : in Model.Reception_Identifier;
-                        User         : in Model.User.Instance;
-                        Extension    : in String);
+   function Originate (Contact_ID   : in Model.Contact_Identifier;
+                       Reception_ID : in Model.Reception_Identifier;
+                       User         : in Model.User.Instance;
+                       Extension    : in String)
+                       return Model.Call.Identification;
    --  Start originate. Raises Timeout or Error when either occurs.
 
    procedure Park (Target  : in Call.Identification;

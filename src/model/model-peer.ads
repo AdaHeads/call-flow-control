@@ -48,6 +48,8 @@ package Model.Peer is
 
    type Instance is tagged private;
 
+   function Image (Object : in Instance) return String;
+
    function Get_Identification (Object : in Instance) return String;
 
    function Create (Peer_ID : Identification;

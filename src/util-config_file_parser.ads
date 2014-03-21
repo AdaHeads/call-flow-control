@@ -60,10 +60,13 @@ generic
 
    type Key_Type is (<>);
    type Defaults_Array_Type is array (Key_Type) of Unbounded_String;
+
    Defaults    : in Defaults_Array_Type;
    Config_File : in String;
 
 package Util.Config_File_Parser is
+
+   Package_Name : constant String := "Util.Config_File_Parser";
 
    Unknown_Key             : exception;
    --  Is raised when an unknown KEY has been found in the config file.
@@ -106,7 +109,7 @@ package Util.Config_File_Parser is
    --  Return True if Key is _not_ a Null_Unbounded_String.
 
    procedure Load_File
-     (Config_File : in String);
+     (Config_File : in String := Util.Config_File_Parser.Config_File);
    --  Load the config file Config_File. This can be done over and over as many
    --  times as necessary. The values from the latest file overwrites the
    --  previous values.

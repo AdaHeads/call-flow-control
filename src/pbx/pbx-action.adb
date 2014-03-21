@@ -88,10 +88,12 @@ package body PBX.Action is
    --  Originate  --
    -----------------
 
-   procedure Originate (Contact_ID   : in Model.Contact_Identifier;
-                        Reception_ID : in Model.Reception_Identifier;
-                        User         : in Model.User.Instance;
-                        Extension    : in String) is
+   function Originate (Contact_ID   : in Model.Contact_Identifier;
+                       Reception_ID : in Model.Reception_Identifier;
+                       User         : in Model.User.Instance;
+                       Extension    : in String)
+                       return Model.Call.Identification
+   is
       Context          : constant String := Package_Name & ".Originate";
       Originate_Action : ESL.Command.Call_Management.Instance :=
         ESL.Command.Call_Management.Originate
@@ -100,37 +102,64 @@ package body PBX.Action is
       Reply : ESL.Reply.Instance;
 
    begin
+      --  The reception ID is used for tracking the call later on.
       Originate_Action.Add_Option
         (Option => ESL.Command.Option.Create
            (Key   => Constants.Reception_ID,
             Value => Util.Image.Image (Reception_ID)));
 
+      --  The user ID is used for .
       Originate_Action.Add_Option
         (Option => ESL.Command.Option.Create
            (Key   => Constants.Owner,
             Value => Util.Image.Image (User.Identification)));
 
+      --  The reception ID is used for tracking the call later on.
       Originate_Action.Add_Option
            (Option => ESL.Command.Option.Create
               (Key   => Constants.Contact_ID,
                Value => Util.Image.Image (Contact_ID)));
 
-      PBX.Trace.Information (Message => "Sending:" &
-                               String (Originate_Action.Serialize),
-                             Context => Context);
+      --  Adding the caller ID name and number prevents the display on the
+      --  phone from showing all zeros.
+      Originate_Action.Add_Option
+        (Option => ESL.Command.Option.Create
+           (Key   => Constants.Origination_Caller_Id_Name,
+            Value => Extension));
+
+      Originate_Action.Add_Option
+        (Option => ESL.Command.Option.Create
+           (Key   => Constants.Origination_Caller_Id_Number,
+            Value => Extension));
+
+      --  Wait for maximum 5 seconds for the local peer to pickup the phone.
+      --  This timeout should never be reached, as our phones are expected
+      --  to be in auto-answer mode.
+      Originate_Action.Add_Option
+        (Option => ESL.Command.Option.Create
+           (Key   => Constants.Originate_Timeout,
+            Value => "5"));
+
+      --  Perform the request.
       PBX.Client.API (Originate_Action, Reply);
 
       --  TODO: Add more elaborate parsing here to determine if the call
       --  really _isn't_ found.
       if Reply.Response /= ESL.Reply.OK then
+         PBX.Trace.Error
+           (Message => "Originate request to extension " & Extension &
+              " returned error " & Reply.Error_Type'Img,
+            Context => Context);
          raise Error;
       end if;
 
       PBX.Trace.Debug
-        (Message => "Sending Originate request with exten " &
-           Extension,
-         Context => Context,
-         Level   => 1);
+        (Message => "Originate request to extension " & Extension &
+           " returned channel: """ & ESL.UUID.Image
+           (Reply.Channel_UUID) & """",
+         Context => Context);
+
+      return Reply.Channel_UUID;
    end Originate;
 
    ----------
@@ -149,9 +178,9 @@ package body PBX.Action is
       Reply : ESL.Reply.Instance;
 
    begin
-      PBX.Trace.Information (Message => "Sending:" &
-                               String (Park_Action.Serialize),
-                             Context => Context);
+      PBX.Trace.Debug (Message => "Sending:" &
+                         String (Park_Action.Serialize),
+                       Context => Context);
       PBX.Client.API (Park_Action, Reply);
 
       --  TODO: Add more elaborate parsing here to determine if the call
@@ -183,15 +212,17 @@ package body PBX.Action is
    begin
       PBX.Client.API (Transfer_Action, Reply);
 
-      PBX.Trace.Information (Message => "Sending:" &
-                               String (Transfer_Action.Serialize),
-                             Context => Context);
+      PBX.Trace.Debug (Message => "Sending:" &
+                         String (Transfer_Action.Serialize),
+                       Context => Context);
       if Reply.Response /= ESL.Reply.OK then
-         raise PBX.Action.Error with "Transfer command failed: " &
-           Reply.Response_Body;
+         PBX.Trace.Fixme (Message => "Got unanticipated error:" &
+                            Reply.Image,
+                          Context => Context);
+         raise Model.Call.Not_Found;
       end if;
 
-      PBX.Trace.Information (Message => "Sending:" &
+      PBX.Trace.Debug (Message => "Sending:" &
                                String (Break_Action.Serialize),
                              Context => Context);
       PBX.Client.API (Break_Action, Reply);
@@ -200,8 +231,10 @@ package body PBX.Action is
       --  can safely be ignored. For the sake of tracing potential problems,
       --  we log the error.
       if Reply.Response /= ESL.Reply.OK then
-         PBX.Trace.Error (Message => "Error:" & Reply.Image,
-                          Context => Context);
+         PBX.Trace.Fixme
+           (Message => "Got anticipated error on Break_Action.",
+            --  Reply.Response_Body,
+              Context => Context);
       end if;
 
    end Transfer;
@@ -224,7 +257,7 @@ package body PBX.Action is
       PBX.Client.API (List_Channels_Action, Reply);
 
       if Reply.Response = ESL.Reply.Error then
-         raise Error with "Update_Channel_List failed";
+         raise Error with "Update_Channel_List failed: " & Reply.Image;
       end if;
 
       declare
@@ -258,6 +291,7 @@ package body PBX.Action is
                        (New_State => Call.Queued);
                   end if;
                end;
+
                System_Messages.Error
                  (Message => "Inserting existing call into" &
                     "invalid reception due to missing Information!",
@@ -265,6 +299,9 @@ package body PBX.Action is
             end loop;
          end if;
       end;
+   exception
+      when GNATCOLL.JSON.Invalid_JSON_Stream =>
+         PBX.Trace.Error (Message => "Invalid JSON string: " & Reply.Image);
    end Update_Call_List;
 
    ---------------------------
@@ -397,6 +434,8 @@ package body PBX.Action is
             Position := Position + 2;
          end loop;
       end;
+
+      PBX.Trace.Information (Message => "Updated peer list:");
    end Update_SIP_Peer_List;
 
 end PBX.Action;

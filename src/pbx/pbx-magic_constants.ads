@@ -19,6 +19,16 @@
 --  best in a future refactoring.
 
 package PBX.Magic_Constants is
+   --  Originate options:
+   Origination_Caller_Id_Name   : constant String :=
+     "origination_caller_id_name";
+   Origination_Caller_Id_Number : constant String :=
+     "origination_caller_id_number";
+   Originate_Timeout            : constant String :=
+     "originate_timeout";
+   Return_Ring_Ready            : constant String :=
+     "return_ring_ready";
+
    Reception_ID     : constant String := "reception_id";
    Owner            : constant String := "owner";
    Organization_ID  : constant String := "organization_id";

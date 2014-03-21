@@ -103,14 +103,18 @@ package body Model.Call is
       end if;
 
       case New_State is
+         --  Upon creation, a
+         when Created =>
+            Notification.Broadcast
+              (Client_Notification.Call_Offer (Get (Obj.ID)).To_JSON);
+
+         --  Parking will merely cause a notification to be sent out.
+         --  The event should, however, only  be sent to the client currently
+         --  assigned to the call.
          when Parked =>
             Notification.Broadcast
               (Client_Notification.Park
                  (C => Get (Obj.ID)).To_JSON);
-
-         when Created =>
-            Notification.Broadcast
-              (Client_Notification.Call_Offer (Get (Obj.ID)).To_JSON);
 
          when Unparked =>
             Notification.Broadcast
@@ -133,6 +137,10 @@ package body Model.Call is
             Notification.Broadcast
               (Client_Notification.Pickup (Get (Obj.ID)).To_JSON);
 
+         when Transferred =>
+            Notification.Broadcast
+              (Client_Notification.Call_Transfer (Get (Obj.ID)).To_JSON);
+
          when Left_Queue =>
             Notification.Broadcast
               (Client_Notification.Leave (Get (Obj.ID)).To_JSON);
@@ -144,8 +152,10 @@ package body Model.Call is
                Context => Context);
 
          when Ringing =>
-            null;
-
+            if Last_State /= Ringing then
+               Notification.Broadcast
+                 (Client_Notification.Call_State (Get (Obj.ID)).To_JSON);
+            end if;
          when Transferring =>
             null;
 
@@ -345,6 +355,18 @@ package body Model.Call is
    begin
       return Obj.Reception_ID;
    end Reception_ID;
+
+   ---------------
+   --  Release  --
+   ---------------
+
+   procedure Release (Call : in Model.Call.Instance) is
+   begin
+      --  Check if the call is assigned.
+      if Call.Assigned_To /= Model.User.Null_Identification then
+         Call_List.Release (Call);
+      end if;
+   end Release;
 
    -------------------------------
    --  Set_Outbound_Parameters  --
@@ -665,6 +687,27 @@ package body Model.Call is
       begin
          return Number_Queued;
       end Queued;
+
+      ---------------
+      --  Release  --
+      ---------------
+
+      procedure Release (Call : in Model.Call.Instance) is
+
+         procedure Do_Release (Key  : in     Identification;
+                               Call : in out Model.Call.Instance);
+
+         procedure Do_Release (Key  : in     Identification;
+                               Call : in out Model.Call.Instance) is
+            pragma Unreferenced (Key);
+         begin
+            Call.Assigned_To := Model.User.Null_Identification;
+         end Do_Release;
+      begin
+         Model.User.Assign_Call (User_ID => Call.Assigned_To,
+                                 Call_ID => Model.Call.Null_Identification);
+         Call_List.Update (Call.ID, Do_Release'Access);
+      end Release;
 
       --------------
       --  Remove  --

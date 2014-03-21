@@ -296,7 +296,7 @@ package Util.Configuration is
                        => Trim (U (Duration'Image
                          (AWS.Default.Receive_Timeout)), Left),
                        Reuse_Address
-                       => U (Boolean'Image (AWS.Default.Reuse_Address)),
+                       => U (Boolean'Image (True)),
                        Security
                        => U (Boolean'Image (AWS.Default.Security)),
                        Security_Mode

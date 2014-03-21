@@ -15,83 +15,33 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded;
-with Common;
-with Util.Config_File_Parser;
-with Util.Command_Line;
-
 package Configuration is
 
-   use Ada.Strings.Unbounded;
-   use Common;
+   Default_Config_File : constant String := "conf/main.conf";
 
    type Loglevels is (Debug, Information, Error, Warning, Critical, Fixme);
 
    subtype PBX_Loglevels is Loglevels;
 
-   type Keys is (Cache_Max_Element_Age,
-                 Host_Name,
-                 Public_User_Identification,
-                 Loglevel,
-                 PBX_Secret,
-                 PBX_Loglevel,
-                 PBX_Host,
-                 PBX_Port,
-                 User_Backend_Type,
-                 User_Map_File,
-                 Auth_Server,
-                 Contact_Server,
-                 Access_Log,
-                 Error_Log,
-                 Server_Token);
+   function Auth_Server return String;
 
-   type Defaults_Array is array (Keys) of Unbounded_String;
+   function PBX_Host return String;
+   function PBX_Port return Natural;
+   function PBX_Password return String;
 
-   Default_Values : constant Defaults_Array :=
-     (Auth_Server
-      => U ("http://localhost:8080"),
-      Contact_Server
-      => U ("http://localhost:4010"),
-      Loglevel
-      => U ("Warning"),
-      Access_Log
-      => U ("access.log"),
-      Error_Log
-      => U ("error.log"),
-      Cache_Max_Element_Age
-      => U ("86_400"),
-      Host_Name
-      => U ("please_update_main_conf"),
-      Public_User_Identification
-      => U ("FALSE"),
-      PBX_Secret
-      => U ("password"),
-      PBX_Loglevel
-      => U ("Information"),
-      PBX_Host
-      => U ("FreeSWITCH_Host"),
-      PBX_Port
-      => U ("8021"),
-      User_Backend_Type
-      => U ("file"),
-      User_Map_File
-      => U ("static_json/agent.list"),
-      Server_Token
-      => Ada.Strings.Unbounded.Null_Unbounded_String);
+   function Contact_Server return String;
+
+   function Loglevel return Loglevels;
+
+   function Access_Log return String;
+
+   function Error_Log return String;
 
    function PBX_Loglevel return PBX_Loglevels;
 
-   function Loglevel return PBX_Loglevels;
-
-   package Config is new Util.Config_File_Parser
-     (Key_Type            => Keys,
-      Defaults_Array_Type => Defaults_Array,
-      Defaults            => Default_Values,
-      Config_File         =>  Util.Command_Line.Get
-        (Parameter => "--config",
-         Default   => "conf/main.conf"));
-
    procedure Show_Arguments;
+
+   procedure Load_Config;
 
 private
 

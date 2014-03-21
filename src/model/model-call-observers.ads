@@ -15,9 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with ESL.Client;
 with ESL.Packet;
-with ESL.Observer.Event_Observers;
+
+with PBX.Observers;
 
 package Model.Call.Observers is
 
@@ -29,68 +29,97 @@ package Model.Call.Observers is
    procedure Unregister_Observers;
    --  Unregisters the appropriate observers.
 private
+
    type AdaHeads_Observer is
-     new ESL.Observer.Event_Observers.Instance with null record;
+     new PBX.Observers.Instance with
+      record
+         ID : Natural := 111000;
+      end record;
    --  Monitors for all events that are tagged AdaHeads::*"
 
    overriding
-   procedure Notify (Observer : access AdaHeads_Observer;
-                     Packet   : in     ESL.Packet.Instance;
-                     Client   : in     ESL.Client.Reference);
+   procedure Notify (Observer : in AdaHeads_Observer;
+                     Packet   : in ESL.Packet.Instance);
+
+   overriding
+   function "=" (Left, Right : in AdaHeads_Observer) return Boolean;
 
    type Bridge_Observer is
-     new ESL.Observer.Event_Observers.Instance with null record;
+     new PBX.Observers.Instance with
+      record
+         ID : Natural := 111001;
+      end record;
 
    overriding
-   procedure Notify (Observer : access Bridge_Observer;
-                     Packet   : in     ESL.Packet.Instance;
-                     Client   : in     ESL.Client.Reference);
+   procedure Notify (Observer : in Bridge_Observer;
+                     Packet   : in ESL.Packet.Instance);
+
+   overriding
+   function "=" (Left, Right : in Bridge_Observer) return Boolean;
 
    type Channel_Hold_Observer is
-     new ESL.Observer.Event_Observers.Instance with null record;
+     new PBX.Observers.Instance with
+      record
+         ID : Natural := 111002;
+      end record;
 
    overriding
-   procedure Notify (Observer : access Channel_Hold_Observer;
-                     Packet   : in     ESL.Packet.Instance;
-                     Client   : in     ESL.Client.Reference);
+   procedure Notify (Observer : in Channel_Hold_Observer;
+                     Packet   : in ESL.Packet.Instance);
+
+   overriding
+   function "=" (Left, Right : in Channel_Hold_Observer) return Boolean;
 
    type Create_Observer is
-     new ESL.Observer.Event_Observers.Instance with null record;
+     new PBX.Observers.Instance with
+      record
+         ID : Natural := 111003;
+      end record;
 
    overriding
-   procedure Notify (Observer : access Create_Observer;
-                     Packet   : in     ESL.Packet.Instance;
-                     Client   : in     ESL.Client.Reference);
-   type Custom_Observer is
-     new ESL.Observer.Event_Observers.Instance with null record;
+   procedure Notify (Observer : in Create_Observer;
+                     Packet   : in ESL.Packet.Instance);
 
    overriding
-   procedure Notify (Observer : access Custom_Observer;
-                     Packet   : in     ESL.Packet.Instance;
-                     Client   : in     ESL.Client.Reference);
+   function "=" (Left, Right : in Create_Observer) return Boolean;
 
    type Destroy_Observer is
-     new ESL.Observer.Event_Observers.Instance with null record;
+     new PBX.Observers.Instance with
+      record
+         ID : Natural := 111004;
+      end record;
 
    overriding
-   procedure Notify (Observer : access Destroy_Observer;
-                     Packet   : in     ESL.Packet.Instance;
-                     Client   : in     ESL.Client.Reference);
-
-   type Execute_Observer is
-     new ESL.Observer.Event_Observers.Instance with null record;
+   procedure Notify (Observer : in Destroy_Observer;
+                     Packet   : in ESL.Packet.Instance);
 
    overriding
-   procedure Notify (Observer : access Execute_Observer;
-                     Packet   : in     ESL.Packet.Instance;
-                     Client   : in     ESL.Client.Reference);
+   function "=" (Left, Right : in Destroy_Observer) return Boolean;
 
    type Park_Observer is
-     new ESL.Observer.Event_Observers.Instance with null record;
+     new PBX.Observers.Instance with
+      record
+         ID : Natural := 111005;
+      end record;
 
    overriding
-   procedure Notify (Observer : access Park_Observer;
-                     Packet   : in     ESL.Packet.Instance;
-                     Client   : in     ESL.Client.Reference);
+   procedure Notify (Observer : in Park_Observer;
+                     Packet   : in ESL.Packet.Instance);
+
+   overriding
+   function "=" (Left, Right : in Park_Observer) return Boolean;
+
+   type Channel_State_Observer is
+     new PBX.Observers.Instance with
+      record
+         ID : Natural := 111006;
+      end record;
+
+   overriding
+   procedure Notify (Observer : in Channel_State_Observer;
+                     Packet   : in ESL.Packet.Instance);
+
+   overriding
+   function "=" (Left, Right : in Channel_State_Observer) return Boolean;
 
 end Model.Call.Observers;

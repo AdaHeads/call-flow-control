@@ -21,6 +21,25 @@ package body View.Call is
    use GNATCOLL.JSON;
    use Model.Call;
 
+   function Call_Stub (Call_ID : in Model.Call.Identification)
+                       return GNATCOLL.JSON.JSON_Value is
+      use Ada.Characters.Handling;
+
+      Value : constant JSON_Value := Create_Object;
+      Root  : constant JSON_Value := Create_Object;
+   begin
+      if Call_ID /= Null_Identification then
+         Value.Set_Field (View.ID, Call_ID.Serialize);
+      else
+         Value.Set_Field (View.ID, GNATCOLL.JSON.JSON_Null);
+      end if;
+
+      Root.Set_Field ("call", Value);
+
+      return Root;
+
+   end Call_Stub;
+
    function Status_Message (Title   : in String;
                             Message : in String) return JSON_String is
       JSON : constant JSON_Value := Create_Object;

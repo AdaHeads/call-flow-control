@@ -93,6 +93,8 @@ package Model.User is
 
    function Image (Identity : Identities) return String;
 
+   procedure Park_Current_Call (Object : in Instance);
+
    type Permission is (Receptionist, Service_Agent, Administrator);
    type Permission_List is array (Permission) of Boolean;
 

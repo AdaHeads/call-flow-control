@@ -15,9 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with ESL.Client;
 with ESL.Packet;
-with ESL.Observer.Event_Observers;
+with PBX.Observers;
 
 package Model.Peer.List.Observers is
       procedure Register_Observers;
@@ -28,18 +27,27 @@ package Model.Peer.List.Observers is
 
 private
    type Peer_State_Observers is
-     new ESL.Observer.Event_Observers.Instance with null record;
+     new PBX.Observers.Instance with
+      record
+         ID : Natural := 112001;
+      end record;
 
    overriding
-   procedure Notify (Observer : access Peer_State_Observers;
-                     Packet   : in     ESL.Packet.Instance;
-                     Client   : in     ESL.Client.Reference);
+   procedure Notify (Observer : in Peer_State_Observers;
+                     Packet   : in ESL.Packet.Instance);
+
+   function "=" (Left, Right : in Peer_State_Observers) return Boolean;
 
    type Reload_Config_Observers is
-     new ESL.Observer.Event_Observers.Instance with null record;
+     new PBX.Observers.Instance with
+      record
+         ID : Natural := 112002;
+      end record;
 
    overriding
-   procedure Notify (Observer : access Reload_Config_Observers;
-                     Packet   : in     ESL.Packet.Instance;
-                     Client   : in     ESL.Client.Reference);
+   procedure Notify (Observer : in Reload_Config_Observers;
+                     Packet   : in ESL.Packet.Instance);
+
+   function "=" (Left, Right : in Reload_Config_Observers) return Boolean;
+
 end Model.Peer.List.Observers;

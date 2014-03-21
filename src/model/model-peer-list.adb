@@ -23,6 +23,10 @@ package body Model.Peer.List is
 
    Peers : aliased Instance;
 
+      -----------
+      --  Get  --
+      -----------
+
    function Get (Object   : in Instance;
                  Identity : in Peer.Identification) return Peer.Instance is
    begin
@@ -37,6 +41,10 @@ package body Model.Peer.List is
    begin
       return Peers'Access;
    end Get_Singleton;
+
+   -----------
+   --  Put  --
+   -----------
 
    procedure Put (Object   :    out Instance;
                   New_Peer : in     Peer.Instance) is
@@ -55,10 +63,16 @@ package body Model.Peer.List is
 
    end Put;
 
+   ----------------
+   --  Register  --
+   ----------------
+
    procedure Register (Object   : in out Instance;
                        Identity : in     Peer.Identification;
                        Contact  : in     String;
                        Expiry   : in     Natural) is
+
+      Context : constant String := Package_Name & ".Register";
 
       procedure Update (Key     : in     Peer.Identification;
                         Element : in out Peer.Instance);
@@ -79,12 +93,24 @@ package body Model.Peer.List is
 
       Object.Peer_Map.Update_Element
         (Object.Peer_Map.Find (Identity), Update'Access);
+
+      System_Messages.Debug (Message => "Registered " &
+                               Object.Peer_Map.Element (Identity).Image,
+                             Context => Context);
    end Register;
+
+   ---------------------
+   --  Set_Singleton  --
+   ---------------------
 
    procedure Set_Singleton (Object : in Instance) is
    begin
       Peers := Object;
    end Set_Singleton;
+
+   ---------------
+   --  To_JSON  --
+   ---------------
 
    function To_JSON (Object : in Instance) return JSON_Value is
       use Peer_Storage;
@@ -98,8 +124,14 @@ package body Model.Peer.List is
       return Root;
    end To_JSON;
 
+   ------------------
+   --  Unregister  --
+   ------------------
+
    procedure Unregister (Object   : in out Instance;
                          Identity : in     Peer.Identification) is
+
+      Context : constant String := Package_Name & ".Unregister";
 
       procedure Update (Key     : in     Peer.Identification;
                         Element : in out Peer.Instance);
@@ -112,8 +144,14 @@ package body Model.Peer.List is
       end Update;
 
    begin
+
       Object.Peer_Map.Update_Element
         (Object.Peer_Map.Find (Identity), Update'Access);
+
+      System_Messages.Debug (Message => "Unregistered " &
+                               Object.Peer_Map.Element (Identity).Image,
+                             Context => Context);
+
    end Unregister;
 
 end Model.Peer.List;

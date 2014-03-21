@@ -21,6 +21,8 @@ with Ada.Strings.Unbounded.Equal_Case_Insensitive;
 with Ada.Strings.Unbounded.Hash_Case_Insensitive;
 
 with Model.Peer.List;
+with PBX.Action;
+with System_Messages;
 
 package body Model.User is
 
@@ -52,6 +54,22 @@ package body Model.User is
         (Left  => Left,
          Right => Right);
    end "=";
+
+   -------------------
+   --  Assign_Call  --
+   -------------------
+
+   procedure Assign_Call (User_ID : in User_Identifier;
+                          Call_ID : in Model.Call.Identification) is
+   begin
+      if Call_Allocation.Contains (User_ID) then
+         Call_Allocation.Replace (Key      => User_ID,
+                                  New_Item => Call_ID);
+      else
+         Call_Allocation.Insert (Key      => User_ID,
+                                 New_Item => Call_ID);
+      end if;
+   end Assign_Call;
 
    ---------------------
    --  Authenticated  --
@@ -136,22 +154,6 @@ package body Model.User is
       when Constraint_Error =>
          return Model.Call.Null_Identification;
    end Current_Call;
-
-   -------------------
-   --  Assign_Call  --
-   -------------------
-
-   procedure Assign_Call (User_ID : in User_Identifier;
-                          Call_ID : in Model.Call.Identification) is
-   begin
-      if Call_Allocation.Contains (User_ID) then
-         Call_Allocation.Replace (Key      => User_ID,
-                                  New_Item => Call_ID);
-      else
-         Call_Allocation.Insert (Key      => User_ID,
-                                 New_Item => Call_ID);
-      end if;
-   end Assign_Call;
 
    ---------------------
    --  Current_State  --
@@ -245,6 +247,39 @@ package body Model.User is
               Current_State => <>,
               Peer          => <>);
    end No_User;
+
+   -------------------------
+   --  Park_Current_Call  --
+   -------------------------
+
+   procedure Park_Current_Call (Object : in Instance) is
+      use type Model.Call.Identification;
+
+      Context : constant String := Package_Name & ".Park_Current_Call";
+
+   begin
+
+      if Object.Current_Call /= Model.Call.Null_Identification then
+         System_Messages.Debug (Message =>
+                                  "User " & Object.Image & " has call " &
+                                  Object.Current_Call.Image & " - " &
+                                  "Performing implicit park",
+                                Context => Context);
+         PBX.Action.Park (Target  => Object.Current_Call,
+                          At_User => Object);
+      end if;
+
+   exception
+      when Call.Not_Found =>
+         System_Messages.Fixme
+           (Message => "If you are seeing this in your log too often, " &
+              "someone sould look into updating the replicated state of the " &
+              "user more aggressively.",
+            Context => Context);
+         null; --  We're safe. The call we thought we had is no longer present
+               --  in PBX, and we can continue our business.
+
+   end Park_Current_Call;
 
    -------------------------------
    --   Parking_Lot_Identifier  --

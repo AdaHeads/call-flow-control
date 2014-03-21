@@ -74,6 +74,8 @@ package body Handlers.Call.Pickup is
             Context => Context);
       end if;
 
+      User.Park_Current_Call; --  Park any calls that the user currently has.
+
       Model.Call.Assign_Call (To   => User.Identification,
                               ID   => Call_ID,
                               Call => Assigned_Call);
@@ -96,8 +98,8 @@ package body Handlers.Call.Pickup is
 
       PBX.Action.Transfer (Assigned_Call.ID, User);
 
---        pragma Assert (Assigned_Call.Assigned_To /=
---                         Model.User.Null_Identification);
+      pragma Assert (Assigned_Call.Assigned_To /=
+                       Model.User.Null_Identification);
 
       return Response.Templates.OK
         (Request       => Request,

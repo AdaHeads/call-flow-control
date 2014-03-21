@@ -30,6 +30,7 @@ with Configuration;
 with Util.Process_Control;
 with Util.Server;
 with Util.Command_Line;
+with Util.Configuration;
 
 procedure Call_FLow_Control is
    use System_Messages;
@@ -48,12 +49,17 @@ begin
       Command_Line.Set_Exit_Failure;
       return;
    end if;
+
    SIGHUP.Register (Handler => SIGHUP_Handler.Caught_Signal'Access);
+
+   Configuration.Load_Config;
+   Util.Configuration.Config.Load_File;
 
    Handlers.Route.Register_Handlers;
    System_Messages.Open_Log_Files;
 
    PBX.Start;
+
    Web_Server.Start
      (Dispatchers => AWS.Dispatchers.Callback.Create
                        (Handlers.Route.Callback'Access));

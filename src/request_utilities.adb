@@ -27,7 +27,7 @@ with Configuration,
 package body Request_Utilities is
    use AWS.Client,
        AWS.Messages;
-   use Configuration;
+   package Config renames Configuration;
 
    ----------------
    --  Token_Of  --
@@ -56,7 +56,7 @@ package body Request_Utilities is
       In_JSON       : GNATCOLL.JSON.JSON_Value;
 
       URL           : constant String :=
-        Config.Get (Auth_Server) & Separator &
+        Config.Auth_Server & Separator &
         Token_Path & Separator &
         Request_Token.To_String;
       Response   : AWS.Response.Data;
