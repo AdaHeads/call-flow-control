@@ -141,6 +141,7 @@ package body Model.Call.Observers is
          System_Messages.Debug (Message => "Outbound call:" &
                                   Packet.UUID.Image,
                                 Context => Context);
+
          Model.Origination_Requests.Create (ID => Packet.UUID);
 
          declare
@@ -332,6 +333,7 @@ package body Model.Call.Observers is
         (Message => "Parking channel " & Packet.UUID.Image,
          Context => Context);
 
+      Call.Get (Call => Packet.UUID).Mark_As_Call;
       Call.Get (Call => Packet.UUID).Change_State (New_State => Parked);
    end Notify;
 

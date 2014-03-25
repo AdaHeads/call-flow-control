@@ -134,8 +134,10 @@ package body Model.Call is
             Call_List.Remove (ID => Obj.ID);
 
          when Speaking =>
-            Notification.Broadcast
-              (Client_Notification.Pickup (Get (Obj.ID)).To_JSON);
+            if Get (Obj.ID).Is_Call then
+               Notification.Broadcast
+                 (Client_Notification.Pickup (Get (Obj.ID)).To_JSON);
+            end if;
 
          when Transferred =>
             Notification.Broadcast
