@@ -86,18 +86,29 @@ package body PBX is
 
       loop
          exit when Shutdown;
-         select
-            Buffer.Pop (Packet);
-         or
-            delay 0.1;
-         end select;
 
-         if Packet.Is_Event then
-            PBX.Event_Stream.Observer_Map.Notify_Observers (Packet => Packet);
-            Packet := ESL.Packet.Empty_Packet;
-         elsif Packet.Is_Response then
-            null; --  Ignore reponses.
-         end if;
+         declare
+         begin
+            select
+               Buffer.Pop (Packet);
+            or
+               delay 0.1;
+            end select;
+
+            if Packet.Is_Event then
+               PBX.Event_Stream.Observer_Map.Notify_Observers
+                 (Packet => Packet);
+               Packet := ESL.Packet.Empty_Packet;
+            elsif Packet.Is_Response then
+               null; --  Ignore reponses.
+            end if;
+         exception
+            when Event : others =>
+               System_Messages.Critical_Exception
+                 (Message => "Oh noes!",
+                  Event   => Event,
+                  Context => Context);
+         end;
       end loop;
 
       System_Messages.Information (Message => "Shutting down",
