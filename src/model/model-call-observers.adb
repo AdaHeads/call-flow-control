@@ -232,6 +232,16 @@ package body Model.Call.Observers is
          Get (ID_A).Change_State (New_State => Transferred);
          Get (ID_B).Change_State (New_State => Transferred);
       else
+         if
+           Model.Origination_Requests.Is_Origination_Request (ID => ID_A)
+         then
+            Model.Origination_Requests.Confirm (ID => ID_A);
+         elsif
+           Model.Origination_Requests.Is_Origination_Request (ID => ID_B)
+         then
+            Model.Origination_Requests.Confirm (ID => ID_B);
+         end if;
+
          Get (ID_A).Change_State (New_State => Speaking);
          Get (ID_B).Change_State (New_State => Speaking);
       end if;
