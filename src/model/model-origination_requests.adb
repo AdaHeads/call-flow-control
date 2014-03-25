@@ -20,7 +20,8 @@ with Ada.Containers.Hashed_Sets,
      Ada.Strings.Equal_Case_Insensitive,
      Ada.Strings.Hash_Case_Insensitive;
 
-with System_Messages;
+with System_Messages,
+     Model.Call;
 
 package body Model.Origination_Requests is
    use Ada.Containers;
@@ -48,6 +49,7 @@ package body Model.Origination_Requests is
       System_Messages.Debug (Message => "Confirmed and removed " & ID.Image,
                              Context => Context);
       Requests.Delete (Item => ID);
+      Model.Call.Get (Call => ID).Mark_As_Call;
    end Confirm;
 
    --------------
