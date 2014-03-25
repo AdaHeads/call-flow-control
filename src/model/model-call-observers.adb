@@ -19,6 +19,9 @@ with PBX.Magic_Constants;
 with PBX.Event_Stream;
 with ESL.Packet_Keys;
 with System_Messages;
+with Model.Origination_Requests,
+     Model.Transfer_Requests;
+
 
 package body Model.Call.Observers is
    use ESL.Packet_Keys;
@@ -135,7 +138,10 @@ package body Model.Call.Observers is
          Get (Packet.UUID).Change_State (New_State => Created);
 
       elsif Packet.Subevent = Constants.Outbound_Call then
-         Get (Packet.UUID).Mark_As_Call;
+         System_Messages.Debug (Message => "Outbound call:" &
+                                  Packet.UUID.Image,
+                                Context => Context);
+         Model.Origination_Requests.Create (ID => Packet.UUID);
 
          declare
             R_ID : Reception_Identifier renames
@@ -143,19 +149,24 @@ package body Model.Call.Observers is
                 (Packet.Variables.Get
                      (Key     => Constants.Reception_ID,
                       Default => Null_Reception_Identifier'Img));
-            U_ID : Model.User_Identifier renames
-              Model.User_Identifier'Value
+            C_ID : Contact_Identifier renames
+              Contact_Identifier'Value
                 (Packet.Variables.Get
                      (Key     => Constants.Contact_ID,
                       Default => Null_Contact_Identifier'Img));
+            U_ID : Model.User_Identifier renames
+              Model.User_Identifier'Value
+                (Packet.Variables.Get
+                     (Key     => Constants.Owner,
+                      Default => Null_Contact_Identifier'Img));
          begin
-            Get (Packet.UUID).Set_Outbound_Parameters
-              (R_ID => R_ID,
-               C_ID => Model.Null_Contact_Identifier,
-               U_ID => U_ID);
+            if R_ID /= Null_Reception_Identifier then
+               Get (Packet.UUID).Set_Outbound_Parameters
+                 (R_ID => R_ID,
+                  C_ID => C_ID,
+                  U_ID => U_ID);
+            end if;
          end;
-
-         Get (Packet.UUID).Change_State (New_State => Ringing);
 
       elsif Packet.Subevent = Constants.Prequeue_Leave then
          Get (Packet.UUID).Change_State (New_State => Transferring);
@@ -184,7 +195,7 @@ package body Model.Call.Observers is
    --------------
 
    overriding
-   procedure Notify (Observer : in Bridge_Observer;
+      procedure Notify (Observer : in Bridge_Observer;
                      Packet   : in ESL.Packet.Instance) is
       pragma Unreferenced (Observer);
 
@@ -199,9 +210,30 @@ package body Model.Call.Observers is
         (Message => "Bridging " & ID_A.Image & " and " & ID_B.Image,
          Context => Context);
 
+      --  Inherit the context from the other channel.
+      if Get (ID_A).Reception_ID = Null_Reception_Identifier then
+         Get (ID_A).Set_Outbound_Parameters
+           (R_ID => Get (ID_B).Reception_ID,
+            C_ID => Get (ID_B).Contact_ID,
+            U_ID => Get (ID_B).Assigned_To);
+      elsif Get (ID_B).Reception_ID = Null_Reception_Identifier then
+         Get (ID_B).Set_Outbound_Parameters
+           (R_ID => Get (ID_A).Reception_ID,
+            C_ID => Get (ID_A).Contact_ID,
+            U_ID => Get (ID_A).Assigned_To);
+      end if;
+
       Call.Link (ID_1 => ID_A,
                  ID_2 => ID_B);
-      Get (Packet.UUID).Change_State (New_State => Speaking);
+
+      if Model.Transfer_Requests.Is_Transfer_Request ((ID_A, ID_B)) then
+         Model.Transfer_Requests.Confirm ((ID_A, ID_B));
+         Get (ID_A).Change_State (New_State => Transferred);
+         Get (ID_B).Change_State (New_State => Transferred);
+      else
+         Get (ID_A).Change_State (New_State => Speaking);
+         Get (ID_B).Change_State (New_State => Speaking);
+      end if;
 
    exception
       when Event : others =>
@@ -217,7 +249,7 @@ package body Model.Call.Observers is
    --------------------
 
    overriding
-   procedure Notify (Observer : in Channel_Hold_Observer;
+      procedure Notify (Observer : in Channel_Hold_Observer;
                      Packet   : in ESL.Packet.Instance) is
       pragma Unreferenced (Observer);
 
@@ -315,8 +347,29 @@ package body Model.Call.Observers is
         ".Notify (Channel_State_Observer)";
    begin
 
-      if Packet.Field (Channel_Call_State).Decoded_Value = "RINGING" then
+      if
+        Packet.Field (Channel_Call_State).Decoded_Value = "RINGING" and
+      then
+        Model.Origination_Requests.Is_Origination_Request (Packet.Other_Leg)
+      then
+
+         Model.Origination_Requests.Confirm (Packet.Other_Leg);
+
+         Get (Packet.UUID).Mark_As_Call;
+
+         if Get (Packet.UUID).Reception_ID = Null_Reception_Identifier then
+            Get (Packet.UUID).Set_Outbound_Parameters
+              (R_ID => Get (Packet.Other_Leg).Reception_ID,
+               C_ID => Get (Packet.Other_Leg).Contact_ID,
+               U_ID => Get (Packet.Other_Leg).Assigned_To);
+         end if;
+
          Call.Get (Call => Packet.UUID).Change_State (New_State => Ringing);
+
+         System_Messages.Debug
+           (Packet.UUID.Image & " is origination_request and other_leg is "
+            & Packet.Other_Leg.Image, Context);
+
       end if;
 
    end Notify;
@@ -364,7 +417,7 @@ package body Model.Call.Observers is
 
       PBX.Event_Stream.Observer_Map.Register_Observer
         (Observer => Channel_State_Observer'
-           (Observing_Event => ESL.Packet_Keys.CHANNEL_STATE,
+           (Observing_Event => ESL.Packet_Keys.CHANNEL_CALLSTATE,
             ID              => <>));
    end Register_Observers;
 

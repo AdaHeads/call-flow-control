@@ -162,6 +162,11 @@ package body Model.Call is
       end case;
    end Change_State;
 
+   function Contact_ID (Obj : in Instance) return Contact_Identifier is
+   begin
+      return Obj.Contact_ID;
+   end Contact_ID;
+
    ------------------------
    -- Create_And_Insert  --
    ------------------------
@@ -171,7 +176,8 @@ package body Model.Call is
       ID              : in Identification;
       Reception_ID    : in Reception_Identifier;
       Extension       : in String := "";
-      From_Extension  : in String := "")
+      From_Extension  : in String := "";
+      Assigned_To     : in User_Identifier := Model.Null_User_Identifier)
 
    is
       Call : constant Instance :=
@@ -182,7 +188,8 @@ package body Model.Call is
                 Reception_ID    => Reception_ID,
                 Greeting_Played => <>,
                 Locked          => <>,
-                Assigned_To     => Model.Null_User_Identifier,
+                Assigned_To     => <>,
+                Contact_ID      => <>,
                 Extension       => To_Unbounded_String (Extension),
                 From_Extension  => To_Unbounded_String (From_Extension),
                 Arrived         => Current_Time,
@@ -308,12 +315,26 @@ package body Model.Call is
               Locked          => True,
               Greeting_Played => <>,
               Reception_ID    => <>,
+              Contact_ID      => <>,
               Assigned_To     => <>,
               Extension       => Null_Unbounded_String,
               From_Extension  => Null_Unbounded_String,
               B_Leg           => Null_Identification,
               Arrived         => Common.Null_Time);
    end Null_Instance;
+
+   -----------------
+   --  Other_Leg  --
+   ------------------
+
+   function Other_Leg (Call : Instance) return Identification is
+   begin
+      if Call.Inbound then
+         return Call.ID;
+      else
+         return Call.B_Leg;
+      end if;
+   end Other_Leg;
 
    -------------------
    --  Queue_Count  --
@@ -377,7 +398,17 @@ package body Model.Call is
          R_ID : in Reception_Identifier;
          C_ID : in Contact_Identifier;
          U_ID : in Model.User_Identifier) is
+
+      Context : constant String := Package_Name & ".Set_Outbound_Parameters";
+
    begin
+      System_Messages.Debug
+        (Message =>
+           "R_ID:" & R_ID'Img & " " &
+           "C_ID:" & C_ID'Img & " " &
+           "U_ID:" & U_ID'Img,
+        Context => Context);
+
       Call_List.Set_Outbound_Parameters (Item => Item,
                                          R_ID => R_ID,
                                          C_ID => C_ID,
@@ -542,7 +573,6 @@ package body Model.Call is
                   raise Not_Available with "Call is not available for to user";
                elsif
                      Prospected_Call.Is_Call      and
-                     Prospected_Call.Inbound      and
                  not Prospected_Call.Locked
                then
                   Call_List.Update (Prospected_Call.ID, Assign'Access);
@@ -771,10 +801,8 @@ package body Model.Call is
                            Element : in out Instance) is
             pragma Unreferenced (Key);
          begin
-            if Element.Assigned_To = Model.Null_User_Identifier then
-               Element.Assigned_To  := U_ID;
-            end if;
-
+            Element.Assigned_To  := U_ID;
+            Element.Contact_ID   := C_ID;
             Element.Reception_ID := R_ID;
          end Update;
       begin

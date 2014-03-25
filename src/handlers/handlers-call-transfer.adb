@@ -16,6 +16,7 @@
 -------------------------------------------------------------------------------
 
 with Model.Call,
+     Model.Transfer_Requests,
      PBX,
      PBX.Action,
      Response.Templates,
@@ -58,8 +59,8 @@ package body Handlers.Call.Transfer is
       then
          raise Model.Call.Invalid_ID;
       elsif
-        Get (Source).State      = Parked or
-        Get (Destination).State = Parked
+        Get (Source).State      /= Parked and
+        Get (Destination).State /= Parked
       then
          System_Messages.Error
            (Message =>
@@ -68,6 +69,9 @@ package body Handlers.Call.Transfer is
               Source.Image & ", " & Destination.Image & ")",
             Context => Context);
       end if;
+
+      Model.Transfer_Requests.Create (IDs => (ID1 => Source,
+                                              ID2 => Destination));
 
       PBX.Action.Bridge (Source      => Source,
                          Destination => Destination);
@@ -86,6 +90,9 @@ package body Handlers.Call.Transfer is
                 Parameters (Request).Get ("source")));
 
       when E : others =>
+         Model.Transfer_Requests.Decline (IDs => (ID1 => Source,
+                                                  ID2 => Destination));
+
          System_Messages.Critical_Exception
            (Event           => E,
             Message         => "Transfer request failed.",

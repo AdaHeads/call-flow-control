@@ -28,7 +28,9 @@ with GNATCOLL.JSON;
 with PBX.Trace,
      PBX.Magic_Constants;
 
-with Model.Peer.List;
+with Model.Peer.List,
+     Model.Origination_Requests;
+
 with System_Messages;
 with Util.Image;
 
@@ -155,6 +157,8 @@ package body PBX.Action is
 
       PBX.Trace.Debug
         (Message => "Originate request to extension " & Extension &
+           " contact:" & Contact_ID'Img &
+           " reception:" & Reception_ID'Img &
            " returned channel: """ & ESL.UUID.Image
            (Reply.Channel_UUID) & """",
          Context => Context);

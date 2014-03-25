@@ -23,6 +23,7 @@ with System_Messages;
 private with Model.Contact.Utilities;
 
 package body Model.Contact is
+
    package Config renames Configuration;
    use Model;
    use Protocol_Definitions;
