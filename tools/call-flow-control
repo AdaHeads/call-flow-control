@@ -1,8 +1,8 @@
 #! /bin/sh
 ### BEGIN INIT INFO
 # Provides:          call-flow-control
-# Required-Start:    $remote_fs $syslog
-# Required-Stop:     $remote_fs $syslog
+# Required-Start:    $remote_fs $syslog $freeswitch
+# Required-Stop:     $remote_fs $syslog $freeswitch
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Call-flow PBX front-end
@@ -22,7 +22,7 @@ PREFIX=/usr/local/call-flow
 NAME=call_flow_control
 USER=krc
 DAEMON=${PREFIX}/bin/$NAME
-DAEMON_ARGS="--config ${PREFIX}/conf/main.conf > /tmp/call-flow.log"
+DAEMON_ARGS="--config ${PREFIX}/conf/main.conf > ${PREFIX}/call-flow-control.log"
 PIDFILE=$PREFIX/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 LOGFILE=${PREFIX}/${NAME}.log

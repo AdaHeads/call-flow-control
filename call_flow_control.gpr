@@ -51,7 +51,7 @@ project Call_Flow_Control is
             for Default_Switches ("Ada") use ("-fstack-check",
                                               "-gnata",
                                               "-gnatf",
-                                              "-gnato13",
+--                                              "-gnato13",
                                               "-gnatwa",
                                               "-gnaty3abcdefhiklmnoprstux",
                                               "-Wall",

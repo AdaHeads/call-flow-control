@@ -45,6 +45,7 @@ install: all
 
 install-default-config:
 	@install --directory ${PREFIX}/conf
+	@install --directory ${PREFIX}/session
 	@install             exe/configuration/main.conf.dist  ${PREFIX}/conf/main.conf
 	@install             exe/configuration/config.ini.dist ${PREFIX}/conf/config.ini
 	@install             exe/configuration/mime.types      ${PREFIX}/conf/mime.types
