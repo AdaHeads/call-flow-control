@@ -76,6 +76,7 @@ package Model.Call is
    function Arrival_Time (Obj : in Instance) return Common.Time;
    function Assigned_To (Obj : in Instance) return Natural;
    function Reception_ID (Obj : in Instance) return Reception_Identifier;
+   function Contact_ID (Obj : in Instance) return Contact_Identifier;
    function Greeting_Played (Obj : in Instance) return Boolean;
    --  Accessor methods
 
@@ -108,6 +109,8 @@ package Model.Call is
 
    function Get (Call : Identification) return Instance;
 
+   function Other_Leg (Call : Instance) return Identification;
+
    function Has (ID : Identification) return Boolean;
 
    function Queue_Empty return Boolean;
@@ -133,7 +136,8 @@ package Model.Call is
       ID              : in Identification;
       Reception_ID    : in Reception_Identifier;
       Extension       : in String := "";
-      From_Extension  : in String := "");
+      From_Extension  : in String := "";
+      Assigned_To     : in User_Identifier := Model.Null_User_Identifier);
 
    --  ^Constructors
 
@@ -153,7 +157,8 @@ private
          Inbound         : Boolean;
          Extension       : Unbounded_String;
          Reception_ID    : Reception_Identifier := Null_Reception_Identifier;
-         Assigned_To     : Model.User_Identifier;
+         Assigned_To     : Model.User_Identifier := Null_User_Identifier;
+         Contact_ID      : Model.Contact_Identifier := Null_Contact_Identifier;
          From_Extension  : Unbounded_String;
          B_Leg           : Identification;
          Arrived         : Time := Current_Time;
