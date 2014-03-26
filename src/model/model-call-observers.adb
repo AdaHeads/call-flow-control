@@ -364,11 +364,6 @@ package body Model.Call.Observers is
       then
         Model.Origination_Requests.Is_Origination_Request (Packet.Other_Leg)
       then
-
-         Model.Origination_Requests.Confirm (Packet.Other_Leg);
-
-         Get (Packet.UUID).Mark_As_Call;
-
          if Get (Packet.UUID).Reception_ID = Null_Reception_Identifier then
             Get (Packet.UUID).Set_Outbound_Parameters
               (R_ID => Get (Packet.Other_Leg).Reception_ID,

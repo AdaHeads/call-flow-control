@@ -20,8 +20,7 @@ with Ada.Containers.Hashed_Sets,
      Ada.Strings.Equal_Case_Insensitive,
      Ada.Strings.Hash_Case_Insensitive;
 
-with System_Messages,
-     Model.Call;
+with System_Messages;
 
 package body Model.Origination_Requests is
    use Ada.Containers;
@@ -44,12 +43,16 @@ package body Model.Origination_Requests is
    ---------------
 
    procedure Confirm (ID : in Model.Call.Identification) is
+      use Model.Call;
+
       Context : constant String := Package_Name & ".Confirm";
    begin
-      System_Messages.Debug (Message => "Confirmed and removed " & ID.Image,
+      System_Messages.Debug (Message => "Confirmed and removed " & ID.Image &
+                               " " &
+                               Get (Call => ID).B_Leg.Image & " is now a call",
                              Context => Context);
       Requests.Delete (Item => ID);
-      Model.Call.Get (Call => ID).Mark_As_Call;
+      Get (Get (Call => ID).B_Leg).Mark_As_Call;
    end Confirm;
 
    --------------

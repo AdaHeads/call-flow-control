@@ -251,6 +251,11 @@ package body Model.Call is
       return Obj.Inbound;
    end Inbound;
 
+   function Is_Call (Obj : in Instance) return Boolean is
+   begin
+      return Obj.Is_Call;
+   end Is_Call;
+
    procedure Link (ID_1 : in Identification;
                    ID_2 : in Identification) is
       --  Context : constant String := Package_Name & ".Link";

@@ -78,6 +78,7 @@ package Model.Call is
    function Reception_ID (Obj : in Instance) return Reception_Identifier;
    function Contact_ID (Obj : in Instance) return Contact_Identifier;
    function Greeting_Played (Obj : in Instance) return Boolean;
+   function Is_Call (Obj : in Instance) return Boolean;
    --  Accessor methods
 
    procedure Set_Reception_ID (Obj  : in Instance;

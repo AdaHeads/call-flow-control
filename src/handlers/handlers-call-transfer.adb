@@ -70,6 +70,24 @@ package body Handlers.Call.Transfer is
             Context => Context);
       end if;
 
+      if not Get (Source).Is_Call then
+         System_Messages.Error
+           (Message => "Source is not a call: " & Source.Image,
+            Context => Context);
+      end if;
+
+      if not Get (Destination).Is_Call then
+         System_Messages.Error
+           (Message => "Destination is not a call: " & Destination.Image,
+            Context => Context);
+      end if;
+
+
+      System_Messages.Debug
+        (Message => "Transferring " &
+           Source.Image & " -> " &
+           Destination.Image,
+         Context => Context);
       Model.Transfer_Requests.Create (IDs => (ID1 => Source,
                                               ID2 => Destination));
 
