@@ -15,17 +15,19 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with PBX.Magic_Constants;
-with PBX.Event_Stream;
-with ESL.Packet_Keys;
-with System_Messages;
-with Model.Origination_Requests,
-     Model.Transfer_Requests;
-
+with
+  ESL.Packet_Keys;
+with
+  Model.Origination_Requests,
+  Model.Transfer_Requests,
+  PBX.Magic_Constants,
+  PBX.Event_Stream,
+  System_Messages;
 
 package body Model.Call.Observers is
    use ESL.Packet_Keys;
 
+   overriding
    function "=" (Left, Right : in AdaHeads_Observer) return Boolean is
    begin
       return
@@ -33,6 +35,7 @@ package body Model.Call.Observers is
         Left.Observing_Event = Right.Observing_Event;
    end "=";
 
+   overriding
    function "=" (Left, Right : in Bridge_Observer) return Boolean is
    begin
       return
@@ -40,6 +43,7 @@ package body Model.Call.Observers is
         Left.Observing_Event = Right.Observing_Event;
    end "=";
 
+   overriding
    function "=" (Left, Right : in Channel_Hold_Observer) return Boolean is
    begin
       return
@@ -47,6 +51,7 @@ package body Model.Call.Observers is
         Left.Observing_Event = Right.Observing_Event;
    end "=";
 
+   overriding
    function "=" (Left, Right : in Create_Observer) return Boolean is
    begin
       return
@@ -54,6 +59,7 @@ package body Model.Call.Observers is
         Left.Observing_Event = Right.Observing_Event;
    end "=";
 
+   overriding
    function "=" (Left, Right : in Destroy_Observer) return Boolean is
    begin
       return
@@ -61,6 +67,7 @@ package body Model.Call.Observers is
         Left.Observing_Event = Right.Observing_Event;
    end "=";
 
+   overriding
    function "=" (Left, Right : in Park_Observer) return Boolean is
    begin
       return
@@ -68,6 +75,7 @@ package body Model.Call.Observers is
         Left.Observing_Event = Right.Observing_Event;
    end "=";
 
+   overriding
    function "=" (Left, Right : in Channel_State_Observer) return Boolean is
    begin
       return
@@ -120,6 +128,7 @@ package body Model.Call.Observers is
    --  AdaHeads observer  --
    -------------------------
 
+   overriding
    procedure Notify (Observer : in AdaHeads_Observer;
                      Packet : in ESL.Packet.Instance) is
       pragma Unreferenced (Observer);
@@ -306,6 +315,7 @@ package body Model.Call.Observers is
    --  Destroy  --
    ---------------
 
+   overriding
    procedure Notify (Observer : in Destroy_Observer;
                      Packet   : in ESL.Packet.Instance) is
       pragma Unreferenced (Observer);
@@ -332,6 +342,7 @@ package body Model.Call.Observers is
    --  Park  --
    ------------
 
+   overriding
    procedure Notify (Observer : in Park_Observer;
                      Packet   : in ESL.Packet.Instance) is
       pragma Unreferenced (Observer);
@@ -351,6 +362,7 @@ package body Model.Call.Observers is
    --  Channel_State  --
    ---------------------
 
+   overriding
    procedure Notify (Observer : in Channel_State_Observer;
                      Packet   : in ESL.Packet.Instance) is
       pragma Unreferenced (Observer);

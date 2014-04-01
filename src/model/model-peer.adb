@@ -67,11 +67,11 @@ package body Model.Peer is
 
    function Image (Object : in Instance) return String is
    begin
-      return Image (Object.Peer_ID) & " " &
-      (if Object.Registered then
-       "(registered)"
-       else
-       "(not registered)");
+      if Object.Registered then
+         return Image (Object.Peer_ID) & " (registered)";
+      else
+         return Image (Object.Peer_ID) & " (not registered)";
+      end if;
    end Image;
 
    -------------

@@ -352,7 +352,6 @@ package body PBX is
         (Message => "PBX subsystem task shutting down.",
          Context => "PBX.Stop");
 
-
       Client.Disconnect;
       Event_Client.Disconnect;
       System_Messages.Information

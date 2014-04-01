@@ -82,7 +82,6 @@ package body Handlers.Call.Transfer is
             Context => Context);
       end if;
 
-
       System_Messages.Debug
         (Message => "Transferring " &
            Source.Image & " -> " &

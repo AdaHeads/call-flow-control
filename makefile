@@ -41,7 +41,7 @@ clean:
 distclean: clean
 	rm -f exe/${BINARY}
 
-install: all
+install: test
 	@install --directory        ${PREFIX}/bin
 	@install --target-directory=${PREFIX}/bin exe/${BINARY}
 
@@ -57,7 +57,7 @@ git-head: all
 	cp exe/${BINARY} exe/${BINARY}-${RELEASE}-${GIT_REV}
 	echo ${BINARY}-${RELEASE}-${GIT_REV} > release.latest
 
-tests: all
+test: build
 	@./src/tests/build
 	@./src/tests/run
 

@@ -63,8 +63,8 @@ package body SIGHUP is
       procedure HUP
       is
       begin
-         for H of Handle (1 .. Registered) loop
-            H := True;
+         for Index in 1 .. Registered loop
+            Handle (Index) := True;
          end loop;
       end HUP;
 
@@ -92,8 +92,8 @@ package body SIGHUP is
       is
       begin
          Stopping := True;
-         for H of Handle (1 .. Registered) loop
-            H := True;
+         for Index in 1 .. Registered loop
+            Handle (Index) := True;
          end loop;
       end Stop;
 

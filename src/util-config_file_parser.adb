@@ -219,8 +219,8 @@ package body Util.Config_File_Parser is
          return True;
       end Is_Not_Empty_Or_Comment;
    begin
-
-      Ada.Text_IO.Put_Line (Context  & ": Loading config values from " & Config_File);
+      Ada.Text_IO.Put_Line
+        (Context  & ": Loading config values from " & Config_File);
 
       Open (File => File,
             Mode => In_File,
