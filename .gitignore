@@ -1,22 +1,20 @@
 # Do not track build objects.
-build*/*
-!build*/.gitignore
-src/tests/*/b~*.ad[sb]
+/obj/
+b~*.ad[sb]
 *.ali
 *.o
 
 # Do not track the .ini and json files in exe/configuration
-exe/configuration/*.ini
-exe/configuration/*.json
-exe/configuration/*.local
+/exe/configuration/*.ini
+/exe/configuration/*.json
+/exe/configuration/*.local
 
-# Do not track pid files and the alice executable in exe/
-exe/alice
-exe/*.pid
+# Do not track pid files and the generated executable:
+/exe/call_flow_control
+/exe/*.pid
 
-# Do not track alice session data
-exe/session/*
-!exe/session/.gitignore
+# Do not track session data:
+/exe/session/
 
 # Do not track temporary and backup files from editors
 \#*#
@@ -29,16 +27,16 @@ exe/session/*
 TODO
 
 # Local files @sparre
-test_and_push_to_master
+/to_master
 
 # www content
-exe/www/*
-!exe/www/.gitignore
+/exe/www/
 
 # Ignore acces and error logs
-exe/access.log*
-exe/error.log*
+/exe/access.log*
+/exe/error.log*
 
 # Added by KRC
-esl_dumps/
-archive/
+/esl_dumps/
+/archive/
+

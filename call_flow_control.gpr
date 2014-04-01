@@ -19,57 +19,22 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with "ada_2005";
 with "aws";
 with "esl";
 
 project Call_Flow_Control is
-   type Build_Type is ("Debug", "Production");
-   Build : Build_Type := External ("BUILDTYPE", "Production");
+   for Source_Dirs use ("src/**");
 
+   for Main use ("call_flow_control");
 
-   Source_Options := ("src/**");
-   for Source_Dirs use Source_Options;
+   for Object_Dir use "obj";
+   for Exec_Dir   use "exe";
 
-   for Main use ("call_flow_control.adb");
+   package IDE is
+      for Compiler_Command ("Ada") use "gnatmake";
+   end IDE;
 
-   for Exec_Dir use "exe";
-
-   case Build is
-      when "Production" =>
-         for Object_Dir use "build_production";
-      when "Debug" =>
-         for Object_Dir use "build_debug";
-   end case;
-
-   package Ide is
-      for Compiler_Command ("ada") use "gnatmake";
-   end Ide;
-
-   package Compiler is
-      case Build is
-         when "Production" =>
-            for Default_Switches ("Ada") use ("-fstack-check",
-                                              "-gnata",
-                                              "-gnatf",
---                                              "-gnato13",
-                                              "-gnatwa",
-                                              "-gnaty3abcdefhiklmnoprstux",
-                                              "-Wall",
-                                              "-gnatwl",
-                                              "-O2",
-                                              "-gnat2012");
-         when "Debug" =>
-            for Default_Switches ("Ada") use ("-fstack-check",
-                                              "-gnata",
-                                              "-gnatf",
---                                              "-gnato13",
-                                              "-gnatwa",
-                                              "-gnatVa",
-                                              "-Wall",
-                                              "-O1",
-                                              "-gnat2005",
-                                              "-g");
-
-      end case;
-   end Compiler;
+   package Compiler renames Ada_2005.Compiler;
+   package Builder  renames Ada_2005.Builder;
 end Call_Flow_Control;

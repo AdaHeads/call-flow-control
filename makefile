@@ -29,19 +29,21 @@ ifeq ($(PROCESSORS),)
 PROCESSORS=`(test -f /proc/cpuinfo && grep -c ^processor /proc/cpuinfo) || echo 1`
 endif
 
-all:
-	gnatmake -j${PROCESSORS} -P ${BINARY}
+build: fix-whitespace
+	gnatmake -j${PROCESSORS} -p -P ${BINARY}
 
-debug:
-	BUILDTYPE=Debug gnatmake -j${PROCESSORS} -P ${BINARY}
+debug: build
 
-clean: cleanup_messy_temp_files
+clean:
 	gnatclean -P ${BINARY}
-	BUILDTYPE=Debug gnatclean -P ${BINARY}
+	find . -type f \( -name "*~" -o -name "*.ali" -o -name "*.o" \) -print0 | xargs -0 -r /bin/rm
+
+distclean: clean
+	rm -f exe/${BINARY}
 
 install: all
-	install --directory        ${PREFIX}/bin
-	install --target-directory=${PREFIX}/bin exe/${BINARY}
+	@install --directory        ${PREFIX}/bin
+	@install --target-directory=${PREFIX}/bin exe/${BINARY}
 
 install-default-config:
 	@install --directory ${PREFIX}/conf
@@ -59,8 +61,6 @@ tests: all
 	@./src/tests/build
 	@./src/tests/run
 
-cleanup_messy_temp_files:
-	find . -name "*~" -type f -print0 | xargs -0 -r /bin/rm
-
 fix-whitespace:
 	@find src -name '*.ad?' | xargs --no-run-if-empty egrep -l '	| $$' | grep -v '^b[~]' | xargs --no-run-if-empty perl -i -lpe 's|	|        |g; s| +$$||g'
+
