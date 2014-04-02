@@ -11,6 +11,7 @@ package PBX.Observers is
    procedure Notify (Object : in Instance;
                      Packet : in ESL.Packet.Instance) is abstract;
 
+   overriding
    function "=" (Left, Right : in Instance) return Boolean is abstract;
    --  The equals operator needs to be overwritten in order to make sure
    --  that the same observer does not register in multiple times.
