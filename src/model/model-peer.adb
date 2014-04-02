@@ -15,7 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Calendar;
+with
+  Ada.Calendar,
+  Ada.Characters.Handling,
+  Ada.Strings.Hash;
+
 with Client_Notification;
 with Handlers.Notifications;
 
@@ -26,6 +30,7 @@ package body Model.Peer is
 
    procedure Bump_Expiry (Object     :    out Instance;
                           Time_Delta : in     Natural) is
+      use Common;
    begin
       Object.Expiry_Time := Current_Time + Duration (Time_Delta);
    end Bump_Expiry;
@@ -48,6 +53,13 @@ package body Model.Peer is
               Expiry_Time => <>);
    end Create;
 
+   function Equal_Case_Insensitive (Left, Right : in Unbounded_String)
+                                   return Boolean is
+      use Ada.Characters.Handling;
+   begin
+      return To_Lower (To_String (Left)) = To_Lower (To_String (Right));
+   end Equal_Case_Insensitive;
+
    --------------------------
    --  Get_Identification  --
    --------------------------
@@ -60,6 +72,13 @@ package body Model.Peer is
 
       return Image (Object.Peer_ID);
    end Get_Identification;
+
+   function Hash_Case_Insensitive (Key : in Unbounded_String)
+                                  return Ada.Containers.Hash_Type is
+      use Ada.Characters.Handling;
+   begin
+      return Ada.Strings.Hash (To_Lower (To_String (Key)));
+   end Hash_Case_Insensitive;
 
    -------------
    --  Image  --

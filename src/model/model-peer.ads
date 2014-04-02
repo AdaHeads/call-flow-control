@@ -15,19 +15,21 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Hashed_Maps;
-with Ada.Strings.Unbounded;
-with Ada.Strings.Unbounded.Hash_Case_Insensitive;
-with Ada.Strings.Unbounded.Equal_Case_Insensitive;
-with GNATCOLL.JSON;
+with
+  Ada.Strings.Unbounded;
+with
+  GNATCOLL.JSON;
 
-with Common;
+private
+with
+  Ada.Containers.Hashed_Maps;
+private
+with
+  Common;
 
 package Model.Peer is
    use Ada.Strings.Unbounded;
    use GNATCOLL.JSON;
-   use Common;
-   use Model;
 
    Package_Name : constant String := "Model.Peer";
 
@@ -86,11 +88,16 @@ private
 
    Null_Identification : constant Identification := Null_Unbounded_String;
 
+   function Hash_Case_Insensitive (Key : in Unbounded_String)
+                                  return Ada.Containers.Hash_Type;
+   function Equal_Case_Insensitive (Left, Right : in Unbounded_String)
+                                   return Boolean;
+
    package Peer_Storage is new Ada.Containers.Hashed_Maps
      (Key_Type        => Identification,
       Element_Type    => Peer.Instance,
-      Hash            => Ada.Strings.Unbounded.Hash_Case_Insensitive,
-      Equivalent_Keys => Ada.Strings.Unbounded.Equal_Case_Insensitive);
+      Hash            => Hash_Case_Insensitive,
+      Equivalent_Keys => Equal_Case_Insensitive);
 
    subtype Peer_Maps is Peer_Storage.Map;
 
