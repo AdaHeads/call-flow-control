@@ -15,7 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded;
+with
+  Ada.Characters.Latin_1,
+  Ada.Strings.Fixed,
+  Ada.Strings.Unbounded;
 
 with ESL.Reply,
      ESL.UUID,
@@ -28,8 +31,7 @@ with GNATCOLL.JSON;
 with PBX.Trace,
      PBX.Magic_Constants;
 
-with Model.Peer.List,
-     Model.Origination_Requests;
+with Model.Peer.List;
 
 with System_Messages;
 with Util.Image;
@@ -326,31 +328,32 @@ package body PBX.Action is
 
       type Peer_Packet_Items is array (Natural range <>) of Unbounded_String;
 
-      function Get_Line (Item : in     String;
-                         Last :    out Natural) return String;
+      procedure Get_Line (Source : in     String;
+                          Last   :    out Natural;
+                          Item   :    out Unbounded_String);
 
-      function Get_Line (Item : in     String;
-                         Last :    out Natural) return String is
+      function Parse (Line : in Unbounded_String) return Peer_Packet_Items;
+
+      procedure Get_Line (Source : in     String;
+                          Last   :    out Natural;
+                          Item   :    out Unbounded_String) is
+         package Latin_1 renames Ada.Characters.Latin_1;
       begin
-         Last := Item'First;
-         for Position in Item'Range loop
-            exit when Position = Item 'Last or Item (Position) = ASCII.LF;
-            case Item (Position) is
-            when others =>
-               Last := Position;
-            end case;
-         end loop;
+         Last := Ada.Strings.Fixed.Index (Source  => Source,
+                                          Pattern => (1 => Latin_1.LF));
 
          --  TODO run a show registrations to assert the registration state.
 
-         return Item (Item'First .. Last);
+         if Last = 0 then
+            Last := Source'Last;
+            Item := To_Unbounded_String (Source);
+         else
+            Item := To_Unbounded_String (Source (Source'First .. Last - 1));
+         end if;
       end Get_Line;
 
-      function Parse_Line (Item : in     String)
-                           return Peer_Packet_Items;
-
-      function Parse_Line (Item : in     String)
-                           return Peer_Packet_Items is
+      function Parse (Line : in Unbounded_String) return Peer_Packet_Items is
+         Item      : constant String := To_String (Line);
          Offset    : Natural := Item'First;
          Key_Count : Natural := 0;
       begin
@@ -383,7 +386,7 @@ package body PBX.Action is
             end loop;
             return Headers;
          end;
-      end Parse_Line;
+      end Parse;
 
    begin
       PBX.Client.API (List_Peers_Action, Reply);
@@ -395,49 +398,61 @@ package body PBX.Action is
 
       Position := Reply.Response_Body'First;
 
-      --  Header.
+      Header :
       declare
-         Header_Line    : constant String := Get_Line
-           (Item => Reply.Response_Body, Last => Position);
-         Header : constant Peer_Packet_Items := Parse_Line (Header_Line);
-         Peers  : Model.Peer.List.Instance;
+         Header_Line : Unbounded_String;
       begin
-         Position := Position + 2;
-         while Position < Reply.Response_Body'Last loop
-            declare
-               Line : constant String := Get_Line
-                 (Item => Reply.Response_Body
-                    (Position .. Reply.Response_Body'Last),
-                  Last => Position);
-               Items : constant Peer_Packet_Items := Parse_Line (Line);
-            begin
-               if Items'Length = Header'Length then
+         Get_Line (Source => Reply.Response_Body,
+                   Last   => Position,
+                   Item   => Header_Line);
+
+         declare
+            Header : constant Peer_Packet_Items := Parse (Header_Line);
+            Peers  : Model.Peer.List.Instance;
+         begin
+            Position := Position + 2; --  Skipping what?
+
+            while Position < Reply.Response_Body'Last loop
+               declare
+                  Line  : Unbounded_String;
+               begin
+                  Get_Line (Source => Reply.Response_Body
+                                        (Position .. Reply.Response_Body'Last),
+                            Last   => Position,
+                            Item   => Line);
+
                   declare
-                     Peer : Model.Peer.Instance;
-                     Node : constant JSON_Value := Create_Object;
+                     Items : constant Peer_Packet_Items := Parse (Line);
                   begin
+                     if Items'Length = Header'Length then
+                        declare
+                           Peer : Model.Peer.Instance;
+                           Node : constant JSON_Value := Create_Object;
+                        begin
+                           for I in Items'First + 1 .. Items'Last loop
+                              Node.Set_Field
+                                (Field_Name => To_String (Header (I)),
+                                 Field      => Items (I));
+                           end loop;
 
-                     for I in Items'First + 1 .. Items'Last loop
-                        Node.Set_Field (Field_Name => To_String (Header (I)),
-                                        Field      => Items (I));
-                     end loop;
+                           Peer := Model.Peer.Create
+                                     (Peer_ID => Items (Items'First),
+                                      Values  => Node);
 
-                     Peer := Model.Peer.Create (Peer_ID => Items (Items'First),
-                                                Values  => Node);
-
-                     Peers.Put (New_Peer => Peer);
-
+                           Peers.Put (New_Peer => Peer);
+                        end;
+                     else
+                        PBX.Trace.Debug
+                          (Message => "Skipping line " & To_String (Line),
+                           Context => Context);
+                     end if;
+                     Model.Peer.List.Set_Singleton (Peers);
                   end;
-               else
-                  PBX.Trace.Debug (Message => "Skipping line " &  Line,
-                                   Context => Context);
-
-               end if;
-               Model.Peer.List.Set_Singleton (Peers);
-            end;
-            Position := Position + 2;
-         end loop;
-      end;
+               end;
+               Position := Position + 2;
+            end loop;
+         end;
+      end Header;
 
       PBX.Trace.Information (Message => "Updated peer list:");
    end Update_SIP_Peer_List;
