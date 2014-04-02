@@ -15,16 +15,21 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Vectors;
-with Model.Phone;
-with Model.Token;
-with GNATCOLL.JSON;
+with
+  GNATCOLL.JSON;
+with
+  Model.Phone,
+  Model.Token;
+
 private
-with Ada.Strings.Unbounded,
-     Ada.Strings.Unbounded.Equal_Case_Insensitive;
+with
+  Ada.Containers.Vectors,
+  Ada.Strings.Unbounded;
+private
+with
+  Common.Unbounded_Case_Insensitive_Equal;
 
 package Model.Contact is
-   use Model;
    use GNATCOLL.JSON;
 
    Package_Name : constant String := "Model.Contact";
@@ -64,7 +69,7 @@ private
    package Phones_Storage is new Ada.Containers.Vectors
      (Index_Type   => Phone_Identifier,
       Element_Type => Unbounded_String,
-      "="          => Ada.Strings.Unbounded.Equal_Case_Insensitive);
+      "="          => Common.Unbounded_Case_Insensitive_Equal);
 
    subtype Phone_List is Phones_Storage.Vector;
 
