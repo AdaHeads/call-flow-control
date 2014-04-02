@@ -203,9 +203,9 @@ package body PBX is
          Reader_Task     := new Reader_Tasks (Packet_Buffer'Access);
          Reader_Task.Start;
 
-         Next_Reconnect := Clock; --  Reset the clock to enable the other
-                                  --  clients to be able to try to connect
-                                  --  immidiately.
+         --  Reset the clock to enable the other clients to be able to
+         --  try to connect immidiately:
+         Next_Reconnect := Clock;
       end if;
 
       if not Shutdown then
