@@ -19,48 +19,62 @@
 #                                                                             #
 ###############################################################################
 
+PROJECT=call_flow_control
+
+GENERATED_EXECUTABLES=exe/$(PROJECT)
+
 PREFIX?=/usr/local/call-flow
 
 RELEASE=`git tag | tail -n1`
 GIT_REV=`git rev-parse --short HEAD`
-BINARY=call_flow_control
 
 ifeq ($(PROCESSORS),)
-PROCESSORS=`(test -f /proc/cpuinfo && grep -c ^processor /proc/cpuinfo) || echo 1`
+   PROCESSORS=`(test -f /proc/cpuinfo && grep -c ^processor /proc/cpuinfo) || echo 1`
 endif
 
+all: build
+
 build: fix-whitespace
-	gnatmake -j${PROCESSORS} -p -P ${BINARY}
-
-debug: build
-
-clean:
-	gnatclean -P ${BINARY}
-	find . -type f \( -name "*~" -o -name "*.ali" -o -name "*.o" \) -print0 | xargs -0 -r /bin/rm
-
-distclean: clean
-	rm -f exe/${BINARY}
+	gnatmake -j$(PROCESSORS) -p -P $(PROJECT)
 
 install: test
-	@install --directory        ${PREFIX}/bin
-	@install --target-directory=${PREFIX}/bin exe/${BINARY}
+	@install --directory        $(PREFIX)/bin
+	@install --target-directory=$(PREFIX)/bin $(GENERATED_EXECUTABLES)
 
 install-default-config:
-	@install --directory ${PREFIX}/conf
-	@install --directory ${PREFIX}/session
-	@install             exe/configuration/main.conf.dist  ${PREFIX}/conf/main.conf
-	@install             exe/configuration/config.ini.dist ${PREFIX}/conf/config.ini
-	@install             exe/configuration/mime.types      ${PREFIX}/conf/mime.types
-	@echo Default config deployed at ${PREFIX}/conf - go there and finish the config.
+	@install --directory $(PREFIX)/conf
+	@install --directory $(PREFIX)/session
+	@install             exe/configuration/main.conf.dist  $(PREFIX)/conf/main.conf
+	@install             exe/configuration/config.ini.dist $(PREFIX)/conf/config.ini
+	@install             exe/configuration/mime.types      $(PREFIX)/conf/mime.types
+	@echo Default config deployed at $(PREFIX)/conf - go there and finish the config.
 
 git-head: all
-	cp exe/${BINARY} exe/${BINARY}-${RELEASE}-${GIT_REV}
-	echo ${BINARY}-${RELEASE}-${GIT_REV} > release.latest
+	for exe in $(GENERATED_EXECUTABLES); do cp -p $${exe} $${exe}-$(RELEASE)-$(GIT_REV); done
+	echo $(PROJECT)-$(RELEASE)-$(GIT_REV) > release.latest
 
-test: build
-	@./src/tests/build
-	@./src/tests/run
+test: build metrics
+	@./tests/build
+	@./tests/run
+
+clean:
+	gnatclean -P $(PROJECT) || true
+	find . -type f \( -name "*~" -o -name "*.o" -o -name "*.ali" \) -print0 | xargs -0 -r /bin/rm
+	if [ ! -z "$(GENERATED_SOURCES)" ]; then rm -rf $(GENERATED_SOURCES); fi
+	rmdir bin || true
+	rmdir obj || true
+
+distclean: clean
+	rm -f $(GENERATED_EXECUTABLES)
+	rm -f obj/*.ad[sb].metrix
+	rmdir bin || true
+	rmdir obj || true
 
 fix-whitespace:
-	@find src -name '*.ad?' | xargs --no-run-if-empty egrep -l '	| $$' | grep -v '^b[~]' | xargs --no-run-if-empty perl -i -lpe 's|	|        |g; s| +$$||g'
+	@find src tests -name '*.ad?' | xargs --no-run-if-empty egrep -l '	| $$' | grep -v '^b[~]' | xargs --no-run-if-empty perl -i -lpe 's|	|        |g; s| +$$||g'
+
+metrics:
+	@gnat metric -P $(PROJECT)
+
+.PHONY: all build test install clean distclean fix-whitespace metrics
 
