@@ -19,16 +19,30 @@
 
 with AWS.Status,
      AWS.Response;
+
+with Black.Request,
+     Black.Response;
+
 with GNATCOLL.JSON;
 
 package Response.Templates is
    use GNATCOLL.JSON;
+   package Client renames Black;
+   package Server renames Black;
 
    Package_Name : constant String := "Response.Templates";
+
+   function OK (Request       : in Client.Request.Instance;
+                Response_Body : in JSON_Value := Create_Object)
+                return Server.Response.Class;
 
    function OK (Request       : in AWS.Status.Data;
                 Response_Body : in JSON_Value := Create_Object)
                 return AWS.Response.Data;
+
+   function Bad_Parameters (Request       : in Client.Request.Instance;
+                            Response_Body : in JSON_Value := Create_Object)
+                            return Server.Response.Class;
 
    function Bad_Parameters (Request : in AWS.Status.Data;
                             Response_Body : in JSON_Value := Create_Object)
@@ -41,11 +55,19 @@ package Response.Templates is
    --  Builds up a 401 Unauthorized response. Used when user validation fails,
    --  or they lack the proper authorization for a resource.
 
+   function Not_Found (Request       : in Client.Request.Instance;
+                       Response_Body : in JSON_Value := Create_Object)
+                       return Server.Response.Class;
+
    function Not_Found (Request       : in AWS.Status.Data;
                        Response_Body : in JSON_Value := Create_Object)
                        return AWS.Response.Data;
    --  Builds up a 404 Not found response. Used as the default reponse handler
    --  for every request not in the routing table.
+
+   function Server_Error (Request : in Black.Request.Instance;
+                          Response_Body : in JSON_Value := Create_Object)
+                          return Black.Response.Class;
 
    function Server_Error (Request       : in AWS.Status.Data;
                           Response_Body : in JSON_Value := Create_Object)
@@ -56,5 +78,9 @@ package Response.Templates is
                           return AWS.Response.Data;
    --  Builds up a 500 Server error object.
 
-private
+   function Not_Authorized (Request : in Black.Request.Instance)
+                            return Black.Response.Class;
+   --  Builds up a 401 Unauthorized response. Used when user validation fails,
+   --  or they lack the proper authorization for a resource.
+
 end Response.Templates;

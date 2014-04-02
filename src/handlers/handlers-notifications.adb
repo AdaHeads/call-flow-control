@@ -86,7 +86,7 @@ package body Handlers.Notifications is
       end if;
 
       --  The parameter is present, go lookup the user.
-      Detected_User := Request_Utilities.User_Of (Request);
+      Detected_User := No_User;
 
       if Detected_User = User.No_User or not Detected_User.Authenticated then
          Information
@@ -95,6 +95,7 @@ package body Handlers.Notifications is
             Context => Context);
 
          --  TODO: Shutdown socket.
+         AWS.Net.Shutdown (Socket.all);
 
          raise Not_Authenticated
            with "Attempted to create a websocket without being logged in.";

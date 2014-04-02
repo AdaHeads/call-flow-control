@@ -65,6 +65,15 @@ package body Response.Templates is
    --  Bad_Parameters  --
    ----------------------
 
+   function Bad_Parameters (Request       : in Client.Request.Instance;
+                            Response_Body : in JSON_Value := Create_Object)
+                            return Server.Response.Class is
+   begin
+      Response_Body.Set_Field (Status_Text, Bad_Parameters_Reponse_Text);
+
+      return Black.Response.Bad_Request (Response_Body => Response_Body.Write);
+   end Bad_Parameters;
+
    function Bad_Parameters (Request : in AWS.Status.Data;
                             Response_Body : in JSON_Value := Create_Object)
                             return AWS.Response.Data is
@@ -108,9 +117,33 @@ package body Response.Templates is
       end return;
    end Not_Authorized;
 
+   ----------------------
+   --  Not_Authorized  --
+   ----------------------
+
+   function Not_Authorized (Request : in Black.Request.Instance)
+                            return Black.Response.Instance'Class is
+      Response_Body : constant JSON_Value := Create_Object;
+   begin
+
+      Response_Body.Set_Field (Status_Text, Not_Authorized_Reponse_Text);
+
+      return Server.Response.Not_Authorized
+        (Response_Body => Response_Body.Write);
+   end Not_Authorized;
+
    -----------------
    --  Not_Found  --
    -----------------
+
+   function Not_Found (Request       : in Client.Request.Instance;
+                       Response_Body : in JSON_Value := Create_Object)
+                       return Server.Response.Class is
+   begin
+      Response_Body.Set_Field (Status_Text, Not_Found_Reponse_Text);
+
+      return Server.Response.Not_Found (Resource => Request.Resource);
+   end Not_Found;
 
    function Not_Found (Request       : in AWS.Status.Data;
                        Response_Body : in JSON_Value := Create_Object)
@@ -134,6 +167,16 @@ package body Response.Templates is
    --  OK  --
    ----------
 
+   function OK (Request       : in Client.Request.Instance;
+                Response_Body : in JSON_Value := Create_Object)
+                return Server.Response.Class is
+      Content : constant JSON_Value := Response_Body;
+   begin
+      Content.Set_Field (Status_Text, Server_Error_Reponse_Text);
+
+      return Server.Response.OK (Data => Response_Body.Write);
+   end OK;
+
    function OK (Request       : in AWS.Status.Data;
                 Response_Body : in JSON_Value := Create_Object)
                 return AWS.Response.Data is
@@ -152,6 +195,17 @@ package body Response.Templates is
                            Response => Response);
       end return;
    end OK;
+
+   function Server_Error (Request : in Black.Request.Instance;
+                          Response_Body : in JSON_Value := Create_Object)
+                          return Black.Response.Instance'Class is
+      Content : constant JSON_Value := Response_Body;
+   begin
+      Content.Set_Field (Status_Text, Server_Error_Reponse_Text);
+
+      return Black.Response.Server_Error
+        (Response_Body => Response_Body.Write);
+   end Server_Error;
 
    --------------------
    --  Server_Error  --

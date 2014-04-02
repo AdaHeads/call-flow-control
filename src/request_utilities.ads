@@ -19,6 +19,8 @@
 
 with AWS.Status;
 
+with Black.Request;
+
 with Model.Token,
      Model.User;
 
@@ -26,11 +28,11 @@ package Request_Utilities is
 
    Package_Name : constant String := "Request_Utilities";
 
-   function Token_Of (Request : in AWS.Status.Data)
+   function Token_Of (Request : in Black.Request.Instance)
                       return Model.Token.Instance;
    --  Returns the token associated with the current request.
 
-   function User_Of (Request : in AWS.Status.Data)
+   function User_Of (Request : in Black.Request.Instance)
                      return Model.User.Instance;
    --  Returns the user associated with the current request.
 

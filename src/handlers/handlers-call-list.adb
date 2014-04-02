@@ -25,7 +25,7 @@ package body Handlers.Call.List is
    --  Callback  --
    ----------------
 
-   function Callback return AWS.Response.Callback is
+   function Callback return HTTP.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
@@ -34,12 +34,12 @@ package body Handlers.Call.List is
    --  Generate_Response  --
    -------------------------
 
-   function Generate_Response (Request : AWS.Status.Data)
-                               return AWS.Response.Data is
-      Context : constant String := Package_Name & ".Generate_Response";
+   function Generate_Response (Request : Black.Request.Instance)
+                     return Black.Response.Instance'Class is
+      Context : constant String := Package_Name & ".Handler";
    begin
-      return Response.Templates.OK (Request       => Request,
-                                    Response_Body => Model.Call.List);
+      return Black.Response.OK (Data => Model.Call.List.Write);
+
    exception
       when E : others =>
          System_Messages.Critical_Exception
@@ -48,5 +48,4 @@ package body Handlers.Call.List is
             Context => Context);
          return Response.Templates.Server_Error (Request);
    end Generate_Response;
-
 end Handlers.Call.List;

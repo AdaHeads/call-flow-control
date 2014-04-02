@@ -17,17 +17,18 @@
 
 --  Application specific resource handlers.
 
-with AWS.Response,
-     AWS.Status;
+with Black.Request,
+     Black.Response;
 
 package Handlers.Route is
 
    Package_Name : constant String := "Handlers.Route";
 
-   function Callback (Request : in AWS.Status.Data) return AWS.Response.Data;
+   function Callback (Request : in Black.Request.Instance)
+                      return Black.Response.Instance'Class;
    --  Register content dispatchers for the server.
 
    procedure Register_Handlers;
-   --  Performs the handler registration.
+   --  Performs the handler registration. (Initialization).
 
 end Handlers.Route;

@@ -23,20 +23,19 @@ package body Handlers.CORS_Preflight is
    ---------------
    --  Callback --
    ---------------
-
-   function Callback
-     return AWS.Response.Callback
-   is
+   function Callback return HTTP.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
 
-   function Generate_Response (Request : AWS.Status.Data)
-                         return AWS.Response.Data is
-   begin
-      return Response.Templates.OK (Request       => Request,
-                                    Response_Body => GNATCOLL.JSON.Create);
-   end Generate_Response;
    --  Return a callback for the OPTIONS CORS preflight response (200).
+
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Instance'Class is
+   begin
+      return Response.Templates.OK
+        (Request       => Request,
+         Response_Body => GNATCOLL.JSON.Create_Object);
+   end Generate_Response;
 
 end Handlers.CORS_Preflight;

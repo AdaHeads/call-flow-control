@@ -25,7 +25,7 @@ package body Handlers.Call.Queue is
    --  Callback  --
    ----------------
 
-   function Callback return AWS.Response.Callback is
+   function Callback return HTTP.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
@@ -34,8 +34,8 @@ package body Handlers.Call.Queue is
    --  Generate_Response  --
    -------------------------
 
-   function Generate_Response (Request : AWS.Status.Data)
-                               return AWS.Response.Data is
+   function Generate_Response (Request : Client.Request.Instance)
+                               return Server.Response.Class is
       Context : constant String := Package_Name & ".Generate_Response";
    begin
       return Response.Templates.OK

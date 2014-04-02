@@ -29,8 +29,9 @@ package body Handlers.Debug is
    --  Channel_List  --
    --------------------
 
-   function Channel_List (Request : in AWS.Status.Data)
-                          return AWS.Response.Data is
+   function Channel_List
+     (Request : in Client.Request.Instance)
+      return Server.Response.Class is
       use GNATCOLL.JSON;
       use HTTP_Codes;
    begin
@@ -44,8 +45,8 @@ package body Handlers.Debug is
    ---------------
 
    function Contact
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data is
+     (Request : in Client.Request.Instance)
+      return Server.Response.Class is
       use GNATCOLL.JSON;
    begin
       return Response.Templates.Server_Error
@@ -60,8 +61,8 @@ package body Handlers.Debug is
    ----------------------
 
    function Dummy_Response
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data is
+     (Request : in Client.Request.Instance)
+      return Server.Response.Class is
    begin
       return Response.Templates.OK (Request);
    end Dummy_Response;
@@ -70,8 +71,9 @@ package body Handlers.Debug is
    --  Dummy_Tokens  --
    --------------------
 
-   function Dummy_Tokens (Request : in AWS.Status.Data)
-                       return AWS.Response.Data is
+   function Dummy_Tokens
+     (Request : in Client.Request.Instance)
+      return Server.Response.Class is
    begin
       return Response.Templates.OK
         (Request       => Request,
@@ -82,8 +84,9 @@ package body Handlers.Debug is
    --  Peer_List  --
    -----------------
 
-   function Peer_List (Request : in AWS.Status.Data)
-                       return AWS.Response.Data is
+   function Peer_List
+     (Request : in Client.Request.Instance)
+      return Server.Response.Class is
    begin
       return Response.Templates.OK
         (Request       => Request,

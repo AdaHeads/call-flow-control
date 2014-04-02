@@ -20,16 +20,18 @@
 --  Parameters: None
 --  Returns: A JSON response with the call list embedded.
 
-with AWS.Response,
-     AWS.Status;
+with HTTP,
+     Black.Request,
+     Black.Response;
 
 package Handlers.Call.List is
 
    Package_Name : constant String := "Handlers.Call.List";
 
-   function Callback return AWS.Response.Callback;
+   function Callback return HTTP.Callback;
 
 private
-   function Generate_Response (Request : AWS.Status.Data)
-                               return AWS.Response.Data;
+   function Generate_Response (Request : Black.Request.Instance)
+                     return Black.Response.Class;
+
 end Handlers.Call.List;

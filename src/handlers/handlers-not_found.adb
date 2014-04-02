@@ -15,38 +15,26 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Response.Templates;
-
 package body Handlers.Not_Found is
 
    ----------------
    --  Callback  --
    ----------------
 
-   function Callback
-     return AWS.Dispatchers.Callback.Handler
-   is
-   begin
-      return AWS.Dispatchers.Callback.Create (Generate_Response'Access);
-   end Callback;
-
-   ----------------
-   --  Callback  --
-   ----------------
-
-   function Callback return AWS.Response.Callback is
+   function Callback return HTTP.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
+   --  Return a callback for the Not_Found (404) response.
 
    -------------------------
    --  Generate_Response  --
    -------------------------
 
-   function Generate_Response (Request : AWS.Status.Data)
-                               return AWS.Response.Data is
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Instance'Class is
    begin
-      return Response.Templates.Not_Found (Request);
+      return Black.Response.Not_Found (Resource => Request.Resource);
    end Generate_Response;
 
 end Handlers.Not_Found;

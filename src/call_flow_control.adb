@@ -16,7 +16,6 @@
 -------------------------------------------------------------------------------
 
 with Ada.Exceptions;
-with AWS.Dispatchers.Callback;
 
 with Build_Constants;
 with Handlers.Route;
@@ -27,10 +26,12 @@ with System_Messages;
 with Unexpected_Exception;
 with Configuration;
 
+with HTTP.Server;
+
 with Util.Process_Control;
-with Util.Server;
+--  with Util.Server;
 with Util.Command_Line;
-with Util.Configuration;
+--  with Util.Configuration;
 
 procedure Call_FLow_Control is
    use System_Messages;
@@ -40,8 +41,12 @@ procedure Call_FLow_Control is
 
    Context     : constant String := "Call-Flow_Control";
 
-   Web_Server : Server.HTTP := Server.Create
-     (Unexpected => Unexpected_Exception.Callback);
+   task Http_Task;
+
+   task body Http_Task is
+   begin
+      HTTP.Server.Run;
+   end Http_Task;
 
 begin
    if Command_Line.Got_Argument ("--help") then
@@ -53,22 +58,24 @@ begin
    SIGHUP.Register (Handler => SIGHUP_Handler.Caught_Signal'Access);
 
    Configuration.Load_Config;
-   Util.Configuration.Config.Load_File;
+--   Util.Configuration.Config.Load_File;
 
    Handlers.Route.Register_Handlers;
    System_Messages.Open_Log_Files;
 
    PBX.Start;
 
-   Web_Server.Start
-     (Dispatchers => AWS.Dispatchers.Callback.Create
-                       (Handlers.Route.Callback'Access));
+--     Web_Server.Start
+--       (Dispatchers => AWS.Dispatchers.Callback.Create
+--                         (Handlers.Route.Callback'Access));
 
    Process_Control.Wait;
    --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
 
-   Web_Server.Stop;
+   --   Web_Server.Stop;
+   HTTP.Server.Stop;
    PBX.Stop;
+
    SIGHUP.Stop;
    System_Messages.Close_Log_Files;
 
@@ -80,6 +87,6 @@ exception
         (Message => "Shutting down due to unhandled exception: " &
            Ada.Exceptions.Exception_Information (Event),
          Context => Context);
-      Web_Server.Stop;
+--      Web_Server.Stop;
       PBX.Stop;
 end Call_FLow_Control;

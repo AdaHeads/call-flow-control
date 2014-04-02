@@ -19,7 +19,7 @@ with HTTP_Codes;
 
 package Handlers is
 
-   package HTTP renames HTTP_Codes;
+   package HTTP_C renames HTTP_Codes;
 
    Not_Authenticated : exception;
 

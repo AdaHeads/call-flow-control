@@ -22,7 +22,6 @@ with System_Messages;
 with Model.Origination_Requests,
      Model.Transfer_Requests;
 
-
 package body Model.Call.Observers is
    use ESL.Packet_Keys;
 
@@ -437,6 +436,7 @@ package body Model.Call.Observers is
       System_Messages.Fixme
         (Context => Package_Name,
          Message => "Unregistering observers.");
+      raise Program_Error with "Not implemented!";
    end Unregister_Observers;
 
 end Model.Call.Observers;

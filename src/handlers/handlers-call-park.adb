@@ -23,15 +23,14 @@ with Model.Call,
      System_Messages;
 
 package body Handlers.Call.Park is
-   use AWS.Status,
-       System_Messages,
+   use System_Messages,
        Model;
 
    ----------------
    --  Callback  --
    ----------------
 
-   function Callback return AWS.Response.Callback is
+   function Callback return HTTP.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
@@ -40,12 +39,15 @@ package body Handlers.Call.Park is
    --  Generate_Response  --
    -------------------------
 
-   function Generate_Response (Request : in AWS.Status.Data)
-                               return AWS.Response.Data is
+   function Generate_Response (Request : Client.Request.Instance)
+                               return Server.Response.Class is
       Context : constant String := Package_Name & ".Generate_Response";
 
       Call_ID           : Model.Call.Identification renames
-        Model.Call.Value (Parameters (Request).Get (Call_ID_String));
+        Model.Call.Value
+          (Request.Parameter
+               (Key     => Call_ID_String,
+                Default => Model.Call.Null_Identification.Image));
 
    begin
 

@@ -20,17 +20,20 @@
 --  Parameters: None
 --  Returns: A JSON response with the call list embedded.
 
-with AWS.Response,
-     AWS.Status;
+with HTTP,
+     Black.Request,
+     Black.Response;
 
 package Handlers.Call.Queue is
+   package Client renames Black;
+   package Server renames Black;
 
    Package_Name : constant String := "Handlers.Call.Queue";
 
-   function Callback return AWS.Response.Callback;
+   function Callback return HTTP.Callback;
 
 private
 
-   function Generate_Response (Request : AWS.Status.Data)
-                               return AWS.Response.Data;
+   function Generate_Response (Request : Client.Request.Instance)
+                               return Server.Response.Class;
 end Handlers.Call.Queue;

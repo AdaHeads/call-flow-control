@@ -15,10 +15,12 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response,
-     AWS.Status;
+with Black.HTTP,
+     Black.Request,
+     Black.Response;
 
-with Model.User;
+with Model.User,
+     HTTP;
 
 private
 with Ada.Containers.Indefinite_Hashed_Maps,
@@ -29,12 +31,13 @@ package Handlers.Authenticated_Dispatcher is
 
    Package_Name : constant String := "Handlers.Authenticated_Dispatcher";
 
-   function Run (Request : in AWS.Status.Data) return AWS.Response.Data;
+   function Run (Request : in Black.Request.Instance)
+                 return Black.Response.Instance'Class;
 
-   procedure Set_Default (Method : in AWS.Status.Request_Method;
-                          Action : in AWS.Response.Callback);
+   procedure Set_Default (Method : in Black.HTTP.Methods;
+                          Action : in HTTP.Callback);
 
-   procedure Set_Default (Action : in AWS.Response.Callback);
+   procedure Set_Default (Action : in HTTP.Callback);
 
    type ACL (Public : Boolean) is
       record
@@ -44,21 +47,21 @@ package Handlers.Authenticated_Dispatcher is
          end case;
       end record;
 
-   procedure Register (Method  : in AWS.Status.Request_Method;
+   procedure Register (Method  : in Black.HTTP.Methods;
                        URI     : in String;
                        Allowed : in ACL;
-                       Action  : in AWS.Response.Callback);
+                       Action  : in HTTP.Callback);
 private
-   function Key (Method : in     AWS.Status.Request_Method;
-                 URI    : in     String) return String;
+   function Key (Method : in Black.HTTP.Methods;
+                 URI    : in String) return String;
 
-   function Not_Authorized (Request : in     AWS.Status.Data)
-                            return AWS.Response.Data;
+   function Not_Authorized (Request : in Black.Request.Instance)
+                            return Black.Response.Instance'Class;
 
    type Handler (Public : Boolean) is
       record
          Allowed : ACL (Public);
-         Action  : AWS.Response.Callback;
+         Action  : HTTP.Callback;
       end record;
 
    package Handler_Maps is
@@ -68,7 +71,7 @@ private
              Hash            => Ada.Strings.Hash,
              Equivalent_Keys => "=");
 
-   Default_Action : array (AWS.Status.Request_Method) of AWS.Response.Callback
+   Default_Action : array (Black.HTTP.Methods) of HTTP.Callback
                       := (others => Not_Authorized'Access);
    Handler_List   : Handler_Maps.Map;
 end Handlers.Authenticated_Dispatcher;

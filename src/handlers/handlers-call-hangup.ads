@@ -22,16 +22,19 @@
 --  Returns: HTTP 404 Not found and a JSON body if the call is not present.
 --           HTTP 200 OK and a JSON body otherwise.
 
-with AWS.Response,
-     AWS.Status;
+with HTTP,
+     Black.Request,
+     Black.Response;
 
 package Handlers.Call.Hangup is
+   package Client renames Black;
+   package Server renames Black;
 
    Package_Name : constant String := "Handlers.Call.Hangup";
 
-   function Callback return AWS.Response.Callback;
+   function Callback return HTTP.Callback;
 
 private
-   function Generate_Response (Request : AWS.Status.Data)
-                               return AWS.Response.Data;
+   function Generate_Response (Request : Client.Request.Instance)
+                               return Server.Response.Class;
 end Handlers.Call.Hangup;

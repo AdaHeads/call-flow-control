@@ -15,19 +15,19 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response,
-     AWS.Status;
+with HTTP,
+     Black.Request,
+     Black.Response;
 
 private
 package Handlers.CORS_Preflight is
 
-   function Callback
-     return AWS.Response.Callback;
+   function Callback return HTTP.Callback;
    --  Return a callback for the OPTIONS CORS preflight response (200).
 
 private
 
-   function Generate_Response (Request : AWS.Status.Data)
-     return AWS.Response.Data;
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Class;
 
 end Handlers.CORS_Preflight;

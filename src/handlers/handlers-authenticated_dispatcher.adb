@@ -26,19 +26,18 @@ package body Handlers.Authenticated_Dispatcher is
    --  Key  --
    -----------
 
-   function Key (Method : in     AWS.Status.Request_Method;
-                 URI    : in     String) return String is
-      use AWS.Status;
+   function Key (Method : in Black.HTTP.Methods;
+                 URI    : in String) return String is
    begin
-      return Request_Method'Image (Method) & ":" & URI;
+      return Black.HTTP.Methods'Image (Method) & ":" & URI;
    end Key;
 
    ----------------------
    --  Not_Authorized  --
    ----------------------
 
-   function Not_Authorized (Request : in     AWS.Status.Data)
-                            return AWS.Response.Data is
+   function Not_Authorized (Request : in Black.Request.Instance)
+                            return Black.Response.Instance'Class is
    begin
       return Response.Templates.Not_Authorized (Request => Request);
    end Not_Authorized;
@@ -46,10 +45,10 @@ package body Handlers.Authenticated_Dispatcher is
    ----------------
    --  Register  --
    ----------------
-   procedure Register (Method  : in     AWS.Status.Request_Method;
+   procedure Register (Method  : in     Black.HTTP.Methods;
                        URI     : in     String;
                        Allowed : in     ACL;
-                       Action  : in     AWS.Response.Callback) is
+                       Action  : in     HTTP.Callback) is
    begin
       Handler_List.Insert (Key      => Key (Method => Method,
                                             URI    => URI),
@@ -62,27 +61,24 @@ package body Handlers.Authenticated_Dispatcher is
    --  Run  --
    -----------
 
-   function Run (Request : in AWS.Status.Data) return AWS.Response.Data is
-      use AWS.Status;
+   function Run (Request : in Black.Request.Instance)
+                 return Black.Response.Instance'Class is
       use Model;
       use Model.User;
 
       Context     : constant String := Package_Name & ".Run";
 
-      Request_Key : constant String := Key (Method => Method (Request),
-                                            URI    => URI (Request));
+      Request_Key : constant String := Key (Method => Request.Method,
+                                            URI    => Request.Resource);
    begin
 
       if Handler_List.Contains (Request_Key) then
          declare
             Selected : constant Handler := Handler_List.Element (Request_Key);
             Allowed  : ACL renames Selected.Allowed;
-            Detected_User : User.Instance := No_User;
+            Detected_User : constant User.Instance :=
+              Request_Utilities.User_Of (Request);
          begin
-
-            if Parameters (Request).Exist ("token") then
-               Detected_User := Request_Utilities.User_Of (Request);
-            end if;
 
             if Allowed.Public then
                return Selected.Action (Request);
@@ -97,7 +93,7 @@ package body Handlers.Authenticated_Dispatcher is
             end if;
          end;
       else
-         return Default_Action (Method (Request)) (Request);
+         return Default_Action (Request.Method) (Request);
       end if;
    exception
       when Event : others =>
@@ -108,15 +104,15 @@ package body Handlers.Authenticated_Dispatcher is
             Event   => Event,
             Context => Context);
 
-         return Response.Templates.Server_Error;
+         return Response.Templates.Not_Authorized (Request => Request);
    end Run;
 
    -------------------
    --  Set_Default  --
    -------------------
 
-   procedure Set_Default (Method : in AWS.Status.Request_Method;
-                          Action : in AWS.Response.Callback) is
+   procedure Set_Default (Method : in Black.HTTP.Methods;
+                          Action : in HTTP.Callback) is
    begin
       Default_Action (Method) := Action;
    end Set_Default;
@@ -125,7 +121,7 @@ package body Handlers.Authenticated_Dispatcher is
    --  Set_Default  --
    -------------------
 
-   procedure Set_Default (Action : in AWS.Response.Callback) is
+   procedure Set_Default (Action : in HTTP.Callback) is
    begin
       Default_Action := (others => Action);
    end Set_Default;

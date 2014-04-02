@@ -15,11 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+--  TODO: Websocket.
 with AWS.Net.WebSocket.Registry;
 
 with Handlers.Authenticated_Dispatcher,
      Model.User,
      System_Messages;
+
+with Black.HTTP;
 
 with Handlers.Call.Hangup,
      Handlers.Call.List,
@@ -30,15 +33,15 @@ with Handlers.Call.Hangup,
      Handlers.Call.Transfer,
      Handlers.CORS_Preflight,
      Handlers.Debug,
-     Handlers.Not_Found,
-     Handlers.Notifications,
-     Handlers.User.List;
+     Handlers.Not_Found;
+--     Handlers.Notifications;
 
 package body Handlers.Route is
 
    Handlers_Registered : Boolean := False;
 
-   function Callback (Request : in AWS.Status.Data) return AWS.Response.Data is
+   function Callback (Request : in Black.Request.Instance)
+                      return Black.Response.Instance'Class is
    begin
       return Handlers.Authenticated_Dispatcher.Run (Request);
    end Callback;
@@ -101,7 +104,7 @@ package body Handlers.Route is
    end Permission_Operations;
 
    procedure Register_Handlers is
-      use AWS.Status;
+      use Black.HTTP;
       use Handlers.Authenticated_Dispatcher;
       use Permission_Operations;
 
@@ -120,24 +123,18 @@ package body Handlers.Route is
                    Action => CORS_Preflight.Callback);
       --  This is for CORS preflight requests.
 
-   --  pragma Style_Checks ("M100"); --  Allow long lines in the routing table
+      pragma Style_Checks ("M100"); --  Allow long lines in the routing table
 
       --  Call control and information handlers.
       Register (GET,  "/call/list",      Receptionist, Call.List.Callback);
       Register (GET,  "/call/queue",     Receptionist, Call.Queue.Callback);
       Register (POST, "/call/hangup",    Receptionist, Call.Hangup.Callback);
 
-      Register (POST, "/call/originate",
-                Receptionist,
-                Call.Originate.Callback);
+      Register (POST, "/call/originate", Receptionist, Call.Originate.Callback);
 
       Register (POST, "/call/park",     Receptionist, Call.Park.Callback);
       Register (POST, "/call/pickup",   Receptionist, Call.Pickup.Callback);
       Register (POST, "/call/transfer", Receptionist, Call.Transfer.Callback);
-
-      --  User related handlers.
-      Register (GET,  "/user/list", Administrator, User.List.Callback);
-      Register (GET,  "/user",      Receptionist,  User.Profile'Access);
 
       --  Debug handles, disable when in production.
       Register (GET, "/debug/channel/list", Public, Debug.Channel_List'Access);
@@ -146,13 +143,15 @@ package body Handlers.Route is
       Register (GET, "/debug/token/dummy_list", Public,
                 Debug.Dummy_Tokens'Access);
 
-      --  Our notification socket for asynchonous events sent to the clients.
-      AWS.Net.WebSocket.Registry.Register
-        (URI     => "/notifications",
-         Factory => Notifications.Create'Access);
+ --  Our notification socket for asynchonous events sent to the clients.
+--        AWS.Net.WebSocket.Registry.Register
+--          (URI     => "/notifications",
+--           Factory => Notifications.Create'Access);
+      pragma Style_Checks ("M79");
 
       System_Messages.Information (Message => "Registered request handlers.",
                                    Context => Context);
+
    end Register_Handlers;
 
 end Handlers.Route;

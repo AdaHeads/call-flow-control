@@ -15,35 +15,38 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
+with HTTP,
+     Black.Request,
+     Black.Response;
 
 private
 package Handlers.Debug is
+   package Client renames Black;
+   package Server renames Black;
 
    function Dummy_Response
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+     (Request : in Client.Request.Instance)
+      return Server.Response.Class;
    --  Just sends 200 OK, good for outlining.
 
    function Peer_List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+     (Request : in Client.Request.Instance)
+      return Server.Response.Class;
    --  Sends the current peer list to the client
 
    function Channel_List
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+     (Request : in Client.Request.Instance)
+      return Server.Response.Class;
    --  Sends the current channel list to the client
 
    function Contact
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+     (Request : in Client.Request.Instance)
+      return Server.Response.Class;
    --  Tests the contact retrieval.
 
    function Dummy_Tokens
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+     (Request : in Client.Request.Instance)
+      return Server.Response.Class;
    --  Sends the current channel list to the client
 
 end Handlers.Debug;

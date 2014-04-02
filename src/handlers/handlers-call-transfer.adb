@@ -24,12 +24,11 @@ with Model.Call,
      View;
 
 package body Handlers.Call.Transfer is
-   use AWS.Status,
-       System_Messages,
+   use System_Messages,
        View,
        Model;
 
-   function Callback return AWS.Response.Callback is
+   function Callback return HTTP.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
@@ -38,8 +37,8 @@ package body Handlers.Call.Transfer is
    --  Generate_Response  --
    -------------------------
 
-   function Generate_Response (Request : in AWS.Status.Data)
-                               return AWS.Response.Data
+   function Generate_Response (Request : Client.Request.Instance)
+                               return Server.Response.Class
    is
       use Model.Call;
 
@@ -49,8 +48,8 @@ package body Handlers.Call.Transfer is
       Destination     : Model.Call.Identification := Null_Identification;
    begin
       --  Check valitity of the call. (Will raise exception on invalid).
-      Source      := Value (Parameters (Request).Get (Source_String));
-      Destination := Value (Parameters (Request).Get (Destination_String));
+      Source      := Value (Request.Parameter (Key => Source_String));
+      Destination := Value (Request.Parameter (Key => Destination_String));
 
       --  Sanity checks.
       if
@@ -82,7 +81,6 @@ package body Handlers.Call.Transfer is
             Context => Context);
       end if;
 
-
       System_Messages.Debug
         (Message => "Transferring " &
            Source.Image & " -> " &
@@ -104,8 +102,8 @@ package body Handlers.Call.Transfer is
       when Model.Call.Not_Found =>
          return Response.Templates.Not_Found
            (Request       => Request,
-            Response_Body => Description ("No call found with ID " &
-                Parameters (Request).Get ("source")));
+            Response_Body => Description ("At least one of the calls were " &
+                "no longer available"));
 
       when E : others =>
          Model.Transfer_Requests.Decline (IDs => (ID1 => Source,

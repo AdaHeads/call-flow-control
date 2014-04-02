@@ -29,7 +29,7 @@ package body Handlers.Call.Hangup is
    --  Callback  --
    ----------------
 
-   function Callback return AWS.Response.Callback is
+   function Callback return HTTP.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
@@ -38,15 +38,15 @@ package body Handlers.Call.Hangup is
    --  Generate_Response  --
    -------------------------
 
-   function Generate_Response (Request : AWS.Status.Data)
-                               return AWS.Response.Data is
+   function Generate_Response (Request : Client.Request.Instance)
+                               return Server.Response.Class is
       use Model.User;
-      use AWS.Status;
 
       Context : constant String := Package_Name & ".Generate_Response";
 
-      Requested_Call_ID : String renames
-        Parameters (Request).Get (Call_ID_String);
+      Requested_Call_ID : String renames Black.Request.Parameter
+        (Request => Request,
+         Key     => Call_ID_String);
    begin
       --  An Administrator is able to end any call.
       if Request_Utilities.User_Of (Request).Permissions (Administrator) then

@@ -110,7 +110,6 @@ package body Model.User is
    begin
 
       return (ID            => User_ID,
-              WebSocket     => <>,
               Attributes    => Object,
               Current_State => <>,
               Peer          => Peer_ID);
@@ -242,7 +241,6 @@ package body Model.User is
    function No_User return Instance is
    begin
       return (ID            => <>,
-              WebSocket     => <>,
               Attributes    => <>,
               Current_State => <>,
               Peer          => <>);
@@ -386,15 +384,5 @@ package body Model.User is
    begin
       return To_Unbounded_String (Item);
    end Value;
-
-   -----------------
-   --  WebSocket  --
-   -----------------
-
-   function WebSocket (User : in Instance) return
-     Handlers.Notifications.Object is
-   begin
-      return User.WebSocket;
-   end WebSocket;
 
 end Model.User;
