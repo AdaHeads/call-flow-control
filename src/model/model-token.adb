@@ -15,12 +15,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded.Hash_Case_Insensitive;
-with Ada.Strings.Unbounded.Equal_Case_Insensitive;
+with
+  Ada.Strings.Unbounded.Equal_Case_Insensitive,
+  Ada.Strings.Unbounded.Hash_Case_Insensitive;
 
 package body Model.Token is
-   use Model;
 
+   overriding
    function "=" (Left, Right : in Instance) return Boolean is
    begin
       return Ada.Strings.Unbounded.Equal_Case_Insensitive

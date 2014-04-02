@@ -15,20 +15,22 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Hashed_Maps;
-private with Ada.Strings.Unbounded;
+with
+  Model.User;
 
-with Model.User;
+private
+with
+  Ada.Containers.Hashed_Maps,
+  Ada.Strings.Unbounded;
 
 package Model.Token is
-   use Model;
-
    type Instance is tagged private;
 
    function Create (Value : String) return Instance;
 
    function To_String (Object : Instance) return String;
 
+   overriding
    function "=" (Left, Right : in Instance) return Boolean;
 
 private

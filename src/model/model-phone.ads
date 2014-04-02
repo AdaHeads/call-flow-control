@@ -52,7 +52,8 @@ package Model.Phone is
    function Image (Object : Instance) return String;
    --  Returns a string representation of the instance.
 
-      function "=" (Left, Right : in Instance) return Boolean;
+   overriding
+   function "=" (Left, Right : in Instance) return Boolean;
    --  Equals operation. Two instances are considered equal if both their
    --  reception identifier and contact identifier are equal.
 

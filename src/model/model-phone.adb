@@ -16,15 +16,14 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Fixed;
---  private with Model.Phone.Utilities;
 
 package body Model.Phone is
-   use Model;
 
    -----------
    --  "="  --
    -----------
 
+   overriding
    function "=" (Left, Right : in Instance) return Boolean is
    begin
       return Left.ID = Right.ID;
