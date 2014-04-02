@@ -84,6 +84,7 @@ package body Model.Call is
    procedure Change_State (Obj : in Instance; New_State : in States) is
       Context    : constant String := Package_Name & ".Change_State";
       Last_State : constant States := Get (Obj.ID).State;
+      --  Excessive cyclomatic complexity: State machine.
    begin
       System_Messages.Debug
         (Message => "UUID:" & Obj.ID.Image & "=>" &
