@@ -15,9 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Calendar.Conversions;
-with Ada.Strings.Fixed;
-with Ada.Strings;
+with
+  Ada.Calendar.Conversions, --  Non-standard unit.
+  Ada.Strings,
+  Ada.Strings.Fixed;
 
 package body Common is
 
