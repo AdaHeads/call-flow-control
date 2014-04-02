@@ -39,6 +39,7 @@ package body Model.User is
    --  "="  --
    -----------
 
+   overriding
    function "=" (Left, Right : in Instance) return Boolean is
    begin
       return Left.ID = Right.ID;

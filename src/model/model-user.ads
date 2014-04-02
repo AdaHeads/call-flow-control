@@ -73,6 +73,7 @@ package Model.User is
 
    function "<" (Left, Right : in Instance) return Boolean;
 
+   overriding
    function "=" (Left, Right : in Instance) return Boolean;
 
    function "=" (Left, Right : in Identities) return Boolean;

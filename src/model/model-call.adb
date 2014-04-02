@@ -190,7 +190,7 @@ package body Model.Call is
                 Reception_ID    => Reception_ID,
                 Greeting_Played => <>,
                 Locked          => <>,
-                Assigned_To     => <>,
+                Assigned_To     => Assigned_To,
                 Contact_ID      => <>,
                 Extension       => To_Unbounded_String (Extension),
                 From_Extension  => To_Unbounded_String (From_Extension),

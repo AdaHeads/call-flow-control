@@ -27,6 +27,7 @@ with System_Messages;
 package body Model.Peer.List.Observers is
    use ESL.Packet_Keys;
 
+   overriding
    function "=" (Left, Right : in Peer_State_Observers) return Boolean is
    begin
       return
@@ -34,6 +35,7 @@ package body Model.Peer.List.Observers is
         Left.Observing_Event = Right.Observing_Event;
    end "=";
 
+   overriding
    function "=" (Left, Right : in Reload_Config_Observers) return Boolean is
    begin
       return

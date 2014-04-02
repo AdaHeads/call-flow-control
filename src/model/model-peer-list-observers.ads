@@ -19,7 +19,7 @@ with ESL.Packet;
 with PBX.Observers;
 
 package Model.Peer.List.Observers is
-      procedure Register_Observers;
+   procedure Register_Observers;
    --  Registers the appropriate observers.
 
    procedure Unregister_Observers;
@@ -36,6 +36,7 @@ private
    procedure Notify (Observer : in Peer_State_Observers;
                      Packet   : in ESL.Packet.Instance);
 
+   overriding
    function "=" (Left, Right : in Peer_State_Observers) return Boolean;
 
    type Reload_Config_Observers is
@@ -48,6 +49,7 @@ private
    procedure Notify (Observer : in Reload_Config_Observers;
                      Packet   : in ESL.Packet.Instance);
 
+   overriding
    function "=" (Left, Right : in Reload_Config_Observers) return Boolean;
 
 end Model.Peer.List.Observers;
