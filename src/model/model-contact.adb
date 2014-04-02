@@ -17,21 +17,19 @@
 
 with Ada.Strings.Fixed;
 with Configuration;
-with Protocol_Definitions;
 with System_Messages;
 
-private with Model.Contact.Utilities;
+with Model.Contact.Utilities;
 
 package body Model.Contact is
 
    package Config renames Configuration;
-   use Model;
-   use Protocol_Definitions;
 
    -----------
    --  "="  --
    -----------
 
+   overriding
    function "=" (Left, Right : in Instance) return Boolean is
    begin
       return Left.Reception_ID = Right.Reception_ID
@@ -59,10 +57,14 @@ package body Model.Contact is
    function Extension_Of (Object   : Instance;
                           Phone_ID : Phone_Identifier) return String is
    begin
-      for Phone of Object.Phones loop
-         if Phone.ID = Phone_ID then
-            return To_String (Phone.Value);
-         end if;
+      for Index in Object.Phones.First_Index .. Object.Phones.Last_Index loop
+         declare
+            Phone : Model.Phone.Instance renames Object.Phones.Element (Index);
+         begin
+            if Phone.ID = Phone_ID then
+               return To_String (Phone.Value);
+            end if;
+         end;
       end loop;
       return To_String (Model.Phone.No_Phone.Value);
    exception
