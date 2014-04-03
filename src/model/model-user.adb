@@ -325,7 +325,7 @@ package body Model.User is
          declare
             Node : constant JSON_Value := Get (Perm_Arr, I);
          begin
-            if Get (Node) = Receptionist_String then
+            if Get (Node) = String'(Receptionist_String) then
                Result (Receptionist) := True;
             elsif Get (Node) = Administrator_String then
                Result (Administrator) := True;
