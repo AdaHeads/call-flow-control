@@ -15,6 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with
+  ESL.UUID;
+
 with Model.Call,
      Model.Transfer_Requests,
      PBX,
@@ -42,6 +45,7 @@ package body Handlers.Call.Transfer is
                                return AWS.Response.Data
    is
       use Model.Call;
+      use type ESL.UUID.Instance;
 
       Context : constant String := Package_Name & ".Generate_Response";
 

@@ -25,6 +25,11 @@ with Model.Call,
 with Handlers.Notifications;
 
 with GNATCOLL.JSON;
+
+private
+with
+  ESL.UUID;
+
 package Model.User is
    use Ada.Strings.Unbounded;
    use GNATCOLL.JSON;
@@ -160,7 +165,8 @@ private
      (Key_Type        => Identifications,
       Element_Type    => Model.Call.Identification,
       Hash            => Hash,
-      Equivalent_Keys => "=");
+      Equivalent_Keys => "=",
+      "="             => ESL.UUID."=");
 
    package User_Storage is new Ada.Containers.Hashed_Maps
      (Key_Type        => Identifications,

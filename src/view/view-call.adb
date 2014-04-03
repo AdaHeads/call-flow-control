@@ -17,6 +17,9 @@
 
 with Ada.Characters.Handling;
 
+with
+  ESL.UUID;
+
 package body View.Call is
    use GNATCOLL.JSON;
    use Model.Call;
@@ -24,6 +27,7 @@ package body View.Call is
    function Call_Stub (Call_ID : in Model.Call.Identification)
                        return GNATCOLL.JSON.JSON_Value is
       use Ada.Characters.Handling;
+      use type ESL.UUID.Instance;
 
       Value : constant JSON_Value := Create_Object;
       Root  : constant JSON_Value := Create_Object;
@@ -52,6 +56,7 @@ package body View.Call is
    function To_JSON (Call : in Model.Call.Instance)
                      return GNATCOLL.JSON.JSON_Value is
       use Ada.Characters.Handling;
+      use type ESL.UUID.Instance;
 
       Value : constant JSON_Value := Create_Object;
    begin
