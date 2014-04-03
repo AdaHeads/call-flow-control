@@ -31,7 +31,6 @@ with
   ESL.UUID;
 
 package Model.User is
-   use Ada.Strings.Unbounded;
    use GNATCOLL.JSON;
    use Model;
 
@@ -58,9 +57,8 @@ package Model.User is
    type States is (Unknown, Signed_Out, Idle, Paused, Away);
 
    type Name is new String;
---     with Dynamic_Predicate => (Name'Length > 0);
 
-   subtype Identities is Unbounded_String;
+   type Identities is new Ada.Strings.Unbounded.Unbounded_String;
 
    type Instance is tagged private;
 
@@ -81,6 +79,7 @@ package Model.User is
    overriding
    function "=" (Left, Right : in Instance) return Boolean;
 
+   overriding
    function "=" (Left, Right : in Identities) return Boolean;
 
    function Image (Object : in Instance) return String;
@@ -134,13 +133,12 @@ package Model.User is
    Null_Identity : constant Identities;
    Null_Identification : constant Identifications;
 private
-   use Model;
    use Model.Call;
    package Peers renames Model.Peer;
 
    Null_Identification : constant Identifications := 0;
    Null_User           : constant Reference       := null;
-   Null_Identity       : constant Identities      := Null_Unbounded_String;
+   Null_Identity       : constant Identities      := To_Unbounded_String ("");
 
    type Instance is tagged record
       ID            : Identifications            := Null_Identification;
@@ -150,11 +148,13 @@ private
       Attributes    : GNATCOLL.JSON.JSON_Value   := Create;
    end record;
 
-   subtype Identity_Keys is Unbounded_String;
+   subtype Identity_Keys is Ada.Strings.Unbounded.Unbounded_String;
 
-   function Key_Of (Item : Identities) return Unbounded_String;
+   function Key_Of (Item : Identities)
+                   return Ada.Strings.Unbounded.Unbounded_String;
 
-   function Identity_Of (Item : Unbounded_String) return Identities;
+   function Identity_Of (Item : Ada.Strings.Unbounded.Unbounded_String)
+                        return Identities;
 
    function Hash (Identity : Identities) return Ada.Containers.Hash_Type;
 

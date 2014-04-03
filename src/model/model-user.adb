@@ -21,8 +21,8 @@ with
 
 with
   PBX.Action,
-  Common.Unbounded_Case_Insensitive_Equal,
-  Common.Unbounded_Case_Insensitive_Hash,
+  Common.Case_Insensitive_Equal,
+  Common.Case_Insensitive_Hash,
   Model.Peer.List,
   System_Messages;
 
@@ -51,11 +51,12 @@ package body Model.User is
    --  "="  --
    -----------
 
+   overriding
    function "=" (Left, Right : in Identities) return Boolean is
    begin
-      return Common.Unbounded_Case_Insensitive_Equal
-        (Left  => Left,
-         Right => Right);
+      return Common.Case_Insensitive_Equal
+        (Left  => To_String (Left),
+         Right => To_String (Right));
    end "=";
 
    -------------------
@@ -89,7 +90,7 @@ package body Model.User is
 
    function Call_URI (Object : in Instance) return String is
    begin
-      return Call_URI_Prefix & Image (Object.Peer);
+      return Call_URI_Prefix & Image (Identities (Object.Peer));
    end Call_URI;
 
    --------------------
@@ -173,7 +174,7 @@ package body Model.User is
 
    function Hash (Identity : Identities) return Ada.Containers.Hash_Type is
    begin
-      return Common.Unbounded_Case_Insensitive_Hash (Key => Identity);
+      return Common.Case_Insensitive_Hash (Key => To_String (Identity));
    end Hash;
 
    -----------
@@ -199,7 +200,8 @@ package body Model.User is
    --  Identity_Of  --
    -------------------
 
-   function Identity_Of (Item : Unbounded_String) return Identities is
+   function Identity_Of (Item : Ada.Strings.Unbounded.Unbounded_String)
+                        return Identities is
    begin
       return Identities (Item);
    end Identity_Of;
@@ -237,9 +239,10 @@ package body Model.User is
    --  Key_Of  --
    --------------
 
-   function Key_Of (Item : Identities) return Unbounded_String is
+   function Key_Of (Item : Identities)
+                   return Ada.Strings.Unbounded.Unbounded_String is
    begin
-      return Item;
+      return Ada.Strings.Unbounded.Unbounded_String (Item);
    end Key_Of;
 
    function No_User return Instance is
@@ -354,6 +357,7 @@ package body Model.User is
             Mapping => Ada.Strings.Maps.Constants.Lower_Case_Map);
       end To_Lower;
 
+      use type Ada.Strings.Unbounded.Unbounded_String;
    begin
       JSON.Set_Field (ID_String, Image (Object.ID));
       JSON.Set_Field (User_String, Object.Attributes);

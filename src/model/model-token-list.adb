@@ -57,7 +57,9 @@ package body Model.Token.List is
          declare
             Token_Node    : constant JSON_Value := Create_Object;
          begin
-            Token_Node.Set_Field (To_String (Key (Cursor)), Element (Cursor));
+            Token_Node.Set_Field
+              (To_String (Key (Cursor)),
+               Ada.Strings.Unbounded.Unbounded_String (Element (Cursor)));
 
             Append (JSON_List, Token_Node);
          end;

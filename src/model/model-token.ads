@@ -47,7 +47,8 @@ private
      (Key_Type        => Instance,
       Element_Type    => User.Identities,
       Hash            => Hash,
-      Equivalent_Keys => "=");
+      Equivalent_Keys => "=",
+      "="             => User."=");
 
    subtype Token_Maps is Token_User_Storage.Map;
 
