@@ -15,12 +15,16 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Indefinite_Ordered_Maps;
-private with Ada.Strings.Unbounded;
-with GNATCOLL.JSON;
+with
+  GNATCOLL.JSON,
+  ESL.UUID;
+with
+  Common;
 
-with ESL.UUID;
-with Common;
+private
+with
+  Ada.Containers.Indefinite_Ordered_Maps,
+  Ada.Strings.Unbounded;
 
 package Model.Call is
    use Common;
@@ -38,7 +42,8 @@ package Model.Call is
    subtype Identification is ESL.UUID.Instance;
    --  Call identification.
 
-   function "=" (Left, Right : in Identification) return Boolean;
+   function "=" (Left, Right : in Identification) return Boolean
+     renames ESL.UUID."=";
 
    function To_String (Item : in Identification) return String;
    function Image (Item : in Identification) return String renames To_String;

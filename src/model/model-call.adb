@@ -28,11 +28,6 @@ package body Model.Call is
 
    package Notification renames Handlers.Notifications;
 
-   function "=" (Left, Right : in Identification) return Boolean is
-   begin
-      return ESL.UUID."=" (Left, Right);
-   end "=";
-
    --------------------
    --  Arrival_Time  --
    --------------------
@@ -593,22 +588,28 @@ package body Model.Call is
 
          System_Messages.Debug (Message => "Finding unspecified call.",
                                 Context => Context);
-         for C in List.Iterate loop
-            declare
-               Prospected_Call : Model.Call.Instance renames Element (C);
-            begin
-               if    Available_For_User (Prospected_Call) and
-                     Prospected_Call.Is_Call              and
-                     Prospected_Call.Inbound              and
-                 not Prospected_Call.Locked
-               then
-                  Call_List.Update (Prospected_Call.ID, Assign'Access);
-                  --  Return the updated element.
-                  Call := List.Element (Prospected_Call.ID);
-                  return;
-               end if;
-            end;
-         end loop;
+
+         declare
+            C : Cursor := List.First;
+         begin
+            while C /= No_Element loop
+               declare
+                  Prospected_Call : Model.Call.Instance renames Element (C);
+               begin
+                  if    Available_For_User (Prospected_Call) and
+                        Prospected_Call.Is_Call              and
+                        Prospected_Call.Inbound              and
+                    not Prospected_Call.Locked
+                  then
+                     Call_List.Update (Prospected_Call.ID, Assign'Access);
+                     --  Return the updated element.
+                     Call := List.Element (Prospected_Call.ID);
+                     return;
+                  end if;
+               end;
+               Next (C);
+            end loop;
+         end;
 
          System_Messages.Debug (Message => "No call found.",
                                 Context => Context);
@@ -848,15 +849,20 @@ package body Model.Call is
          JSON_List : JSON_Array;
          Root      : constant JSON_Value := Create_Object;
       begin
-         for C in List.Iterate loop
-            if not Only_Queued then
-               Value := Element (C).To_JSON;
-               Append (JSON_List, Value);
-            elsif Only_Queued and then Element (C).State = Queued then
-               Value := Element (C).To_JSON;
-               Append (JSON_List, Value);
-            end if;
-         end loop;
+         declare
+            C : Cursor := List.First;
+         begin
+            while C /= No_Element loop
+               if not Only_Queued then
+                  Value := Element (C).To_JSON;
+                  Append (JSON_List, Value);
+               elsif Only_Queued and then Element (C).State = Queued then
+                  Value := Element (C).To_JSON;
+                  Append (JSON_List, Value);
+               end if;
+               Next (C);
+            end loop;
+         end;
 
          Root.Set_Field ("calls", JSON_List);
          return Root;
