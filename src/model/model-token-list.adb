@@ -52,17 +52,19 @@ package body Model.Token.List is
 
       JSON_List : JSON_Array;
       Root      : constant JSON_Value := Create_Object;
+      C         : Cursor := Object.Tokens.First;
    begin
-      for Cursor in Object.Tokens.Iterate loop
+      while C /= No_Element loop
          declare
-            Token_Node    : constant JSON_Value := Create_Object;
+            Token_Node : constant JSON_Value := Create_Object;
          begin
             Token_Node.Set_Field
-              (To_String (Key (Cursor)),
-               Ada.Strings.Unbounded.Unbounded_String (Element (Cursor)));
+              (To_String (Key (C)),
+               Ada.Strings.Unbounded.Unbounded_String (Element (C)));
 
             Append (JSON_List, Token_Node);
          end;
+         Next (C);
       end loop;
       Root.Set_Field ("tokens", JSON_List);
       return Root;

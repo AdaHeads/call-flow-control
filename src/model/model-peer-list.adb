@@ -116,9 +116,11 @@ package body Model.Peer.List is
       use Peer_Storage;
       JSON_List : JSON_Array;
       Root      : constant JSON_Value := Create_Object;
+      C         : Cursor := Object.Peer_Map.First;
    begin
-      for C in Object.Peer_Map.Iterate loop
+      while C /= No_Element loop
          Append (JSON_List, Element (C).To_JSON);
+         Next (C);
       end loop;
       Root.Set_Field ("peers", JSON_List);
       return Root;

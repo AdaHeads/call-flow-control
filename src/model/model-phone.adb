@@ -86,10 +86,12 @@ package body Model.Phone is
       use Phone_Storage;
 
       Buffer : Unbounded_String;
+      C      : Cursor := Phones.First;
    begin
       Append (Buffer, "[");
-      for C in Phones.Iterate loop
+      while C /= No_Element loop
          Append (Buffer, Element (C).Image & ", ");
+         Next (C);
       end loop;
       Append (Buffer, "]");
 

@@ -57,9 +57,11 @@ package body PBX.Event_Observer_Map is
             declare
                Observers_To_Notify : Observer_Lists renames
                  Object.Observer_List.Element (Packet.Event);
+               C                   : Cursor := Observers_To_Notify.First;
             begin
-               for Cursor in Observers_To_Notify.Iterate loop
-                  Element (Cursor).Notify (Packet);
+               while C /= No_Element loop
+                  Element (C).Notify (Packet);
+                  Next (C);
                end loop;
             end;
          end if;
