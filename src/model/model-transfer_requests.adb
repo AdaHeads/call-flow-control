@@ -16,11 +16,12 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Hashed_Sets,
-     Ada.Strings.Equal_Case_Insensitive,
-     Ada.Strings.Hash_Case_Insensitive;
-
-with System_Messages;
+with
+  Ada.Containers.Hashed_Sets;
+with
+  Common.Case_Insensitive_Equal,
+  Common.Case_Insensitive_Hash,
+  System_Messages;
 
 package body Model.Transfer_Requests is
    use Ada.Containers;
@@ -100,8 +101,8 @@ package body Model.Transfer_Requests is
    function Equivalent_Elements (Left, Right : in Request_Tuple)
                                  return Boolean is
    begin
-      return Ada.Strings.Equal_Case_Insensitive (Left  => Image (Left),
-                                                 Right => Image (Right));
+      return Common.Case_Insensitive_Equal (Left  => Image (Left),
+                                            Right => Image (Right));
    end Equivalent_Elements;
 
    ------------
@@ -110,7 +111,7 @@ package body Model.Transfer_Requests is
 
    function Hash (IDs : in Request_Tuple) return Hash_Type is
    begin
-      return Ada.Strings.Hash_Case_Insensitive (IDs.ID1.Image);
+      return Common.Case_Insensitive_Hash (IDs.ID1.Image);
    end Hash;
 
    -------------

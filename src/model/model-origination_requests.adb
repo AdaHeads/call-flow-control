@@ -16,11 +16,12 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Containers.Hashed_Sets,
-     Ada.Strings.Equal_Case_Insensitive,
-     Ada.Strings.Hash_Case_Insensitive;
-
-with System_Messages;
+with
+  Ada.Containers.Hashed_Sets;
+with
+  Common.Case_Insensitive_Equal,
+  Common.Case_Insensitive_Hash,
+  System_Messages;
 
 package body Model.Origination_Requests is
    use Ada.Containers;
@@ -88,8 +89,8 @@ package body Model.Origination_Requests is
    function Equivalent_Elements (Left, Right : in Model.Call.Identification)
                                  return Boolean is
    begin
-      return Ada.Strings.Equal_Case_Insensitive (Left  => Left.Image,
-                                                 Right => Right.Image);
+      return Common.Case_Insensitive_Equal (Left  => Left.Image,
+                                            Right => Right.Image);
    end Equivalent_Elements;
 
    ------------
@@ -98,7 +99,7 @@ package body Model.Origination_Requests is
 
    function Hash (ID : in Model.Call.Identification) return Hash_Type is
    begin
-      return Ada.Strings.Hash_Case_Insensitive (ID.Image);
+      return Common.Case_Insensitive_Hash (ID.Image);
    end Hash;
 
    ------------------------------
