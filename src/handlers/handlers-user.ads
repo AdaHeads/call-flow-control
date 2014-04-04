@@ -15,14 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Status;
-with AWS.Response;
+with Black.Request;
+with Black.Response;
 
 package Handlers.User is
 
    Package_Name : constant String := "Handlers.User";
 
-   function Profile (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
+   function Profile (Request : in Black.Request.Instance)
+      return Black.Response.Instance;
 
 end Handlers.User;

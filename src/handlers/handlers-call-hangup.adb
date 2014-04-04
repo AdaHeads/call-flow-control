@@ -29,7 +29,7 @@ package body Handlers.Call.Hangup is
    --  Callback  --
    ----------------
 
-   function Callback return AWS.Response.Callback is
+   function Callback return Black.Response.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
@@ -38,10 +38,10 @@ package body Handlers.Call.Hangup is
    --  Generate_Response  --
    -------------------------
 
-   function Generate_Response (Request : AWS.Status.Data)
-                               return AWS.Response.Data is
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Instance is
       use Model.User;
-      use AWS.Status;
+      use Black.Request;
 
       Context : constant String := Package_Name & ".Generate_Response";
 

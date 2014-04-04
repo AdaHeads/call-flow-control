@@ -24,8 +24,8 @@
 --
 --  Where context Context refers to contact_id@reception_id
 
-with AWS.Response,
-     AWS.Status;
+with Black.Response,
+     Black.Request;
 
 package Handlers.Call.Originate is
 
@@ -33,11 +33,11 @@ package Handlers.Call.Originate is
 
    Package_Name : constant String := "Handlers.Call.Originate";
 
-   function Callback return AWS.Response.Callback;
+   function Callback return Black.Response.Callback;
 
 private
-   function Generate_Response (Request : AWS.Status.Data)
-                               return AWS.Response.Data;
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Instance;
 
    Extension_String : constant String := "extension";
    Context_String   : constant String := "context";

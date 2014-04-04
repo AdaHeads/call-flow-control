@@ -30,6 +30,9 @@ b~*.ad[sb]
 /tests/*/*.output
 /tests/results/
 
+# Generated source files:
+/black/
+
 # Generated test executables:
 /tests/ahven/black-tests-run
 /tests/task_interfaces_and_extended_return/run

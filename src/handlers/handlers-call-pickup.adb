@@ -27,12 +27,12 @@ with Ada.Strings.Unbounded,
      View;
 
 package body Handlers.Call.Pickup is
-   use AWS.Status,
+   use Black.Request,
        System_Messages,
        View,
        Model;
 
-   function Callback return AWS.Response.Callback is
+   function Callback return Black.Response.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
@@ -41,8 +41,8 @@ package body Handlers.Call.Pickup is
    --  Generate_Response  --
    -------------------------
 
-   function Generate_Response (Request : in AWS.Status.Data)
-                               return AWS.Response.Data
+   function Generate_Response (Request : in Black.Request.Instance)
+                               return Black.Response.Instance
    is
       use Ada.Strings.Unbounded;
       use type Model.Call.Instance;

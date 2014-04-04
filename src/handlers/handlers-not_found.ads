@@ -15,9 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Dispatchers.Callback,
-     AWS.Response,
-     AWS.Status;
+with Black.Response,
+     Black.Request;
 
 package Handlers.Not_Found is
 
@@ -25,13 +24,13 @@ package Handlers.Not_Found is
      return AWS.Dispatchers.Callback.Handler;
    --  Return a handler for the Not_Found (404) response.
 
-   function Callback return AWS.Response.Callback;
+   function Callback return Black.Response.Callback;
    --  Return a callback for the Not_Found (404) response.
 
 private
 
-   function Generate_Response (Request : AWS.Status.Data)
-                               return AWS.Response.Data;
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Instance;
    --  Add a generated JSON_String to Response_Object and set HTTP status code
    --  to 404.
 end Handlers.Not_Found;

@@ -23,6 +23,8 @@ PROJECT=call_flow_control
 
 GENERATED_EXECUTABLES=exe/$(PROJECT)
 
+GENERATED_SOURCES=black
+
 PREFIX?=/usr/local/call-flow
 
 RELEASE=`git tag | tail -n1`
@@ -34,7 +36,7 @@ endif
 
 all: build
 
-build: fix-whitespace
+build: fix-whitespace $(GENERATED_SOURCES)
 	gnatmake -j$(PROCESSORS) -p -P $(PROJECT)
 
 install: test
@@ -75,6 +77,8 @@ fix-whitespace:
 
 metrics:
 	@gnat metric -P $(PROJECT)
+
+-include Makefile.project_rules
 
 .PHONY: all build test install clean distclean fix-whitespace metrics
 

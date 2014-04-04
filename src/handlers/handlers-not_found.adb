@@ -34,7 +34,7 @@ package body Handlers.Not_Found is
    --  Callback  --
    ----------------
 
-   function Callback return AWS.Response.Callback is
+   function Callback return Black.Response.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
@@ -43,8 +43,8 @@ package body Handlers.Not_Found is
    --  Generate_Response  --
    -------------------------
 
-   function Generate_Response (Request : AWS.Status.Data)
-                               return AWS.Response.Data is
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Instance is
    begin
       return Response.Templates.Not_Found (Request);
    end Generate_Response;

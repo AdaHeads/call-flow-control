@@ -24,18 +24,18 @@
 --  Returns: HTTP 404 Not found and a JSON body any of the calls are not found.
 --           HTTP 200 OK and a JSON body otherwise.
 
-with AWS.Response,
-     AWS.Status;
+with Black.Response,
+     Black.Request;
 
 package Handlers.Call.Transfer is
 
    Package_Name : constant String := "Handlers.Call.Transfer";
 
-   function Callback return AWS.Response.Callback;
+   function Callback return Black.Response.Callback;
 
 private
-   function Generate_Response (Request : AWS.Status.Data)
-                               return AWS.Response.Data;
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Instance;
 
    Source_String      : constant String := "source";
    Destination_String : constant String := "destination";

@@ -38,9 +38,15 @@ package body Handlers.Route is
 
    Handlers_Registered : Boolean := False;
 
-   function Callback (Request : in AWS.Status.Data) return AWS.Response.Data is
+   function Callback (Request : in Black.Request.Instance)
+                     return Black.Response.Instance is
    begin
-      return Handlers.Authenticated_Dispatcher.Run (Request);
+      if Handlers_Registered then
+         return Handlers.Authenticated_Dispatcher.Run (Request);
+      else
+         raise Program_Error
+           with "Handlers not registered yet.";
+      end if;
    end Callback;
 
    -----------------------------
@@ -101,7 +107,7 @@ package body Handlers.Route is
    end Permission_Operations;
 
    procedure Register_Handlers is
-      use AWS.Status;
+      use Black.Request;
       use Handlers.Authenticated_Dispatcher;
       use Permission_Operations;
 

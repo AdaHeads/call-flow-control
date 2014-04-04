@@ -26,19 +26,18 @@ package body Handlers.Authenticated_Dispatcher is
    --  Key  --
    -----------
 
-   function Key (Method : in     AWS.Status.Request_Method;
-                 URI    : in     String) return String is
-      use AWS.Status;
+   function Key (Method   : in     Black.HTTP.Methods;
+                 Resource : in     String) return String is
    begin
-      return Request_Method'Image (Method) & ":" & URI;
+      return Black.HTTP.Methods'Image (Method) & ":" & Resource;
    end Key;
 
    ----------------------
    --  Not_Authorized  --
    ----------------------
 
-   function Not_Authorized (Request : in     AWS.Status.Data)
-                            return AWS.Response.Data is
+   function Not_Authorized (Request : in     Black.Request.Instance)
+                            return Black.Response.Instance is
    begin
       return Response.Templates.Not_Authorized (Request => Request);
    end Not_Authorized;
@@ -46,10 +45,10 @@ package body Handlers.Authenticated_Dispatcher is
    ----------------
    --  Register  --
    ----------------
-   procedure Register (Method  : in     AWS.Status.Request_Method;
+   procedure Register (Method  : in     Black.HTTP.Methods;
                        URI     : in     String;
                        Allowed : in     ACL;
-                       Action  : in     AWS.Response.Callback) is
+                       Action  : in     Black.Response.Callback) is
    begin
       Handler_List.Insert (Key      => Key (Method => Method,
                                             URI    => URI),
@@ -62,8 +61,8 @@ package body Handlers.Authenticated_Dispatcher is
    --  Run  --
    -----------
 
-   function Run (Request : in AWS.Status.Data) return AWS.Response.Data is
-      use AWS.Status;
+   function Run (Request : in Black.Request.Instance) return Black.Response.Instance is
+      use Black.Request;
       use Model;
       use Model.User;
 
@@ -115,8 +114,8 @@ package body Handlers.Authenticated_Dispatcher is
    --  Set_Default  --
    -------------------
 
-   procedure Set_Default (Method : in AWS.Status.Request_Method;
-                          Action : in AWS.Response.Callback) is
+   procedure Set_Default (Method : in Black.Request.Request_Method;
+                          Action : in Black.Response.Callback) is
    begin
       Default_Action (Method) := Action;
    end Set_Default;
@@ -125,7 +124,7 @@ package body Handlers.Authenticated_Dispatcher is
    --  Set_Default  --
    -------------------
 
-   procedure Set_Default (Action : in AWS.Response.Callback) is
+   procedure Set_Default (Action : in Black.Response.Callback) is
    begin
       Default_Action := (others => Action);
    end Set_Default;

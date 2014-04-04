@@ -16,7 +16,7 @@
 -------------------------------------------------------------------------------
 
 with AWS.Net.WebSocket;
-with AWS.Status;
+with Black.Request;
 with Common;
 with GNATCOLL.JSON;
 
@@ -28,7 +28,7 @@ package Handlers.Notifications is
 
    function Create
      (Socket  : in AWS.Net.Socket_Access;
-      Request : in AWS.Status.Data)
+      Request : in Black.Request.Instance)
       return AWS.Net.WebSocket.Object'Class;
    --  Create is called whenever a new WebSocket connection is made on the
    --  /notifications resource.

@@ -40,7 +40,7 @@ package body Unexpected_Exception is
      (E      : in     Ada.Exceptions.Exception_Occurrence;
       Log    : in out AWS.Log.Object;
       Error  : in     AWS.Exceptions.Data;
-      Answer : in out AWS.Response.Data)
+      Answer : in out Black.Response.Instance)
    is
       pragma Unreferenced (Log);
 

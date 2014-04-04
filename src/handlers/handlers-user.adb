@@ -19,14 +19,14 @@ with Response.Templates,
      Request_Utilities;
 
 package body Handlers.User is
-   use AWS.Response;
+   use Black.Response;
 
    ---------------
    --  Profile  --
    ---------------
 
-   function Profile (Request : in AWS.Status.Data)
-                      return AWS.Response.Data is
+   function Profile (Request : in Black.Request.Instance)
+                      return Black.Response.Instance is
    begin
 
       return Response.Templates.OK

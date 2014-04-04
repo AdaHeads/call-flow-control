@@ -16,12 +16,12 @@
 -------------------------------------------------------------------------------
 
 with Ada.Directories;
-with AWS.Dispatchers.Callback;
-with AWS.MIME;
-with AWS.Net.WebSocket.Registry.Control;
-with AWS.Server.Log;
-with AWS.Services.Dispatchers.URI;
-with AWS.Session;
+--  with AWS.Dispatchers.Callback;
+--  with AWS.MIME;
+--  with AWS.Net.WebSocket.Registry.Control;
+--  with AWS.Server.Log;
+--  with AWS.Services.Dispatchers.URI;
+--  with AWS.Session;
 with Util.Configuration;
 with System_Messages;
 with Handlers.Not_Found;

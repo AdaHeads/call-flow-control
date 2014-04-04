@@ -15,14 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
+with Black.Response;
 
 package Handlers.User.List is
 
-   function Callback return AWS.Response.Callback;
+   function Callback return Black.Response.Callback;
 
 private
-   function Generate_Response (Request : AWS.Status.Data)
-                               return AWS.Response.Data;
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Instance;
 
 end Handlers.User.List;

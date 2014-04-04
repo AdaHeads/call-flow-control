@@ -15,20 +15,20 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Messages;
+with
+  Black.HTTP;
 
 package HTTP_Codes is
 
-   OK           : constant AWS.Messages.Status_Code := AWS.Messages.S200;
-   No_Content   : constant AWS.Messages.Status_Code := AWS.Messages.S204;
+   OK                    : Black.HTTP.Statuses renames Black.HTTP.OK;
+   No_Content            : Black.HTTP.Statuses renames Black.HTTP.No_Content;
 
-   Bad_Request  : constant AWS.Messages.Status_Code := AWS.Messages.S400;
-   Unauthorized : constant AWS.Messages.Status_Code := AWS.Messages.S401;
-   Forbidden    : constant AWS.Messages.Status_Code := AWS.Messages.S403;
-   Not_Found    : constant AWS.Messages.Status_Code := AWS.Messages.S404;
+   Bad_Request           : Black.HTTP.Statuses renames Black.HTTP.Bad_Request;
+   Unauthorized          : Black.HTTP.Statuses renames Black.HTTP.Unauthorized;
+   Forbidden             : Black.HTTP.Statuses renames Black.HTTP.Forbidden;
+   Not_Found             : Black.HTTP.Statuses renames Black.HTTP.Not_Found;
 
-   Internal_Server_Error : constant AWS.Messages.Status_Code
-     := AWS.Messages.S500;
-   Server_Error : constant AWS.Messages.Status_Code := Internal_Server_Error;
+   Server_Error          : Black.HTTP.Statuses renames Black.HTTP.Server_Error;
+   Internal_Server_Error : Black.HTTP.Statuses renames Black.HTTP.Server_Error;
 
 end HTTP_Codes;

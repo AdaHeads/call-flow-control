@@ -20,13 +20,13 @@ with View,
 
 package body Handlers.User.List is
 
-   function Callback return AWS.Response.Callback is
+   function Callback return Black.Response.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
 
-   function Generate_Response (Request : AWS.Status.Data)
-                               return AWS.Response.Data is
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Instance is
    begin
 
       return Response.Templates.Bad_Parameters

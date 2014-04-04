@@ -23,7 +23,7 @@ with Model.Call,
      System_Messages;
 
 package body Handlers.Call.Park is
-   use AWS.Status,
+   use Black.Request,
        System_Messages,
        Model;
 
@@ -31,7 +31,7 @@ package body Handlers.Call.Park is
    --  Callback  --
    ----------------
 
-   function Callback return AWS.Response.Callback is
+   function Callback return Black.Response.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
@@ -40,8 +40,8 @@ package body Handlers.Call.Park is
    --  Generate_Response  --
    -------------------------
 
-   function Generate_Response (Request : in AWS.Status.Data)
-                               return AWS.Response.Data is
+   function Generate_Response (Request : in Black.Request.Instance)
+                               return Black.Response.Instance is
       Context : constant String := Package_Name & ".Generate_Response";
 
       Call_ID           : Model.Call.Identification renames

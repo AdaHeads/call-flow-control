@@ -16,15 +16,15 @@
 -------------------------------------------------------------------------------
 
 with AWS.Messages;
-with AWS.Response.Set;
+with Black.Response.Set;
 with HTTP_Codes;
 with MIME_Types;
 
 package body Response.Templates is
 
    procedure Add_CORS_Headers
-     (Request  : in     AWS.Status.Data;
-      Response : in out AWS.Response.Data);
+     (Request  : in     Black.Request.Instance;
+      Response : in out Black.Response.Instance);
    --  If the client sends the Origin: header, add these two CORS headers:
    --    Access-Control-Allow-Origin
    --    Access-Control-Allow-Credentials
@@ -33,12 +33,12 @@ package body Response.Templates is
    --  to enable very simple CORS support.
 
    procedure Add_CORS_Headers
-     (Request  : in     AWS.Status.Data;
-      Response : in out AWS.Response.Data)
+     (Request  : in     Black.Request.Instance;
+      Response : in out Black.Response.Instance)
    is
       use AWS.Messages;
-      use AWS.Response;
-      use AWS.Status;
+      use Black.Response;
+      use Black.Request;
 
       Origin_Host : constant String := Origin (Request);
    begin
@@ -65,20 +65,20 @@ package body Response.Templates is
    --  Bad_Parameters  --
    ----------------------
 
-   function Bad_Parameters (Request : in AWS.Status.Data;
+   function Bad_Parameters (Request : in Black.Request.Instance;
                             Response_Body : in JSON_Value := Create_Object)
-                            return AWS.Response.Data is
+                            return Black.Response.Instance is
    begin
 
       Response_Body.Set_Field (Status_Text, Bad_Parameters_Reponse_Text);
 
-      return Response : AWS.Response.Data do
-         Response := AWS.Response.Build
+      return Response : Black.Response.Instance do
+         Response := Black.Response.Build
            (Content_Type  => MIME_Types.JSON,
             Message_Body  => Response_Body.Write,
             Status_Code   => HTTP_Codes.Bad_Request,
             Cache_Control => AWS.Messages.No_Cache,
-            Encoding      => AWS.Status.Preferred_Coding (Request));
+            Encoding      => Black.Request.Preferred_Coding (Request));
          Add_CORS_Headers (Request  => Request,
                            Response => Response);
       end return;
@@ -89,20 +89,20 @@ package body Response.Templates is
    --  Not_Authorized  --
    ----------------------
 
-   function Not_Authorized (Request       : in AWS.Status.Data)
-                            return AWS.Response.Data is
+   function Not_Authorized (Request       : in Black.Request.Instance)
+                            return Black.Response.Instance is
       Response_Body : constant JSON_Value := Create_Object;
    begin
 
       Response_Body.Set_Field (Status_Text, Not_Authorized_Reponse_Text);
 
-      return Response : AWS.Response.Data do
-         Response := AWS.Response.Build
+      return Response : Black.Response.Instance do
+         Response := Black.Response.Build
            (Content_Type  => MIME_Types.JSON,
             Message_Body  => Response_Body.Write,
             Status_Code   => HTTP_Codes.Unauthorized,
             Cache_Control => AWS.Messages.No_Cache,
-            Encoding      => AWS.Status.Preferred_Coding (Request));
+            Encoding      => Black.Request.Preferred_Coding (Request));
          Add_CORS_Headers (Request  => Request,
                            Response => Response);
       end return;
@@ -112,19 +112,19 @@ package body Response.Templates is
    --  Not_Found  --
    -----------------
 
-   function Not_Found (Request       : in AWS.Status.Data;
+   function Not_Found (Request       : in Black.Request.Instance;
                        Response_Body : in JSON_Value := Create_Object)
-                       return AWS.Response.Data is
+                       return Black.Response.Instance is
    begin
       Response_Body.Set_Field (Status_Text, Not_Found_Reponse_Text);
 
-      return Response : AWS.Response.Data do
-         Response := AWS.Response.Build
+      return Response : Black.Response.Instance do
+         Response := Black.Response.Build
            (Content_Type  => MIME_Types.JSON,
             Message_Body  => Response_Body.Write,
             Status_Code   => HTTP_Codes.Not_Found,
             Cache_Control => AWS.Messages.No_Cache,
-            Encoding      => AWS.Status.Preferred_Coding (Request));
+            Encoding      => Black.Request.Preferred_Coding (Request));
          Add_CORS_Headers (Request  => Request,
                            Response => Response);
       end return;
@@ -134,20 +134,20 @@ package body Response.Templates is
    --  OK  --
    ----------
 
-   function OK (Request       : in AWS.Status.Data;
+   function OK (Request       : in Black.Request.Instance;
                 Response_Body : in JSON_Value := Create_Object)
-                return AWS.Response.Data is
+                return Black.Response.Instance is
    begin
 
       Response_Body.Set_Field (Status_Text, OK_Reponse_Text);
 
-      return Response : AWS.Response.Data do
-         Response := AWS.Response.Build
+      return Response : Black.Response.Instance do
+         Response := Black.Response.Build
            (Content_Type  => MIME_Types.JSON,
             Message_Body  => Response_Body.Write,
             Status_Code   => HTTP_Codes.OK,
             Cache_Control => AWS.Messages.No_Cache,
-            Encoding      => AWS.Status.Preferred_Coding (Request));
+            Encoding      => Black.Request.Preferred_Coding (Request));
          Add_CORS_Headers (Request  => Request,
                            Response => Response);
       end return;
@@ -158,16 +158,16 @@ package body Response.Templates is
    --------------------
 
    function Server_Error (Response_Body : in JSON_Value := Create_Object)
-                          return AWS.Response.Data is
+                          return Black.Response.Instance is
       use AWS.Messages;
-      use AWS.Response;
+      use Black.Response;
 
       Content : constant JSON_Value := Response_Body;
    begin
       Content.Set_Field (Status_Text, Server_Error_Reponse_Text);
 
-      return Response : AWS.Response.Data do
-         Response := AWS.Response.Build
+      return Response : Black.Response.Instance do
+         Response := Black.Response.Build
            (Content_Type  => MIME_Types.JSON,
             Message_Body  => Response_Body.Write,
             Status_Code   => HTTP_Codes.Server_Error,
@@ -193,20 +193,20 @@ package body Response.Templates is
       end return;
    end Server_Error;
 
-   function Server_Error (Request       : in AWS.Status.Data;
+   function Server_Error (Request       : in Black.Request.Instance;
                           Response_Body : in JSON_Value := Create_Object)
-                          return AWS.Response.Data is
+                          return Black.Response.Instance is
       Content : constant JSON_Value := Response_Body;
    begin
       Content.Set_Field (Status_Text, Server_Error_Reponse_Text);
 
-      return Response : AWS.Response.Data do
-         Response := AWS.Response.Build
+      return Response : Black.Response.Instance do
+         Response := Black.Response.Build
            (Content_Type  => MIME_Types.JSON,
             Message_Body  => Response_Body.Write,
             Status_Code   => HTTP_Codes.Server_Error,
             Cache_Control => AWS.Messages.No_Cache,
-            Encoding      => AWS.Status.Preferred_Coding (Request));
+            Encoding      => Black.Request.Preferred_Coding (Request));
          Add_CORS_Headers (Request  => Request,
                            Response => Response);
       end return;

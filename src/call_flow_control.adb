@@ -16,7 +16,6 @@
 -------------------------------------------------------------------------------
 
 with Ada.Exceptions;
-with AWS.Dispatchers.Callback;
 
 with Build_Constants;
 with Handlers.Route;

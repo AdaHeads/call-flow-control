@@ -63,10 +63,10 @@ package body Handlers.Notifications is
 
    function Create
      (Socket  : AWS.Net.Socket_Access;
-      Request : AWS.Status.Data)
+      Request : Black.Request.Instance)
       return AWS.Net.WebSocket.Object'Class
    is
-      use AWS.Status,
+      use Black.Request,
           Model.User;
 
       Context : constant String := Package_Name  & ".Create";

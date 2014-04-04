@@ -15,25 +15,23 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Exceptions;
-with AWS.Exceptions;
-with AWS.Log;
-with AWS.Response;
+--  with Ada.Exceptions;
+--  with Black.Response;
 
 package Unexpected_Exception is
 
    Package_Name : constant String := "Unexpected_Exception";
 
-   function Callback
-     return AWS.Exceptions.Unexpected_Exception_Handler;
-   --  Return a callback for the Unexpected_Exception response.
+   --  function Callback
+   --    return Black.Exceptions.Unexpected_Exception_Handler;
+   --  --  Return a callback for the Unexpected_Exception response.
 
-   procedure Unexpected_Exception_Handler
-     (E      : Ada.Exceptions.Exception_Occurrence;
-      Log    : in out AWS.Log.Object;
-      Error  : AWS.Exceptions.Data;
-      Answer : in out AWS.Response.Data);
-   --  Take care of unhandled exceptions, which in this context means
-   --  log the disaster and send a 500 response object to the client.
+   --  procedure Unexpected_Exception_Handler
+   --    (E      : in     Ada.Exceptions.Exception_Occurrence;
+   --     Log    : in out Black.Log.Object;
+   --     Error  : in     Black.Exceptions.Data;
+   --     Answer : in out Black.Response.Instance);
+   --  --  Take care of unhandled exceptions, which in this context means
+   --  --  log the disaster and send a 500 response object to the client.
 
 end Unexpected_Exception;

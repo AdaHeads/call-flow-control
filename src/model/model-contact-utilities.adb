@@ -17,7 +17,7 @@
 
 with AWS.Client,
      AWS.Messages,
-     AWS.Response;
+     Black.Response;
 
 with System_Messages,
      Util.Image,
@@ -39,7 +39,7 @@ package body Model.Contact.Utilities is
 
       Context  : constant String := Package_Name & ".Retrieve";
       In_JSON  : GNATCOLL.JSON.JSON_Value;
-      Response : AWS.Response.Data;
+      Response : Black.Response.Instance;
       URL      : constant String := From &
         Contact_Path    & Separator & Util.Image.Image (Contact) &
         Reception_Path  & Separator & Util.Image.Image (Reception) &
@@ -50,12 +50,12 @@ package body Model.Contact.Utilities is
 
       System_Messages.Debug
         (Message => URL & " status : HTTP " &
-           AWS.Response.Status_Code (Response)'Img,
+           Black.Response.Status_Code (Response)'Img,
          Context => Context);
 
-      if AWS.Response.Status_Code (Response) = S200 then
+      if Black.Response.Status_Code (Response) = S200 then
          In_JSON := GNATCOLL.JSON.Read
-           (Strm => AWS.Response.Message_Body (Response));
+           (Strm => Black.Response.Message_Body (Response));
 
          return Model.Contact.Create_From_JSON (In_JSON);
       else

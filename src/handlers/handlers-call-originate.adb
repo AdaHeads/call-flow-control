@@ -30,7 +30,7 @@ with Model.Call,
      View.Call;
 
 package body Handlers.Call.Originate is
-   use AWS.Status,
+   use Black.Request,
        System_Messages,
        View,
        Model;
@@ -49,7 +49,7 @@ package body Handlers.Call.Originate is
    --  Callback  --
    ----------------
 
-   function Callback return AWS.Response.Callback is
+   function Callback return Black.Response.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
@@ -102,7 +102,7 @@ package body Handlers.Call.Originate is
    -------------------------
 
    function Generate_Response
-     (Request : in AWS.Status.Data) return AWS.Response.Data is
+     (Request : in Black.Request.Instance) return Black.Response.Instance is
       use Model.User;
       use Model.Call;
 
