@@ -26,9 +26,7 @@ package Util.Server is
 
    type HTTP is tagged limited private;
 
-   function Create
-     (Unexpected : in AWS.Exceptions.Unexpected_Exception_Handler)
-      return HTTP;
+   function Create return HTTP;
    --  Create a HTTP object. This contains an AWS HTTP server that is
    --  configured according to the configuration settings found in
    --  ./configuration/config.ini.
@@ -43,7 +41,7 @@ package Util.Server is
 
    procedure Start
      (WS          : in out HTTP;
-      Dispatchers : in     AWS.Dispatchers.Handler'Class);
+      Dispatchers : in     Black.Dispatchers.Handler'Class);
    --  Start the AWS HTTP(S) server.
    --
    --  Dispatchers
@@ -56,10 +54,11 @@ package Util.Server is
 private
 
    type HTTP is tagged limited
-      record
-         Handle_The_Unexpected : AWS.Exceptions.Unexpected_Exception_Handler;
-         Web_Server            : AWS.Server.HTTP;
-         Web_Server_Config     : AWS.Config.Object;
-      end record;
+      --  record
+      --     Handle_The_Unexpected : AWS.Exceptions.Unexpected_Exception_Handler;
+      --     Web_Server            : AWS.Server.HTTP;
+      --     Web_Server_Config     : AWS.Config.Object;
+      --  end record;
+     null record;
 
 end Util.Server;

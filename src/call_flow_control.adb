@@ -60,8 +60,7 @@ begin
    PBX.Start;
 
    Web_Server.Start
-     (Dispatchers => AWS.Dispatchers.Callback.Create
-                       (Handlers.Route.Callback'Access));
+     (Dispatchers => Handlers.Route.Callback'Access);
 
    Process_Control.Wait;
    --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
