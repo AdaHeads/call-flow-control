@@ -4,5 +4,17 @@ black:
 black-update: black
 	cd black && git pull
 
-.PHONY: black-update
+gnat-sockets-extras:
+	if [ ! -d gnat-sockets-extras ]; then ( rm -f gnat-sockets-extras && hg clone http://repositories.jacob-sparre.dk/gnat-sockets-extras ); fi
+	rm -f gnat-sockets-extras/src/demo.adb
+	rm -f gnat-sockets-extras/src/gnat-sockets-compatibility.ads
+	rm -f gnat-sockets-extras/src/gnat-sockets-compatibility.adb
+
+gnat-sockets-extras-update: gnat-sockets-extras
+	cd gnat-sockets-extras && hg pull && hg update && hg revert --all
+	rm -f gnat-sockets-extras/src/demo.adb
+	rm -f gnat-sockets-extras/src/gnat-sockets-compatibility.ads
+	rm -f gnat-sockets-extras/src/gnat-sockets-compatibility.adb
+
+.PHONY: black-update gnat-sockets-extras-update
 
