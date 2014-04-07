@@ -32,6 +32,7 @@ b~*.ad[sb]
 
 # Generated source files:
 /black/
+/gnat-sockets-extras/
 
 # Generated test executables:
 /tests/ahven/black-tests-run
