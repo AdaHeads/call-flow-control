@@ -24,7 +24,8 @@ with "esl";
 
 project Call_Flow_Control is
    for Source_Dirs use ("src/**",
-                        "black/src/");
+                        "black/src/",
+                        "gnat-sockets-extras/src/");
 
    for Main use ("call_flow_control");
 
