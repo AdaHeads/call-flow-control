@@ -15,21 +15,18 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Exceptions;
-
-with Build_Constants;
-with Handlers.Route;
-with PBX;
-with SIGHUP;
-with SIGHUP_Handler;
-with System_Messages;
-with Unexpected_Exception;
-with Configuration;
-
-with Util.Process_Control;
-with Util.Server;
-with Util.Command_Line;
-with Util.Configuration;
+with
+  Ada.Exceptions;
+with
+  PBX,
+  Build_Constants,
+  Configuration,
+  HTTP_Server,
+  SIGHUP,
+  SIGHUP_Handler,
+  System_Messages,
+  Util.Command_Line,
+  Util.Process_Control;
 
 procedure Call_FLow_Control is
    use System_Messages;
@@ -37,47 +34,40 @@ procedure Call_FLow_Control is
    use Build_Constants;
    use Command_Line;
 
-   Context     : constant String := "Call-Flow_Control";
-
-   Web_Server : Server.HTTP := Server.Create
-     (Unexpected => Unexpected_Exception.Callback);
+   Context : constant String := "Call-Flow_Control";
 
 begin
-   if Command_Line.Got_Argument ("--help") then
+   if Util.Command_Line.Got_Argument ("--help") then
       Configuration.Show_Arguments;
-      Command_Line.Set_Exit_Failure;
-      return;
+      Util.Command_Line.Set_Exit_Failure;
+   else
+      SIGHUP.Register (Handler => SIGHUP_Handler.Caught_Signal'Access);
+
+      Configuration.Load_Config;
+
+      System_Messages.Open_Log_Files;
+
+      PBX.Start;
+      HTTP_Server.Listen (On_Port => Configuration.HTTP_Port);
+
+      Util.Process_Control.Wait;
+      --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
+
+      HTTP_Server.Stop;
+      PBX.Stop;
+      SIGHUP.Stop;
+      System_Messages.Close_Log_Files;
+
+      System_Messages.Information
+        (Message => Server_Name & " shutdown complete.",
+         Context => Context);
    end if;
-
-   SIGHUP.Register (Handler => SIGHUP_Handler.Caught_Signal'Access);
-
-   Configuration.Load_Config;
-   Util.Configuration.Config.Load_File;
-
-   Handlers.Route.Register_Handlers;
-   System_Messages.Open_Log_Files;
-
-   PBX.Start;
-
-   Web_Server.Start
-     (Dispatchers => Handlers.Route.Callback'Access);
-
-   Process_Control.Wait;
-   --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
-
-   Web_Server.Stop;
-   PBX.Stop;
-   SIGHUP.Stop;
-   System_Messages.Close_Log_Files;
-
-   System_Messages.Information (Message => Server_Name & " shutdown complete.",
-                                Context => Context);
 exception
    when Event : others =>
       System_Messages.Critical
         (Message => "Shutting down due to unhandled exception: " &
-           Ada.Exceptions.Exception_Information (Event),
+                    Ada.Exceptions.Exception_Information (Event),
          Context => Context);
-      Web_Server.Stop;
+      HTTP_Server.Stop;
       PBX.Stop;
 end Call_FLow_Control;
