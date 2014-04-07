@@ -1,6 +1,7 @@
 with
   GNAT.Sockets.Convenience;
 with
+  Connection_Queue,
   System_Messages,
   Util.Process_Control;
 
@@ -36,9 +37,7 @@ package body HTTP_Server is
                            Socket  => Connection,
                            Address => Client);
 
-            System_Messages.Fixme
-              (Message => "Hand over to processing task.",
-               Context => Context);
+            Connection_Queue.Object.Enqueue (Connection);
 
             select
                accept Stop;

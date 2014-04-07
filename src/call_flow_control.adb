@@ -18,6 +18,7 @@
 with
   Ada.Exceptions;
 with
+  API_Tasks,
   PBX,
   Build_Constants,
   Configuration,
@@ -28,13 +29,15 @@ with
   Util.Command_Line,
   Util.Process_Control;
 
+pragma Unreferenced (API_Tasks); --  In charge of processing requests.
+
 procedure Call_FLow_Control is
    use System_Messages;
    use Util;
    use Build_Constants;
    use Command_Line;
 
-   Context : constant String := "Call-Flow_Control";
+   Context : constant String := "Call_Flow_Control";
 
 begin
    if Util.Command_Line.Got_Argument ("--help") then
