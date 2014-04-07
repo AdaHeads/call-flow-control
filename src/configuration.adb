@@ -52,6 +52,11 @@ package body Configuration is
       return Config.Get (Key => Error_Log);
    end Error_Log;
 
+   function HTTP_Port return GNAT.Sockets.Port_Type is
+   begin
+      return Config.Get (Key => HTTP_Port);
+   end HTTP_Port;
+
    procedure Load_Config is
    begin
       Config.Load_File

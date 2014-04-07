@@ -15,6 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with
+  GNAT.Sockets;
+
 package Configuration is
 
    Default_Config_File : constant String := "conf/main.conf";
@@ -28,6 +31,8 @@ package Configuration is
    function PBX_Host return String;
    function PBX_Port return Natural;
    function PBX_Password return String;
+
+   function HTTP_Port return GNAT.Sockets.Port_Type;
 
    function Contact_Server return String;
 
@@ -63,5 +68,7 @@ private
    PBX_Secret_CL_String   : constant String := "--pbx-secret";
    PBX_Secret_Usage_String  : constant String :=
      "Override the PBX password from config.";
+
+   HTTP_Port_CL_String    : constant String := "--http-port";
 
 end Configuration;

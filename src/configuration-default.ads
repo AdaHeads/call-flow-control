@@ -36,40 +36,27 @@ private package Configuration.Default is
                  Contact_Server,
                  Access_Log,
                  Error_Log,
-                 Server_Token);
+                 Server_Token,
+                 HTTP_Port);
 
    type Defaults_Array is array (Keys) of Unbounded_String;
 
    Default_Values : constant Defaults_Array :=
-     (Auth_Server
-      => U ("http://localhost:8080"),
-      Contact_Server
-      => U ("http://localhost:4010"),
-      Loglevel
-      => U ("Information"),
-      Access_Log
-      => U ("access.log"),
-      Error_Log
-      => U ("error.log"),
-      Cache_Max_Element_Age
-      => U ("86_400"),
-      Host_Name
-      => U ("please_update_main_conf"),
-      Public_User_Identification
-      => U ("FALSE"),
-      PBX_Secret
-      => U ("1234"),
-      PBX_Loglevel
-      => U ("Information"),
-      PBX_Host
-      => U ("localhost"),
-      PBX_Port
-      => U ("8021"),
-      User_Backend_Type
-      => U ("file"),
-      User_Map_File
-      => U ("static_json/agent.list"),
-      Server_Token
-      => Ada.Strings.Unbounded.Null_Unbounded_String);
+     (Auth_Server                => U ("http://localhost:8080"),
+      Contact_Server             => U ("http://localhost:4010"),
+      Loglevel                   => U ("Information"),
+      Access_Log                 => U ("access.log"),
+      Error_Log                  => U ("error.log"),
+      Cache_Max_Element_Age      => U ("86_400"),
+      Host_Name                  => U ("please_update_main_conf"),
+      Public_User_Identification => U ("FALSE"),
+      PBX_Secret                 => U ("1234"),
+      PBX_Loglevel               => U ("Information"),
+      PBX_Host                   => U ("localhost"),
+      PBX_Port                   => U ("8021"),
+      User_Backend_Type          => U ("file"),
+      User_Map_File              => U ("static_json/agent.list"),
+      Server_Token               => U (""),
+      HTTP_Port                  => U ("4242"));
 
 end Configuration.Default;

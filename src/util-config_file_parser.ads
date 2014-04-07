@@ -55,6 +55,8 @@
 
 with Ada.Strings.Unbounded;
 
+with GNAT.Sockets;
+
 generic
    use Ada.Strings.Unbounded;
 
@@ -102,6 +104,8 @@ package Util.Config_File_Parser is
    --  Get the VALUE for Key and convert it to target type.
    --  Exceptions:
    --    Conversion_Error
+
+   function Get (Key : in Key_Type) return GNAT.Sockets.Port_Type;
 
    function Has_Non_Empty_Value
      (Key : in Key_Type)

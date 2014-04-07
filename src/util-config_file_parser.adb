@@ -108,6 +108,11 @@ package body Util.Config_File_Parser is
       return Values (Key);
    end Get;
 
+   function Get (Key : in Key_Type) return GNAT.Sockets.Port_Type is
+   begin
+      return GNAT.Sockets.Port_Type'Value (To_String (Values (Key)));
+   end Get;
+
    ---------------------------
    --  Has_Non_Empty_Value  --
    ---------------------------
