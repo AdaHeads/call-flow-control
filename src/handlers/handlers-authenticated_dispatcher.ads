@@ -15,7 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Black.Request,
+with Black.HTTP,
+     Black.Request,
      Black.Response;
 
 with Model.User;

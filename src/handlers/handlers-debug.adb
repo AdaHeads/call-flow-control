@@ -32,7 +32,6 @@ package body Handlers.Debug is
    function Channel_List (Request : in Black.Request.Instance)
                           return Black.Response.Instance is
       use GNATCOLL.JSON;
-      use HTTP_Codes;
    begin
       return Response.Templates.Server_Error
         (Request       => Request,

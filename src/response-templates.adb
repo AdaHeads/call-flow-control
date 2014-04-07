@@ -15,10 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Messages;
-with Black.Response.Set;
-with HTTP_Codes;
-with MIME_Types;
+with Black.HTTP,
+     Black.Response,
+     MIME_Types;
 
 package body Response.Templates is
 
@@ -36,7 +35,6 @@ package body Response.Templates is
      (Request  : in     Black.Request.Instance;
       Response : in out Black.Response.Instance)
    is
-      use AWS.Messages;
       use Black.Response;
       use Black.Request;
 

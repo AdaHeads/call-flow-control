@@ -15,11 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with HTTP_Codes;
+with Black.HTTP;
 
 package Handlers is
 
-   package HTTP renames HTTP_Codes;
+   package HTTP renames Black.HTTP;
 
    Not_Authenticated : exception;
 
