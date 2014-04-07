@@ -18,13 +18,12 @@
 with
   Ada.Calendar;
 with
-  Client_Notification,
-  Handlers.Notifications;
+  System_Messages;
 
 package body Model.Peer is
-   use Ada.Calendar;
+   Context : constant String := "Model.Peer";
 
-   package Notification renames Handlers.Notifications;
+   use Ada.Calendar;
 
    procedure Bump_Expiry (Object     :    out Instance;
                           Time_Delta : in     Natural) is
@@ -94,10 +93,11 @@ package body Model.Peer is
    begin
       if not Object.Registered then
          Object.Registered := True;
-         Notification.Broadcast
-           (Client_Notification.Peer_State (P => Object).To_JSON);
+         System_Messages.Fixme
+           (Message => "Notification.Broadcast " &
+              "(Client_Notification.Peer_State (P => Object).To_JSON);",
+            Context => Context);
       end if;
-
    end Register;
 
    ------------------
@@ -140,8 +140,10 @@ package body Model.Peer is
    begin
       if Object.Registered then
          Object.Registered := False;
-         Notification.Broadcast
-           (Client_Notification.Peer_State (P => Object).To_JSON);
+         System_Messages.Fixme
+           (Message => "Notification.Broadcast " &
+              "(Client_Notification.Peer_State (P => Object).To_JSON);",
+            Context => Context);
       end if;
    end Unregister;
 

@@ -22,8 +22,6 @@ with Ada.Containers,
 with Model.Call,
      Model.Peer;
 
-with Handlers.Notifications;
-
 with GNATCOLL.JSON;
 
 private
@@ -107,9 +105,6 @@ package Model.User is
 
    function Permissions (User : in Instance) return Permission_List;
 
-   function WebSocket (User : in Instance) return
-     Handlers.Notifications.Object;
-
    function Value (Item : in String) return Identifications;
 
    function Value (Item : in String) return Identities;
@@ -142,7 +137,6 @@ private
 
    type Instance is tagged record
       ID            : Identifications            := Null_Identification;
-      WebSocket     : Handlers.Notifications.Object;
       Current_State : States                     := Unknown;
       Peer          : Model.Peer.Identification  := Peers.Null_Identification;
       Attributes    : GNATCOLL.JSON.JSON_Value   := Create;

@@ -15,18 +15,16 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Characters.Handling;
-with Ada.Strings;
-with Model.User;
-with Ada.Strings.Fixed;
-with Handlers.Notifications;
-with Client_Notification;
-with View,
-     System_Messages;
+with
+  Ada.Characters.Handling,
+  Ada.Strings,
+  Ada.Strings.Fixed;
+with
+  Model.User,
+  System_Messages,
+  View;
 
 package body Model.Call is
-
-   package Notification renames Handlers.Notifications;
 
    --------------------
    --  Arrival_Time  --
@@ -91,57 +89,77 @@ package body Model.Call is
 
       --  Assert that the call leaves a queue or a parking lot.
       if Last_State = Queued then
-         Notification.Broadcast
-           (Client_Notification.Leave (Get (Obj.ID)).To_JSON);
+         System_Messages.Fixme
+           (Message => "Notification.Broadcast " &
+              "(Client_Notification.Leave (Get (Obj.ID)).To_JSON);",
+            Context => Context);
       elsif Last_State = Parked then
-         Notification.Broadcast
-           (Client_Notification.Unpark (Get (Obj.ID)).To_JSON);
+         System_Messages.Fixme
+           (Message => "Notification.Broadcast " &
+              "(Client_Notification.Unpark (Get (Obj.ID)).To_JSON);",
+            Context => Context);
       end if;
 
       case New_State is
          --  Upon creation, a
          when Created =>
-            Notification.Broadcast
-              (Client_Notification.Call_Offer (Get (Obj.ID)).To_JSON);
+            System_Messages.Fixme
+              (Message => "Notification.Broadcast " &
+                 "(Client_Notification.Call_Offer (Get (Obj.ID)).To_JSON);",
+               Context => Context);
 
-         --  Parking will merely cause a notification to be sent out.
-         --  The event should, however, only  be sent to the client currently
-         --  assigned to the call.
+            --  Parking will merely cause a notification to be sent
+            --  out.  The event should, however, only be sent to the
+            --  client currently assigned to the call.
          when Parked =>
-            Notification.Broadcast
-              (Client_Notification.Park
-                 (C => Get (Obj.ID)).To_JSON);
+            System_Messages.Fixme
+              (Message => "Notification.Broadcast " &
+                 "(Client_Notification.Park " &
+                 "(C => Get (Obj.ID)).To_JSON);",
+               Context => Context);
 
          when Unparked =>
-            Notification.Broadcast
-              (Client_Notification.Unpark (Get (Obj.ID)).To_JSON);
+            System_Messages.Fixme
+              (Message => "Notification.Broadcast " &
+                 "(Client_Notification.Unpark (Get (Obj.ID)).To_JSON);",
+               Context => Context);
 
          when Queued =>
-            Notification.Broadcast
-              (Client_Notification.Join
-                 (Get (Call => Obj.ID)).To_JSON);
+            System_Messages.Fixme
+              (Message => "Notification.Broadcast " &
+                 "(Client_Notification.Join " &
+                 "(Get (Call => Obj.ID)).To_JSON);",
+               Context => Context);
 
          when Hungup =>
             if Get (Obj.ID).Is_Call then
-               Notification.Broadcast
-                 (Client_Notification.Hangup (Get (Obj.ID)).To_JSON);
+               System_Messages.Fixme
+                 (Message => "Notification.Broadcast " &
+                    "(Client_Notification.Hangup (Get (Obj.ID)).To_JSON);",
+                  Context => Context);
             end if;
 
             Call_List.Remove (ID => Obj.ID);
 
          when Speaking =>
             if Get (Obj.ID).Is_Call then
-               Notification.Broadcast
-                 (Client_Notification.Pickup (Get (Obj.ID)).To_JSON);
+               System_Messages.Fixme
+                 (Message => "Notification.Broadcast " &
+                    "(Client_Notification.Pickup (Get (Obj.ID)).To_JSON);",
+                  Context => Context);
             end if;
 
          when Transferred =>
-            Notification.Broadcast
-              (Client_Notification.Call_Transfer (Get (Obj.ID)).To_JSON);
+            System_Messages.Fixme
+              (Message => "Notification.Broadcast " &
+                 "(Client_Notification.Call_Transfer (Get (Obj.ID)).To_JSON);",
+               Context => Context);
 
          when Left_Queue =>
-            Notification.Broadcast
-              (Client_Notification.Leave (Get (Obj.ID)).To_JSON);
+            System_Messages.Fixme
+              (Message => "Notification.Broadcast " &
+                 "(Client_Notification.Leave (Get (Obj.ID)).To_JSON);",
+               Context => Context);
 
          when Unknown =>
             System_Messages.Error
@@ -151,8 +169,10 @@ package body Model.Call is
 
          when Ringing =>
             if Last_State /= Ringing then
-               Notification.Broadcast
-                 (Client_Notification.Call_State (Get (Obj.ID)).To_JSON);
+               System_Messages.Fixme
+                 (Message => "Notification.Broadcast " &
+                    "(Client_Notification.Call_State (Get (Obj.ID)).To_JSON);",
+                  Context => Context);
             end if;
          when Transferring =>
             null;
@@ -278,10 +298,13 @@ package body Model.Call is
    end List_Empty;
 
    procedure Lock (Obj : in Instance) is
+      Context : constant String := "Model.Call.Lock";
    begin
-      Notification.Broadcast
-        (Client_Notification.Call_Lock
-           (Get (Call => Obj.ID)).To_JSON);
+      System_Messages.Fixme
+        (Message => "Notification.Broadcast " &
+           "(Client_Notification.Call_Lock " &
+           "(Get (Call => Obj.ID)).To_JSON);",
+         Context => Context);
       Call_List.Set_Locked (ID     => Obj.ID,
                             Locked => True);
    end Lock;
@@ -500,10 +523,13 @@ package body Model.Call is
    --------------
 
    procedure Unlock (Obj : in Instance) is
+      Context : constant String := "Model.Call.Unlock";
    begin
-      Notification.Broadcast
-        (Client_Notification.Call_Unlock
-           (Get (Call => Obj.ID)).To_JSON);
+      System_Messages.Fixme
+        (Message => "Notification.Broadcast " &
+           "(Client_Notification.Call_Unlock " &
+           "(Get (Call => Obj.ID)).To_JSON);",
+         Context => Context);
       Call_List.Set_Locked (ID     => Obj.ID,
                             Locked => False);
    end Unlock;
