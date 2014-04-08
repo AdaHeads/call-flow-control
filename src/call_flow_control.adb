@@ -18,10 +18,10 @@
 with
   Ada.Exceptions;
 with
-  API_Tasks,
   PBX,
   Build_Constants,
   Configuration,
+  Handlers.API_Tasks,
   HTTP_Server,
   SIGHUP,
   SIGHUP_Handler,
@@ -29,7 +29,7 @@ with
   Util.Command_Line,
   Util.Process_Control;
 
-pragma Unreferenced (API_Tasks); --  In charge of processing requests.
+pragma Unreferenced (Handlers.API_Tasks); --  In charge of processing requests.
 
 procedure Call_FLow_Control is
    use System_Messages;
