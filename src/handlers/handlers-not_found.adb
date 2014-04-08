@@ -15,38 +15,18 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Black.Response;
+
 with Response.Templates;
 
 package body Handlers.Not_Found is
 
-   ----------------
-   --  Callback  --
-   ----------------
-
-   function Callback
-     return AWS.Dispatchers.Callback.Handler
-   is
+   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
+                     Request : in     Black.Request.Instance) is
    begin
-      return AWS.Dispatchers.Callback.Create (Generate_Response'Access);
-   end Callback;
-
-   ----------------
-   --  Callback  --
-   ----------------
-
-   function Callback return Black.Response.Callback is
-   begin
-      return Generate_Response'Access;
-   end Callback;
-
-   -------------------------
-   --  Generate_Response  --
-   -------------------------
-
-   function Generate_Response (Request : Black.Request.Instance)
-                               return Black.Response.Instance is
-   begin
-      return Response.Templates.Not_Found (Request);
-   end Generate_Response;
+      Black.Response.Instance'Output
+        (Stream,
+         Response.Templates.Not_Found (Request));
+   end Handle;
 
 end Handlers.Not_Found;
