@@ -29,6 +29,7 @@ b~*.ad[sb]
 /tests/*/*.errors
 /tests/*/*.output
 /tests/results/
+/tests/cyclomatic_complexity/execessive_cases
 
 # Generated source files:
 /black/

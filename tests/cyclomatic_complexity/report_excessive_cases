@@ -10,6 +10,11 @@ else
 fi
 
 #-----------------------------------------------------------------------------
+#--  Prepare test report:
+
+test_report=$(mktemp)
+
+#-----------------------------------------------------------------------------
 #--  Check for up-to-date metrics reports:
 
 for source in ../../src/**/*.ad[sb]; do
@@ -18,10 +23,22 @@ for source in ../../src/**/*.ad[sb]; do
 
    if [ ! -f "${report}" ]; then
       echo "Could not find a metrics report for '${unit}'." 1>&2
-      exit 101
+
+      (
+         echo '  <testcase classname="Excessive Cyclomatic Complexity" name="'"${unit}"'">'
+         echo '    <failure type="Could not find a metrics report for '"${unit}"'">'
+         echo '    </failure>'
+         echo '  </testcase>'
+      ) >> ${test_report}
    elif [ "${source}" -nt "${report}" ]; then
       echo "Could not find an up-to-date metrics report for '${unit}'." 1>&2
-      exit 102
+
+      (
+         echo '  <testcase classname="Excessive Cyclomatic Complexity" name="'"${unit}"'">'
+         echo '    <failure type="Could not find an up-to-date metrics report for '"${unit}"'">'
+         echo '    </failure>'
+         echo '  </testcase>'
+      ) >> ${test_report}
    fi
 done
 
@@ -42,11 +59,6 @@ egrep ' body | cyclomatic complexity ' ../../obj/*.metrix \
 if [ ! -r generated_source_files ]; then
    touch generated_source_files
 fi
-
-#-----------------------------------------------------------------------------
-#--  Prepare test report:
-
-test_report=$(mktemp)
 
 #-----------------------------------------------------------------------------
 #--  Check excessive cases:
@@ -75,29 +87,29 @@ cut -f1 execessive_cases \
              true
 
              (
-	        echo '  <testcase classname="Excessive Cyclomatic Complexity" name="'"${unit}.${subprogram} - ${from_line} .. ${to_line}"'">'
-	        echo '  </testcase>'
-	     ) >> ${test_report}
+                echo '  <testcase classname="Excessive Cyclomatic Complexity" name="'"${unit}.${subprogram} - ${from_line} .. ${to_line}"'">'
+                echo '  </testcase>'
+             ) >> ${test_report}
           else
              let counter++
              echo "'${unit}' has unexplained excessive cyclomatic complexity." 1>&2
 
              (
-	        echo '  <testcase classname="Excessive Cyclomatic Complexity" name="'"${unit}.${subprogram} - ${from_line} .. ${to_line}"'">'
+                echo '  <testcase classname="Excessive Cyclomatic Complexity" name="'"${unit}.${subprogram} - ${from_line} .. ${to_line}"'">'
                 echo '    <failure type="Unexplained excessive cyclomatic complexity">'
-	        echo '    </failure>'
-	        echo '  </testcase>'
-	     ) >> ${test_report}
+                echo '    </failure>'
+                echo '  </testcase>'
+             ) >> ${test_report}
           fi
        else
           echo "'${unit}' not a part of this project." 1>&2
 
           (
-	     echo '  <testcase classname="Excessive Cyclomatic Complexity" name="'"${unit}.${subprogram} - ${from_line} .. ${to_line}"'">'
+             echo '  <testcase classname="Excessive Cyclomatic Complexity" name="'"${unit}.${subprogram} - ${from_line} .. ${to_line}"'">'
                echo '    <skipped type="Outside the project">'
-	       echo '    </skipped>'
-	       echo '  </testcase>'
-	  ) >> ${test_report}
+               echo '    </skipped>'
+               echo '  </testcase>'
+          ) >> ${test_report}
        fi
     done
 
