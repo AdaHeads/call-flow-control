@@ -15,9 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Black.HTTP,
-     Black.Response,
-     MIME_Types;
+with Black.HTTP;
 
 package body Response.Templates is
 
@@ -35,27 +33,14 @@ package body Response.Templates is
      (Request  : in     Black.Request.Instance;
       Response : in out Black.Response.Instance)
    is
-      use Black.Response;
-      use Black.Request;
-
-      Origin_Host : constant String := Origin (Request);
+      use Black.HTTP, Black.Response.Access_Control;
    begin
-      if Origin_Host'Length > 0 then
-         Set.Add_Header (D     => Response,
-                         Name  => Access_Control_Allow_Origin_Token,
-                         Value => Origin_Host);
-
-         Set.Add_Header (D     => Response,
-                         Name  => Access_Control_Allow_Credentials_Token,
-                         Value => "true");
-
-         Set.Add_Header (D     => Response,
-                         Name  => Access_Control_Allow_Headers_Token,
-                         Value => "POST, GET");
-
-         Set.Add_Header (D     => Response,
-                         Name  => Access_Control_Max_Age_Token,
-                         Value => "86400");
+      if Request.Has_Origin then
+         Allow_Origin      (Response, Request.Origin);
+         Allow_Credentials (Response);
+         Allow_Headers     (Response, (Get | Post => True,
+                                       others     => False));
+         Max_Age           (Response, 86_400.0);
       end if;
    end Add_CORS_Headers;
 
