@@ -15,14 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Black.Response;
+with GNAT.Sockets;
+with Black.Request;
 
-package Handlers.User.List is
-
-   function Callback return Black.Response.Callback;
-
-private
-   function Generate_Response (Request : Black.Request.Instance)
-                               return Black.Response.Instance;
-
-end Handlers.User.List;
+package Handlers.Users.List is
+   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
+                     Request : in     Black.Request.Instance);
+end Handlers.Users.List;

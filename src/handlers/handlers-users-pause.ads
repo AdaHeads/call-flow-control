@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2013-, AdaHeads K/S                     --
+--                     Copyright (C) 2014-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,23 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Response.Templates,
-     Request_Utilities;
+with GNAT.Sockets;
+with Black.Request;
 
-package body Handlers.User is
-   use Black.Response;
-
-   ---------------
-   --  Profile  --
-   ---------------
-
-   function Profile (Request : in Black.Request.Instance)
-                      return Black.Response.Instance is
-   begin
-
-      return Response.Templates.OK
-        (Request       => Request,
-         Response_Body => Request_Utilities.User_Of (Request).To_JSON);
-   end Profile;
-
-end Handlers.User;
+package Handlers.Users.Pause is
+   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
+                     Request : in     Black.Request.Instance);
+end Handlers.Users.Pause;

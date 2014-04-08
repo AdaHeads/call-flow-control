@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2013-, AdaHeads K/S                     --
+--                     Copyright (C) 2014-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,14 +15,16 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Black.Request;
-with Black.Response;
+with Response.Templates;
 
-package Handlers.User is
-
-   Package_Name : constant String := "Handlers.User";
-
-   function Profile (Request : in Black.Request.Instance)
-      return Black.Response.Instance;
-
-end Handlers.User;
+package body Handlers.Users.Pause is
+   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
+                     Request : in     Black.Request.Instance) is
+   begin
+      Black.Request.Instance'Output
+        (Stream,
+         Response.Templates.Bad_Parameters
+           (Request       => Request,
+            Response_Body => View.Description (Message => "Not implemented")));
+   end Handle;
+end Handlers.Users.Pause;
