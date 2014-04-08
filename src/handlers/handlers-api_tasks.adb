@@ -7,7 +7,7 @@ with
   Namespaces,
   Handlers.Call,
   Handlers.Not_Found,
-  Handlers.User,
+  Handlers.Users,
   System_Messages;
 
 package body Handlers.API_Tasks is
@@ -30,15 +30,14 @@ package body Handlers.API_Tasks is
             begin
                case Namespaces.Resource (Request) is
                   when Namespaces.Not_Found =>
-                     Handlers.Not_Found.Handle
-                       (Stream             => Stream,
-                        Requested_Resource => Request.Resource);
+                     Handlers.Not_Found.Handle (Stream  => Stream,
+                                                Request => Request);
                   when Namespaces.Call =>
                      Handlers.Call.Handle (Stream  => Stream,
                                            Request => Request);
-                  when Namespaces.User =>
-                     Handlers.User.Handle (Stream  => Stream,
-                                           Request => Request);
+                  when Namespaces.Users =>
+                     Handlers.Users.Handle (Stream  => Stream,
+                                            Request => Request);
                end case;
 
                Close_Socket (Connection);
