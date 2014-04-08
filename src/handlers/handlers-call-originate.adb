@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Black.Response;
+
 with Model.Call,
      Model.Contact,
      Model.User,

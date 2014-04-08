@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+--  https://github.com/AdaHeads/Call-Flow-Control/wiki/Protocol-Call-Queue
+
 --  Reponse handler for listing all queued calls visible to the agent.
 --
 --  Parameters: None
@@ -24,13 +26,8 @@ with Black.Response,
      Black.Request;
 
 package Handlers.Call.Queue is
-
    Package_Name : constant String := "Handlers.Call.Queue";
 
-   function Callback return Black.Response.Callback;
-
-private
-
-   function Generate_Response (Request : Black.Request.Instance)
-                               return Black.Response.Instance;
+   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
+                     Request : in     Black.Request.Instance);
 end Handlers.Call.Queue;

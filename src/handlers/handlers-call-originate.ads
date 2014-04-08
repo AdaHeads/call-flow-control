@@ -15,8 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+--  https://github.com/AdaHeads/Call-Flow-Control/wiki/Protocol-Call-Originate
+
 --  Originates a new outbound call. This resource takes parameters
---
 --
 --  Parameters: Context and either phone_id or arbitrary extension.
 --  Returns: HTTP 404 Not found and a JSON body if the call is not present.
@@ -24,8 +25,7 @@
 --
 --  Where context Context refers to contact_id@reception_id
 
-with Black.Response,
-     Black.Request;
+with Black.Request;
 
 package Handlers.Call.Originate is
 
@@ -33,12 +33,9 @@ package Handlers.Call.Originate is
 
    Package_Name : constant String := "Handlers.Call.Originate";
 
-   function Callback return Black.Response.Callback;
-
+   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
+                     Request : in     Black.Request.Instance);
 private
-   function Generate_Response (Request : Black.Request.Instance)
-                               return Black.Response.Instance;
-
    Extension_String : constant String := "extension";
    Context_String   : constant String := "context";
    Phone_ID_String  : constant String := "phone_id";

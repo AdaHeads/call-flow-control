@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+--  https://github.com/AdaHeads/Call-Flow-Control/wiki/Protocol-Call-Transfer
+
 --  Reponse handler for bridging a current call (active channel) to another
 --  active call. This is used for performing attended transfers.
 --
@@ -28,15 +30,11 @@ with Black.Response,
      Black.Request;
 
 package Handlers.Call.Transfer is
-
    Package_Name : constant String := "Handlers.Call.Transfer";
 
-   function Callback return Black.Response.Callback;
-
+   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
+                     Request : in     Black.Request.Instance);
 private
-   function Generate_Response (Request : Black.Request.Instance)
-                               return Black.Response.Instance;
-
    Source_String      : constant String := "source";
    Destination_String : constant String := "destination";
    --  These are the required parameters.

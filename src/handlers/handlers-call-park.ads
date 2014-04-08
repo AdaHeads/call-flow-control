@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+--  https://github.com/AdaHeads/Call-Flow-Control/wiki/Protocol-Call-Park
+
 --  Reponse handler for putting the users current call on hold.
 --
 --  Parameters: None
@@ -25,14 +27,8 @@ with Black.Response,
      Black.Request;
 
 package Handlers.Call.Park is
-
    Package_Name : constant String := "Handlers.Call.Park";
 
-   function Callback return Black.Response.Callback;
-
-private
-
-   function Generate_Response (Request : Black.Request.Instance)
-                               return Black.Response.Instance;
-
+   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
+                     Request : in     Black.Request.Instance);
 end Handlers.Call.Park;

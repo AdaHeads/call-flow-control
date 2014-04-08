@@ -15,10 +15,15 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-private package Handlers.Call is
+with GNAT.Sockets;
+with Black.Request;
 
+private
+package Handlers.Call is
    Package_Name : constant String := "Handlers.Call";
 
+   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
+                     Request : in     Black.Request.Instance);
 private
 
    --  Handler-global string constants.
