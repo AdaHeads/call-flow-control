@@ -23,7 +23,8 @@ PROJECT=call_flow_control
 
 GENERATED_EXECUTABLES=exe/$(PROJECT)
 
-GENERATED_SOURCES=black \
+GENERATED_SOURCES=ada_2012_extensions \
+                  black \
                   gnat-sockets-extras
 
 PREFIX?=/usr/local/call-flow

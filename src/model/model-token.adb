@@ -16,17 +16,17 @@
 -------------------------------------------------------------------------------
 
 with
-  Common.Unbounded_Case_Insensitive_Equal,
-  Common.Unbounded_Case_Insensitive_Hash;
+  Ada_2012.Strings.Unbounded.Equal_Case_Insensitive,
+  Ada_2012.Strings.Unbounded.Hash_Case_Insensitive;
 
 package body Model.Token is
 
    overriding
    function "=" (Left, Right : in Instance) return Boolean is
    begin
-      return
-        Common.Unbounded_Case_Insensitive_Equal (Left  => Left.Token_Value,
-                                                 Right => Right.Token_Value);
+      return Ada_2012.Strings.Unbounded.Equal_Case_Insensitive
+               (Left  => Left.Token_Value,
+                Right => Right.Token_Value);
    end "=";
 
    function Create (Value : String) return Instance is
@@ -36,7 +36,8 @@ package body Model.Token is
 
    function Hash (Object : in Instance) return Ada.Containers.Hash_Type is
    begin
-      return Common.Unbounded_Case_Insensitive_Hash (Object.Token_Value);
+      return Ada_2012.Strings.Unbounded.Hash_Case_Insensitive
+               (Object.Token_Value);
    end Hash;
 
    function To_String (Object : Instance) return String is

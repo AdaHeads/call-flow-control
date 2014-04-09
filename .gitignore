@@ -32,6 +32,7 @@ b~*.ad[sb]
 /tests/cyclomatic_complexity/execessive_cases
 
 # Generated source files:
+/ada_2012_extensions/
 /black/
 /gnat-sockets-extras/
 

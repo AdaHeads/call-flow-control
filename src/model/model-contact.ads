@@ -27,7 +27,7 @@ with
   Ada.Strings.Unbounded;
 private
 with
-  Common.Unbounded_Case_Insensitive_Equal;
+  Ada_2012.Strings.Unbounded.Equal_Case_Insensitive;
 
 package Model.Contact is
    use GNATCOLL.JSON;
@@ -69,7 +69,7 @@ private
    package Phones_Storage is new Ada.Containers.Vectors
      (Index_Type   => Phone_Identifier,
       Element_Type => Unbounded_String,
-      "="          => Common.Unbounded_Case_Insensitive_Equal);
+      "="          => Ada_2012.Strings.Unbounded.Equal_Case_Insensitive);
 
    subtype Phone_List is Phones_Storage.Vector;
 

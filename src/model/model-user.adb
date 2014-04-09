@@ -21,8 +21,8 @@ with
 
 with
   PBX.Action,
-  Common.Case_Insensitive_Equal,
-  Common.Case_Insensitive_Hash,
+  Ada_2012.Strings.Equal_Case_Insensitive,
+  Ada_2012.Strings.Hash_Case_Insensitive,
   Model.Peer.List,
   System_Messages;
 
@@ -54,7 +54,7 @@ package body Model.User is
    overriding
    function "=" (Left, Right : in Identities) return Boolean is
    begin
-      return Common.Case_Insensitive_Equal
+      return Ada_2012.Strings.Equal_Case_Insensitive
         (Left  => To_String (Left),
          Right => To_String (Right));
    end "=";
@@ -173,7 +173,7 @@ package body Model.User is
 
    function Hash (Identity : Identities) return Ada.Containers.Hash_Type is
    begin
-      return Common.Case_Insensitive_Hash (Key => To_String (Identity));
+      return Ada_2012.Strings.Hash_Case_Insensitive (Key => To_String (Identity));
    end Hash;
 
    -----------

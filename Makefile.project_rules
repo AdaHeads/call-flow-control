@@ -1,3 +1,9 @@
+ada_2012_extensions:
+	if [ ! -d ada_2012_extensions ]; then ( rm -f ada_2012_extensions && git clone https://github.com/AdaHeads/Ada_2012 ada_2012_extensions ); fi
+
+ada_2012_extensions-update: ada_2012_extensions
+	cd ada_2012_extensions && git pull
+
 black:
 	if [ ! -d black ]; then ( rm -f black && git clone https://github.com/AdaHeads/Black black ); fi
 
@@ -16,5 +22,5 @@ gnat-sockets-extras-update: gnat-sockets-extras
 	rm -f gnat-sockets-extras/src/gnat-sockets-compatibility.ads
 	rm -f gnat-sockets-extras/src/gnat-sockets-compatibility.adb
 
-.PHONY: black-update gnat-sockets-extras-update
+.PHONY: ada_2012_extensions-update black-update gnat-sockets-extras-update
 

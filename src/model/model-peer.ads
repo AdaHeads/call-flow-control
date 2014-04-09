@@ -26,8 +26,8 @@ with
 private
 with
   Common,
-  Common.Unbounded_Case_Insensitive_Equal,
-  Common.Unbounded_Case_Insensitive_Hash;
+  Ada_2012.Strings.Unbounded.Equal_Case_Insensitive,
+  Ada_2012.Strings.Unbounded.Hash_Case_Insensitive;
 
 package Model.Peer is
    use Ada.Strings.Unbounded;
@@ -93,8 +93,8 @@ private
    package Peer_Storage is new Ada.Containers.Hashed_Maps
      (Key_Type        => Identification,
       Element_Type    => Peer.Instance,
-      Hash            => Common.Unbounded_Case_Insensitive_Hash,
-      Equivalent_Keys => Common.Unbounded_Case_Insensitive_Equal);
+      Hash            => Ada_2012.Strings.Unbounded.Hash_Case_Insensitive,
+      Equivalent_Keys => Ada_2012.Strings.Unbounded.Equal_Case_Insensitive);
 
    subtype Peer_Maps is Peer_Storage.Map;
 
