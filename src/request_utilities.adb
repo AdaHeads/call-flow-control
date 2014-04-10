@@ -15,18 +15,20 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Client;
-with AWS.Messages;
-with Black.Response;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+
+with Black.HTTP,
+     Black.Parameter.Vectors,
+     Black.Response;
+
 with GNATCOLL.JSON;
 
 with Configuration,
+     HTTP.Client,
      Protocol_Definitions,
      System_Messages;
 
 package body Request_Utilities is
-   use AWS.Client,
-       AWS.Messages;
    package Config renames Configuration;
 
    ----------------
@@ -35,10 +37,16 @@ package body Request_Utilities is
 
    function Token_Of (Request : in Black.Request.Instance)
                       return Model.Token.Instance is
-      use Black.Request;
-      Token_String  : String renames Parameters (Request).Get ("token");
+      use Black.Parameter.Vectors;
+      Token : Unbounded_String := Null_Unbounded_String;
    begin
-      return Model.Token.Create (Value => Token_String);
+      for C in Request.Parameters.Iterate loop
+         if To_String (Element (C).Key) = "token" then
+            Token := Element (C).Value;
+         end if;
+      end loop;
+
+      return Model.Token.Create (Value => To_String (Token));
    end Token_Of;
 
    ---------------
@@ -59,25 +67,25 @@ package body Request_Utilities is
         Config.Auth_Server & Separator &
         Token_Path & Separator &
         Request_Token.To_String;
-      Response   : Black.Response.Instance;
    begin
+      declare
+         use type Black.HTTP.Statuses;
+         Response : Black.Response.Class := HTTP.Client.Get (URL => URL);
+      begin
+         System_Messages.Debug
+           (Message => URL & " status : HTTP " &
+                       Black.HTTP.Statuses'Image (Response.Status),
+            Context => Context);
 
-      Response := AWS.Client.Get (URL => URL);
+         if Response.Status = Black.HTTP.OK then
+            In_JSON := GNATCOLL.JSON.Read
+              (Strm => Response.Content);
 
-      System_Messages.Debug
-        (Message => URL & " status : HTTP " &
-           Black.Response.Status_Code (Response)'Img,
-         Context => Context);
-
-      if Black.Response.Status_Code (Response) = S200 then
-         In_JSON := GNATCOLL.JSON.Read
-           (Strm => Black.Response.Message_Body (Response));
-
-         return Model.User.Create (In_JSON);
-      else
-         return Model.User.No_User;
-      end if;
-
+            return Model.User.Create (In_JSON);
+         else
+            return Model.User.No_User;
+         end if;
+      end;
    exception
       when others =>
          System_Messages.Error (Message => "User lookup failed! on URL " &
