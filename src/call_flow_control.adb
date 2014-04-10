@@ -21,15 +21,13 @@ with
   PBX,
   Build_Constants,
   Configuration,
-  Handlers.API_Tasks,
-  HTTP_Server,
+  Handlers.Route,
+  HTTP.Server,
   SIGHUP,
   SIGHUP_Handler,
   System_Messages,
   Util.Command_Line,
   Util.Process_Control;
-
-pragma Unreferenced (Handlers.API_Tasks); --  In charge of processing requests.
 
 procedure Call_FLow_Control is
    use System_Messages;
@@ -39,6 +37,13 @@ procedure Call_FLow_Control is
 
    Context : constant String := "Call_Flow_Control";
 
+   task HTTP_Task;
+
+   task body HTTP_Task is
+   begin
+      HTTP.Server.Run;
+   end HTTP_Task;
+
 begin
    if Util.Command_Line.Got_Argument ("--help") then
       Configuration.Show_Arguments;
@@ -47,16 +52,14 @@ begin
       SIGHUP.Register (Handler => SIGHUP_Handler.Caught_Signal'Access);
 
       Configuration.Load_Config;
-
       System_Messages.Open_Log_Files;
-
       PBX.Start;
-      HTTP_Server.Listen (On_Port => Configuration.HTTP_Port);
+      Handlers.Route.Register_Handlers;
 
       Util.Process_Control.Wait;
       --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
 
-      HTTP_Server.Stop;
+      HTTP.Server.Stop;
       PBX.Stop;
       SIGHUP.Stop;
       System_Messages.Close_Log_Files;
@@ -71,6 +74,7 @@ exception
         (Message => "Shutting down due to unhandled exception: " &
                     Ada.Exceptions.Exception_Information (Event),
          Context => Context);
-      HTTP_Server.Stop;
+      HTTP.Server.Stop;
       PBX.Stop;
+      SIGHUP.Stop;
 end Call_FLow_Control;
