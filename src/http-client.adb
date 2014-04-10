@@ -6,7 +6,6 @@ with
 with
   Black.HTTP,
   Black.Request,
-  Black.Response,
   GNAT.Sockets.Convenience;
 
 package body HTTP.Client is
@@ -44,7 +43,7 @@ package body HTTP.Client is
             Last := Last + 1;
          end loop;
 
-         return URL (URL'First + Prefix'Length, Last);
+         return URL (URL'First + Prefix'Length .. Last);
       else
          raise Constraint_Error
            with "We only do plain HTTP connections.";
@@ -87,7 +86,6 @@ package body HTTP.Client is
       use Ada.Characters.Handling, Ada.Strings.Fixed;
       Prefix : constant String := "http://" & Host (URL);
       First  : Positive;
-      Last   : Positive;
    begin
       if To_Lower (Head (URL, Prefix'Length)) = Prefix then
          First := URL'First + Prefix'Length;
