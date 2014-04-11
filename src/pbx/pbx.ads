@@ -15,6 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+private
 with ESL.Basic_Client;
 
 package PBX is
@@ -37,15 +38,13 @@ package PBX is
    --  Wraps the connection and wait mechanism and provides a neat callback
    --  for the On_Disconnect event in the ESL.Client.
 
-   Client : ESL.Basic_Client.Instance;
-
 private
    type Reply_Ticket is tagged null record;
-   --  Null_Reply : constant Reply_Ticket := Reply_Ticket (AMI.Null_Action_ID);
 
    Connection_Delay        : Duration     := 1.0;
    Shutdown                : Boolean      := False;
 
+   Client                  : ESL.Basic_Client.Instance;
    Event_Client            : ESL.Basic_Client.Instance;
 
 end PBX;

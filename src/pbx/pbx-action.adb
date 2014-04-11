@@ -15,26 +15,23 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Ada.Characters.Latin_1,
-  Ada.Strings.Fixed,
-  Ada.Strings.Unbounded;
+with Ada.Characters.Latin_1,
+     Ada.Strings.Fixed,
+     Ada.Strings.Unbounded;
 
 with ESL.Reply,
      ESL.UUID,
      ESL.Command.Core,
      ESL.Command.Call_Management,
      ESL.Command.Option,
-     ESL.Command.Miscellaneous;
+     ESL.Command.Miscellaneous,
+     GNATCOLL.JSON;
 
-with GNATCOLL.JSON;
-with PBX.Trace,
-     PBX.Magic_Constants;
-
-with Model.Peer.List;
-
-with System_Messages;
-with Util.Image;
+with Model.Peer.List,
+     PBX.Trace,
+     PBX.Magic_Constants,
+     System_Messages,
+     Util.Image;
 
 package body PBX.Action is
    use GNATCOLL.JSON;
