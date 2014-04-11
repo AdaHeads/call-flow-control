@@ -15,13 +15,20 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNAT.Sockets;
-with Black.Request;
+with HTTP;
 
 private
-package Handlers.Not_Found is
-   Package_Name : constant String := "Handlers.Not_Found";
+with Black.Request,
+     Black.Response;
 
-   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
-                     Request : in     Black.Request.Instance);
+package Handlers.Not_Found is
+   function Callback return HTTP.Callback;
+   --  Return a callback for the Not_Found (404) response.
+
+private
+
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Class;
+   --  Add a generated JSON_String to Response_Object and set HTTP status code
+   --  to 404.
 end Handlers.Not_Found;

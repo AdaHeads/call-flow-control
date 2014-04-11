@@ -15,8 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  https://github.com/AdaHeads/Call-Flow-Control/wiki/Protocol-Call-Transfer
-
 --  Reponse handler for bridging a current call (active channel) to another
 --  active call. This is used for performing attended transfers.
 --
@@ -26,15 +24,22 @@
 --  Returns: HTTP 404 Not found and a JSON body any of the calls are not found.
 --           HTTP 200 OK and a JSON body otherwise.
 
-with Black.Response,
-     Black.Request;
+with HTTP,
+     Black.Request,
+     Black.Response;
 
 package Handlers.Call.Transfer is
+   package Client renames Black;
+   package Server renames Black;
+
    Package_Name : constant String := "Handlers.Call.Transfer";
 
-   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
-                     Request : in     Black.Request.Instance);
+   function Callback return HTTP.Callback;
+
 private
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Server.Response.Class;
+
    Source_String      : constant String := "source";
    Destination_String : constant String := "destination";
    --  These are the required parameters.

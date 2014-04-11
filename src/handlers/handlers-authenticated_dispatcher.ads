@@ -19,7 +19,8 @@ with Black.HTTP,
      Black.Request,
      Black.Response;
 
-with Model.User;
+with HTTP,
+     Model.User;
 
 private
 with Ada.Containers.Indefinite_Hashed_Maps,
@@ -30,12 +31,13 @@ package Handlers.Authenticated_Dispatcher is
 
    Package_Name : constant String := "Handlers.Authenticated_Dispatcher";
 
-   function Run (Request : in Black.Request.Instance) return Black.Response.Instance;
+   function Run (Request : in Black.Request.Instance)
+                return Black.Response.Class;
 
    procedure Set_Default (Method : in Black.HTTP.Methods;
-                          Action : in Black.Response.Callback);
+                          Action : in HTTP.Callback);
 
-   procedure Set_Default (Action : in Black.Response.Callback);
+   procedure Set_Default (Action : in HTTP.Callback);
 
    type ACL (Public : Boolean) is
       record
@@ -45,21 +47,21 @@ package Handlers.Authenticated_Dispatcher is
          end case;
       end record;
 
-   procedure Register (Method  : in Black.HTTP.Methods;
-                       URI     : in String;
-                       Allowed : in ACL;
-                       Action  : in Black.Response.Callback);
+   procedure Register (Method  : in     Black.HTTP.Methods;
+                       URI     : in     String;
+                       Allowed : in     ACL;
+                       Action  : in     HTTP.Callback);
 private
-   function Key (Method   : in     Black.HTTP.Methods;
-                 Resource : in     String) return String;
+   function Key (Method   : in Black.HTTP.Methods;
+                 Resource : in String) return String;
 
-   function Not_Authorized (Request : in     Black.Request.Instance)
-                            return Black.Response.Instance;
+   function Not_Authorized (Request : in Black.Request.Instance)
+                           return Black.Response.Class;
 
    type Handler (Public : Boolean) is
       record
          Allowed : ACL (Public);
-         Action  : Black.Response.Callback;
+         Action  : HTTP.Callback;
       end record;
 
    package Handler_Maps is
@@ -69,7 +71,7 @@ private
              Hash            => Ada.Strings.Hash,
              Equivalent_Keys => "=");
 
-   Default_Action : array (Black.HTTP.Methods) of Black.Response.Callback
+   Default_Action : array (Black.HTTP.Methods) of HTTP.Callback
                       := (others => Not_Authorized'Access);
    Handler_List   : Handler_Maps.Map;
 end Handlers.Authenticated_Dispatcher;

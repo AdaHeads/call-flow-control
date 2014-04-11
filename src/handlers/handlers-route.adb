@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Net.WebSocket.Registry;
+with Black.HTTP;
 
 with Handlers.Authenticated_Dispatcher,
      Model.User,
@@ -31,15 +31,15 @@ with Handlers.Call.Hangup,
      Handlers.CORS_Preflight,
      Handlers.Debug,
      Handlers.Not_Found,
-     Handlers.Notifications,
-     Handlers.User.List;
+     Handlers.Users.List;
+     --  Handlers.Users.Profile;
 
 package body Handlers.Route is
 
    Handlers_Registered : Boolean := False;
 
    function Callback (Request : in Black.Request.Instance)
-                     return Black.Response.Instance is
+                     return Black.Response.Class is
    begin
       if Handlers_Registered then
          return Handlers.Authenticated_Dispatcher.Run (Request);
@@ -107,7 +107,7 @@ package body Handlers.Route is
    end Permission_Operations;
 
    procedure Register_Handlers is
-      use Black.Request;
+      use Black.HTTP, Black.Request;
       use Handlers.Authenticated_Dispatcher;
       use Permission_Operations;
 
@@ -122,40 +122,29 @@ package body Handlers.Route is
       --  If no request methods has been set in the request we treat the
       --  request as failed and return a 404 Not Found.
 
-      Set_Default (Method => OPTIONS,
+      Set_Default (Method => Options,
                    Action => CORS_Preflight.Callback);
       --  This is for CORS preflight requests.
 
-   --  pragma Style_Checks ("M100"); --  Allow long lines in the routing table
+      pragma Style_Checks ("M100"); --  Allow long lines in the routing table
 
-      --  Call control and information handlers.
-      Register (GET,  "/call/list",      Receptionist, Call.List.Callback);
-      Register (GET,  "/call/queue",     Receptionist, Call.Queue.Callback);
-      Register (POST, "/call/hangup",    Receptionist, Call.Hangup.Callback);
+      Register (Get,  "/call/list",             Receptionist,  Call.List.Callback);
+      Register (Get,  "/call/queue",            Receptionist,  Call.Queue.Callback);
+      Register (Post, "/call/hangup",           Receptionist,  Call.Hangup.Callback);
+      Register (Post, "/call/originate",        Receptionist,  Call.Originate.Callback);
+      Register (Post, "/call/park",             Receptionist,  Call.Park.Callback);
+      Register (Post, "/call/pickup",           Receptionist,  Call.Pickup.Callback);
+      Register (Post, "/call/transfer",         Receptionist,  Call.Transfer.Callback);
 
-      Register (POST, "/call/originate",
-                Receptionist,
-                Call.Originate.Callback);
+      Register (Get,  "/users/list",            Administrator, Users.List.Callback);
+      --  Register (Get,  "/users",                 Receptionist,  Users.Profile.Callback);
 
-      Register (POST, "/call/park",     Receptionist, Call.Park.Callback);
-      Register (POST, "/call/pickup",   Receptionist, Call.Pickup.Callback);
-      Register (POST, "/call/transfer", Receptionist, Call.Transfer.Callback);
+      Register (Get, "/debug/channel/list",     Public,        Debug.Channel_List'Access);
+      Register (Get, "/debug/contact",          Public,        Debug.Contact'Access);
+      Register (Get, "/debug/peer/list",        Public,        Debug.Peer_List'Access);
+      Register (Get, "/debug/token/dummy_list", Public,        Debug.Dummy_Tokens'Access);
 
-      --  User related handlers.
-      Register (GET,  "/user/list", Administrator, User.List.Callback);
-      Register (GET,  "/user",      Receptionist,  User.Profile'Access);
-
-      --  Debug handles, disable when in production.
-      Register (GET, "/debug/channel/list", Public, Debug.Channel_List'Access);
-      Register (GET, "/debug/contact", Public, Debug.Contact'Access);
-      Register (GET, "/debug/peer/list",    Public, Debug.Peer_List'Access);
-      Register (GET, "/debug/token/dummy_list", Public,
-                Debug.Dummy_Tokens'Access);
-
-      --  Our notification socket for asynchonous events sent to the clients.
-      AWS.Net.WebSocket.Registry.Register
-        (URI     => "/notifications",
-         Factory => Notifications.Create'Access);
+      pragma Style_Checks ("M79");
 
       System_Messages.Information (Message => "Registered request handlers.",
                                    Context => Context);

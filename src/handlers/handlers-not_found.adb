@@ -15,18 +15,26 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Black.Response;
-
-with Response.Templates;
-
 package body Handlers.Not_Found is
 
-   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
-                     Request : in     Black.Request.Instance) is
+   ----------------
+   --  Callback  --
+   ----------------
+
+   function Callback return HTTP.Callback is
    begin
-      Black.Response.Instance'Output
-        (Stream,
-         Response.Templates.Not_Found (Request));
-   end Handle;
+      return Generate_Response'Access;
+   end Callback;
+   --  Return a callback for the Not_Found (404) response.
+
+   -------------------------
+   --  Generate_Response  --
+   -------------------------
+
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Class is
+   begin
+      return Black.Response.Not_Found (Resource => Request.Resource);
+   end Generate_Response;
 
 end Handlers.Not_Found;

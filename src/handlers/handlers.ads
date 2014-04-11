@@ -15,11 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Black.HTTP;
-
 package Handlers is
-
-   package HTTP renames Black.HTTP;
 
    Not_Authenticated : exception;
 

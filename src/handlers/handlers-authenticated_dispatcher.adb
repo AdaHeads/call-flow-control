@@ -26,8 +26,8 @@ package body Handlers.Authenticated_Dispatcher is
    --  Key  --
    -----------
 
-   function Key (Method   : in     Black.HTTP.Methods;
-                 Resource : in     String) return String is
+   function Key (Method   : in Black.HTTP.Methods;
+                 Resource : in String) return String is
    begin
       return Black.HTTP.Methods'Image (Method) & ":" & Resource;
    end Key;
@@ -36,8 +36,8 @@ package body Handlers.Authenticated_Dispatcher is
    --  Not_Authorized  --
    ----------------------
 
-   function Not_Authorized (Request : in     Black.Request.Instance)
-                            return Black.Response.Instance is
+   function Not_Authorized (Request : in Black.Request.Instance)
+                            return Black.Response.Class is
    begin
       return Response.Templates.Not_Authorized (Request => Request);
    end Not_Authorized;
@@ -48,10 +48,10 @@ package body Handlers.Authenticated_Dispatcher is
    procedure Register (Method  : in     Black.HTTP.Methods;
                        URI     : in     String;
                        Allowed : in     ACL;
-                       Action  : in     Black.Response.Callback) is
+                       Action  : in     HTTP.Callback) is
    begin
-      Handler_List.Insert (Key      => Key (Method => Method,
-                                            URI    => URI),
+      Handler_List.Insert (Key      => Key (Method   => Method,
+                                            Resource => URI),
                            New_Item => (Public  => Allowed.Public,
                                         Allowed => Allowed,
                                         Action  => Action));
@@ -61,27 +61,24 @@ package body Handlers.Authenticated_Dispatcher is
    --  Run  --
    -----------
 
-   function Run (Request : in Black.Request.Instance) return Black.Response.Instance is
-      use Black.Request;
+   function Run (Request : in Black.Request.Instance)
+                 return Black.Response.Class is
       use Model;
       use Model.User;
 
       Context     : constant String := Package_Name & ".Run";
 
-      Request_Key : constant String := Key (Method => Method (Request),
-                                            URI    => URI (Request));
+      Request_Key : constant String := Key (Method   => Request.Method,
+                                            Resource => Request.Resource);
    begin
 
       if Handler_List.Contains (Request_Key) then
          declare
             Selected : constant Handler := Handler_List.Element (Request_Key);
             Allowed  : ACL renames Selected.Allowed;
-            Detected_User : User.Instance := No_User;
+            Detected_User : constant User.Instance :=
+              Request_Utilities.User_Of (Request);
          begin
-
-            if Parameters (Request).Exist ("token") then
-               Detected_User := Request_Utilities.User_Of (Request);
-            end if;
 
             if Allowed.Public then
                return Selected.Action (Request);
@@ -96,7 +93,7 @@ package body Handlers.Authenticated_Dispatcher is
             end if;
          end;
       else
-         return Default_Action (Method (Request)) (Request);
+         return Default_Action (Request.Method) (Request);
       end if;
    exception
       when Event : others =>
@@ -107,15 +104,15 @@ package body Handlers.Authenticated_Dispatcher is
             Event   => Event,
             Context => Context);
 
-         return Response.Templates.Server_Error;
+         return Response.Templates.Not_Authorized (Request => Request);
    end Run;
 
    -------------------
    --  Set_Default  --
    -------------------
 
-   procedure Set_Default (Method : in Black.Request.Request_Method;
-                          Action : in Black.Response.Callback) is
+   procedure Set_Default (Method : in Black.HTTP.Methods;
+                          Action : in HTTP.Callback) is
    begin
       Default_Action (Method) := Action;
    end Set_Default;
@@ -124,7 +121,7 @@ package body Handlers.Authenticated_Dispatcher is
    --  Set_Default  --
    -------------------
 
-   procedure Set_Default (Action : in Black.Response.Callback) is
+   procedure Set_Default (Action : in HTTP.Callback) is
    begin
       Default_Action := (others => Action);
    end Set_Default;

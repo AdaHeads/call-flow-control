@@ -27,12 +27,11 @@ with Ada.Strings.Unbounded,
      View;
 
 package body Handlers.Call.Pickup is
-   use Black.Request,
-       System_Messages,
+   use System_Messages,
        View,
        Model;
 
-   function Callback return Black.Response.Callback is
+   function Callback return HTTP.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
@@ -41,8 +40,8 @@ package body Handlers.Call.Pickup is
    --  Generate_Response  --
    -------------------------
 
-   function Generate_Response (Request : in Black.Request.Instance)
-                               return Black.Response.Instance
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Class
    is
       use Ada.Strings.Unbounded;
       use type Model.Call.Instance;
@@ -52,8 +51,9 @@ package body Handlers.Call.Pickup is
       User              : Model.User.Instance
       renames Request_Utilities.User_Of (Request);
       Assigned_Call     : Model.Call.Instance;
-      Call_ID_Param    : String renames
-        Parameters (Request).Get (Name => Call_ID_String);
+      Call_ID_Param    : String renames Request.Parameter
+        (Key => Call_ID_String,
+         Default => Model.Call.Null_Identification.Image);
       Call_ID          : Model.Call.Identification :=
         Model.Call.Null_Identification;
    begin
@@ -67,7 +67,7 @@ package body Handlers.Call.Pickup is
             Response_Body => Description ("User has no peer unavailable"));
       end if;
 
-      if Parameters (Request).Exist (Call_ID_String) then
+      if Request.Has_Parameter (Key => Call_ID_String) then
          Call_ID := Model.Call.Value (Call_ID_Param);
          System_Messages.Debug
            (Message => "Picking call " & Call_ID.Image,
@@ -110,15 +110,12 @@ package body Handlers.Call.Pickup is
       when Model.Call.Not_Found =>
          return Response.Templates.Not_Found
            (Request       => Request,
-            Response_Body => Description
-              ("Call not found " &
-                 Parameters (Request).Get (Name => Call_ID.Image)));
+            Response_Body => Description ("Call not found " & Call_ID_Param));
 
       when Model.Call.Not_Available =>
          return Response.Templates.Bad_Parameters
            (Request       => Request,
-            Response_Body => Description
-              ("Call is not available to user."));
+            Response_Body => Description ("Call is not available to user."));
 
       when Model.Peer.Peer_Not_Registered =>
          System_Messages.Error

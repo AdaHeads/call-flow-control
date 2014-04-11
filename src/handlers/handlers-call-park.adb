@@ -23,15 +23,13 @@ with Model.Call,
      System_Messages;
 
 package body Handlers.Call.Park is
-   use Black.Request,
-       System_Messages,
-       Model;
+   use System_Messages;
 
    ----------------
    --  Callback  --
    ----------------
 
-   function Callback return Black.Response.Callback is
+   function Callback return HTTP.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
@@ -41,11 +39,14 @@ package body Handlers.Call.Park is
    -------------------------
 
    function Generate_Response (Request : in Black.Request.Instance)
-                               return Black.Response.Instance is
+                               return Black.Response.Class is
       Context : constant String := Package_Name & ".Generate_Response";
 
       Call_ID           : Model.Call.Identification renames
-        Model.Call.Value (Parameters (Request).Get (Call_ID_String));
+        Model.Call.Value
+          (Request.Parameter
+               (Key     => Call_ID_String,
+                Default => Model.Call.Null_Identification.Image));
 
    begin
 

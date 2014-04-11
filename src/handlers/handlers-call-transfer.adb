@@ -15,24 +15,22 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  ESL.UUID;
+with ESL.UUID;
 
 with Model.Call,
-     Model.Transfer_Requests,
-     PBX,
-     PBX.Action,
-     Response.Templates,
-     System_Messages,
-     View;
+  Model.Transfer_Requests,
+  PBX,
+  PBX.Action,
+  Response.Templates,
+  System_Messages,
+  View;
 
 package body Handlers.Call.Transfer is
-   use Black.Request,
-       System_Messages,
-       View,
-       Model;
+   use System_Messages,
+     View,
+     Model;
 
-   function Callback return Black.Response.Callback is
+   function Callback return HTTP.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
@@ -42,7 +40,7 @@ package body Handlers.Call.Transfer is
    -------------------------
 
    function Generate_Response (Request : in Black.Request.Instance)
-                               return Black.Response.Instance
+                              return Black.Response.Class
    is
       use Model.Call;
       use type ESL.UUID.Instance;
@@ -53,8 +51,8 @@ package body Handlers.Call.Transfer is
       Destination     : Model.Call.Identification := Null_Identification;
    begin
       --  Check valitity of the call. (Will raise exception on invalid).
-      Source      := Value (Parameters (Request).Get (Source_String));
-      Destination := Value (Parameters (Request).Get (Destination_String));
+      Source      := Value (Request.Parameter (Key => Source_String));
+      Destination := Value (Request.Parameter (Key => Destination_String));
 
       --  Sanity checks.
       if
@@ -107,8 +105,8 @@ package body Handlers.Call.Transfer is
       when Model.Call.Not_Found =>
          return Response.Templates.Not_Found
            (Request       => Request,
-            Response_Body => Description ("No call found with ID " &
-                Parameters (Request).Get ("source")));
+            Response_Body => Description ("At least one of the calls were " &
+                                            "no longer available"));
 
       when E : others =>
          Model.Transfer_Requests.Decline (IDs => (ID1 => Source,

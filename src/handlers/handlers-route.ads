@@ -17,19 +17,18 @@
 
 --  Application specific resource handlers.
 
-with
-  Black.Request,
-  Black.Response;
+with Black.Request,
+     Black.Response;
 
 package Handlers.Route is
 
    Package_Name : constant String := "Handlers.Route";
 
    function Callback (Request : in Black.Request.Instance)
-                     return Black.Response.Instance;
+                     return Black.Response.Class;
    --  Register content dispatchers for the server.
 
    procedure Register_Handlers;
-   --  Performs the handler registration.
+   --  Performs the handler registration. (Initialization).
 
 end Handlers.Route;

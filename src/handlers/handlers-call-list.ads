@@ -15,19 +15,23 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  https://github.com/AdaHeads/Call-Flow-Control/wiki/Protocol-Call-List
-
 --  Reponse handler for listing all calls visible to the user.
 --
 --  Parameters: None
 --  Returns: A JSON response with the call list embedded.
 
-with Black.Response,
-     Black.Request;
+with HTTP,
+     Black.Request,
+     Black.Response;
 
 package Handlers.Call.List is
+
    Package_Name : constant String := "Handlers.Call.List";
 
-   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
-                     Request : in     Black.Request.Instance);
+   function Callback return HTTP.Callback;
+
+private
+   function Generate_Response (Request : Black.Request.Instance)
+                     return Black.Response.Class;
+
 end Handlers.Call.List;

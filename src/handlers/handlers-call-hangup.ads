@@ -15,8 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  https://github.com/AdaHeads/Call-Flow-Control/wiki/Protocol-Call-Hangup
-
 --  Reponse handler for hanging up a call.
 --  This effectively kills the channel, regardless of state.
 --
@@ -24,12 +22,17 @@
 --  Returns: HTTP 404 Not found and a JSON body if the call is not present.
 --           HTTP 200 OK and a JSON body otherwise.
 
-with Black.Response,
-     Black.Request;
+with HTTP,
+     Black.Request,
+     Black.Response;
 
 package Handlers.Call.Hangup is
+
    Package_Name : constant String := "Handlers.Call.Hangup";
 
-   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
-                     Request : in     Black.Request.Instance);
+   function Callback return HTTP.Callback;
+
+private
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Class;
 end Handlers.Call.Hangup;

@@ -25,7 +25,7 @@ package body Handlers.Call.List is
    --  Callback  --
    ----------------
 
-   function Callback return Black.Response.Callback is
+   function Callback return HTTP.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
@@ -35,7 +35,7 @@ package body Handlers.Call.List is
    -------------------------
 
    function Generate_Response (Request : Black.Request.Instance)
-                               return Black.Response.Instance is
+                               return Black.Response.Class is
       Context : constant String := Package_Name & ".Generate_Response";
    begin
       return Response.Templates.OK (Request       => Request,

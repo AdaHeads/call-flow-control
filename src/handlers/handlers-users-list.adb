@@ -15,19 +15,22 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Black.Response;
-with Response.Templates,
-     View;
+with View,
+     Response.Templates;
 
 package body Handlers.Users.List is
 
-   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
-                     Request : in     Black.Request.Instance) is
+   function Callback return HTTP.Callback is
    begin
-      Black.Response.Instance'Output
-        (Stream,
-         Response.Templates.Bad_Parameters
-           (Request       => Request,
-            Response_Body => View.Description (Message => "Not implemented")));
-   end Handle;
+      return Generate_Response'Access;
+   end Callback;
+
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Class is
+   begin
+      return Response.Templates.Bad_Parameters
+        (Request       => Request,
+         Response_Body => View.Description (Message => "Not implemented"));
+   end Generate_Response;
+
 end Handlers.Users.List;

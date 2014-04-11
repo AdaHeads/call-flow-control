@@ -15,8 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  https://github.com/AdaHeads/Call-Flow-Control/wiki/Protocol-Call-Pickup
-
 --  Reponse handler for transferring a current call (channel) to another
 --  extension. This is, in our case, used to redirect active inbound calls
 --  to local peers (users) - or more correctly, picking them up.
@@ -28,12 +26,18 @@
 --  Returns: HTTP 404 Not found and a JSON body if the call is not present.
 --           HTTP 200 OK and a JSON body otherwise.
 
-with Black.Response,
-     Black.Request;
+with HTTP,
+     Black.Request,
+     Black.Response;
 
 package Handlers.Call.Pickup is
+
    Package_Name : constant String := "Handlers.Call.Pickup";
 
-   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
-                     Request : in     Black.Request.Instance);
+   function Callback return HTTP.Callback;
+
+private
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Class;
+
 end Handlers.Call.Pickup;

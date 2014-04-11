@@ -15,20 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNAT.Sockets;
-with Black.Request;
-
-private
-with Black.Response;
+with Black.Request,
+     Black.Response;
 
 package Handlers.Users is
 
    Package_Name : constant String := "Handlers.Users";
 
-   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
-                     Request : in     Black.Request.Instance);
-private
    function Profile (Request : in Black.Request.Instance)
-      return Black.Response.Instance;
+                    return Black.Response.Class;
 
 end Handlers.Users;

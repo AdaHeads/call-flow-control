@@ -15,8 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Black.Response;
-
 with Model.Call,
      Model.Contact,
      Model.User,
@@ -32,8 +30,7 @@ with Model.Call,
      View.Call;
 
 package body Handlers.Call.Originate is
-   use Black.Request,
-       System_Messages,
+   use System_Messages,
        View,
        Model;
 
@@ -51,7 +48,7 @@ package body Handlers.Call.Originate is
    --  Callback  --
    ----------------
 
-   function Callback return Black.Response.Callback is
+   function Callback return HTTP.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
@@ -103,15 +100,15 @@ package body Handlers.Call.Originate is
    --  Generate_Response  --
    -------------------------
 
-   function Generate_Response
-     (Request : in Black.Request.Instance) return Black.Response.Instance is
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Class is
       use Model.User;
       use Model.Call;
 
       Context : constant String := Package_Name & ".Generate_Response";
 
       Context_Param : constant String :=
-        Parameters (Request).Get (Context_String);
+        Request.Parameter (Key => Context_String, Default => "");
 
       User              : constant Model.User.Instance :=
         Request_Utilities.User_Of (Request);
@@ -137,10 +134,10 @@ package body Handlers.Call.Originate is
 
       Origination_Context := Create (Item => Context_Param);
 
-      if Parameters (Request).Exist (Extension_String) then
+      if Request.Has_Parameter (Key => Extension_String) then
          declare
-            Extension_Param : constant String :=
-              Parameters (Request).Get (Extension_String);
+            Extension_Param : constant String := Request.Parameter
+              (Key => Extension_String, Default => "");
          begin
 
             Check_Extension (Extension_Param);
@@ -154,12 +151,12 @@ package body Handlers.Call.Originate is
                User         => User,
                Extension    => Extension_Param);
          end;
-      elsif Parameters (Request).Exist (Phone_ID_String) then
+      elsif Request.Has_Parameter (Key => Phone_ID_String) then
          declare
             R_ID : Reception_Identifier;
             C_ID : Contact_Identifier;
             P_ID_Param : constant String :=
-              Parameters (Request).Get (Phone_ID_String);
+              Request.Parameter (Key => Phone_ID_String, Default => "");
             P_ID : Phone_Identifier;
          begin
             R_ID :=  Reception_Identifier'Value ("" & Context_Param (3));

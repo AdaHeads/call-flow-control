@@ -15,20 +15,25 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  https://github.com/AdaHeads/Call-Flow-Control/wiki/Protocol-Call-Park
-
 --  Reponse handler for putting the users current call on hold.
 --
 --  Parameters: None
 --  Returns: HTTP 404 Not found and a JSON body if the call is not present.
 --           HTTP 200 OK and a JSON body otherwise.
 
-with Black.Response,
-     Black.Request;
+with HTTP,
+     Black.Request,
+     Black.Response;
 
 package Handlers.Call.Park is
+
    Package_Name : constant String := "Handlers.Call.Park";
 
-   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
-                     Request : in     Black.Request.Instance);
+   function Callback return HTTP.Callback;
+
+private
+
+   function Generate_Response (Request : Black.Request.Instance)
+                               return Black.Response.Class;
+
 end Handlers.Call.Park;

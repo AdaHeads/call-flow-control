@@ -15,38 +15,18 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Handlers.Not_Found,
-     Handlers.Users.List,
-     Handlers.Users.Pause,
-     Namespaces,
-     Response.Templates,
+with Response.Templates,
      Request_Utilities;
 
 package body Handlers.Users is
-   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
-                     Request : in     Black.Request.Instance) is
-   begin
-      case Namespaces.Users_Resource (Request) is
-         when Namespaces.Not_Found =>
-            Handlers.Not_Found.Handle (Stream  => Stream,
-                                       Request => Request);
-         when Namespaces.List =>
-            Handlers.Users.List.Handle (Stream  => Stream,
-                                        Request => Request);
-         when Namespaces.Pause =>
-            Handlers.Users.Pause.Handle (Stream  => Stream,
-                                         Request => Request);
-      end case;
-   end Handle;
 
    ---------------
    --  Profile  --
    ---------------
 
    function Profile (Request : in Black.Request.Instance)
-                      return Black.Response.Instance is
+                    return Black.Response.Class is
    begin
-
       return Response.Templates.OK
         (Request       => Request,
          Response_Body => Request_Utilities.User_Of (Request).To_JSON);

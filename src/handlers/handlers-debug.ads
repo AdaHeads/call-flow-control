@@ -15,35 +15,35 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Black.Response;
-with Black.Request;
+with Black.Request,
+     Black.Response;
 
 private
 package Handlers.Debug is
 
    function Dummy_Response
      (Request : in Black.Request.Instance)
-      return Black.Response.Instance;
+      return Black.Response.Class;
    --  Just sends 200 OK, good for outlining.
 
    function Peer_List
      (Request : in Black.Request.Instance)
-      return Black.Response.Instance;
+      return Black.Response.Class;
    --  Sends the current peer list to the client
 
    function Channel_List
      (Request : in Black.Request.Instance)
-      return Black.Response.Instance;
+      return Black.Response.Class;
    --  Sends the current channel list to the client
 
    function Contact
      (Request : in Black.Request.Instance)
-      return Black.Response.Instance;
+      return Black.Response.Class;
    --  Tests the contact retrieval.
 
    function Dummy_Tokens
      (Request : in Black.Request.Instance)
-      return Black.Response.Instance;
+      return Black.Response.Class;
    --  Sends the current channel list to the client
 
 end Handlers.Debug;

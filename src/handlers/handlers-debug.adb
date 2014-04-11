@@ -30,7 +30,7 @@ package body Handlers.Debug is
    --------------------
 
    function Channel_List (Request : in Black.Request.Instance)
-                          return Black.Response.Instance is
+                          return Black.Response.Class is
       use GNATCOLL.JSON;
    begin
       return Response.Templates.Server_Error
@@ -44,7 +44,7 @@ package body Handlers.Debug is
 
    function Contact
      (Request : in Black.Request.Instance)
-      return Black.Response.Instance is
+      return Black.Response.Class is
       use GNATCOLL.JSON;
    begin
       return Response.Templates.Server_Error
@@ -60,7 +60,7 @@ package body Handlers.Debug is
 
    function Dummy_Response
      (Request : in Black.Request.Instance)
-      return Black.Response.Instance is
+      return Black.Response.Class is
    begin
       return Response.Templates.OK (Request);
    end Dummy_Response;
@@ -70,7 +70,7 @@ package body Handlers.Debug is
    --------------------
 
    function Dummy_Tokens (Request : in Black.Request.Instance)
-                       return Black.Response.Instance is
+                       return Black.Response.Class is
    begin
       return Response.Templates.OK
         (Request       => Request,
@@ -82,7 +82,7 @@ package body Handlers.Debug is
    -----------------
 
    function Peer_List (Request : in Black.Request.Instance)
-                       return Black.Response.Instance is
+                       return Black.Response.Class is
    begin
       return Response.Templates.OK
         (Request       => Request,

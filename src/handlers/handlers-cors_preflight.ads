@@ -15,19 +15,21 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with HTTP;
+
+private
 with Black.Response,
      Black.Request;
 
 private
 package Handlers.CORS_Preflight is
 
-   function Callback
-     return Black.Response.Callback;
+   function Callback return HTTP.Callback;
    --  Return a callback for the OPTIONS CORS preflight response (200).
 
 private
 
    function Generate_Response (Request : Black.Request.Instance)
-     return Black.Response.Instance;
+                              return Black.Response.Class;
 
 end Handlers.CORS_Preflight;

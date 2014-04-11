@@ -16,6 +16,7 @@
 -------------------------------------------------------------------------------
 
 with GNATCOLL.JSON;
+
 with Response.Templates;
 
 package body Handlers.CORS_Preflight is
@@ -24,19 +25,19 @@ package body Handlers.CORS_Preflight is
    --  Callback --
    ---------------
 
-   function Callback
-     return Black.Response.Callback
-   is
+   --  Return a callback for the OPTIONS CORS preflight response (200).
+
+   function Callback return HTTP.Callback is
    begin
       return Generate_Response'Access;
    end Callback;
 
    function Generate_Response (Request : Black.Request.Instance)
-                         return Black.Response.Instance is
+                              return Black.Response.Class is
    begin
-      return Response.Templates.OK (Request       => Request,
-                                    Response_Body => GNATCOLL.JSON.Create);
+      return Response.Templates.OK
+        (Request       => Request,
+         Response_Body => GNATCOLL.JSON.Create_Object);
    end Generate_Response;
-   --  Return a callback for the OPTIONS CORS preflight response (200).
 
 end Handlers.CORS_Preflight;
