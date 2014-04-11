@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2013-, AdaHeads K/S                     --
+--                     Copyright (C) 2014-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,6 +15,20 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package Handlers.Users is
-   Package_Name : constant String := "Handlers.Users";
-end Handlers.Users;
+with Response.Templates,
+     Request_Utilities;
+
+package body Handlers.Users.Profile is
+   function Callback return HTTP.Callback is
+   begin
+      return Profile'Access;
+   end Callback;
+
+   function Profile (Request : in Black.Request.Instance)
+                    return Black.Response.Class is
+   begin
+      return Response.Templates.OK
+        (Request       => Request,
+         Response_Body => Request_Utilities.User_Of (Request).To_JSON);
+   end Profile;
+end Handlers.Users.Profile;

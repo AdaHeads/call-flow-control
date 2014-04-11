@@ -31,8 +31,9 @@ with Handlers.Call.Hangup,
      Handlers.CORS_Preflight,
      Handlers.Debug,
      Handlers.Not_Found,
-     Handlers.Users.List;
-     --  Handlers.Users.Profile;
+     Handlers.Users.List,
+     Handlers.Users.Pause,
+     Handlers.Users.Profile;
 
 package body Handlers.Route is
 
@@ -137,7 +138,8 @@ package body Handlers.Route is
       Register (Post, "/call/transfer",         Receptionist,  Call.Transfer.Callback);
 
       Register (Get,  "/users/list",            Administrator, Users.List.Callback);
-      --  Register (Get,  "/users",                 Receptionist,  Users.Profile.Callback);
+      Register (Get,  "/users/pause",           Receptionist,  Users.Pause.Callback);
+      Register (Get,  "/users",                 Receptionist,  Users.Profile.Callback);
 
       Register (Get, "/debug/channel/list",     Public,        Debug.Channel_List'Access);
       Register (Get, "/debug/contact",          Public,        Debug.Contact'Access);

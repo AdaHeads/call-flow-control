@@ -15,10 +15,17 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with GNAT.Sockets;
-with Black.Request;
+with HTTP;
+
+private
+with Black.Request,
+     Black.Response;
 
 package Handlers.Users.Pause is
-   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
-                     Request : in     Black.Request.Instance);
+   Package_Name : constant String := "Handlers.Users.Pause";
+
+   function Callback return HTTP.Callback;
+private
+   function Pause (Request : in Black.Request.Instance)
+                  return Black.Response.Class;
 end Handlers.Users.Pause;

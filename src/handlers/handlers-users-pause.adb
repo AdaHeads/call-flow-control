@@ -15,16 +15,25 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with GNATCOLL.JSON;
+
 with Response.Templates;
 
 package body Handlers.Users.Pause is
-   procedure Handle (Stream  : in     GNAT.Sockets.Stream_Access;
-                     Request : in     Black.Request.Instance) is
+   function Callback return HTTP.Callback is
    begin
-      Black.Request.Instance'Output
-        (Stream,
-         Response.Templates.Bad_Parameters
-           (Request       => Request,
-            Response_Body => View.Description (Message => "Not implemented")));
-   end Handle;
+      return Pause'Access;
+   end Callback;
+
+   function Pause (Request : in Black.Request.Instance)
+                  return Black.Response.Class is
+      use GNATCOLL.JSON;
+      Not_Implemented : constant JSON_Value := Create_Object;
+   begin
+      Not_Implemented.Set_Field (Response.Status_Text, "Not implemented");
+
+      return Response.Templates.Server_Error
+        (Request       => Request,
+         Response_Body => Not_Implemented);
+   end Pause;
 end Handlers.Users.Pause;
