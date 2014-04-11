@@ -17,8 +17,7 @@
 
 with Ada.Characters.Handling;
 
-with
-  ESL.UUID;
+with ESL.UUID;
 
 package body View.Call is
    use GNATCOLL.JSON;
