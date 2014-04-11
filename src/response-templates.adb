@@ -133,6 +133,9 @@ package body Response.Templates is
    function Server_Error (Request       : in Black.Request.Instance;
                           Response_Body : in JSON_Value := Create_Object)
                          return Black.Response.Class is
+      pragma Unreferenced (Request);
+      --  Why don't we include something from the request in the response?
+
       Content : constant JSON_Value := Response_Body;
    begin
       Content.Set_Field (Status_Text, Server_Error_Reponse_Text);

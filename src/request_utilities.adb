@@ -70,7 +70,8 @@ package body Request_Utilities is
    begin
       declare
          use type Black.HTTP.Statuses;
-         Response : Black.Response.Class := HTTP.Client.Get (URL => URL);
+         Response : constant Black.Response.Class :=
+                      HTTP.Client.Get (URL => URL);
       begin
          System_Messages.Debug
            (Message => URL & " status : HTTP " &

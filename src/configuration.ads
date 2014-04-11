@@ -15,8 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  GNAT.Sockets;
+with GNAT.Sockets;
 
 package Configuration is
 
