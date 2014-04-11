@@ -15,17 +15,15 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Client,
-     AWS.Messages,
+with Black.HTTP,
      Black.Response;
 
-with System_Messages,
-     Util.Image,
-     Protocol_Definitions;
+with HTTP.Client,
+     Protocol_Definitions,
+     System_Messages,
+     Util.Image;
 
 package body Model.Contact.Utilities is
-   use Model;
-   use AWS.Messages;
 
    ----------------
    --  Retrieve  --
@@ -35,33 +33,33 @@ package body Model.Contact.Utilities is
                       Contact   : in Contact_Identifier;
                       Token     : in String;
                       From      : in String) return Instance is
-      use Protocol_Definitions;
-
       Context  : constant String := Package_Name & ".Retrieve";
+
       In_JSON  : GNATCOLL.JSON.JSON_Value;
-      Response : Black.Response.Instance;
-      URL      : constant String := From &
-        Contact_Path    & Separator & Util.Image.Image (Contact) &
-        Reception_Path  & Separator & Util.Image.Image (Reception) &
-        Token_Parameter & Token;
    begin
+      declare
+         use Protocol_Definitions;
+         use type Black.HTTP.Statuses;
+         URL : constant String :=
+           From &
+           Contact_Path    & Separator & Util.Image.Image (Contact) &
+           Reception_Path  & Separator & Util.Image.Image (Reception) &
+           Token_Parameter & Token;
+         Response : constant Black.Response.Class := HTTP.Client.Get (URL);
+      begin
+         System_Messages.Debug
+           (Message => URL & " status : HTTP " &
+                       Black.HTTP.Statuses'Image (Response.Status),
+            Context => Context);
 
-      Response := AWS.Client.Get (URL);
+         if Response.Status = Black.HTTP.OK then
+            In_JSON := GNATCOLL.JSON.Read (Strm => Response.Content);
 
-      System_Messages.Debug
-        (Message => URL & " status : HTTP " &
-           Black.Response.Status_Code (Response)'Img,
-         Context => Context);
-
-      if Black.Response.Status_Code (Response) = S200 then
-         In_JSON := GNATCOLL.JSON.Read
-           (Strm => Black.Response.Message_Body (Response));
-
-         return Model.Contact.Create_From_JSON (In_JSON);
-      else
-         return Model.Contact.No_Contact;
-      end if;
-
+            return Model.Contact.Create_From_JSON (In_JSON);
+         else
+            return Model.Contact.No_Contact;
+         end if;
+      end;
    exception
       when others =>
          System_Messages.Error (Message => "Contact lookup failed!",

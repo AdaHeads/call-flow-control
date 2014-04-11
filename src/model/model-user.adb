@@ -15,16 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Ada.Strings.Fixed,
-  Ada.Strings.Maps.Constants;
+with Ada.Strings.Fixed,
+     Ada.Strings.Maps.Constants;
 
-with
-  PBX.Action,
-  Ada_2012.Strings.Equal_Case_Insensitive,
-  Ada_2012.Strings.Hash_Case_Insensitive,
-  Model.Peer.List,
-  System_Messages;
+with Ada_2012.Strings.Equal_Case_Insensitive,
+     Ada_2012.Strings.Hash_Case_Insensitive,
+     PBX.Action,
+     Model.Peer.List,
+     System_Messages;
 
 package body Model.User is
 
@@ -173,7 +171,8 @@ package body Model.User is
 
    function Hash (Identity : Identities) return Ada.Containers.Hash_Type is
    begin
-      return Ada_2012.Strings.Hash_Case_Insensitive (Key => To_String (Identity));
+      return Ada_2012.Strings.Hash_Case_Insensitive
+               (Key => To_String (Identity));
    end Hash;
 
    -----------

@@ -15,10 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Ada.Calendar;
-with
-  System_Messages;
+with Ada.Calendar,
+     System_Messages;
 
 package body Model.Peer is
    Context : constant String := "Model.Peer";

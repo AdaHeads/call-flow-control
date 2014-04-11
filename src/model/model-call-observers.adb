@@ -15,14 +15,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  ESL.Packet_Keys;
-with
-  Model.Origination_Requests,
-  Model.Transfer_Requests,
-  PBX.Magic_Constants,
-  PBX.Event_Stream,
-  System_Messages;
+with ESL.Packet_Keys;
+
+with Model.Origination_Requests,
+     Model.Transfer_Requests,
+     PBX.Magic_Constants,
+     PBX.Event_Stream,
+     System_Messages;
 
 package body Model.Call.Observers is
    use ESL.Packet_Keys;

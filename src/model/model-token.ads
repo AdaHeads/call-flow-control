@@ -15,13 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Model.User;
+with Model.User;
 
 private
-with
-  Ada.Containers.Hashed_Maps,
-  Ada.Strings.Unbounded;
+with Ada.Containers.Hashed_Maps,
+     Ada.Strings.Unbounded;
 
 package Model.Token is
    type Instance is tagged private;

@@ -15,19 +15,17 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Ada.Strings.Unbounded;
-with
-  GNATCOLL.JSON;
+with Ada.Strings.Unbounded;
+
+with GNATCOLL.JSON;
 
 private
-with
-  Ada.Containers.Hashed_Maps;
+with Ada.Containers.Hashed_Maps;
+
 private
-with
-  Common,
-  Ada_2012.Strings.Unbounded.Equal_Case_Insensitive,
-  Ada_2012.Strings.Unbounded.Hash_Case_Insensitive;
+with Ada_2012.Strings.Unbounded.Equal_Case_Insensitive,
+     Ada_2012.Strings.Unbounded.Hash_Case_Insensitive,
+     Common;
 
 package Model.Peer is
    use Ada.Strings.Unbounded;

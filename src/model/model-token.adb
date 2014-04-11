@@ -15,9 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Ada_2012.Strings.Unbounded.Equal_Case_Insensitive,
-  Ada_2012.Strings.Unbounded.Hash_Case_Insensitive;
+with Ada_2012.Strings.Unbounded.Equal_Case_Insensitive,
+     Ada_2012.Strings.Unbounded.Hash_Case_Insensitive;
 
 package body Model.Token is
 

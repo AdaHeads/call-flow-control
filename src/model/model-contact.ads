@@ -15,19 +15,17 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  GNATCOLL.JSON;
-with
-  Model.Phone,
-  Model.Token;
+with GNATCOLL.JSON;
+
+with Model.Phone,
+     Model.Token;
 
 private
-with
-  Ada.Containers.Vectors,
-  Ada.Strings.Unbounded;
+with Ada.Containers.Vectors,
+     Ada.Strings.Unbounded;
+
 private
-with
-  Ada_2012.Strings.Unbounded.Equal_Case_Insensitive;
+with Ada_2012.Strings.Unbounded.Equal_Case_Insensitive;
 
 package Model.Contact is
    use GNATCOLL.JSON;

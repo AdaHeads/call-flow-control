@@ -15,16 +15,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  GNATCOLL.JSON,
-  ESL.UUID;
-with
-  Common;
+with GNATCOLL.JSON,
+     ESL.UUID;
+with Common;
 
 private
-with
-  Ada.Containers.Indefinite_Ordered_Maps,
-  Ada.Strings.Unbounded;
+with Ada.Containers.Indefinite_Ordered_Maps,
+     Ada.Strings.Unbounded;
 
 package Model.Call is
    use Common;
