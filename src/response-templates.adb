@@ -56,14 +56,16 @@ package body Response.Templates is
    begin
       Content.Set_Field (Status_Text, Bad_Parameters_Reponse_Text);
 
-      return Response : Black.Response.Class :=
-        Black.Response.Bad_Request
-          (Content_Type => Black.MIME_Types.Application.JSON,
-           Data         => Response_Body.Write)
-      do
+      declare
+         Response : Black.Response.Class :=
+           Black.Response.Bad_Request
+             (Content_Type => Black.MIME_Types.Application.JSON,
+              Data         => Response_Body.Write);
+      begin
          Add_CORS_Headers (Request  => Request,
                            Response => Response);
-      end return;
+         return Response;
+      end;
    end Bad_Parameters;
 
    ----------------------
