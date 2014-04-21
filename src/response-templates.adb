@@ -60,7 +60,7 @@ package body Response.Templates is
          Response : Black.Response.Class :=
            Black.Response.Bad_Request
              (Content_Type => Black.MIME_Types.Application.JSON,
-              Data         => Response_Body.Write);
+              Data         => Content.Write);
       begin
          Add_CORS_Headers (Request  => Request,
                            Response => Response);
