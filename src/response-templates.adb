@@ -22,16 +22,6 @@ package body Response.Templates is
 
    procedure Add_CORS_Headers
      (Request  : in     Black.Request.Class;
-      Response : in out Black.Response.Class);
-   --  If the client sends the Origin: header, add these two CORS headers:
-   --    Access-Control-Allow-Origin
-   --    Access-Control-Allow-Credentials
-   --  where the first one should contain the value of the given
-   --  Origin : header and the second a Boolean True. This should be enough
-   --  to enable very simple CORS support.
-
-   procedure Add_CORS_Headers
-     (Request  : in     Black.Request.Class;
       Response : in out Black.Response.Class)
    is
       use Black.HTTP, Black.Response.Access_Control;
@@ -115,17 +105,18 @@ package body Response.Templates is
    function OK (Request       : in Black.Request.Instance;
                 Response_Body : in JSON_Value := Create_Object)
                return Black.Response.Class is
+      pragma Unreferenced (Request); --  Because GNAT-4.6 is buggy. :-(
       Content : constant JSON_Value := Response_Body;
    begin
       Content.Set_Field (Status_Text, OK_Reponse_Text);
 
-      return Response : Black.Response.Class :=
+      return --  Response : Black.Response.Class :=
         Black.Response.OK (Content_Type => Black.MIME_Types.Application.JSON,
-                           Data         => Response_Body.Write)
-      do
-         Add_CORS_Headers (Request  => Request,
-                           Response => Response);
-      end return;
+                           Data         => Response_Body.Write);
+      --  do
+      --     Add_CORS_Headers (Request  => Request,
+      --                       Response => Response);
+      --  end return;
    end OK;
 
    --------------------
