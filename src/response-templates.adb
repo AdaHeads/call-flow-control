@@ -52,20 +52,18 @@ package body Response.Templates is
    function Bad_Parameters (Request       : in Black.Request.Instance;
                             Response_Body : in JSON_Value := Create_Object)
                            return Black.Response.Class is
-      Content : constant JSON_Value := Response_Body;
+      pragma Unreferenced (Request); --  Because GNAT-4.6 is buggy. :-(
    begin
-      Content.Set_Field (Status_Text, Bad_Parameters_Reponse_Text);
+      Response_Body.Set_Field (Status_Text, Bad_Parameters_Reponse_Text);
 
-      declare
-         Response : Black.Response.Class :=
-           Black.Response.Bad_Request
-             (Content_Type => Black.MIME_Types.Application.JSON,
-              Data         => Content.Write);
-      begin
-         Add_CORS_Headers (Request  => Request,
-                           Response => Response);
-         return Response;
-      end;
+      return --  Response : Black.Response.Class :=
+        Black.Response.Bad_Request
+          (Content_Type => Black.MIME_Types.Application.JSON,
+           Data         => Response_Body.Write);
+      --  do
+      --     Add_CORS_Headers (Request  => Request,
+      --                       Response => Response);
+      --  end return;
    end Bad_Parameters;
 
    ----------------------
@@ -74,20 +72,19 @@ package body Response.Templates is
 
    function Not_Authorized (Request : in Black.Request.Instance)
                            return Black.Response.Class is
+      pragma Unreferenced (Request); --  Because GNAT-4.6 is buggy. :-(
       Response_Body : constant JSON_Value := Create_Object;
    begin
       Response_Body.Set_Field (Status_Text, Not_Authorized_Reponse_Text);
 
-      declare
-         Response : Black.Response.Class :=
-           Black.Response.Unauthorized
-             (Content_Type => Black.MIME_Types.Application.JSON,
-              Data         => Response_Body.Write);
-      begin
-         Add_CORS_Headers (Request  => Request,
-                           Response => Response);
-         return Response;
-      end;
+      return --  Response : Black.Response.Class :=
+        Black.Response.Unauthorized
+          (Content_Type => Black.MIME_Types.Application.JSON,
+           Data         => Response_Body.Write);
+      --  do
+      --     Add_CORS_Headers (Request  => Request,
+      --                       Response => Response);
+      --  end return;
    end Not_Authorized;
 
    -----------------
@@ -97,17 +94,18 @@ package body Response.Templates is
    function Not_Found (Request       : in Black.Request.Instance;
                        Response_Body : in JSON_Value := Create_Object)
                       return Black.Response.Class is
+      pragma Unreferenced (Request); --  Because GNAT-4.6 is buggy. :-(
    begin
       Response_Body.Set_Field (Status_Text, Not_Found_Reponse_Text);
 
-      return Response : Black.Response.Class :=
+      return --  Response : Black.Response.Class :=
         Black.Response.Not_Found
           (Content_Type => Black.MIME_Types.Application.JSON,
-           Data         => Response_Body.Write)
-      do
-         Add_CORS_Headers (Request  => Request,
-                           Response => Response);
-      end return;
+           Data         => Response_Body.Write);
+      --  do
+      --     Add_CORS_Headers (Request  => Request,
+      --                       Response => Response);
+      --  end return;
    end Not_Found;
 
    ----------
