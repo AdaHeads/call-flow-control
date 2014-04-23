@@ -33,6 +33,8 @@ package Configuration is
 
    function HTTP_Port return GNAT.Sockets.Port_Type;
 
+   function Server_Token return String;
+
    function Contact_Server return String;
 
    function Loglevel return Loglevels;

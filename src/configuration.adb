@@ -140,6 +140,16 @@ package body Configuration is
       return Config.Get (Key => PBX_Port);
    end PBX_Port;
 
+   function Server_Token return String is
+   begin
+      return Token : constant String := Config.Get (Key => Server_Token) do
+         if Token'Length = 0 then
+            raise Constraint_Error
+              with "Server token missing from configuration.";
+         end if;
+      end return;
+   end Server_Token;
+
    ----------------------
    --  Show_Arguments  --
    ----------------------
