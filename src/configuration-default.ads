@@ -34,6 +34,7 @@ private package Configuration.Default is
                  User_Map_File,
                  Auth_Server,
                  Contact_Server,
+                 Notification_Broadcast_URL,
                  Access_Log,
                  Error_Log,
                  Server_Token,
@@ -44,6 +45,7 @@ private package Configuration.Default is
    Default_Values : constant Defaults_Array :=
      (Auth_Server                => U ("http://localhost:8080"),
       Contact_Server             => U ("http://localhost:4010"),
+      Notification_Broadcast_URL => U ("http://localhost:4200/notifications"),
       Loglevel                   => U ("Information"),
       Access_Log                 => U ("access.log"),
       Error_Log                  => U ("error.log"),

@@ -37,6 +37,8 @@ package Configuration is
 
    function Contact_Server return String;
 
+   function Notification_Broadcast_URL return String;
+
    function Loglevel return Loglevels;
 
    function Access_Log return String;

@@ -104,6 +104,11 @@ package body Configuration is
       return Current_Loglevel;
    end Loglevel;
 
+   function Notification_Broadcast_URL return String is
+   begin
+      return Config.Get (Key => Notification_Broadcast_URL);
+   end Notification_Broadcast_URL;
+
    ----------------
    --  PBX_Host  --
    ----------------

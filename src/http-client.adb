@@ -82,6 +82,27 @@ package body HTTP.Client is
       end if;
    end Port;
 
+   function Post (URL          : in String;
+                  Data         : in String;
+                  Content_Type : in String := Black.MIME_Types.Text.Plain)
+                 return Black.Response.Class is
+      use GNAT.Sockets;
+      Connection : Socket_Type;
+   begin
+      Connection := Convenience.Connect_To_Server (Host => Host (URL),
+                                                   Port => Port (URL));
+
+      Black.Request.Instance'Output
+        (Stream (Connection),
+         Black.Request.Compose (Method       => Black.HTTP.Post,
+                                Host         => Host (URL),
+                                Resource     => Resource (URL),
+                                Content      => Data,
+                                Content_Type => Content_Type));
+
+      return Black.Response.Instance'Input (Stream (Connection));
+   end Post;
+
    function Resource (URL : in String) return String is
       use Ada.Characters.Handling, Ada.Strings.Fixed;
       Prefix : constant String := "http://" & Host (URL);
