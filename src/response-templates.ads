@@ -28,29 +28,29 @@ package Response.Templates is
 
    function OK (Request       : in Black.Request.Instance;
                 Response_Body : in JSON_Value := Create_Object)
-                return Black.Response.Class;
+                return Black.Response.Instance;
 
    function Bad_Parameters (Request       : in Black.Request.Instance;
                             Response_Body : in JSON_Value := Create_Object)
-                            return Black.Response.Class;
+                            return Black.Response.Instance;
    --  Builds up a 400 Bad reponse. Used when invalid parameters or
    --  values are given along with a request.
 
    function Not_Authorized (Request : in Black.Request.Instance)
-                            return Black.Response.Class;
+                            return Black.Response.Instance;
    --  Builds up a 401 Unauthorized response. Used when user
    --  validation fails, or they lack the proper authorization for a
    --  resource.
 
    function Not_Found (Request       : in Black.Request.Instance;
                        Response_Body : in JSON_Value := Create_Object)
-                       return Black.Response.Class;
+                       return Black.Response.Instance;
    --  Builds up a 404 Not found response. Used as the default reponse
    --  handler for every request not in the routing table.
 
    function Server_Error (Request       : in Black.Request.Instance;
                           Response_Body : in JSON_Value := Create_Object)
-                          return Black.Response.Class;
+                          return Black.Response.Instance;
    --  Builds up a 500 Server error object.
 
    procedure Add_CORS_Headers (Request  : in     Black.Request.Class;
