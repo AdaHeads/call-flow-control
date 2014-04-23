@@ -1,13 +1,38 @@
-with
-  System_Messages;
+with Black.HTTP,
+     Black.MIME_Types,
+     Black.Response;
+
+with Configuration,
+     HTTP.Client,
+     System_Messages;
 
 package body Notification is
    procedure Broadcast (Item : in     GNATCOLL.JSON.JSON_Value) is
+      Context : constant String := "Notification.Broadcast";
+      use type Black.HTTP.Statuses;
    begin
-      System_Messages.Fixme
-        (Message => "Not implemented.  " &
-                    "This JSON object was not transmitted: " &
-                    Item.Write,
-         Context => "Notification.Broadcast");
+      declare
+         Reply : constant Black.Response.Class :=
+           HTTP.Client.Post
+             (URL          => Configuration.Notification_Broadcast_URL &
+                              "?token=" & Configuration.Server_Token,
+              Data         => Item.Write,
+              Content_Type => Black.MIME_Types.Application.JSON);
+      begin
+         if Reply.Status /= Black.HTTP.OK then
+            System_Messages.Critical
+              (Message => "Notification.Broadcast failed.  " &
+                          "This JSON object was not transmitted: " &
+                          Item.Write & "  Error message: " & Reply.Content,
+               Context => Context);
+         end if;
+      end;
+   exception
+      when Event : others =>
+         System_Messages.Critical_Exception
+           (Message => "Unexpected exception.",
+            Event   => Event,
+            Context => Context);
+         raise;
    end Broadcast;
 end Notification;
