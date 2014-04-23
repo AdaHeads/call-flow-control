@@ -39,11 +39,13 @@ package body Request_Utilities is
                       return Model.Token.Instance is
       use Black.Parameter.Vectors;
       Token : Unbounded_String := Null_Unbounded_String;
+      C     : Cursor := Request.Parameters.First;
    begin
-      for C in Request.Parameters.Iterate loop
+      while C /= No_Element loop
          if To_String (Element (C).Key) = "token" then
             Token := Element (C).Value;
          end if;
+         Next (C);
       end loop;
 
       return Model.Token.Create (Value => To_String (Token));

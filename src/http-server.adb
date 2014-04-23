@@ -5,7 +5,8 @@ with Black.Request,
      GNAT.Sockets,
      GNAT.Sockets.Convenience;
 
-with Handlers.Route,
+with Configuration,
+     Handlers.Route,
      System_Messages;
 
 package body HTTP.Server is
@@ -74,7 +75,7 @@ package body HTTP.Server is
    procedure Run is
       Context : constant String := Package_Name & ".Run";
    begin
-      Listener := Convenience.Make_Server (Port => 4242);
+      Listener := Convenience.Make_Server (Port => Configuration.HTTP_Port);
       Create_Selector (Selector);
 
       Current_State := Running;

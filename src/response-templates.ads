@@ -53,4 +53,13 @@ package Response.Templates is
                           return Black.Response.Class;
    --  Builds up a 500 Server error object.
 
+   procedure Add_CORS_Headers (Request  : in     Black.Request.Class;
+                               Response : in out Black.Response.Class);
+   --  If the client sends the Origin: header, add these two CORS headers:
+   --    Access-Control-Allow-Origin
+   --    Access-Control-Allow-Credentials
+   --  where the first one should contain the value of the given
+   --  Origin : header and the second a Boolean True. This should be enough
+   --  to enable very simple CORS support.
+
 end Response.Templates;
