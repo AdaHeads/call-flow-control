@@ -43,7 +43,7 @@ package body Response.Templates is
                             Response_Body : in JSON_Value := Create_Object)
                            return Black.Response.Instance is
    begin
-      Response_Body.Set_Field (Status_Text, Bad_Parameters_Reponse_Text);
+      Response_Body.Set_Field (Status_Text, Bad_Parameters_Response_Text);
 
       return Response : Black.Response.Instance :=
         Black.Response.Bad_Request
@@ -63,7 +63,7 @@ package body Response.Templates is
                            return Black.Response.Instance is
       Response_Body : constant JSON_Value := Create_Object;
    begin
-      Response_Body.Set_Field (Status_Text, Not_Authorized_Reponse_Text);
+      Response_Body.Set_Field (Status_Text, Not_Authorized_Response_Text);
 
       return Response : Black.Response.Instance :=
         Black.Response.Unauthorized
@@ -83,7 +83,7 @@ package body Response.Templates is
                        Response_Body : in JSON_Value := Create_Object)
                       return Black.Response.Instance is
    begin
-      Response_Body.Set_Field (Status_Text, Not_Found_Reponse_Text);
+      Response_Body.Set_Field (Status_Text, Not_Found_Response_Text);
 
       return Response : Black.Response.Instance :=
         Black.Response.Not_Found
@@ -104,7 +104,7 @@ package body Response.Templates is
                return Black.Response.Instance is
       Content : constant JSON_Value := Response_Body;
    begin
-      Content.Set_Field (Status_Text, OK_Reponse_Text);
+      Content.Set_Field (Status_Text, OK_Response_Text);
 
       return Response : Black.Response.Instance :=
         Black.Response.OK (Content_Type => Black.MIME_Types.Application.JSON,
@@ -127,7 +127,7 @@ package body Response.Templates is
 
       Content : constant JSON_Value := Response_Body;
    begin
-      Content.Set_Field (Status_Text, Server_Error_Reponse_Text);
+      Content.Set_Field (Status_Text, Server_Error_Response_Text);
 
       return Black.Response.Server_Error
                (Content_Type => Black.MIME_Types.Application.JSON,
