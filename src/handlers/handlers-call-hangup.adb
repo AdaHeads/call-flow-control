@@ -75,8 +75,18 @@ package body Handlers.Call.Hangup is
       end;
    exception
       when Model.Call.Not_Found =>
-         return Response.Templates.Not_Found (Request);
+         declare
+            use GNATCOLL.JSON, Response;
+            Reply : constant JSON_Value := Create_Object;
+         begin
+            Reply.Set_Field (Status_Text,
+                             Not_Found_Response_Text);
+            Reply.Set_Field (Description_Text,
+                             Requested_Call_ID & " may already be hung up.");
 
+            return Response.Templates.Not_Found (Request       => Request,
+                                                 Response_Body => Reply);
+         end;
       when E : others =>
          System_Messages.Critical_Exception
            (Event           => E,
