@@ -15,6 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with GNATCOLL.JSON;
+
 with Model.Call,
      Model.User,
      PBX,
@@ -39,28 +41,38 @@ package body Handlers.Call.Hangup is
    -------------------------
 
    function Generate_Response (Request : Black.Request.Instance)
-                               return Black.Response.Class is
+                              return Black.Response.Class is
       use Model.User;
 
       Context : constant String := Package_Name & ".Generate_Response";
 
-      Requested_Call_ID : String renames Black.Request.Parameter
-        (Request => Request,
-         Key     => Call_ID_String);
+      Requested_Call_ID : String renames
+        Black.Request.Parameter (Request => Request,
+                                 Key     => Call_ID_String);
    begin
       --  An Administrator is able to end any call.
       if Request_Utilities.User_Of (Request).Permissions (Administrator) then
-         PBX.Action.Hangup (ID => Model.Call.Value
-                            (Item => Requested_Call_ID));
+         PBX.Action.Hangup
+           (ID => Model.Call.Value (Item => Requested_Call_ID));
       else
-         --  TODO: Add a way of verifying that the calling user owns the call.
+         --  Issue #146: Add a way of verifying that the calling user
+         --              owns the call.
          PBX.Action.Hangup (ID => Model.Call.Value
                             (Item => Requested_Call_ID));
-
       end if;
 
-      return Response.Templates.OK (Request);
+      declare
+         use GNATCOLL.JSON, Response;
+         Reply : constant JSON_Value := Create_Object;
+      begin
+         Reply.Set_Field (Status_Text,
+                          OK_Response_Text);
+         Reply.Set_Field (Description_Text,
+                          Requested_Call_ID & " hung up successfully.");
 
+         return Response.Templates.OK (Request       => Request,
+                                       Response_Body => Reply);
+      end;
    exception
       when Model.Call.Not_Found =>
          return Response.Templates.Not_Found (Request);
@@ -68,7 +80,7 @@ package body Handlers.Call.Hangup is
       when E : others =>
          System_Messages.Critical_Exception
            (Event           => E,
-            Message         => "Hangup request failed for call id: " &
+            Message         => "Hangup request failed for call ID: " &
               Requested_Call_ID,
             Context => Context);
          return Response.Templates.Server_Error (Request);
