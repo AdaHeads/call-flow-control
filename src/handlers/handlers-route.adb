@@ -74,7 +74,6 @@ package body Handlers.Route is
                     others             => False));
 
       function "or" (Left, Right : in ACL) return ACL;
-      pragma Unreferenced ("or");
       function "or" (Left  : in Boolean;
                      Right : in ACL) return ACL;
       pragma Unreferenced ("or");
@@ -127,24 +126,24 @@ package body Handlers.Route is
                    Action => CORS_Preflight.Callback);
       --  This is for CORS preflight requests.
 
-      pragma Style_Checks ("M100"); --  Allow long lines in the routing table
+      pragma Style_Checks ("M108"); --  Allow long lines in the routing table
 
-      Register (Get,  "/call/list",             Receptionist,  Call.List.Callback);
-      Register (Get,  "/call/queue",            Receptionist,  Call.Queue.Callback);
-      Register (Post, "/call/hangup",           Receptionist,  Call.Hangup.Callback);
-      Register (Post, "/call/originate",        Receptionist,  Call.Originate.Callback);
-      Register (Post, "/call/park",             Receptionist,  Call.Park.Callback);
-      Register (Post, "/call/pickup",           Receptionist,  Call.Pickup.Callback);
-      Register (Post, "/call/transfer",         Receptionist,  Call.Transfer.Callback);
+      Register (Get,  "/call/list",             Receptionist,                  Call.List.Callback);
+      Register (Get,  "/call/queue",            Receptionist,                  Call.Queue.Callback);
+      Register (Post, "/call/hangup",           Receptionist or Administrator, Call.Hangup.Callback);
+      Register (Post, "/call/originate",        Receptionist,                  Call.Originate.Callback);
+      Register (Post, "/call/park",             Receptionist,                  Call.Park.Callback);
+      Register (Post, "/call/pickup",           Receptionist,                  Call.Pickup.Callback);
+      Register (Post, "/call/transfer",         Receptionist,                  Call.Transfer.Callback);
 
-      Register (Get,  "/users/list",            Administrator, Users.List.Callback);
-      Register (Get,  "/users/pause",           Receptionist,  Users.Pause.Callback);
-      Register (Get,  "/users",                 Receptionist,  Users.Profile.Callback);
+      Register (Get,  "/users/list",            Administrator,                 Users.List.Callback);
+      Register (Get,  "/users/pause",           Receptionist,                  Users.Pause.Callback);
+      Register (Get,  "/users",                 Receptionist,                  Users.Profile.Callback);
 
-      Register (Get, "/debug/channel/list",     Public,        Debug.Channel_List'Access);
-      Register (Get, "/debug/contact",          Public,        Debug.Contact'Access);
-      Register (Get, "/debug/peer/list",        Public,        Debug.Peer_List'Access);
-      Register (Get, "/debug/token/dummy_list", Public,        Debug.Dummy_Tokens'Access);
+      Register (Get, "/debug/channel/list",     Public,                        Debug.Channel_List'Access);
+      Register (Get, "/debug/contact",          Public,                        Debug.Contact'Access);
+      Register (Get, "/debug/peer/list",        Public,                        Debug.Peer_List'Access);
+      Register (Get, "/debug/token/dummy_list", Public,                        Debug.Dummy_Tokens'Access);
 
       pragma Style_Checks ("M79");
 
