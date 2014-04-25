@@ -15,6 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+--  https://github.com/AdaHeads/Call-Flow-Control/wiki/Protocol-Call-Hangup
+--
+--  Only the obsolescent version is handled at the moment.
+
 --  Reponse handler for hanging up a call.
 --  This effectively kills the channel, regardless of state.
 --
