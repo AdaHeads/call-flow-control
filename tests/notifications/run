@@ -1,0 +1,43 @@
+#! /bin/bash
+
+cd "$(dirname "$0")" || exit 100
+
+function server() {
+   (
+      sleep 1
+      echo "HTTP/1.1 200 OK"
+      echo "Content-Length: 0"
+      echo ""
+      sleep 1
+   ) \
+     | nc -C -l 7777 \
+     > "$1.received"
+}
+
+#-----------------------------------------------------------------------------
+#--  Reference request:
+
+server reference &
+
+curl --data-binary '{"event": "call_offer"}' \
+     'http://localhost:7777/broadcast?token=feedabbadeadbeef9'
+
+killall nc
+
+#-----------------------------------------------------------------------------
+#--  Test request:
+
+server test &
+
+./notification_test --config notification_test.conf
+
+killall nc
+
+#-----------------------------------------------------------------------------
+
+patch reference.received reference.patch
+
+diff -u reference.received \
+             test.received
+
+#-----------------------------------------------------------------------------

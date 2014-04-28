@@ -1,0 +1,7 @@
+# Generated executable:
+notification_test
+
+# Test output:
+reference.received
+test.received
+

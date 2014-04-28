@@ -1,0 +1,14 @@
+--- reference.received	2014-04-28 20:33:51.000000000 +0000
++++ test.received	2014-04-28 20:33:52.000000000 +0000
+@@ -1,8 +1,6 @@
+ POST /broadcast?token=feedabbadeadbeef9 HTTP/1.1
+-User-Agent: curl/7.26.0
+-Host: localhost:7777
+-Accept: */*
++Host: localhost
++Content-Type: application/json
+ Content-Length: 23
+-Content-Type: application/x-www-form-urlencoded
+ 
+ {"event": "call_offer"}
+\ Intet linjeskift ved filafslutning
