@@ -43,7 +43,7 @@ package body HTTP.Client is
             Last := Last + 1;
          end loop;
 
-         return URL (URL'First + Prefix'Length .. Last);
+         return URL (URL'First + Prefix'Length .. Last - 1);
       else
          raise Constraint_Error
            with "We only do plain HTTP connections.";
