@@ -49,9 +49,6 @@ b~*.ad[sb]
 # Local files @krc
 TODO
 
-# Local files @sparre
-/to_master
-
 # www content
 /exe/www/
 
