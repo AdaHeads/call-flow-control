@@ -16,6 +16,8 @@
 -------------------------------------------------------------------------------
 
 --  https://github.com/AdaHeads/Call-Flow-Control/wiki/Protocol-Call-Originate
+--
+--  NOTE: Only the deprecated form of the interface is implemented.
 
 with HTTP,
      Black.Request,
