@@ -15,11 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Fixed;
-with Configuration;
-with System_Messages;
-
-with Model.Contact.Utilities;
+with Configuration,
+     Model.Contact.Utilities,
+     System_Messages;
 
 package body Model.Contact is
 
@@ -32,8 +30,7 @@ package body Model.Contact is
    overriding
    function "=" (Left, Right : in Instance) return Boolean is
    begin
-      return Left.Reception_ID = Right.Reception_ID
-        and  Left.Contact_ID   = Right.Contact_ID;
+      return Left.ID = Right.ID;
    end "=";
 
    ------------------------
@@ -42,12 +39,12 @@ package body Model.Contact is
 
    function Create_From_JSON (JSON : in JSON_Value) return Instance is
    begin
-      return (Contact_ID => Contact_Identifier
-              (Natural'(JSON.Get (Field => Contact_ID_Key))),
-              Reception_ID => Reception_Identifier
-                (Natural'(JSON.Get (Field => Reception_ID_Key))),
-              Phones => Model.Phone.Create_From_JSON (JSON.Get
-                (Field => Phones_Key)));
+      return (ID     => (Contact_ID => Contact_Identifier
+                           (Natural'(JSON.Get (Field => Contact_ID_Key))),
+                         Reception_ID => Reception_Identifier
+                           (Natural'(JSON.Get (Field => Reception_ID_Key)))),
+              Phones => Model.Phone.Create_From_JSON
+                          (JSON.Get (Field => Phones_Key)));
    end Create_From_JSON;
 
    --------------------
@@ -76,17 +73,16 @@ package body Model.Contact is
    --  Fetch  --
    -------------
 
-   function Fetch (Reception  : in Reception_Identifier;
-                   Contact    : in Contact_Identifier;
-                   Auth_Token : in Token.Instance) return Instance is
+   function Fetch (Reception_Contact : in Reception_Contact_Identifier;
+                   Auth_Token           : in Token.Instance) return Instance is
       Context : constant String := Package_Name & ".Fetch";
    begin
       System_Messages.Debug (Message => "Forwarding token: " &
                                Auth_Token.To_String,
                              Context => Context);
       return Model.Contact.Utilities.Retrieve
-        (Reception => Reception,
-         Contact   => Contact,
+        (Reception => Reception_Contact.Reception_ID,
+         Contact   => Reception_Contact.Contact_ID,
          Token     => Auth_Token.To_String,
          From      => Config.Contact_Server);
    end Fetch;
@@ -96,14 +92,8 @@ package body Model.Contact is
    -------------
 
    function Image (Object : Instance) return String is
-      use Ada.Strings.Fixed;
-
-      C_ID : constant String := Trim (Source => Object.Contact_ID'Img,
-                                     Side   => Ada.Strings.Left);
-      R_ID : constant String := Trim (Source => Object.Reception_ID'Img,
-                                        Side   => Ada.Strings.Left);
    begin
-      return C_ID & "@" & R_ID & " -> " & Model.Phone.Image (Object.Phones);
+      return Image (Object.ID) & " -> " & Model.Phone.Image (Object.Phones);
    end Image;
 
 end Model.Contact;
