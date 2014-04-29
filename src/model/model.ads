@@ -25,24 +25,25 @@ package Model is
    subtype Phone_Identifier is Identifications;
 
    subtype Organization_URI is String;
---     with Dynamic_Predicate => (Organization_URI'Length <= 256);
-
-   type Organization_Contact_Identifier is
-      record
-         Contact_ID      : Contact_Identifier := 0;
-         Organization_ID : Organization_Identifier := 0;
-      end record;
-   --  Identifies the Contact_ID contact in the context of the
-   --  Organization_ID organization.
-
-   type Attribute_Identifier is new Organization_Contact_Identifier;
-   --  Identifies a set of contact attributes for the Contact_ID
-   --  contact in the context of the Organization_ID organization.
 
    Null_User_Identifier         : constant User_Identifier;
    Null_Organization_Identifier : constant Organization_Identifier;
    Null_Reception_Identifier    : constant Reception_Identifier;
    Null_Contact_Identifier      : constant Contact_Identifier;
+
+   type Reception_Contact_Identifier is
+      record
+         Contact_ID   : Contact_Identifier   := Null_Contact_Identifier;
+         Reception_ID : Reception_Identifier := Null_Reception_Identifier;
+      end record;
+   --  Identifies the Contact_ID contact in the context of the
+   --  Reception_ID reception.
+   function Value (Item : in String) return Reception_Contact_Identifier;
+   function Image (Item : in Reception_Contact_Identifier) return String;
+
+   type Attribute_Identifier is new Reception_Contact_Identifier;
+   --  Identifies a set of contact attributes for the Contact_ID
+   --  contact in the context of the Organization_ID organization.
 
 private
 
