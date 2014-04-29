@@ -15,10 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  Reponse handler for listing all calls visible to the user.
---
---  Parameters: None
---  Returns: A JSON response with the call list embedded.
+--  https://github.com/AdaHeads/Call-Flow-Control/wiki/Protocol-Call-List
 
 with HTTP,
      Black.Request,
