@@ -56,7 +56,7 @@ package body Model.Call is
    --  Assigned_To  --
    -------------------
 
-   function Assigned_To (Obj : in Instance) return Natural is
+   function Assigned_To (Obj : in Instance) return User_Identifier is
    begin
       return Obj.Assigned_To;
    end Assigned_To;
