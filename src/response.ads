@@ -21,6 +21,7 @@ package Response is
    Status_Text                  : constant String := "status";
    Bad_Parameters_Response_Text : constant String := "bad parameters";
    Not_Authorized_Response_Text : constant String := "not authorized";
+   Forbidden_Response_Text      : constant String := "forbidden";
    Not_Found_Response_Text      : constant String := "not found";
    OK_Response_Text             : constant String := "ok";
    Server_Error_Response_Text   : constant String := "unhandled exception";

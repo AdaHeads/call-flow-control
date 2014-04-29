@@ -55,6 +55,22 @@ package body Response.Templates is
       end return;
    end Bad_Parameters;
 
+   function Forbidden (Request       : in Black.Request.Instance;
+                       Response_Body : in JSON_Value := Create_Object)
+                      return Black.Response.Instance is
+   begin
+      Response_Body.Set_Field (Status_Text, Forbidden_Response_Text);
+
+      return Response : Black.Response.Instance :=
+        Black.Response.Forbidden
+          (Content_Type => Black.MIME_Types.Application.JSON,
+           Data         => Response_Body.Write)
+      do
+         Add_CORS_Headers (Request  => Request,
+                           Response => Response);
+      end return;
+   end Forbidden;
+
    ----------------------
    --  Not_Authorized  --
    ----------------------

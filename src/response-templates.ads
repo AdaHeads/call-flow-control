@@ -42,6 +42,13 @@ package Response.Templates is
    --  validation fails, or they lack the proper authorization for a
    --  resource.
 
+   function Forbidden (Request       : in Black.Request.Instance;
+                       Response_Body : in JSON_Value := Create_Object)
+                      return Black.Response.Instance;
+   --  Builds up a HTTP 403 forbidden response.  Used for authorised
+   --  clients, which are not allowed to access the requested
+   --  resource.
+
    function Not_Found (Request       : in Black.Request.Instance;
                        Response_Body : in JSON_Value := Create_Object)
                        return Black.Response.Instance;
