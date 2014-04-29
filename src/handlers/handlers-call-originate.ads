@@ -15,14 +15,9 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  Originates a new outbound call. This resource takes parameters
+--  https://github.com/AdaHeads/Call-Flow-Control/wiki/Protocol-Call-Originate
 --
---
---  Parameters: Context and either phone_id or arbitrary extension.
---  Returns: HTTP 404 Not found and a JSON body if the call is not present.
---           HTTP 200 OK and a JSON body otherwise.
---
---  Where context Context refers to contact_id@reception_id
+--  NOTE: Only the deprecated form of the interface is implemented.
 
 with HTTP,
      Black.Request,

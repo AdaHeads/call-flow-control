@@ -41,9 +41,8 @@ package Model.Contact is
    function Create_From_JSON (JSON : in JSON_Value) return Instance;
    --  Constructs a new instance, based on a JSON map.
 
-   function Fetch (Reception  : in Reception_Identifier;
-                   Contact    : in Contact_Identifier;
-                   Auth_Token : in Token.Instance) return Instance;
+   function Fetch (Reception_Contact : in Reception_Contact_Identifier;
+                   Auth_Token        : in Token.Instance) return Instance;
    --  Fetches a given contact@reception from a contact service.
 
    function Extension_Of (Object   : Instance;
@@ -73,14 +72,12 @@ private
 
    type Instance is tagged
       record
-         Contact_ID   : Contact_Identifier;
-         Reception_ID : Reception_Identifier;
-         Phones       : Model.Phone.List;
+         ID     : Model.Reception_Contact_Identifier;
+         Phones : Model.Phone.List;
       end record;
 
    No_Contact : constant Instance :=
-     (Contact_ID   => 0,
-      Reception_ID => Model.Null_Reception_Identifier,
-      Phones       => Model.Phone.Phone_Storage.Empty_Vector);
+     (ID     => <>,
+      Phones => Model.Phone.Phone_Storage.Empty_Vector);
 
 end Model.Contact;
