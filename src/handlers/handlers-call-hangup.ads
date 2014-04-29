@@ -17,14 +17,7 @@
 
 --  https://github.com/AdaHeads/Call-Flow-Control/wiki/Protocol-Call-Hangup
 --
---  Only the obsolescent version is handled at the moment.
-
---  Reponse handler for hanging up a call.
---  This effectively kills the channel, regardless of state.
---
---  Parameters: None
---  Returns: HTTP 404 Not found and a JSON body if the call is not present.
---           HTTP 200 OK and a JSON body otherwise.
+--  NOTE: Only the obsolescent version is handled at the moment.
 
 with HTTP,
      Black.Request,
