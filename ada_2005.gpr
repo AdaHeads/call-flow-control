@@ -17,7 +17,7 @@ abstract project Ada_2005 is
              "-gnatwa",                     --  All optional warnings
              "-gnatVa",                     --  All validity checks
              "-gnaty3abcdefhiklmnoOprstux", --  Style checks
-             "-gnatwe",                     --  Treat warnings as errors
+--           "-gnatwe",                     --  Treat warnings as errors
              "-gnat2005",                   --  Use Ada 2005
              "-Wall",                       --  All GCC warnings
              "-O2");                        --  Optimise (level 2/3)
