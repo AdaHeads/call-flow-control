@@ -407,14 +407,14 @@ package body PBX.Action is
             Header : constant Peer_Packet_Items := Parse (Header_Line);
             Peers  : Model.Peer.List.Instance;
          begin
-            Position := Position + 2; --  Skipping what?
+            Position := Position + 2; --  Skipping CR+LF
 
             while Position < Reply.Response_Body'Last loop
                declare
                   Line  : Unbounded_String;
                begin
                   Get_Line (Source => Reply.Response_Body
-                                        (Position .. Reply.Response_Body'Last),
+                                        (Position - 1 .. Reply.Response_Body'Last),
                             Last   => Position,
                             Item   => Line);
 
