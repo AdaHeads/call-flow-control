@@ -210,7 +210,7 @@ package body Model.User is
 
    function Image (Object : in Instance) return String is
    begin
-      return Image (Object.ID);
+      return Image (Object.ID) & Object.Attributes.Write;
    end Image;
 
    -------------
