@@ -24,20 +24,18 @@ private package Configuration.Default is
 
    type Keys is (Cache_Max_Element_Age,
                  Host_Name,
-                 Public_User_Identification,
                  Loglevel,
                  PBX_Secret,
                  PBX_Loglevel,
                  PBX_Host,
                  PBX_Port,
-                 User_Backend_Type,
-                 User_Map_File,
                  Auth_Server,
                  Contact_Server,
                  Notification_Broadcast_URL,
                  Access_Log,
                  Error_Log,
                  Server_Token,
+                 Socket_Port,
                  HTTP_Port);
 
    type Defaults_Array is array (Keys) of Unbounded_String;
@@ -51,14 +49,12 @@ private package Configuration.Default is
       Error_Log                  => U ("error.log"),
       Cache_Max_Element_Age      => U ("86_400"),
       Host_Name                  => U ("please_update_main_conf"),
-      Public_User_Identification => U ("FALSE"),
       PBX_Secret                 => U ("1234"),
       PBX_Loglevel               => U ("Information"),
       PBX_Host                   => U ("localhost"),
       PBX_Port                   => U ("8021"),
-      User_Backend_Type          => U ("file"),
-      User_Map_File              => U ("static_json/agent.list"),
       Server_Token               => U (""),
-      HTTP_Port                  => U ("4242"));
+      HTTP_Port                  => U ("4242"),
+      Socket_Port                => U ("9999"));
 
 end Configuration.Default;

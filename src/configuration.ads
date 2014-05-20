@@ -24,6 +24,7 @@ package Configuration is
    type Loglevels is (Debug, Information, Error, Warning, Critical, Fixme);
 
    subtype PBX_Loglevels is Loglevels;
+   subtype Ports is GNAT.Sockets.Port_Type;
 
    function Auth_Server return String;
 
@@ -31,7 +32,9 @@ package Configuration is
    function PBX_Port return Natural;
    function PBX_Password return String;
 
-   function HTTP_Port return GNAT.Sockets.Port_Type;
+   function HTTP_Port return Ports;
+
+   function Socket_Port return Ports;
 
    function Server_Token return String;
 

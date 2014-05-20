@@ -32,30 +32,54 @@ package body Configuration is
       Defaults            => Configuration.Default.Default_Values,
       Config_File         => Default_Config_File);
 
+   ------------------
+   --  Access_Log  --
+   ------------------
+
    function Access_Log return String is
    begin
       return Config.Get (Key => Access_Log);
    end Access_Log;
+
+   -------------------
+   --  Auth_Server  --
+   -------------------
 
    function Auth_Server return String is
    begin
       return Config.Get (Key => Auth_Server);
    end Auth_Server;
 
+   ----------------------
+   --  Contact_Server  --
+   ----------------------
+
    function Contact_Server return String is
    begin
       return Config.Get (Key => Contact_Server);
    end Contact_Server;
+
+   -----------------
+   --  Error_Log  --
+   -----------------
 
    function Error_Log return String is
    begin
       return Config.Get (Key => Error_Log);
    end Error_Log;
 
+   -----------------
+   --  HTTP_Port  --
+   -----------------
+
    function HTTP_Port return GNAT.Sockets.Port_Type is
    begin
       return Config.Get (Key => HTTP_Port);
    end HTTP_Port;
+
+   -------------------
+   --  Load_Config  --
+   -------------------
 
    procedure Load_Config is
    begin
@@ -187,5 +211,14 @@ package body Configuration is
       Put_Line (Indention & PBX_Secret_CL_String & Separator &
                   PBX_Secret_Usage_String);
    end Show_Arguments;
+
+   -------------------
+   --  Socket_Port  --
+   -------------------
+
+   function Socket_Port return Ports is
+   begin
+      return Config.Get (Key => Socket_Port);
+   end Socket_Port;
 
 end Configuration;
