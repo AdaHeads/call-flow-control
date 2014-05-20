@@ -72,7 +72,7 @@ package body PBX.Action is
       PBX.Client.API (Hangup_Action, Reply);
 
       if Reply.Response /= ESL.Reply.OK then
-         raise Call.Not_Found;
+         raise Error with ESL.Reply.Image (Reply);
       end if;
    end Hangup;
 
@@ -414,7 +414,7 @@ package body PBX.Action is
                   Line  : Unbounded_String;
                begin
                   Get_Line (Source => Reply.Response_Body
-                                        (Position - 1 .. Reply.Response_Body'Last),
+                            (Position - 1 .. Reply.Response_Body'Last),
                             Last   => Position,
                             Item   => Line);
 
