@@ -19,10 +19,8 @@
 
 with Black.Request,
      Black.Response;
-with GNATCOLL.JSON;
 
 package Response.Templates is
-   use GNATCOLL.JSON;
 
    Package_Name : constant String := "Response.Templates";
 
