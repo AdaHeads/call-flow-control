@@ -6,8 +6,17 @@ with Configuration,
      HTTP.Client,
      System_Messages;
 
+with Handlers.Event_Socket;
+
 package body Notification is
-   procedure Broadcast (Item : in     GNATCOLL.JSON.JSON_Value) is
+
+   procedure Broadcast (Item : in GNATCOLL.JSON.JSON_Value) is
+      --  Context : constant String := "Notification.Broadcast";
+   begin
+      Handlers.Event_Socket.Broadcast (Item => Item);
+   end Broadcast;
+
+   procedure HTTP_Broadcast (Item : in GNATCOLL.JSON.JSON_Value) is
       Context : constant String := "Notification.Broadcast";
       use type Black.HTTP.Statuses;
    begin
@@ -34,5 +43,5 @@ package body Notification is
             Event   => Event,
             Context => Context);
          raise;
-   end Broadcast;
+   end HTTP_Broadcast;
 end Notification;

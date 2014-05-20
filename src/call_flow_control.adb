@@ -25,6 +25,7 @@ with
   HTTP.Server,
   SIGHUP,
   SIGHUP_Handler,
+  Socket_Listener,
   System_Messages,
   Util.Command_Line,
   Util.Process_Control;
@@ -44,6 +45,13 @@ procedure Call_FLow_Control is
       HTTP.Server.Run;
    end HTTP_Task;
 
+   task Socket_Listener_Task;
+
+   task body Socket_Listener_Task is
+   begin
+      Socket_Listener.Run;
+   end Socket_Listener_Task;
+
 begin
    if Util.Command_Line.Got_Argument ("--help") then
       Configuration.Show_Arguments;
@@ -60,6 +68,7 @@ begin
       --  Wait here until we get a SIGINT, SIGTERM or SIGPWR.
 
       HTTP.Server.Stop;
+      Socket_Listener.Stop;
       PBX.Stop;
       SIGHUP.Stop;
       System_Messages.Close_Log_Files;
