@@ -15,11 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Calendar,
-     System_Messages;
+with Ada.Calendar;
+
+with Client_Notification, Notification;
 
 package body Model.Peer is
-   Context : constant String := "Model.Peer";
 
    use Ada.Calendar;
 
@@ -91,10 +91,8 @@ package body Model.Peer is
    begin
       if not Object.Registered then
          Object.Registered := True;
-         System_Messages.Fixme
-           (Message => "Notification.Broadcast " &
-              "(Client_Notification.Peer_State (P => Object).To_JSON);",
-            Context => Context);
+         Notification.Broadcast
+           (Item => Client_Notification.Peer_State (P => Object).To_JSON);
       end if;
    end Register;
 
@@ -138,10 +136,8 @@ package body Model.Peer is
    begin
       if Object.Registered then
          Object.Registered := False;
-         System_Messages.Fixme
-           (Message => "Notification.Broadcast " &
-              "(Client_Notification.Peer_State (P => Object).To_JSON);",
-            Context => Context);
+         Notification.Broadcast
+           (Client_Notification.Peer_State (P => Object).To_JSON);
       end if;
    end Unregister;
 
