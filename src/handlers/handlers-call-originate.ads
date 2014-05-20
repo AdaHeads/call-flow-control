@@ -23,6 +23,8 @@ with HTTP,
      Black.Request,
      Black.Response;
 
+with Request, Response;
+
 package Handlers.Call.Originate is
 
    Package_Name : constant String := "Handlers.Call.Originate";
@@ -31,11 +33,17 @@ package Handlers.Call.Originate is
 
    function Callback return HTTP.Callback;
 
+   function Handler (Client_Request : in Request.Instance)
+                     return Response.Instance;
+   --  Expects the paramters reception_id, contact_id and extension.
+
 private
    function Generate_Response (Request : Black.Request.Instance)
                                return Black.Response.Class;
 
-   Extension_String : constant String := "extension";
-   Context_String   : constant String := "context";
-   Phone_ID_String  : constant String := "phone_id";
+   Extension_String     : constant String := "extension";
+   Context_String       : constant String := "context";
+   Phone_ID_String      : constant String := "phone_id";
+   Contact_ID_String    : constant String := "contact_id";
+   Reception_ID_String  : constant String := "reception_id";
 end Handlers.Call.Originate;

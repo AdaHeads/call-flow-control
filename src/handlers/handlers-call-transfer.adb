@@ -118,4 +118,80 @@ package body Handlers.Call.Transfer is
             Context => Context);
          return Response.Templates.Server_Error (Request);
    end Generate_Response;
+
+   ---------------
+   --  Handler  --
+   ---------------
+
+   function Handler (Client_Request : in Request.Instance)
+                     return Response.Instance is
+      use Model.Call;
+      use type ESL.UUID.Instance;
+
+      Context : constant String := Package_Name & ".Handler";
+
+      Source          : Model.Call.Identification := Null_Identification;
+      Destination     : Model.Call.Identification := Null_Identification;
+   begin
+      --  Check valitity of the call. (Will raise exception on invalid).
+      Source      := Value (Client_Request.Parameter
+                            (Key => Source_String));
+      Destination := Value (Client_Request.Parameter
+                            (Key => Destination_String));
+
+      --  Sanity checks.
+      if
+        Source      = Null_Identification or
+        Destination = Null_Identification
+      then
+         raise Model.Call.Invalid_ID;
+      elsif
+        Get (Source).State      /= Parked and
+        Get (Destination).State /= Parked
+      then
+         System_Messages.Error
+           (Message =>
+              "Potential invalid state detected; trying to bridge a " &
+              "non-parked call in an attended transfer. uuids: (" &
+              Source.Image & ", " & Destination.Image & ")",
+            Context => Context);
+      end if;
+
+      if not Get (Source).Is_Call then
+         System_Messages.Error
+           (Message => "Source is not a call: " & Source.Image,
+            Context => Context);
+      end if;
+
+      if not Get (Destination).Is_Call then
+         System_Messages.Error
+           (Message => "Destination is not a call: " & Destination.Image,
+            Context => Context);
+      end if;
+
+      System_Messages.Debug
+        (Message => "Transferring " &
+           Source.Image & " -> " &
+           Destination.Image,
+         Context => Context);
+      Model.Transfer_Requests.Create (IDs => (ID1 => Source,
+                                              ID2 => Destination));
+
+      PBX.Action.Bridge (Source      => Source,
+                         Destination => Destination);
+
+      return Response.Create (Status => Response.Success);
+   exception
+      when Invalid_ID =>
+         return Response.Create
+           (Status => Response.Bad_Request,
+            Description  => "Invalid or no call ID supplied");
+
+      when Model.Call.Not_Found =>
+         return Response.Create
+           (Status => Response.Not_Found,
+            Description  => "At least one of the calls were " &
+              "no longer available");
+   end Handler;
+
 end Handlers.Call.Transfer;

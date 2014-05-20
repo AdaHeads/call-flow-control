@@ -59,6 +59,7 @@ package body Handlers.Call.Hangup is
       Context : constant String := Package_Name & ".Generate_Response";
 
       use Model.Call, Model.User;
+
    begin
       declare
          Call_ID : Model.Call.Identification renames
@@ -91,12 +92,64 @@ package body Handlers.Call.Hangup is
          return Response.Templates.Server_Error (Request);
    end Generate_Response;
 
+   ---------------
+   --  Handler  --
+   ---------------
+
+   function Handler (Client_Request : in Request.Instance)
+                     return Response.Instance is
+      use Model.Call;
+      use Model.User;
+   begin
+      declare
+         Call_ID : constant Model.Call.Identification :=
+           Value (Client_Request.Parameter ("call_id"));
+         Call    : constant Model.Call.Instance :=
+           Model.Call.Get (Call => Call_ID);
+      begin
+         if
+           Call.Assigned_To = Client_Request.User.Identification
+         or
+           Client_Request.User.Permissions (Administrator)
+         then
+            PBX.Action.Hangup (ID => Call_ID);
+
+            return Response.Create
+              (Status    => Response.Success,
+               Description => Call_ID.Image & " hung up.");
+         else
+            return Response.Create
+              (Status      => Response.Permission_Denied,
+               Description => "Permission denied.");
+         end if;
+      end;
+
+   exception
+      when Model.Call.Not_Found =>
+         return Response.Create
+           (Status      => Response.Not_Found,
+            Description => "Call not found");
+      when Constraint_Error =>
+         return Response.Create
+           (Status      => Response.Bad_Request,
+            Description => "Bad parameters.");
+
+   end Handler;
+
+   ------------------------
+   --  Is_Administrator  --
+   ------------------------
+
    function Is_Administrator (User : in Black.Request.Instance)
                              return Boolean is
       use Model.User;
    begin
       return Request_Utilities.User_Of (User).Permissions (Administrator);
    end Is_Administrator;
+
+   -----------------
+   --  Not_Found  --
+   -----------------
 
    function Not_Found (Request : in Black.Request.Instance;
                        Call_ID : in Model.Call.Identification)
@@ -113,6 +166,10 @@ package body Handlers.Call.Hangup is
                                   Response_Body => Reply);
    end Not_Found;
 
+   -------------------------
+   --  Not_Owner_Of_Call  --
+   -------------------------
+
    function Not_Owner_Of_Call (Request : in Black.Request.Instance;
                                Call_ID : in Model.Call.Identification)
                               return Black.Response.Instance is
@@ -128,12 +185,20 @@ package body Handlers.Call.Hangup is
                                   Response_Body => Reply);
    end Not_Owner_Of_Call;
 
+   ------------
+   --  Owns  --
+   ------------
+
    function Owns (User : in Black.Request.Instance;
                   Call : in Model.Call.Identification) return Boolean is
       use Model.Call, Request_Utilities;
    begin
       return User_Of (User).Identification = Get (Call).Assigned_To;
    end Owns;
+
+   ---------------
+   --  Success  --
+   ---------------
 
    function Success (Request : in Black.Request.Instance;
                      Call_ID : in Model.Call.Identification)

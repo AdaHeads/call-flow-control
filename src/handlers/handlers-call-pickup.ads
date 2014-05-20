@@ -30,11 +30,16 @@ with HTTP,
      Black.Request,
      Black.Response;
 
+with Request, Response;
+
 package Handlers.Call.Pickup is
 
    Package_Name : constant String := "Handlers.Call.Pickup";
 
    function Callback return HTTP.Callback;
+
+   function Handler (Client_Request : in Request.Instance)
+                     return Response.Instance;
 
 private
    function Generate_Response (Request : Black.Request.Instance)

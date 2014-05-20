@@ -24,11 +24,15 @@ with HTTP,
      Black.Request,
      Black.Response;
 
+with Response;
+
 package Handlers.Call.Queue is
 
    Package_Name : constant String := "Handlers.Call.Queue";
 
    function Callback return HTTP.Callback;
+
+   function Handler return Response.Instance;
 
 private
 

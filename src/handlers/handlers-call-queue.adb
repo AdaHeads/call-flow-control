@@ -51,4 +51,11 @@ package body Handlers.Call.Queue is
 
    end Generate_Response;
 
+   function Handler return Response.Instance is
+   begin
+      return Response.Create
+        (Status      => Response.Internal_Error,
+         Description => "Not implemented");
+   end Handler;
+
 end Handlers.Call.Queue;

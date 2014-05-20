@@ -29,6 +29,8 @@ with Model.Call,
      View,
      View.Call;
 
+with GNATCOLL.JSON;
+
 package body Handlers.Call.Originate is
    use System_Messages,
        View,
@@ -57,7 +59,7 @@ package body Handlers.Call.Originate is
 
    procedure Check_Extension (Item : in String) is
    begin
-      if Item'Length < 2 then
+      if Item'Length < 3 then
          raise Invalid_Extension with
            "Extension should be longer than 2 characters";
       end if;
@@ -192,5 +194,57 @@ package body Handlers.Call.Originate is
          return Response.Templates.Server_Error (Request);
 
    end Generate_Response;
+
+   ---------------
+   --  Handler  --
+   ---------------
+
+   function Handler (Client_Request : in Request.Instance)
+                     return Response.Instance is
+      use GNATCOLL.JSON;
+
+      Context : constant String := Package_Name & ".Handler";
+   begin
+      Check_Extension (Client_Request.Parameter ("extension"));
+
+      Client_Request.User.Park_Current_Call;
+
+      return Response.Create
+        (Status    => Response.Success,
+         With_Body => View.Call.Call_Stub
+           (Call_ID => PBX.Action.Originate
+              (Reception_ID => Reception_Identifier'Value
+                 (Client_Request.Parameter (Reception_ID_String)),
+               Contact_ID   => Contact_Identifier'Value
+                 (Client_Request.Parameter (Contact_ID_String)),
+               User         => Client_Request.User,
+               Extension    => Client_Request.Parameter (Extension_String))));
+
+   exception
+      when PBX.Action.Error =>
+         System_Messages.Critical
+           (Message => "PBX failed to handle request.",
+            Context => Context);
+         raise; --  This should propogate to a HTTP 500 Server Error.
+
+      when Invalid_Extension =>
+         return Response.Create
+           (Status      => Response.Bad_Request,
+            Description => "Invalid extension.");
+
+      when Model.Peer.Peer_Not_Registered =>
+         return Response.Create
+           (Status      => Response.Bad_Request,
+            Description => "User's peer " &
+                            Client_Request.User.Peer.Get_Identification &
+                          " is not registered.");
+
+      when Event : others =>
+         System_Messages.Critical_Exception
+           (Event   => Event,
+            Message => "Unhandled exception.",
+            Context => Context);
+         raise;
+   end Handler;
 
 end Handlers.Call.Originate;

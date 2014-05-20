@@ -25,11 +25,16 @@ with HTTP,
      Black.Request,
      Black.Response;
 
+with Request, Response;
+
 package Handlers.Call.Park is
 
    Package_Name : constant String := "Handlers.Call.Park";
 
    function Callback return HTTP.Callback;
+
+   function Handler (Client_Request : in Request.Instance)
+                     return Response.Instance;
 
 private
 

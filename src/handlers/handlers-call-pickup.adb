@@ -62,7 +62,7 @@ package body Handlers.Call.Pickup is
            (Message => "User has no peer unavailable " & User.Image,
             Context => Context);
 
-         return Response.Templates.Not_Found
+         return Response.Templates.Bad_Parameters
            (Request       => Request,
             Response_Body => Description ("User has no peer unavailable"));
       end if;
@@ -143,4 +143,74 @@ package body Handlers.Call.Pickup is
          return Response.Templates.Server_Error (Request);
 
    end Generate_Response;
+
+   ---------------
+   --  Handler  --
+   ---------------
+
+   function Handler (Client_Request : in Request.Instance)
+                     return Response.Instance is
+      use Model.Call;
+
+      Context : constant String := Package_Name & ".Handler";
+
+      Assigned_Call    : Model.Call.Instance;
+      User             : constant Model.User.Instance :=
+        Client_Request.User;
+   begin
+      if not User.Peer.Registered then
+            return Response.Create
+              (Status      => Response.Bad_Request,
+               Description => "User has no peer unavailable " & User.Image);
+      end if;
+
+      Client_Request.User.Park_Current_Call;
+      --  Park any calls that the user currently has (Implicit park).
+
+      declare
+         Call_ID : constant Model.Call.Identification :=
+           Value (Client_Request.Parameter ("call_id"));
+      begin
+
+         Model.Call.Assign_Call (To   => User.Identification,
+                                 ID   => Call_ID,
+                                 Call => Assigned_Call);
+
+         System_Messages.Debug
+           (Message => "Assign_Call returns call " &
+              Assigned_Call.ID.Image,
+            Context => Context);
+
+         if Assigned_Call = Model.Call.Null_Instance then
+            return Response.Create
+              (Status    => Response.Not_Found,
+               Description => "No calls available.");
+         end if;
+
+         System_Messages.Debug
+           (Message => "Assigning call " & Assigned_Call.ID.Image &
+                       " to user"        & User.Identification'Img,
+            Context => Context);
+
+         PBX.Action.Transfer (Assigned_Call.ID, User);
+
+         pragma Assert (Assigned_Call.Assigned_To /=
+                          Model.User.Null_Identification);
+
+         return Response.Create
+           (Status    => Response.Success,
+            With_Body => Assigned_Call.To_JSON);
+      end;
+   exception
+      when Model.Call.Not_Found =>
+         return Response.Create
+           (Status      => Response.Not_Found,
+            Description => "Call not found");
+      when Constraint_Error =>
+         return Response.Create
+           (Status      => Response.Bad_Request,
+            Description => "Bad parameters.");
+
+   end Handler;
+
 end Handlers.Call.Pickup;

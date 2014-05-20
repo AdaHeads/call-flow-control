@@ -15,26 +15,23 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  https://github.com/AdaHeads/Call-Flow-Control/wiki/Protocol-Call-Hangup
+--  Reponse handler for transferring a current call (channel) to another
+--  extension. This is, in our case, used to redirect active inbound calls
+--  to local peers (users) - or more correctly, picking them up.
 --
---  NOTE: Only the obsolescent version is handled at the moment.
-
-with HTTP,
-     Black.Request,
-     Black.Response;
+--  Pickup the oldest call in the queue.
+--
+--  Parameters: none
+--  Returns: HTTP 404 Not found and a JSON body if the call is not present.
+--           HTTP 200 OK and a JSON body otherwise.
 
 with Request, Response;
 
-package Handlers.Call.Hangup is
+package Handlers.Call.Pickup_Next is
 
-   Package_Name : constant String := "Handlers.Call.Hangup";
-
-   function Callback return HTTP.Callback;
+   Package_Name : constant String := "Handlers.Call.Pickup_Next";
 
    function Handler (Client_Request : in Request.Instance)
                      return Response.Instance;
 
-private
-   function Generate_Response (Request : Black.Request.Instance)
-                               return Black.Response.Class;
-end Handlers.Call.Hangup;
+end Handlers.Call.Pickup_Next;

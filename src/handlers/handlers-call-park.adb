@@ -15,7 +15,10 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with GNATCOLL.JSON;
+
 with Model.Call,
+     Model.User,
      PBX,
      PBX.Action,
      Request_Utilities,
@@ -75,5 +78,64 @@ package body Handlers.Call.Park is
             Context => Context);
          return Response.Templates.Server_Error (Request);
    end Generate_Response;
+
+   ---------------
+   --  Handler  --
+   ---------------
+
+   function Handler (Client_Request : in Request.Instance)
+                     return Response.Instance is
+      use GNATCOLL.JSON;
+      use Model.Call;
+      use Model.User;
+
+      --  Context : constant String := Package_Name & ".Handler";
+
+      Response_Body : constant JSON_Value := Create_Object;
+
+   begin
+
+      declare
+         User    : Model.User.Instance renames Client_Request.User;
+         Call_ID : constant Model.Call.Identification :=
+           Value (Client_Request.Parameter ("call_id"));
+         Call    : constant Model.Call.Instance :=
+           Model.Call.Get (Call => Call_ID);
+      begin
+         if
+           Call.Assigned_To = Client_Request.User.Identification
+         or
+           Client_Request.User.Permissions (Administrator)
+         then
+
+            PBX.Action.Park (Target  => Call_ID,
+                             At_User => User);
+
+            Response_Body.Set_Field
+              ("message", Call_ID.Image & " parked.");
+            Response_Body.Set_Field
+              ("call", Model.Call.Get (Call => Call_ID).To_JSON);
+            return Response.Create
+              (Status      => Response.Success,
+               With_Body   => Response_Body);
+         else
+            return Response.Create
+              (Status      => Response.Permission_Denied,
+               Description => "Permission denied.");
+         end if;
+      end;
+
+   exception
+
+      when Model.Call.Not_Found =>
+         return Response.Create
+           (Status      => Response.Not_Found,
+            Description => "Call not found");
+
+      when Constraint_Error =>
+         return Response.Create
+           (Status      => Response.Bad_Request,
+            Description => "Bad parameters.");
+   end Handler;
 
 end Handlers.Call.Park;

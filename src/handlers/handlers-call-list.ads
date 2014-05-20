@@ -21,11 +21,15 @@ with HTTP,
      Black.Request,
      Black.Response;
 
+with Response;
+
 package Handlers.Call.List is
 
    Package_Name : constant String := "Handlers.Call.List";
 
    function Callback return HTTP.Callback;
+
+   function Handler return Response.Instance;
 
 private
    function Generate_Response (Request : Black.Request.Instance)

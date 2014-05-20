@@ -28,6 +28,8 @@ with HTTP,
      Black.Request,
      Black.Response;
 
+with Request, Response;
+
 package Handlers.Call.Transfer is
    package Client renames Black;
    package Server renames Black;
@@ -35,6 +37,9 @@ package Handlers.Call.Transfer is
    Package_Name : constant String := "Handlers.Call.Transfer";
 
    function Callback return HTTP.Callback;
+
+   function Handler (Client_Request : in Request.Instance)
+                     return Response.Instance;
 
 private
    function Generate_Response (Request : Black.Request.Instance)

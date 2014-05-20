@@ -49,4 +49,23 @@ package body Handlers.Call.List is
          return Response.Templates.Server_Error (Request);
    end Generate_Response;
 
+   ---------------
+   --  Handler  --
+   ---------------
+
+   function Handler return Response.Instance is
+      Context : constant String := Package_Name & ".Handler";
+   begin
+      return Response.Create
+        (Status    => Response.Success,
+         With_Body => Model.Call.List);
+   exception
+      when E : others =>
+         System_Messages.Critical_Exception
+           (Event           => E,
+            Message         => "Listing calls failed.",
+            Context => Context);
+         raise;
+   end Handler;
+
 end Handlers.Call.List;
