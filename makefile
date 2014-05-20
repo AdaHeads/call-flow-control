@@ -41,7 +41,7 @@ all: build
 build: fix-whitespace $(GENERATED_SOURCES)
 	gnatmake -j$(PROCESSORS) -p -P $(PROJECT)
 
-install: test
+install:
 	@install --directory        $(PREFIX)/bin
 	@install --target-directory=$(PREFIX)/bin $(GENERATED_EXECUTABLES)
 
@@ -57,7 +57,7 @@ git-head: all
 	for exe in $(GENERATED_EXECUTABLES); do cp -p $${exe} $${exe}-$(RELEASE)-$(GIT_REV); done
 	echo $(PROJECT)-$(RELEASE)-$(GIT_REV) > release.latest
 
-test: build metrics
+test: build
 	@./tests/build
 	@./tests/run
 
