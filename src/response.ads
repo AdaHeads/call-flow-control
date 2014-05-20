@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --                                                                           --
---                     Copyright (C) 2012-, AdaHeads K/S                     --
+--                     Copyright (C) 2014-, AdaHeads K/S                     --
 --                                                                           --
 --  This is free software;  you can redistribute it and/or modify it         --
 --  under terms of the  GNU General Public License  as published by the      --
@@ -15,8 +15,13 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Unbounded;
+
+with GNATCOLL.JSON;
+
 package Response is
-   pragma Pure (Response);
+   use Ada.Strings.Unbounded;
+   use GNATCOLL.JSON;
 
    Status_Text                  : constant String := "status";
    Bad_Parameters_Response_Text : constant String := "bad parameters";
@@ -27,5 +32,27 @@ package Response is
    Server_Error_Response_Text   : constant String := "unhandled exception";
 
    Description_Text             : constant String := "description";
+
+   type Statuses is (Unknown_Resource, Bad_Request, Permission_Denied,
+                     Not_Found, Internal_Error, Success);
+
+   type Instance is tagged
+      record
+         Keep_Open    : Boolean  := False;
+         Status       : Statuses := Internal_Error;
+         Description  : Unbounded_String;
+         Current_Body : JSON_Value;
+      end record;
+
+   function Create (Status      : in Statuses;
+                    Description : in String     := "";
+                    With_Body   : in JSON_Value := Create_Object)
+                    return Instance;
+
+   function To_JSON_String (Object : in Instance) return String;
+
+   function To_JSON (Object : in Instance) return JSON_Value;
+
+   function Image (Object : in Instance) return String;
 
 end Response;
