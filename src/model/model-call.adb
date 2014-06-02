@@ -597,6 +597,7 @@ package body Model.Call is
                   if    Available_For_User (Prospected_Call) and
                         Prospected_Call.Is_Call              and
                         Prospected_Call.Inbound              and
+                        Prospected_Call.State /= Parked      and
                     not Prospected_Call.Locked
                   then
                      Call_List.Update (Prospected_Call.ID, Assign'Access);
